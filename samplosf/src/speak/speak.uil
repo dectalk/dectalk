@@ -1,0 +1,910 @@
+! 
+! @DEC_COPYRIGHT@
+!
+! HISTORY
+! MGS 11/20/1997	Added Menu UK menu item
+! MGS 03/29/2001	Added French menu item
+! Revision 1.1.2.2  1995/07/05  18:16:16  Krishna_Mangipudi
+! 	Moved from ./src/cleints
+! 	[1995/07/05  18:15:56  Krishna_Mangipudi]
+!
+! Revision 1.2.2.2  1994/11/07  22:41:38  Krishna_Mangipudi
+! 	Initial Check-in
+! 	[1994/11/07  22:12:02  Krishna_Mangipudi]
+! 
+! Revision 1.2  1994/11/04  18:33:29  root
+! 	Initial load of project
+!
+! 1.3 08/06/1997 MGS Changed default rate to 200 and added
+!    multi language code
+! 
+! $EndLog$
+! 
+!**************************************************************************
+!**
+!**  Copyright (c) Digital Equipment Corporation, 1993 All Rights Reserved.
+!**  Unpublished rights reserved under the copyright laws of the United States.
+!**  The software contained on this media is proprietary to and embodies the
+!**  confidential technology of Digital Equipment Corporation.  Possession, use,
+!**  duplication or dissemination of the software and media is authorized only
+!**  pursuant to a valid written license from Digital Equipment Corporation.
+!**
+!**  RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the U.S.
+!**  Government is subject to restrictions as set forth in Subparagraph
+!**  (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, as applicable.
+!***************************************************************************
+!**************************************************************************
+!**  PROGRAM:
+!**    speak.uil
+!**
+!**  ABSTRACT:
+!**     
+!**     This is the UIL file that goes with speak.c.  It contains a 
+!**     description of the widgets used and the callback routines 
+!**     associated with them.
+!**
+!**  ENVIRONMENT:
+!**
+!**      OSF/1 AXP
+!**
+!**  AUTHOR(S):
+!**
+!**     DAVE (Dectalk Audio Visual Engineer)
+!**
+!**
+!***************************************************************************
+module speak2
+	names = case_sensitive
+	objects = {
+!		XmPushButton = gadget;
+!		XmToggleButton = gadget;
+	}
+
+procedure
+	ChangeState();
+	ProcessName(integer);
+	FileMenuSelect(integer);
+	EditMenuSelect(integer);
+	LangMenuSelect(integer);
+        TextWidgetModified();
+        ProcessSave();
+        QuitProc();
+	PauseButtonSelect(integer);
+	SpeakerMenuSelect(integer);
+	CancelPrompt();
+	ContinuePrompt();
+	WidgetCreate(integer);
+	WidgetCreateBitmap(integer);
+	UpdateSpeakingRate();
+
+value
+	file_label_text 	: "File";
+	open_button_text 	: "Open Text File...";
+	load_button_text 	: "Load User Dictionary...";
+	unload_button_text 	: "Unload User Dictionary";
+        savewave_button_text 	: "Convert to Wave File...";
+        save_button_text 	: "Save";
+        saveas_button_text 	: "Save as...";
+	exit_button_text 	: "Exit";
+	edit_label_text 	: "Edit";
+	undo_button_text 	: "Undo";
+	cut_button_text 	: "Cut";
+	copy_button_text 	: "Copy";
+	paste_button_text 	: "Paste";
+	delete_button_text 	: "Delete";
+	selectall_button_text 	: "Select All";
+	help_label_text 	: "Help";
+	open_error_text 	: "Can't Open Specified Text File.";
+        load_error_text 	: "Can't Open Specified Library File.";
+        saveas_error_text 	: "Can't Open Specified File.";
+        savewave_error_text 	: "Can't Open Specified .wav File.";
+	speaking_rate_title 	: "Speaking Rate";
+	pause_dialog_text 	: "Speak paused";
+	index_dialog_text 	: "Index Callback";
+	default_speaker_label_text : "Current Settings: Paul speaking at 200 words per minute";
+	default_speaking_rate_value : "200 WPM";
+	menu_language_text	: "Language";
+	menu_english_text	: "English";
+	menu_british_text	: "British";
+	menu_spanish_text	: "Spanish";
+	menu_german_text	: "German";
+	menu_latin_american_text	: "Latin American";
+	menu_french_text	: "French";
+	
+
+value
+	menu_open 		: 1;
+	menu_loaddic 		: 2;
+	menu_unloaddic 		: 3;
+        menu_savewave 		: 4;
+        menu_save		: 5;
+        menu_saveas 		: 6;
+	menu_exit 		: 7;
+	menu_undo 		: 8;
+	menu_cut 		: 9;
+	menu_copy 		: 10;
+	menu_paste 		: 11;
+	menu_delete 		: 12;
+	menu_selectall 		: 13;
+        menu_save1M16 		: 14;
+        menu_save1M08 		: 15;
+        menu_save08M08 		: 16;
+	menu_english		: 17;
+	menu_british		: 21;
+	menu_spanish		: 18;
+	menu_german		: 19;
+	menu_latin_american	: 20;
+	menu_french		: 19;
+
+value
+	STOP  			: 0;
+	PLAY  			: 1;
+	PAUSE 			: 2;
+	SRATE 			: 3;
+	TEXT  			: 4;
+	SLABL 			: 5;
+	SRATEVALUE 		: 6;
+
+value
+	PAUL       	        : 0;
+	BETTY    	        : 1;
+	HARRY         	        : 2;
+	FRANK        	        : 3;
+	DENNIS      	        : 4;
+	KIT        	        : 5;
+	URSULA      	        : 6;
+	RITA         	        : 7;
+	WENDY   	        : 8;
+
+value
+    red: color('red');
+    lightgrey: color('lightgrey');
+    yellow: color('yellow', foreground);
+    green: color('green', foreground);
+    magenta: rgb(51117,831,43440);
+    gold: color('gold', foreground);
+    lightblue: color('lightblue', background);
+    steelblue: color('steelblue', foreground);
+    white: color('white', foreground);
+    blue: color('blue', foreground);
+    black: color('black', foreground);
+    button_ct: color_table(background color = ' ',
+        foreground color = '*',
+        black = 'B',
+        white = 'w',
+        yellow = 'y',
+        red = 'r',
+        blue = 'b',
+        lightgrey = 'G',
+        green = 'g',
+	steelblue = 's');
+
+
+value
+    true_stop_icon: icon(color_table = button_ct,
+        '                                   ',
+        '                                   ',
+        '          BBBBBBBBBBBBBBB          ',
+        '         BrrrrrrrrrrrrrrrB         ',
+        '        BrrrrrrrrrrrrrrrrrB        ',
+        '       BrrrrrrrrrrrrrrrrrrrB       ',
+        '      BrrrrrrrrrrrrrrrrrrrrrB      ',
+        '     BrrrrrrrrrrrrrrrrrrrrrrrB     ',
+        '    BrrrrrrrrrrrrrrrrrrrrrrrrrB    ',
+        '   BrrrrrrrrrrrrrrrrrrrrrrrrrrrB   ',
+        '   BrrwwwwwrwwwwwrwwwwwrwwwwwrrB   ',
+        '   BrrwrrrrrrrwrrrwrrrwrwrrrwrrB   ',
+        '   BrrwrrrrrrrwrrrwrrrwrwrrrwrrB   ',
+        '   BrrwwwwwrrrwrrrwrrrwrwwwwwrrB   ',
+        '   BrrrrrrwrrrwrrrwrrrwrwrrrrrrB   ',
+        '   BrrrrrrwrrrwrrrwrrrwrwrrrrrrB   ',
+        '   BrrwwwwwrrrwrrrwwwwwrwrrrrrrB   ',
+        '    BrrrrrrrrrrrrrrrrrrrrrrrrrB    ',
+        '     BrrrrrrrrrrrrrrrrrrrrrrrB     ',
+        '      BrrrrrrrrrrrrrrrrrrrrrB      ',
+        '       BrrrrrrrrrrrrrrrrrrrB       ',
+        '        BrrrrrrrrrrrrrrrrrB        ',
+        '         BrrrrrrrrrrrrrrrB         ',
+        '          BBBBBBBBBBBBBBB          ',
+        '                                   ',
+        '                                   ');
+
+value
+   stop_icon: icon(color_table = button_ct,
+        '                                  ',
+        '                                  ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '    ssssssssssssssssssssssssss    ',
+        '                                  ',
+        '                                  ');
+
+value
+    pause_icon: icon(color_table = button_ct,
+        '                                   ',
+        '                                   ',
+        '     sssssssss       sssssssss     ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '    sssssssssss     sssssssssss    ',
+        '     sssssssss       sssssssss     ',
+        '                                   ',
+        '                                   ');
+
+
+
+object play_main : XmPanedWindow {
+	controls {
+		XmForm form;
+	};
+};
+
+object form : XmForm {
+	controls {
+		XmMenuBar 	menu_bar;
+		XmRowColumn 	speaker_rowcolumn;
+		! XmLabel 	speaker_label;
+		XmScrolledText 	text_1;
+		XmLabel		speaking_rate_label;
+		XmScale 	speaking_rate;
+		XmLabel 	speaking_value_label;
+		XmPushButton 	stop_button;
+		XmArrowButton 	play_button;
+		XmPushButton 	pause_button;
+	};
+};
+
+!***************************************************************************
+!*	Menubar definition
+!***************************************************************************
+
+object menu_bar : XmMenuBar {
+	arguments {
+		XmNleftAttachment 	= XmATTACH_FORM;
+		XmNrightAttachment 	= XmATTACH_FORM;
+		XmNtopAttachment 	= XmATTACH_FORM;
+		XmNshadowThickness 	= 3;
+                XmNspacing 		= 20; 
+	};
+	controls {
+		XmCascadeButton file_button;
+		XmCascadeButton edit_button;
+		XmCascadeButton lang_button;
+	};
+};
+
+object file_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = file_label_text;
+	};
+	controls {
+		XmPulldownMenu file_menu;
+	};
+};
+
+object file_menu : XmPulldownMenu {
+	controls {
+		XmPushButton open_button;
+		XmSeparator  {};
+		XmPushButton loaddic_button;
+		XmPushButton unloaddic_button;
+		XmSeparator  {};
+                XmCascadeButton savewave_button;
+                XmPushButton save_button;
+                XmPushButton saveas_button;
+		XmSeparator  {};
+		XmPushButton exit_button;
+	};
+};
+
+!***************************************************************************
+!*	File Pulldown Menu
+!***************************************************************************
+
+object open_button : XmPushButton {
+	arguments {
+		XmNlabelString = open_button_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_open);
+	};
+};
+
+object loaddic_button : XmPushButton {
+	arguments {
+		XmNlabelString = load_button_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_loaddic);
+	};
+};
+
+object unloaddic_button : XmPushButton {
+	arguments {
+		XmNlabelString = unload_button_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_unloaddic);
+	};
+};
+
+object savewave_button : XmCascadeButton {
+        arguments {
+                XmNlabelString = savewave_button_text;
+        };
+	controls {
+	    XmPulldownMenu {
+		controls {
+                    XmPushButton mono11_16_button;
+                    XmPushButton mono11_8_button;
+                    XmPushButton mono8_8_button;
+		};
+	    };
+	};
+};
+
+object save_button : XmPushButton {
+        arguments {
+                XmNlabelString 		= save_button_text;
+        };
+        callbacks {
+                XmNactivateCallback = procedure FileMenuSelect(menu_save);
+        };
+};
+
+object mono11_16_button : XmPushButton {
+        arguments {
+                XmNlabelString 		= "Mono 11.025kHz, 16-Bit";
+        };
+        callbacks {
+                XmNactivateCallback = procedure FileMenuSelect(menu_save1M16);
+        };
+};
+object mono11_8_button : XmPushButton {
+        arguments {
+                XmNlabelString 		= "Mono 11.025kHz, 8-Bit";
+        };
+        callbacks {
+                XmNactivateCallback = procedure FileMenuSelect(menu_save1M08);
+        };
+};
+object mono8_8_button : XmPushButton {
+        arguments {
+                XmNlabelString 		= "Mono 8kHz, uLaw";
+        };
+        callbacks {
+                XmNactivateCallback  = procedure FileMenuSelect(menu_save08M08);
+        };
+};
+
+object saveas_button : XmPushButton {
+        arguments {
+                XmNlabelString 		= saveas_button_text;
+        };
+        callbacks {
+                XmNactivateCallback 	= procedure FileMenuSelect(menu_saveas);
+        };
+};
+
+object exit_button : XmPushButton {
+	arguments {
+		XmNlabelString 		= exit_button_text;
+		XmNaccelerator  	= "Ctrl<Key>z";
+		XmNacceleratorText  	= "Ctrl/Z";
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_exit);
+	};
+};
+
+!***************************************************************************
+!*	Edit Pulldown Menu
+!***************************************************************************
+
+object edit_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = edit_label_text;
+	};
+	controls {
+		XmPulldownMenu edit_menu;
+	};
+};
+
+object edit_menu : XmPulldownMenu {
+	controls {
+		XmPushButton undo_button;
+		XmSeparator  {};
+		XmPushButton cut_button;
+		XmPushButton copy_button;
+                XmPushButton paste_button;
+                XmPushButton delete_button;
+		XmSeparator  {};
+                XmPushButton selectall_button;
+	};
+};
+
+
+object undo_button : XmPushButton {
+	arguments {
+		XmNlabelString		= undo_button_text;
+		XmNaccelerator		= "Ctrl<Key>u";
+		XmNacceleratorText	= "Ctrl/U";
+		XmNsensitive  		= false;
+	};
+	callbacks {
+		MrmNcreateCallback 	= procedure WidgetCreate(menu_undo);
+		XmNactivateCallback	= procedure EditMenuSelect(menu_undo);
+	};
+};
+
+object cut_button : XmPushButton {
+	arguments {
+		XmNlabelString		= cut_button_text;
+		XmNaccelerator  	= "Ctrl<Key>t";
+		XmNacceleratorText  	= "Ctrl/T";
+		XmNsensitive  		= false;
+	};
+	callbacks {
+		MrmNcreateCallback 	= procedure WidgetCreate(menu_cut);
+		XmNactivateCallback	= procedure EditMenuSelect(menu_cut);
+	};
+};
+
+object copy_button : XmPushButton {
+	arguments {
+		XmNlabelString		= copy_button_text;
+		XmNaccelerator 		= "Ctrl<Key>c";
+		XmNacceleratorText  	= "Ctrl/C";
+		XmNsensitive  		= false;
+	};
+	callbacks {
+		MrmNcreateCallback 	= procedure WidgetCreate(menu_copy);
+		XmNactivateCallback	= procedure EditMenuSelect(menu_copy);
+	};
+};
+
+object paste_button : XmPushButton {
+	arguments {
+		XmNlabelString		= paste_button_text;
+		XmNaccelerator  	= "Ctrl<Key>p";
+		XmNacceleratorText  	= "Ctrl/P";
+		XmNsensitive  		= false;
+	};
+	callbacks {
+		MrmNcreateCallback 	= procedure WidgetCreate(menu_paste);
+		XmNactivateCallback = procedure EditMenuSelect(menu_paste);
+	};
+};
+
+object delete_button : XmPushButton {
+	arguments {
+		XmNlabelString		= delete_button_text;
+		XmNaccelerator  	= "Ctrl<Key>d";
+		XmNacceleratorText  	= "Ctrl/D";
+		XmNsensitive  		= false;
+	};
+	callbacks {
+		MrmNcreateCallback  = procedure WidgetCreate(menu_delete);
+		XmNactivateCallback = procedure EditMenuSelect(menu_delete);
+	};
+};
+
+object selectall_button : XmPushButton {
+	arguments {
+		XmNlabelString		= selectall_button_text;
+		XmNaccelerator  	= "Ctrl<Key>a";
+		XmNacceleratorText  	= "Ctrl/A";
+		XmNsensitive  		= true;
+	};
+	callbacks {
+		MrmNcreateCallback  = procedure WidgetCreate(menu_selectall);
+		XmNactivateCallback = procedure EditMenuSelect(menu_selectall);
+	};
+};
+
+
+!**************************************************************************
+!*      Language Menu
+!**************************************************************************
+
+object lang_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = menu_language_text;
+	};
+	controls {
+		XmPulldownMenu lang_menu;
+	};
+};
+
+object lang_menu : XmPulldownMenu {
+	controls {
+		XmPushButton english_button;
+		XmPushButton british_button;
+		XmPushButton spanish_button;
+		XmPushButton german_button;
+		XmPushButton latin_american_button;
+		XmPushButton french_button;
+	};
+};
+
+object english_button : XmPushButton {
+	arguments {
+		XmNlabelString = menu_english_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure LangMenuSelect(menu_english);
+	};
+};
+
+object british_button : XmPushButton {
+	arguments {
+		XmNlabelString = menu_british_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure LangMenuSelect(menu_british);
+	};
+};
+
+object spanish_button : XmPushButton {
+	arguments {
+		XmNlabelString = menu_spanish_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure LangMenuSelect(menu_spanish);
+	};
+};
+
+object german_button : XmPushButton {
+	arguments {
+		XmNlabelString = menu_german_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure LangMenuSelect(menu_german);
+	};
+};
+
+object latin_american_button : XmPushButton {
+	arguments {
+		XmNlabelString = menu_latin_american_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure LangMenuSelect(menu_latin_american);
+	};
+};
+
+object french_button : XmPushButton {
+	arguments {
+		XmNlabelString = menu_french_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure LangMenuSelect(menu_french);
+	};
+};
+
+
+
+!***************************************************************************
+!*	Speaker Row Column 
+!***************************************************************************
+
+object speaker_rowcolumn : XmRowColumn {
+	arguments {
+		XmNorientation		= XmHORIZONTAL;
+		XmNleftAttachment 	= XmATTACH_FORM;
+		XmNtopAttachment 	= XmATTACH_WIDGET;
+		XmNtopWidget 		= menu_bar;
+                XmNradioBehavior        = true;
+	};
+	callbacks {
+		MrmNcreateCallback = procedures {
+			WidgetCreateBitmap( PAUL );
+			WidgetCreateBitmap( BETTY );
+			WidgetCreateBitmap( HARRY );
+			WidgetCreateBitmap( FRANK );
+			WidgetCreateBitmap( DENNIS );
+			WidgetCreateBitmap( KIT );
+			WidgetCreateBitmap( URSULA );
+			WidgetCreateBitmap( RITA );
+			WidgetCreateBitmap( WENDY );
+	        };
+	};
+};
+
+
+!***************************************************************************
+!*   Label line telling the user of the current settings. 
+!***************************************************************************
+
+object speaker_label : XmLabel {
+	arguments {
+		XmNleftAttachment 	= XmATTACH_FORM;
+!		XmNrightAttachment 	= XmATTACH_FORM;
+		XmNtopAttachment 	= XmATTACH_WIDGET;
+		XmNtopWidget 		= speaker_rowcolumn;
+		XmNlabelString 		= default_speaker_label_text;
+	};
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(SLABL);
+	};
+};
+
+!***************************************************************************
+!*    Window portion to hold editable text 
+!***************************************************************************
+
+
+object    text_1 : XmScrolledText {
+        arguments {
+		XmNleftAttachment 	= XmATTACH_FORM;
+		XmNrightAttachment 	= XmATTACH_FORM;
+		XmNtopAttachment 	= XmATTACH_WIDGET;
+		! XmNtopWidget 		= speaker_label;
+		XmNtopWidget 		= speaker_rowcolumn;
+		XmNcolumns 		= 60;
+		XmNrows 		= 24;
+		XmNvalue = "";
+		XmNresizeWidth 		= true;
+		XmNresizeHeight 	= true;
+		XmNeditMode 		= XmMULTI_LINE_EDIT;
+		XmNshadowThickness 	= 3;
+        };
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(TEXT);
+                XmNvalueChangedCallback = procedure TextWidgetModified();
+	};
+    };
+
+object speaking_rate_label : XmLabel {
+	arguments {
+                XmNtopAttachment 	= XmATTACH_WIDGET;
+		XmNtopWidget 		= text_1;
+		XmNtopOffset 		= 10;
+                XmNleftAttachment 	= XmATTACH_FORM;
+		XmNleftOffset 		= 10;
+		XmNbottomAttachment 	= XmATTACH_FORM;
+		XmNbottomOffset 	= 10;
+		XmNlabelString 		= speaking_rate_title;
+		};
+};
+
+object speaking_rate : XmScale {
+	arguments {
+                XmNleftAttachment 	= XmATTACH_WIDGET;
+		XmNleftWidget 		= speaking_rate_label;
+		XmNbottomAttachment 	= XmATTACH_FORM;
+		XmNbottomOffset 	= 10;
+		XmNorientation 		= XmHORIZONTAL;
+	!	XmNtitleString 		= speaking_rate_title;
+		XmNhighlightThickness 	= 0;
+		XmNminimum 		= 75;
+		XmNmaximum 		= 600;
+		XmNvalue 		= 200;
+		XmNshowValue 		= false;
+		XmNshadowThickness 	= 3;
+		XmNscaleHeight 		= 25;
+	};
+	callbacks {
+		XmNvalueChangedCallback = procedure UpdateSpeakingRate();
+		MrmNcreateCallback = procedure WidgetCreate(SRATE);
+	};
+};
+
+object speaking_value_label : XmLabel {
+	arguments {
+                XmNleftAttachment 	= XmATTACH_WIDGET;
+		XmNleftWidget 		= speaking_rate;
+		XmNbottomAttachment 	= XmATTACH_FORM;
+		XmNbottomOffset 	= 10;
+		XmNlabelString 		= default_speaking_rate_value;
+		};
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(SRATEVALUE);
+	};
+};
+
+object play_button : XmArrowButton {
+	arguments {
+		XmNarrowDirection	= XmARROW_RIGHT;
+		XmNmultiClick		= XmMULTICLICK_DISCARD;
+		XmNwidth		= 90;
+		XmNheight		= 35;
+		XmNbottomAttachment 	= XmATTACH_FORM;
+		XmNbottomOffset 	= 5;
+		XmNrightAttachment 	= XmATTACH_WIDGET;
+		XmNrightWidget 		= pause_button;
+		!XmNforeground 		= color('black');
+		!XmNbackground 		= color('white');
+		!XmNtopShadowColor 	= color('lightblue');
+		!XmNbottomShadowColor 	= color('steelblue');
+		XmNshadowThickness 	= 3;
+		XmNhighlightThickness 	= 0;
+	};
+	callbacks {
+		MrmNcreateCallback 	= procedure WidgetCreate(PLAY);
+		XmNactivateCallback 	= procedure ChangeState();
+	};
+};
+
+object pause_button : XmPushButton {
+	arguments {
+		XmNlabelType 		= XmPIXMAP;
+		XmNlabelPixmap 		= pause_icon;
+		XmNrightAttachment 	= XmATTACH_WIDGET;
+		XmNrightWidget 		= stop_button;
+		XmNbottomAttachment 	= XmATTACH_FORM;
+		XmNbottomOffset 	= 5;
+		!XmNtopShadowColor 	= color('lightblue');
+		!XmNbottomShadowColor 	= color('steelblue');
+		XmNshadowThickness 	= 3;
+		XmNmarginWidth 		= 20;
+		XmNhighlightThickness 	= 0;
+	};
+	callbacks {
+		MrmNcreateCallback 	= procedure WidgetCreate(PAUSE);
+		XmNactivateCallback 	= procedure PauseButtonSelect(PAUSE);
+	};
+};
+
+object stop_button : XmPushButton {
+	arguments {
+		XmNrightAttachment 	= XmATTACH_FORM;
+		XmNrightOffset 		= 10;
+		XmNbottomAttachment 	= XmATTACH_FORM;
+		XmNbottomOffset 	= 5;
+		XmNlabelType 		= XmPIXMAP;
+		XmNlabelPixmap 		= stop_icon;
+		!XmNtopShadowColor 	= color('lightblue');
+		!XmNbottomShadowColor 	= color('steelblue');
+		XmNshadowThickness 	= 3;
+		XmNhighlightThickness 	= 0;
+		XmNmarginWidth 		= 20;
+	};
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(STOP);
+		XmNactivateCallback = procedure ChangeState();
+	};
+};
+
+!**************************************************************************
+!* 	Popups that are called from within the speak source program.
+!**************************************************************************
+
+object open_fs_box : XmFileSelectionDialog {
+	arguments {
+		XmNdirMask	= "*.txt";
+		XmNdialogTitle	= "Open Text FileSelection";
+	};
+	callbacks {
+		XmNcancelCallback = procedure CancelPrompt();
+		XmNokCallback = procedure ProcessName(menu_open);
+	};
+};
+
+object loaddic_fs_box : XmFileSelectionDialog {
+	arguments {
+		XmNdirMask	= "*.dic";
+		XmNdialogTitle	= "Load User Dictionary FileSelection";
+	};
+        callbacks {
+                XmNcancelCallback = procedure CancelPrompt();
+                XmNokCallback = procedure ProcessName(menu_loaddic);
+        };
+};
+
+object savewave_fs_box : XmFileSelectionDialog {
+	arguments {
+		XmNdirMask	= "*.wav";
+		XmNdialogTitle	= "Save .WAV FileSelection";
+	};
+        callbacks {
+                XmNcancelCallback = procedure CancelPrompt();
+                XmNokCallback = procedure ProcessName(menu_savewave);
+        };
+};
+
+object saveas_fs_box : XmFileSelectionDialog {
+	arguments {
+		XmNdirMask	= "*.txt";
+		XmNdialogTitle	= "Save As FileSelection";
+	};
+        callbacks {
+                XmNcancelCallback = procedure CancelPrompt();
+                XmNokCallback = procedure ProcessName(menu_saveas);
+        };
+};
+
+
+object pause_dialog : XmMessageDialog {
+	arguments {
+		XmNmessageString = pause_dialog_text;
+                XmNdialogTitle  = "speak";
+		XmNokLabelString = "Continue";
+	};
+	callbacks {
+		XmNokCallback = procedure ContinuePrompt();
+	};
+};
+
+object index_CB_dialog : XmMessageDialog {
+        arguments {
+                XmNmessageString = index_dialog_text;
+                XmNokLabelString = "Continue";
+        };
+};
+ 
+object open_error : XmErrorDialog {
+	arguments {
+		XmNmessageString = open_error_text;
+	};
+};
+
+object loaddic_error : XmErrorDialog {
+        arguments {
+                XmNmessageString = load_error_text;
+        };
+};
+
+object saveas_error : XmErrorDialog {
+        arguments {
+                XmNmessageString = saveas_error_text;
+        };
+};
+
+object savewave_error : XmErrorDialog {
+        arguments {
+                XmNmessageString = savewave_error_text;
+        };
+};
+
+object save_onexit : XmQuestionDialog {
+        arguments {
+                XmNnoResize = true;
+                XmNdialogTitle = "speak: Quit?";
+                XmNdialogStyle = XmDIALOG_FULL_APPLICATION_MODAL;
+                XmNmessageString = "Do you want to save the file?";
+                XmNdefaultPosition = true;
+                XmNokLabelString = "Yes";
+                XmNhelpLabelString = "No";
+       };
+       callbacks {
+                XmNokCallback = procedure ProcessSave();
+                XmNhelpCallback = procedure QuitProc();
+      };
+};
+
+end module;
+
+

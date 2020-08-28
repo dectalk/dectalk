@@ -1,0 +1,41 @@
+# Nmake macros for building Windows 32-Bit apps
+
+#CPU = i386
+
+!IFDEF claxp
+Compiler=claxp
+cuserdefs = $(cuserdefs) -Oi -d2O3 -Ob1 -Op- -d2"switch old_linker"
+!ELSE
+Compiler=acc
+!ENDIF
+
+!include <ntwin32.mak>
+
+all: ttssrv.exe
+
+# Update the object files if necessary
+
+
+!IFDEF claxp
+ttssrv.obj: ttssrv.c
+    $(cc) $(cflags) $(cvars) $(cdebug) ttssrv.c
+!ELSE
+ttssrv.obj: ttssrv.c
+    $(cc) $(cflags) $(cvars) $(cdebug) ttssrv.c
+#    a2coff ttssrv.o
+#    rename ttssrv.o ttssrv.obj
+!ENDIF
+
+# Update the resources if necessary
+
+ttssrv.res: ttssrv.rc ttssrv.h
+    $(rc) $(rcvars) -r ttssrv.rc
+
+ttssrv.rbj: ttssrv.res
+    cvtres -$(CPU) ttssrv.res -o ttssrv.rbj
+
+# Update the executable file if necessary.
+# If so, add the resource back in.
+
+ttssrv.exe: ttssrv.obj dectalk.lib ttssrv.rbj
+    $(link) $(linkdebug) $(guiflags) -out:ttssrv.exe ttssrv.obj dectalk.lib ttssrv.rbj $(guilibs) shell32.lib advapi32.lib

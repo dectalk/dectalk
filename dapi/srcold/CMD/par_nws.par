@@ -1,0 +1,684 @@
+;/*
+; ***********************************************************************
+; *
+; *                           Coryright (c)
+; *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+; *
+; *    Restricted Rights: Use, duplication, or disclosure by the U.S.
+; *    Government is subject to restrictions as set forth in subparagraph
+; *    (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
+; *    52.227-14 Alt. III, as applicable.
+; *
+; *    This software is proprietary to and embodies the confidential
+; *    technology of Digital Equipment Corporation and other parties.
+; *    Possession, use, or copying of this software and media is authorized
+; *    only pursuant to a valid written license from Digital or an
+; *    authorized sublicensor.
+; *
+; ***********************************************************************
+; *    File Name:   nws_rule.par
+; *    Author:		Matthew Schnee
+; *    Creation Date:10/15/97
+; *
+; *    Functionality:
+; *             NWS Text preprocessor main file
+; *
+; ***********************************************************************
+; *    Revision History:                    
+; *
+; * Rev     Who     Date            Description
+; * ---     -----   -----------     ---------------------------------------
+; * 001     MGS     05/15/1996      File Created
+; * 002		MGS		11/07/1997		Changed the ... rules to only hit on three or four dots
+; *									2 dots is an abbrevition with an end of clause.
+; * 003		MGS		12/02/1997		Fixed A.M. it sounded like the word am
+; * 004	    MFG	    12/02/1997				Made i.e. say "I,E" instead of this is
+; * 005		MGS		12/22/1997		Fixed MPH -> miles per hour problem.
+; * 							added DM to a few rules (BATS#542).
+; * 006		MGS 		03/24/1998		BATS #625 fix NWS 0.05  zero point oh five problem 
+; * 007         GL              08/12/1998              BATS #744 add DM into R342 to fix the Lynchburg problem 
+; * 008		MGS		03/03/1999		BATS #744 Part of the fix for lynchburg
+; * 009		MGS 		06/22/1999 		BATS #902 removed DM from EST rule
+; */
+;
+[RULE]
+STOP,R650
+
+[RULE]
+
+; .this
+; .this...
+; .this...that
+; .this...that...
+
+;rule to delete the beginning dot at the front of a forecast
+0xFFFFFFFF-0xFFFFFFFF:R2100;H2110,d/'.'/Ax<+>Wx~<*>
+
+
+; this...
+; this...that... 
+; this...that
+; this...that...other
+
+;rule to replace the ... with " , "
+0xFFFFFFFF-0xFFFFFFFF:R2110;H2115,Ax<+>b/S{'.'}<3-4>/' '/W~<*>
+
+; ...that
+; ...that...
+; ...that...this
+
+;rule to replace the ... with ", "
+0xFFFFFFFF-0xFFFFFFFF:R2115;H2125,a/S{'.'}<3-4>/' '/W~<*>
+; ...
+
+0xFFFFFFFF-0xFFFFFFFF:R2125,r/S{'.'}<3-4>/0x80','0x81/
+
+
+;punctuation all rules 000004
+
+0xFFFFFFFF-0x00000004:R0,a/P<1>/' '/
+; find a punctuation put spaces around it
+0xFFFFFFFF-0x00000004:R5;H0;DM,W~<*>b/a/P<1>/' '//' '/W~<*>
+
+;test "s" action
+;0xFFFFFFFF-0x00000032:R38,s/'tturn on!'/'1'/
+;0xFFFFFFFF-0x00000032:R39,s/'tturn off!'/'0'/
+
+; GL 03/11/1997 BATS#286 fix the right TYPE_quot problem
+; GL 04/02/1997 BATS#331 add " in this list
+; need to handle "(test)," and "(test)test" differently.
+0xFFFFFFFF-0x00000032:R31,o/d/'"'//S{W<+>,H<+>,'$','-','_',',','%','.'}<+>o/d/E<+>//d/S{')',']','>','}','"'}<+>/E<+>
+0xFFFFFFFF-0x00000032:R32,o/d/'"'//S{W<+>,H<+>,'$','-','_',',','%','.'}<+>o/E<+>/r/S{')',']','>','}','"'}<+>/' '/S{H<+>,'-','_'}<+>
+0xFFFFFFFF-0x00000032:R33,o/d/'"'//S{W<+>,H<+>,'$','-','_',',','%','.'}<+>o/E<+>/d/S{')',']','>','}','"'}<+>/
+
+; GL 05/14/1997 BATS#373,374,375,376 fix the e-mail parsing problem
+; force to spell VMS mail node
+0xFFFFFFFF-0x00000032:R34,a/i/H<+>'::'/' '//' '/H<*>
+
+; GL 04/07/1997 BATS#343 fix "3:23pm" problem
+; let the time string flow through
+0xFFFFFFFF-0x00000032:R39;H120,D[0-24]':'D[0-59]b/r/S{`a.m.`,`p.m.`,`am`,`pm`}<1>/'am'|'pm'|'am'|'pm'//' '/
+
+; GL 08/14/1997 BATS#441 fix "-3.14" problem
+; let the number flow through
+;!0xFFFFFFFF-0x00000032:R40,S{D<+>,'.','\,'}<+>
+0xFFFFFFFF-0x00000032:R40,o/S{'-','+'}<1>/S{D<+>,'.'D<+>,'\,'D<+>,'$'D<+>}<+>
+
+; let the time string  flow through
+0xFFFFFFFF-0x00000032:R41,D[0-23]':'D[0-59]o/':'D[0-59]/
+
+; let the money string  flow through
+0xFFFFFFFF-0x00000032:R42,'$'D<+>
+0xFFFFFFFF-0x00000032:R43,'$'D<+>'.'D<+>
+
+; change a.m. or  A.M. to "am", p.m. or P.M. to "pm"
+0xFFFFFFFF-0x00000032:R45,r/S{`a`,`p`}<1>/'eyh'|'p'/r/'.'/' '/`m`r/'.'/' '/
+
+; GL 03/17/1997  For BATS#297 add '&'
+; check abbreviation in domain directionary
+; for these abbr. with "."
+; MGS 12/22/1997 added DM
+0xFFFFFFFF-0x00000032:R49;DM,h/abbrp_words,S{A<1>,'.','/','\'','&'}<+>/r/$7/$9/|FAIL/
+
+; let the single upper case character like U.S.A. to go through
+0xFFFFFFFF-0x00000032:R44,S{U<1>'.'}<2-10>
+
+; turn the ":" become a long pulse. it make more sense
+;0xFFFFFFFF-0x00000032:R48,A<+>r/':'/'.'/
+
+;replace long(more than 4) symbol with a pause
+0xFFFFFFFF-0x00000032:R51,r/P<5-*>/' '0x80'.'0x81' '/
+
+; eat away single punctuation
+0xFFFFFFFF-0x00000032:R53,P<1>
+
+; take care of meaningful double punctuation  like "boom!,"
+; GL 04/02/1997 For BATS#328
+0xFFFFFFFF-0x00000032:R54;H56,A<+>S{'?','!'}<+>r/S{',','.'}<1>/' '0x80'.'0x81' '/
+
+; punct some multiple deletion  ??? -> ?   ... -> .
+;!0xFFFFFFFF-0x00000032:R55;H55,W~<*>($1,E<1>)d/S{$1}<+>/W~<*>
+
+; let something like "Inc.," to pass through without breaking
+0xFFFFFFFF-0x00000032:R56,A<+>'.,'
+
+; let ft.. go through
+0xFFFFFFFF-0x00000032:R58,A<+>'..'
+
+; punct some multiple deletion  ### -> #   ==== -> =
+0xFFFFFFFF-0x00000032:R57;H60,W~<*>($1,P<1>)d/S{$1}<+>/W~<*>
+; punct some rule. insert a space before all mid word puncutation
+; convert to end word punctuation
+0xFFFFFFFF-0x00000032:R60;H53;M63,W~<*>b/a/Ex<1>/' '//' '/W~<+>
+; convert to end word punctuation
+0xFFFFFFFF-0x00000032:R63;H53,W~<*>b/a/Tx<1>/' '//' '/W~<*>
+
+; convert to end word punctuation
+;!0xFFFFFFFF-0x00000032:R73;H74,a/P<+>/' '/W~<+>
+; punct some rule. delete all { < [ ( ' " before a word 
+;   probably unneeded but just in case or makes another rule unneeded
+;!0xFFFFFFFF-0x00000032:R74,h/punct_before_change,P<1>/r/$7/$9/|a/$7/' '//W~<*>
+
+;punctuation none mode   000001
+
+; punct none multiple deletion  ### -> #   ==== -> =
+0xFFFFFFFF-0x00000001:R100;H101,W~<*>($1,P<1>)d/S{$1}<+>/W~<*>
+; save clause mark at the end.
+0xFFFFFFFF-0x00000001:R101;M102;H120,S{A<+>,D<+>}<+>E<1>
+; replace a all punct with a space
+; avert lookahead for speed 
+0xFFFFFFFF-0x00000001:R102;H102;M120,W~<*>r/Px<+>/' '/W~<*>
+STOP,R120
+
+; replace "." with "dot", "/" with "slash"
+;0xFFFFFFFF-0x00000032:R130;H130,C<+>r/S{'.','/'}<1>/' dot '|' slash '/C<+>
+0x00000001-0x00000032:R130;H130,C<+>r/'.'/' dot '/W~<+>
+STOP,R140
+
+
+[RULE]
+;English Rules 0x00000001
+;Rule numbers 300 - 399
+;  /* 11-13 St. -> (11-13)th St. */
+;0x00000001-0xFFFFFFFF:R305,a/D[11-13]/'th'/W<+>S{`st.`,`ave.`,`dr.`}<1>
+;  /* 42 St. -> 42nd St. */
+;0x00000001-0xFFFFFFFF:R306,a/Dx<1-4>/'th'|'st'|'nd'|'rd'|'th'|'th'|'th'|'th'|'th'|'th'/r/W<1-4>/' '/S{`st.`,`ave.`,`dr.`}<1>
+
+;rule for 1030 pm -> 10:30 pm
+0xFFFFFFFF-0xFFFFFFFF:R1120,a/Dx<2>/':'/Dx<2>' 'S{`am`,`pm`}<1>
+
+;rule for 530 pm
+0xFFFFFFFF-0xFFFFFFFF:R1130,a/Dx<1>/':'/Dx<2>' 'S{`am`,`pm`}<1>
+
+;storm data readings 
+0xFFFFFFFF-0xFFFFFFFF:R3000;H150,o/'('/p/R3100/r/'-'/' to '/p/R3100/o/')'/
+
+
+;change 1 Aug into 1-Aug
+; handle month abbreviations with numbers after them converted to vax date format
+0xFFFFFFFF-0xFFFFFFFF:R150,d/($1,h/month_abbr,Ax<3>/$7|FAIL/)/W<1-3>a/Dx[1-31]/'-'$1/
+
+
+;  /* dates */ /* May. 3, 1996   May 3, 96  to 3-May-1996*/
+0x00000001-0xFFFFFFFF:R309,d/($1,S{`jan`,`feb`,`mar`,`apr`,`may`,`jun`,`jul`,`aug`,`sep`,`oct`,`nov`,`dec`}<1>)o/'.'/W<+>/a/D[1-31]/'-'$1/o/r/o/','/W<1>/'-'/D<2,4>/
+
+0x00000001-0xFFFFFFFF:R3101,h/month_words,Ax<+>/c/$7/|FAIL/W<+>a/Dx[11-13]/'th'/o/','/a/D<2,4>/','/
+;  /* Date format as January 1, */
+0x00000001-0xFFFFFFFF:R3111,h/month_words,Ax<+>/c/$7/|FAIL/W<+>a/Dx[1-31]/'th'|'st'|'nd'|'rd'|'th'|'th'|'th'|'th'|'th'|'th'/o/','/a/D<2,4>/','/
+
+;  /* Date format as January 11-13, */
+0x00000001-0xFFFFFFFF:R310,h/month_words,Ax<+>/c/$7/|FAIL/W<+>a/Dx[11-13]/'th'/o/','/
+;  /* Date format as January 1, */
+0x00000001-0xFFFFFFFF:R311,h/month_words,Ax<+>/c/$7/|FAIL/W<+>a/Dx[1-31]/'th'|'st'|'nd'|'rd'|'th'|'th'|'th'|'th'|'th'|'th'/o/','/
+
+
+;  /* dates */  /* 5/10/96  5-10-96 */
+0x00000001-0xFFFFFFFF:R312,d/($1,h/english_months,Dx[1-12]/r/$7/$9/|FAIL/)($2,S{'/','-'}<1>)/Dx[1-31]r/$2/'-'$1'-'/D<2,4>
+;  /* Dr. Lin  DR. Lin  Dr. LIN  DR. LIN (cover in ls_task.c)  */ 
+;!0x00000001-0xFFFFFFFF:R315,r/'D'`r.`/'Doctor'/r/Wx<+>/' '/U<1>A<+>
+;  /* St. John  ST. John  St. JOHN  ST. JOHN  (cover in ls_task.c )*/
+;!0x00000001-0xFFFFFFFF:R316,r/'S'`t.`/'Saint'/r/Wx<+>/' '/U<1>A<+>
+
+;  /* state and zip code */
+;  /*0x00000001-0xFFFFFFFF:R5,U<2>W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//, */
+0x00000001-0xFFFFFFFF:R327,a/h/states,U<2>/r/$7/$9/|FAIL/Wx<1-4>i/Dx<5>/' '/o/r/'-'/' dash '/i/Dx<4>/' '///' '0x80','0x81/
+
+0x00000001-0xFFFFFFFF:R329,h/states,U<1>A<1>/a/r/$7/$9//0x80'.'0x81/|FAIL/
+
+0xFFFFFFFF-0xFFFFFFFF:R168,Dx<+>r/`b0`/' degrees below zero'/
+
+0xFFFFFFFF-0xFFFFFFFF:R169,D<+>' 'r/`b0`/'degrees below zero'/
+
+
+;below zero temperatures
+0xFFFFFFFF-0xFFFFFFFF:R170,d/`b`/a/D<+>/' degrees below zero'/
+
+;below zero temperatures
+0xFFFFFFFF-0xFFFFFFFF:R171,Dx<+>r/`b`/' degrees below zero'/
+
+; MGS fix NWS 0.05  zero point oh five problem 
+;0xFFFFFFFF-0xFFFFFFFF:R172,r/'0'/'zero'/'.0'D<*>
+
+; /* for no [:mode eur on] case */
+; /* v4.2bw-x01 -> V 4 point 2 B W "
+; note: i/A<*>/' '/ will hang !!!!!
+;!0x00000001-0xFFFFFFF7:R328,C<*>D<+>r/'.'/' point '/D<+>A<1>
+;0x00000001-0xFFFFFFF7:R328,A<*>b/D<+>/' '/r/' . '/' point '/a/D<+>/' '/o/A<1>C<*>/
+0x00000001-0xFFFFFFF7:R328,A<*>b/D<+>/' '/r/' . '/' point '/a/D<+>/' '/o/A<1>W~<*>/
+;!0x00000001-0xFFFFFFF7:R328,i/A<*>/' '/b/D<+>/' '/r/'.'/' point '/a/D<+>/' '/i/D~<1>C<*>/' '/
+
+; file name  to replace . with dot"
+;!0x0000000F-0xFFFFFFFF:R339,A<*>r/' . '/' dot '/S{A<1>,D<1>}<+>
+0x00000001-0xFFFFFFFF:R339;H342,r/'. '/'dot '/S{A<1>,D<1>}<+>
+
+; process the file name text
+; * 008		MGS		03/03/1999		BATS #744 Part of the fix for lynchburg
+0x00000021-0xFFFFFFFF:R342;H343;DM,O<6>A<+>
+
+; process the compound words before word get eaten
+; 6 characters prefix
+0x00000001-0xFFFFFFFF:R345;DM,h/6_c_words,A<6>/r/$7/$9/|FAIL/O<+>V<1>A<2-*>
+; 5 characters prefix
+0x00000001-0xFFFFFFFF:R346;DM,h/5_c_words,A<5>/r/$7/$9/|FAIL/O<+>V<1>A<2-*>
+; 4 characters prefix
+0x00000001-0xFFFFFFFF:R347;DM,h/4_c_words,A<4>/r/$7/$9/|FAIL/O<+>V<1>A<2-*>
+
+; MGS BATS # 438 Fix for bigger biggest problem 
+0x00000001-0xFFFFFFFF:R353;DM,`bigg`A<2-*>
+; 3 characters prefix
+0x00000001-0xFFFFFFFF:R348;DM,h/3_c_words,A<3>/r/$7/$9/|FAIL/O<1>A<2-*>
+; 2 characters prefix
+0x00000001-0xFFFFFFFF:R349;DM,h/2_c_words,A<2>/r/$7/$9/|FAIL/A<2-*>
+
+; 4 character suffix compound word
+0x00000001-0xFFFFFFFF:R350;DM,A<*>V<1>A<*>O<1>h/4_c_words_s,A<4>/r/$7/$9/|FAIL/
+; 5 character suffix compound word
+0x00000001-0xFFFFFFFF:R351;DM,A<*>V<1>A<*>O<1>h/5_c_words_s,A<5>/r/$7/$9/|FAIL/
+
+; 3 characters special
+0x00000001-0xFFFFFFFF:R352;DM,h/3_s_words,A<3>/r/$7/$9/|FAIL/A<2-*>
+
+; illegal cluster , insert "-"
+;!0x00000001-0xFFFFFFFF:R360;DM,A<+>i/S{`yf`,`rs`,`kd`}<1>/'-'/A<+>
+
+; check for abbr. for Day
+; MGS 12/22/1997 added DM
+0x00000001-0xFFFFFFFF:R371;DM,h/day_words,U<1>L<2>/r/$7/$9/|FAIL/
+
+; check for abbr. for Time
+; MGS 12/22/1997 added DM
+; MGS 06/22/1999 BATS removed DM
+0x00000001-0xFFFFFFFF:R372,o/'('/a/h/time_words,U<3>/r/$7/$9/|FAIL//0x80','0x81/d/o/','//o/')'/d/o/','//
+
+; Convert 15 W. become "15 west"
+; GL 04/04/1997 add o/0x82/ to fix high-light mode problem
+0x00000001-0xFFFFFFFF:R384,D<+>W<+>o/0x82/h/direct_words,U<1-2>/r/$7/$9/|FAIL/o/d/'.'//
+
+; check for e-mail , URL name and other abbreviation in domain directionary
+; for these abbr. without ".", if there is "." then remove it.
+; MGS 12/22/1997 added DM
+0x0000000F-0xFFFFFFFF:R375;DM,h/abbr_words,A<+>/r/$7/$9/|FAIL/o/d/'.'//
+
+; break away any left over "xxx/yyyy" to "xxx / yyyy"
+; GL 03/12/1997 BATS#288 change rule to handel "source/destination" problem
+;0x00000001-0xFFFFFFFF:R388,S{A<+>,D<+>}<1>r/'/'/' / '/A<+>C<*>
+0x00000001-0xFFFFFFFF:R387,A<+>r/'/'/0x80'_'0x81/A<+>
+0x00000001-0xFFFFFFFF:R388,S{A<+>,D<+>}<1>r/'/'/' / '/A<+>W~<*>
+
+; break away any word mixed number ex: "disk2" to "disk 2"  "2disk" to "2 disk"
+; but don't break away 1st 2nd 3rd or 4th
+; GL 10/24/1997 add "s" for NWS
+0x00000001-0xFFFFFFFF:R389,D<+>S{`st`,`s`,`nd`,`rd`,`th`}<1>
+0xFFFFFFFF-0xFFFFFFFF:R390;H390;DM,Dx<+>b/Ax<+>/' '/W~<*>
+0xFFFFFFFF-0xFFFFFFFF:R391;H391;DM,Ax<+>b/Dx<+>/' '/W~<*>
+
+; GL 04/02/1997 BATS#327 by pass the word like McMdonald and McCarthy
+0xFFFFFFFF-0xFFFFFFFF:R392,'Mc'U<1>L<+>A<*>
+
+0xFFFFFFFF-0xFFFFFFFF:R6661,`NOAA Weather Radio`E<1>
+0xFFFFFFFF-0xFFFFFFFF:R6662,`national weather service`o/` office`/E<1>
+0xFFFFFFFF-0xFFFFFFFF:R6664,`weather summary`E<1>
+0xFFFFFFFF-0xFFFFFFFF:R393,a/`NOAA Weather Radio`/0x80'_'0x81/
+0xFFFFFFFF-0xFFFFFFFF:R3940,a/`national weather service`o/` office`//0x80'_'0x81/
+0xFFFFFFFF-0xFFFFFFFF:R3941,a/`weather summary`/0x80','0x81/
+0xFFFFFFFF-0xFFFFFFFF:R3942,b/`was`/0x80'_'0x81/
+0xFFFFFFFF-0xFFFFFFFF:R3943,b/S{`and in`,`and the`}<1>/0x80'_'0x81/
+
+
+; catch all regular word, so parser can scan from next word
+0xFFFFFFFF-0xFFFFFFFF:R399,c/A<+>/
+
+
+; common rules
+; rule nubmers 200 - 299
+
+;  /* phone number 1-508-555-1212  and 508-555-1212 */
+;  need for all local language to support the possible US phone number.
+0x0000000F-0xFFFFFFFF:R204,o/'1'r/'-'/', '//i/D<3>/' '/r/'-'/', '/i/Dx[2-9]D<2>/' '/r/'-'/', '/a/i/Dx<4>/' '//0x80'.'0x81/ 
+;  /* phone number 1 508 555 1212  and 508 555 1212 */
+0x0000000F-0xFFFFFFFF:R205,o/'1'r/' '/', '//i/D<3>/' '/r/' '/', '/i/Dx[2-9]D<2>/' '/r/' '/', '/a/i/Dx<4>/' '//0x80'.'0x81/
+
+; GL 05/14/1997 BATS#373,374,375,376 fix the e-mail parsing problem
+; add comma after and before area code
+;  /* phone number  (508)555-1212 (508) 555-1212 (508)555 1212 (508) 555 1212 */
+;  /* (508)5551212 (508) 5551212 */
+;!0x0000000F-0xFFFFFFFF:R206,d/'('/i/D<3>/' '/r/')'W<*>/', '/i/Dx[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/a/i/Dx<4>/' '//0x80'.'0x81/
+0x0000000F-0xFFFFFFFF:R206,b/a/i/D<3>/' '//', '//0x80','0x81/W<*>i/Dx[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/a/i/Dx<4>/' '//0x80'.'0x81/
+
+;  /* phone number 15085551212 and 5085551212 */
+0x00000001-0xFFFFFFFF:R207,o/a/'1'/', '//a/i/Dx[2-9]D<2>/' '//', '/a/i/Dx[2-9]D<2>/' '//', '/a/i/Dx<4>/' '//0x80'.'0x81/
+;  /* phone number 555-1212   555 1212  5551212 */
+0x00000001-0xFFFFFFFF:R208,i/D[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/a/i/D<4>/' '//0x80'.'0x81/
+
+
+; more punct some rule here
+
+; catch all compound word connected with -
+0xFFFFFFFF-0xFFFFFFFF:R222;H223;DM,A<+>S{A<+>,'-'}<+>
+; change x-y to x dash y
+0x00000001-0xFFFFFFFF:R223;H224;DM,A<1>r/'-'/' dash '/A<+>
+; change a-y to eyh dash y
+0x00000001-0xFFFFFFFF:R224;DM,r/`a dash `/'eyh  dash '/A<+>
+
+; insert a space before all mid word puncutation
+; convert to end word clause bountary "test,test" become "test, test"
+0xFFFFFFFF-0xFFFFFFFF:R230;H235,D~<+>a/Ex<1>/' '/A<+>
+; convert to end word punctuation "test,,,test" become "test , test"
+;!0xFFFFFFFF-0xFFFFFFFF:R231;H235,D~<*>b/a/Px<1>/' '//' '/A<+>
+; remove the leading punct if still there
+;!0xFFFFFFFF-0xFFFFFFFF:R231;H235;DM,D~<*>d/Px<1>/A<+>
+; restore "I ' ve" to "I've".  It is a patch but...
+;!0xFFFFFFFF-0xFFFFFFFF:R235,D~<+>r/' '0x27' '/0x27/A<+>
+; convert "NBC's" to "NBC[z]".
+0xFFFFFFFF-0xFFFFFFFF:R235,O<+>r/'\'s'/0x80'z'0x81/
+
+;  /* put space between Alphabet and digit. */
+;!0xFFFFFFFF-0xFFFFFFFF:R240,A<*>b/a/D<+>/' '//' '/A<*>
+
+STOP,R299
+
+; * 008		MGS		03/03/1999		BATS #744 Part of the fix for lynchburg
+0x00000021-0xFFFFFFFF:R343;M355;H345,w/O<6>/A<+>
+0x00000021-0xFFFFFFFF:R355,i/A<+>/' '/
+STOP,R344
+
+0xFFFFFFFF-0xFFFFFFFF:R3100,h/english_months,Dx[1-12]/r/$7/$9/|FAIL/r/'/'/' '/Dx[1-31]r/'/'/' at '/h/storm_dat,Dx<1-2>/r/$7/$9/|FAIL/
+
+[dict,states]
+AL~Alabama
+AK~Alaska
+AR~Arkansas
+AZ~Arizona
+CA~California
+CO~Colorado
+CT~Connecticut
+DC~District of Columbia
+DE~Delaware
+FL~Florida
+GA~Georgia
+HI~Hawaii
+IA~Iowa
+ID~Idaho
+IL~Illinois
+;IN~Indiana
+KS~Kansas
+KY~Kentucky
+LA~Louisiana
+ME~Maine
+MD~Maryland
+MA~Massachusetts
+MI~Michigan
+MN~Minnesota
+MS~Mississippi
+MO~Missouri
+MT~Montana
+NE~Nebraska
+NV~Nevada
+NH~New Hampshire
+NJ~New Jersey
+NM~New Mexico
+NY~New York
+NC~North Carolina
+ND~North Dakota
+;OH~Ohio
+;OK~Oklahoma
+;OR~Oregon
+PA~Pennsylvania
+RI~Rhode Island
+SC~South Carolina
+SD~South Dakota
+TN~Tennessee
+TX~Texas
+UT~Utah
+VT~Vermont
+VA~Virginia
+WA~Washington
+WV~West Virginia
+WI~Wisconsin
+WY~Wyoming
+
+[DICT,english_months]
+1~jan
+2~feb
+3~mar
+4~apr
+5~may
+6~jun
+7~jul
+8~aug
+9~sep
+01~jan
+02~feb
+03~mar
+04~apr
+05~may
+06~jun
+07~jul
+08~aug
+09~sep
+10~oct
+11~nov
+12~dec
+
+[DICT,storm_dat]
+0~midnight
+00~midnight
+1~1 am
+01~1 am
+2~2 am
+02~2 am
+3~3 am
+03~3 am
+4~4 am
+04~4 am
+5~5 am
+05~5 am
+6~6 am
+06~6 am
+7~7 am
+07~7 am
+8~8 am
+08~8 am
+9~9 am
+09~9 am
+10~10 am
+11~11 am
+12~12 pm
+13~1 pm
+14~2 pm
+15~3 pm
+16~4 pm
+17~5 pm
+18~6 pm
+19~7 pm
+20~8 pm
+21~9 pm
+22~10 pm
+23~11 pm
+
+
+
+[DICT,6_c_words]
+health~health-
+little~little-
+roller~roller-
+worker~worker-
+
+[DICT,5_c_words]
+apple~apple-
+alpha~alpha-
+black~black-
+brook~brook-
+cedar~cedar-
+dream~dream-
+green~green-
+metro~metro-
+
+[DICT,4_c_words]
+;best~best-
+beta~beta-
+;baby~baby-
+ball~ball-
+;budy~budy-
+blue~blue-
+fair~fair-[']
+fire~[']fire-
+flex~flex-
+folk~folk-
+gate~gate-
+good~good-
+hair~hair-
+hill~hill-
+;Home should work, but we have stress both sides of a compound word
+;home~home-
+land~land-
+;read~read-
+;Work shoudl work, but we have stress both sides of a compound word
+;work~work-
+
+[DICT,3_c_words]
+big~big-
+
+;sun~sun-
+;red~red-
+
+[DICT,2_c_words]
+ck~ck-
+cv~cv-
+df~df-
+lt~lt-
+kf~kf-
+tb~tb-
+tj~tj-
+
+[DICT,5_c_words_s]
+brook~-brook
+
+[DICT,4_c_words_s]
+folk~-folk
+leaf~-leaf
+
+[DICT,3_s_words]
+aaa~eyh eyh eyh 
+abc~eyh bee cee
+
+;sun~sun-
+
+[DICT,abbrp_words]
+AT&T~A.T. & T.
+e.g.~for example
+i.e.~i e
+I.E.~i e
+D.C.~d c
+w/~with
+w/o~without
+rec'd~received
+
+[DICT,abbr_words]
+ge~G.E.
+ln~lane
+lk~lake
+rm~room
+OS~O.S.
+pl~place
+abc~A.B.C.
+agr~agriculture
+aol~A.O.L.
+apt~apartment
+API~A.P.I.
+ASA~A.S.A.
+btw~by the way
+cir~circle
+exe~x e
+fyi~for your information
+jct~junction
+hlo~h l o
+hwy~high way
+hts~heights
+mtn~mountain
+mpg~miles per gallon
+; MGS 12/22/1997 changed to miles an hour
+mph~miles an hour
+oem~o e m
+ole~o l e
+pky~park way
+plz~plaza
+rdg~ridge
+ter~terrace
+tel~phone number
+trl~trail
+ste~suite
+sta~station
+URL~U R L
+vly~valley
+zko~z k o
+enet~e net
+capt~captain
+acct~account
+ASAP~as soon as possible
+expy~express way
+tpke~turnpike
+dtdemo~dt demo
+
+[DICT,direct_words]
+E~east
+N~north
+NE~northeast
+NW~northwest
+S~south
+SE~southeast
+SW~southwest
+W~west
+
+[DICT,month_abbr]
+jan~
+feb~
+mar~
+apr~
+may~
+jun~
+jul~
+aug~
+sep~
+oct~
+nov~
+dec~
+
+[DICT,month_words]
+january~
+february~
+march~
+april~
+may~
+june~
+july~
+august~
+september~
+october~
+november~
+december~
+
+
+
+[DICT,day_words]
+Mon.~Monday
+Tue.~Tuesday
+Wed.~Wednesday
+Thu.~Thursday
+Fri.~Friday
+Sat.~Saturday
+Sun.~Sunday
+
+[DICT,time_words]
+PDT~pacific daylight time
+PST~pacific standard time
+WDT~western daylight time
+WST~western standard time
+CDT~central daylight time
+CST~central standard time
+MDT~mountain daylight time
+MST~mountain standard time
+EDT~eastern daylight time
+EST~eastern standard time
+ADT~alaska daylight time
+AST~alaska standard time

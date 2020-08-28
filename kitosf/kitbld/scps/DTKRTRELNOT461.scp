@@ -1,0 +1,356 @@
+#
+# @DEC_COPYRIGHT@
+#
+# HISTORY
+# Revision 1.1.2.7  1996/02/26  21:03:59  Krishna_Mangipudi
+# 	Updated copyright to 1996
+# 	[1996/02/26  21:03:09  Krishna_Mangipudi]
+#
+# Revision 1.1.2.6  1996/02/01  21:36:39  Krishna_Mangipudi
+# 	moved kit location
+# 	[1996/02/01  21:35:57  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.5  1995/09/25  20:33:52  Krishna_Mangipudi
+# 	Corrected version numbers
+# 	[1995/09/25  20:33:11  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.4  1995/09/22  21:23:39  Krishna_Mangipudi
+# 	Updated with V4.3 string and cleaned up messages
+# 	[1995/09/22  21:22:55  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.3  1995/07/06  20:18:10  Krishna_Mangipudi
+# 	Updated to V4.3
+# 	[1995/07/06  20:17:28  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.2  1995/04/18  14:25:02  Krishna_Mangipudi
+# 	Release notes, initial checkin
+# 	[1995/04/18  14:24:43  Krishna_Mangipudi]
+# 
+# $EndLog$
+#
+#
+#  Copyright (c) Digital Equipment Corporation, 1996 All Rights Reserved.
+#  Unpublished rights reserved under the copyright laws of the United States.
+#  The software contained on this media is proprietary to and embodies the
+#  confidential technology of Digital Equipment Corporation.  Possession, use,
+#  duplication or dissemination of the software and media is authorized only
+#  pursuant to a valid written license from Digital Equipment Corporation.
+#
+#  RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the U.S.
+#  Government is subject to restrictions as set forth in Subparagraph
+#  (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, as applicable.
+#
+
+. /usr/share/lib/shell/libscp
+
+##############################
+#      LMF Particulars
+##############################
+
+product=DECTALK-SW97-USER
+producer=DEC
+prod_version=4.4
+prod_date=15-OCT-1997
+
+# Subset check flags
+
+SUBSETS_PRESENT=0
+VERSION_MISMATCH=0
+
+RELN_FLAG=0
+DELRELN_FLAG=0
+
+SUBSETNAME=`basename $0`
+SUBSETNAME=`expr "$SUBSETNAME" : '^\(.*\)\.scp'`
+SUBSETVER=`expr "$SUBSETNAME" : '^\DTKRTRELNOT*\(.*\)'`
+
+CheckPreRequisteConfig()
+{
+        ###################################################################
+        #
+        # check the architecture type
+        #
+        ###################################################################
+        MACH=vax
+        [ -f /bin/machine ] && MACH=`/bin/machine`
+        [ $MACH = alpha ] ||
+        {
+            cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKRTRELNOT461.
+
+        This version of DECtalk may be installed on Alpha AXP only.
+                                                                           
+   ***********************************************************************
+
+EOF
+            exit 1
+        }
+
+        ###################################################################
+        #
+        # Check if MME is installed  
+        #
+        ###################################################################
+        [ ! -f /usr/.smdb./MMERT[0-9][0-9][0-9].lk ] &&
+        {
+           cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKRTRELNOT461.
+
+        DECtalk Software installation has detected that MME, the Multimedia
+        Services  for Digital UNIX, is not installed.  If you wish to run 
+        DECtalk Software applets you will need to install MME after you 
+        install DECtalk Software.
+
+   ***********************************************************************
+
+EOF
+        }
+
+}
+
+CheckIfRelnIsAlreadyInstalled() 
+{
+   ###################################################################
+   #
+   # Check for currently installed DTK kits 
+   #
+   ###################################################################
+   [ -f /usr/.smdb./DTKRTRELNOT[0-9][0-9][0-9].lk ] &&
+   {
+      SUBSETS_PRESENT=1
+      RELN_FLAG=1
+      DtkRelNotes=`ls /usr/.smdb./DTKRTRELNOT[0-9][0-9][0-9].lk | sed "s/\/usr\/.smdb.\///" | sed s/.lk//`
+      cat <<EOF
+
+      $DtkRelNotes is currently installed.
+EOF
+   }
+}
+
+CheckVersions()
+{
+   VERSION_MISMATCH=0
+
+   # Check DTKRTRELNOT version
+
+   if [ "$RELN_FLAG" = "1" ]
+   then
+      ThisVer=`expr "$DtkRelNotes" : '^\DTKRTRELNOT*\(.*\)'`
+      if [ ! "$ThisVer" = "$SUBSETVER" ]
+      then
+         VERSION_MISMATCH=1  
+      fi
+   fi
+}
+
+DeleteSubset()
+{
+   if [ "$RELN_FLAG" = "1" ]
+   then
+      while :
+         do echo "
+Do you wish to delete subset $DtkRelNotes at this time? (y/n) [y]: \c"
+            read ANS
+            ANS=`echo $ANS`
+
+            case $ANS in
+               "" | [yY]* )
+                  DELRELN_FLAG=1
+                  break
+               ;;
+                  [nN]* )
+                  DELRELN_FLAG=0
+                  break
+               ;;
+            esac
+      done
+   fi
+
+  if [ "$DELRELN_FLAG" = "1" ]
+  then
+     /usr/sbin/setld -d $DtkRelNotes
+     RELN_FLAG=0
+     DELRELN_FLAG=0
+  fi
+}
+
+CopyrightMsg ()
+{
+	cat <<EOF
+
+   ***********************************************************************
+   *                                                                     *
+   * DECtalk Software Application Services V4.61                          *
+   * Runtime Release Notes Subset                                        *
+   *                                                                     *
+   * Copyright(c)Digital Equipment Corporation, 1996 All Rights Reserved *
+   *                                                                     *
+   * Unpublished rights reserved under the copyright laws of the United  *
+   * States.   The software contained on this media is proprietary to    *
+   * and embodies the confidential technology of Digital Equipment       *
+   * Corporation.  Possession, use, duplication or dissemination of the  *
+   * software and media is authorized only pursuant to a valid written   *
+   * license from Digital Equipment Corporation.                         *
+   *                                                                     *
+   * RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the   *
+   * U.S. Government is subject to restrictions as set forth in          *
+   * Subparagraph (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, *
+   * or in FAR 52.227-14 Alt. III as applicable.                         *
+   *                                                                     *
+   ***********************************************************************
+
+EOF
+}
+
+    #######################################################################
+    #
+    # Start main case statement for this module
+    #
+    #######################################################################
+
+case $ACT in
+    #######################################################################
+    #
+    # Before presenting subset menu: check dependencies and display
+    # copyright information.
+    #
+    #######################################################################
+    M)
+
+       CheckPreRequisteConfig
+       CheckIfRelnIsAlreadyInstalled 
+
+       if [ "$SUBSETS_PRESENT" = "1" ]
+       then
+          DeleteSubset
+          CheckVersions
+          if [ "$VERSION_MISMATCH" = "1" ] 
+          then
+             cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKRTRELNOT461.
+
+        You may not mix different versions of DECtalk Software, please
+        delete the installed version of DECtalk Software before installing 
+        the current version.
+
+   ***********************************************************************
+EOF
+             DeleteSubset
+          fi
+       fi
+
+    #######################################################################
+    #
+    # If DTKRTRELNOT subset is still present, then do not prompt for it
+    # in the installation menu
+    #
+    #######################################################################
+  
+    [ -f /usr/.smdb./DTKRTRELNOT[0-9][0-9][0-9].lk ] &&
+    {
+       exit 1
+    }
+    ;;
+
+    #
+    # Pre-installation : check dependencies and display copyright information.
+    #
+    PRE_L)
+        ;;
+
+   POST_L)
+       cat <<EOF
+
+   **************************************************************************
+                                                                           
+       DECtalk Software V4.61 runtime release notes subset (DTKRTRELNOT461) 
+       installation completed successfully.  This installation put DECtalk 
+       Software development subset release notes in the following directories:
+
+  	                /usr/opt/DTKRT461/docs/ascii and
+                        /usr/opt/DTKRT461/docs/postscript
+
+   **************************************************************************
+
+EOF
+        ;;
+
+    C)
+        case $1 in
+            INSTALL)
+		#
+		# create necessary soft links
+		#
+                #
+                exit 0
+                ;;
+
+            DELETE)
+                #
+                # delete the soft links
+                #
+                ;;
+
+        esac
+        ;;
+                               
+    #
+    # Post-deletion : unlock dependencies
+    #
+    POST_D)
+        STL_LockInit
+        #
+        # delete the directories
+        #
+        rmdir /usr/opt/DTKRT461/docs/postscript 2> /dev/null
+        rmdir /usr/opt/DTKRT461/docs/ascii 2> /dev/null
+        rmdir /usr/opt/DTKRT461/docs 2> /dev/null
+        rmdir /usr/opt/DTKRT461 2> /dev/null
+        ;;
+esac
+
+exit 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

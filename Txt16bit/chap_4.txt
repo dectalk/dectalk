@@ -1,0 +1,450 @@
+                            CHAPTER 4
+                          TEXT PROCESSING.
+                                
+         This  chapter  describes how DECtalk processes  numbers,
+abbreviations, and acronyms, and how it decides whether a word is
+pronounceable. It also includes suggestions for correcting spoken-
+output.
+
+TEXT PROCESSING RULES.
+DECtalk  processes  text to be spoken by applying  the  following
+rules in this order:
+        1. The input text stream is broken into groups of letters
+delimited  by whitespace characters (spaces, tabs,  or   carriage
+returns).
+         2. If the letter string is not already phonemic text and
+is  to  be converted, any understandable numbers are expanded  to
+their word equivalents.
+         3.  Some  abbreviations are expanded to their  full-word
+equivalents.  DECtalk uses a list of numeric  abbreviations   and
+rules  for  a  few  special cases. The user-definable  dictionary
+cannot override this conversion.
+         4.  Each  letter  string  is broken  into  pronounceable
+entities.   Punctuation  (including  parentheses  and   quotation
+marks),  hyphenated words, and sequences that must be spelled out
+are  analyzed.  Some abbreviations and acronyms are   recognized,
+plus any entries from the definable dictionary.
+         5.  Any  text that DECtalk recognizes as unpronounceable
+(for  example,  a sequence of letters containing  no  vowels)  is
+spelled  out. DECtalk contains intelligent strategies for  upper-
+case initialisms (e.g., ABC, FBI and the like).
+A few rules operate on sequences of words. Interspersing phonemic
+symbols  or  DECtalk commands will block these rules.  Therefore,
+make sure that spoken  text is as contiguous as possible and keep
+breaks   in   structure   (from  English  spelling  to   phonemic
+transcription) to a minimum.
+
+The following terms are used below:
+Character:   Any  of  the  printable ASCII characters,  including
+letters, digits, and punctuation.
+Digit  string:  A  string  of  digit characters  (0  through  9).
+DECtalk decides whether these should be  pronounced as numbers or
+independent characters.
+Number:  A  string  of characters (containing  digits)  that  are
+processed as a group by DECtalk. For example, "123" is pronounced
+"one  hundred  and  twenty-three," while  "1(2)3"  is  pronounced
+"one,  two  three" with punctuation disabled, ([:punc  none])  or
+"one   left-parenthesis  two  right-parenthesis    three."   with
+punctuation enabled ([:punc some]).
+
+NUMBER PROCESSING.
+     DECtalk recognizes seven general number classes, and a large
+number of special cases and subclasses. The general classes are
+as  follows:
+Part numbers Strings of mixed letters, digits, and the - and /
+characters.
+
+Cardinal numbers.    The simple numbers that are used in counting.
+Examples include "123," "123,456," "12.345,"  "01234,"  and
+"12%."
+
+Ordinal numbers. Simple strings of numbers with "st," "nd,"  "rd,"
+or "th" added, for example, "1st" and  "23rd."
+Fractions  Examples are "1/2," "2/3," and "44/100%."
+
+Money.    Recognized as the first character  of a string of digits
+by the presence of a dollar sign ($) or a pound sign.
+Dates    In  the format (23-Sep-1983), and expandable into  their
+English equivalent.
+
+Time  of  day.    In the 24-hour format of some operating  systems
+(11:04:03.02), spoken  in its English equivalent. The words  "am"
+and   "pm" are correctly processed after time  values. (Note that
+"am" and "pm" contain no periods.)
+
+PART NUMBERS.
+A  part  number is defined as a string of mixed letters,  digits,
+and   the - and / characters, containing at least one digit.  The
+following are examples of part numbers:
+        DTC07-AM
+        MS-DOS V3.1
+        54-15966-01
+
+DECtalk  first attempts to find the part number in the developer-
+definable  and   fixed dictionaries. If it is  unsuccessful,   it
+breaks  the   part  number into strings of  letters,  strings  of
+digits, and  separators.
+
+A series of alphanumerics separated by / is spelled out.  DECtalk
+correctly  speaks part numbers of the format XXX/YYY.
+
+A string of digits within a part number is spoken as follows.
+        1. If the digit string begins with 0 or is more than nine
+digits  long,  it is spelled out ("VS01" becomes "vee  ess   zero
+one").
+        2. One or two-digit strings are spoken as normal cardinal
+numbers ("PDP-11" becomes "pee dee pee eleven").
+         3.  Three-  or four-digit strings that end with  00  are
+spoken  as normal cardinal      numbers ("VT100" becomes "vee tee
+one  hundred").
+         4.  Other three-digit strings are spoken as "digit, pair
+of digits" ("VT320" becomes      "vee tee three twenty").
+         5.  Other four-digit strings are spoken as "pair, pair."
+("DEC 2040" becomes "deck twenty forty.") Note that if the second
+pair  begins with 0, it is pronounced "zero" ("IBM 1401"  becomes
+"eye bee em fourteen zero one").
+An alphabetic string is spoken as follows.
+         1.  One-  or  two-character  strings  are  spelled  out.
+("VT100" becomes "vee tee one hundred").
+         2.  Longer  strings are searched for in  the  developer-
+definable and fixed dictionaries. If they are not found, they are
+spelled out  ("DEC 2040" becomes "deck twenty forty").
+
+DECtalk  cannot  handle all possible part numbers perfectly. The
+following examples of part numbers are inconsistent with DECtalk's 
+number and text processing algorithms:
+
+CICS/VS         Not a part number -- no digits.
+net10000        "Net"  is  spelled out since  it  isn't  in  the
+                 dictionary.
+1E-14            DECtalk will interpret this number as scientific
+                 notation if [:mode math] is on.
+
+When  processing numbers and number words, DECtalk first  removes
+leading  and trailing punctuation. DECtalk translates "(123)"  as
+"one hundred and twenty-three."
+
+CARDINAL NUMBERS.
+A  cardinal number is a string of digits. If commas are included,
+they  must  break  numbers into groups  of  three.  For  example,
+"123,456"  is correct, but "1234,56" is not. The latter  will  be
+spelled out as "one two three four comma five six."
+Cardinal numbers may also include decimal fractions ("12.34") and
+scientific  notation  ("12.34E56"). In scientific  notation,  the
+exponent must be less than 100.
+
+A  cardinal number preceded by + or - will be spoken as "plus" or
+"minus" whether or not [:mode math ...] is on. The notation ñ  is
+pronounced as "plus or minus."
+If the first digit is 0 ("01234"), the number will be spoken as a
+string of digits as would be appropriate when reading postal  zip
+codes.
+
+If the number is greater than 999,999,999, it will be spoken as a
+string  of digits with pauses between each group of three digits.
+If  commas are provided, they will control the pause behavior. If
+not,  the  output  will pause after each group of  three  digits,
+provided six or more digits remain. Therefore, "12345678901" will
+be spoken as "123, 456, 78901" rather than "12,345,678,901."
+Four-digit  numbers without commas are spoken  in  a  variety  of
+formats.  For  example,  "5000" becomes  "five  thousand,"  while
+"1984"  becomes  "nineteen eighty-four." This  yields  reasonable
+behavior when processing years.
+
+Sometimes  DECtalk does not understand the text  well  enough  to
+pronounce the number correctly. Here are some examples.
+
+         The telephone number "(617) 493-8255" will be spoken  as
+"six  hundred  and seventeen, four ninety three dash  eight   two
+five  five."  You can correct this by using one of the  following
+steps.
+         1.  Spell  out the digits as "six one seven,  four  nine
+three, eight two five    five" (notice the commas to make DECtalk
+pause at appropriate places).
+
+         2. Separate the digits with spaces and commas: "6 1 7, 4
+9 3, 8 2 5 5."
+
+The   software  cannot  easily  distinguish  between  "dash"  and
+"minus."
+
+	How much is 10-15?
+	Bake this 10-15 minutes.
+
+The [:mode math ] option determines whether the "-" is pronounced
+as  "dash"  or "minus." Neither will be pronounced if punctuation
+is disabled ([:punc none]).
+
+Some  number  formats are difficult to recognize out of  context.
+For   example, the International Standard Date format  (83.09.20)
+and the  United States telephone number format (noted previously)
+are  sometimes  used  by manufacturers for  part  numbers.  These
+ambiguous formats are not recognized by DECtalk and you must make
+such manual adjustments if you wish them to be pronounced in some
+special way.
+
+After  a  cardinal number, DECtalk recognizes a set  of  standard
+numeric   abbreviations  that  are  expanded  to  their   English
+equivalent. These abbreviations are coded into DECtalk and cannot
+be  modified  by  the applications programmer. DECtalk  correctly
+generates  singular and plural forms of these abbreviations.  For
+example, 1 mm. is pronounced as "one millimeter" whereas 2 mm. is
+pronounced as "two millimeters".
+
+The  numeric abbreviations recognized by DECtalk after a cardinal
+number  are listed below. You can write them in either  uppercase
+or lowercase letters, but you must follow them by a period.
+Other  abbreviations, such as "cc.," are spelled out by  DECtalk.
+The  period  that follows such an abbreviation is not  pronounced
+("cc."  becomes "see see") but terminates the clause,  while  the
+period in number abbreviations does not terminate the clause.
+
+     ORDINAL NUMBERS.
+Ordinal  numbers  are formed from a string of  digits  (that  may
+contain  appropriate  commas) followed by "st,"  "nd,"  "rd,"  or
+"th."   Ordinal  numbers  are  also  generated  by  DECtalk  when
+fractions and  dates (in standard Digital format) are processed.
+DECtalk  requires that the word portion of the ordinal number  be
+correct.  For  example,  "1st" will be processed  correctly,  but
+"2th"  will be pronounced "t'uw t'iy 'eych."
+
+     FRACTIONS.
+Fractions  consist of one or two digits in the numerator,  the  /
+character,  and  one  to  three digits in  the  denominator.  The
+numerator may range from 1 to 99, while the denominator may range
+from  1  to  100. DECtalk correctly generates singular (1/3)  and
+plural (2/3) forms.
+
+     MONEY.
+DECtalk assumes a digit string is money when it is introduced  by
+the currency symbols $ or œ.
+When the $ or œ is recognized, DECtalk allows two forms of number
+strings.
+
+         General  digit strings have optional decimal  fractions.
+$12.345. is pronounced "Twelve point three four five dollars ."
+
+         Digit  strings are in dollars and cents  (or  pound  and
+pence)  format. $12.34  is pronounced "Twelve dollars and  thirty
+four cents."
+
+DECtalk recognizes a number of quantity words (hundred, thousand,
+million) that modify number processing if they immediately follow
+the  money word. For example, "$1.23 million" is pronounced  "one
+point two three million dollars."
+
+     DATES.
+DECtalk  recognizes  dates  written in  Digital's  standard  date
+format, such as "23-Sep-1983," "23-Sep," or "23-Sep-83." However,
+it  will  pronounce  "Sep. 23, 1983" as "September  twenty-three,
+nineteen eighty-three."
+
+     TIME OF DAY.
+DECtalk  recognizes the time of day when written  in  the  format
+used   by  Digital  operating systems. Because  this  format  can
+easily be confused with part number formats, DECtalk does not try
+to  convert the digit string. Instead, it speaks the string  with
+appropriate punctuation. Therefore, "12:00" becomes "twelve, zero
+zero", rather than "twelve noon".
+
+DECtalk correctly processes time values, including the fractional
+second value when it is present.
+
+ABBREVIATIONS.
+DECtalk   recognizes,  expands,  and  selects  from  a   set   of
+abbreviations taking into the account that the abbreviations  may
+be ambiguous.
+
+     ABBREVIATIONS PROCESSED BY DECTALK.
+In  addition to the abbreviations that are recognized only  after
+cardinal numbers, DECtalk recognizes two special cases, "Dr." and
+"St." The pronunciation of these abbreviations depends on whether
+the next word is capitalized.
+
+         If  the next word is not capitalized or if there  is  no
+next  word  (the  clause  has ended), then  "Dr."  is  pronounced
+"drayv" and "St." is pronounced "striyt". The  next word must  be
+on the same input line for the rule to work correctly.
+
+        If the next word is capitalized, then "Dr." is pronounced
+"d'aaktrr" and "St." is pronounced "seynt".
+Following these rules, DECtalk correctly pronounces "Doctor Dobbs
+Drive" and "Saint Louis Street" in running text.
+
+        Abbreviations in the Built-In Dictionary.
+         The  following  are  some  of the  common  abbreviations
+recognized  by  DECtalk  (in alphabetical order);  In  dictionary
+lookups,  upper case entries match uppercase only  but  lowercase
+entries match either upper or lower case.
+
+Adm.  Apr. Assoc. Aug. Av. Ave. Blvd. Bros. Ch. Cntr. Co.  Comdr.
+Corp. Ctr. Dec. Dept. Dist. Feb. Flt. Fr. Fri. Ft. Gen. Gov. Inc.
+Intl.  Jan. Jr. Jul. Jun. Ltd. Mar. Mfg. Mon. Mt. Nov.  Oct.  Pl.
+Pres. Prof. Rd. Rep. Rev. Rte. Sat. Sen. Sep. Sept. Sr. Sun. Thu.
+Thurs.  Tue.  Tues. Univ. Vol. Wed. asst. atty.  bldg.  cm.  cms.
+cont.  cu.  deg. doz. e.g. esp. est. etc. ext. fig. fn.  ft.  gm.
+hrs.  i.e. kg. kgs. km. lb. lbs. mg. mgs. misc. ml. mm. mr.  mrs.
+ms.  msde.  msec. msecs. mss. nt.wt. op.cit. oz. ozs. p.p.d.  pp.
+ppd. recd. secy. sq. tbsp. tbsps. tsp. tsps. vs. yds.
+
+If  the  abbreviation can be recognized by DECtalk during  number
+processing,  then  the English text form of the  abbreviation  is
+spoken.  Otherwise,  the  built-in  dictionary  form  is  spoken.
+
+Dictionaries (developer-definable and fixed) are searched in  the
+order in which they are loaded.  The numeric abbreviations can be
+blocked by  including a dummy phonemic string, for example, "1  [
+]ft. 3."
+
+Dictionary  entries  that contain only uppercase  letters,  match
+text  words that contain uppercase letters in the same positions.
+However,  the  entries that contain only lowercase  letters,  may
+match  text  words  that  contain either lowercase  or  uppercase
+letters in the same positions.
+
+"Apr."  matches  "APR."  but  not "apr."  This  is  necessary  to
+distinguish  between  words at the end of a  sentence  and  valid
+abbreviations, such as "mar" (to damage) and "Mar." (for March).
+If a word in the above list is written with a terminating period,
+you   must  include that period in the input text. Otherwise,  it
+will not terminate  the current clause. For example, It weighed 3
+kgs. will not terminate the clause, but  It weighed 3 kgs.. (note
+the second period) will terminate the clause.
+
+WORD SPELLOUT STRATEGIES.
+After number processing, DECtalk must decide whether to pronounce
+a string of characters as a single word or a compound word, or if
+it  must  be  spelled out. DECtalk uses the fixed and  developer-
+definable  dictionaries and a series of word  transformations  to
+make this  decision.
+
+WORD SPELLOUT TESTS.
+Number  conversion, number abbreviations, and the  "Street/Saint"
+test  have all been performed before DECtalk begins the  decision
+tests. Punctuation has not yet been removed.
+
+        1. DECtalk looks for the word in the dictionaries. Again,
+dictionaries are searched in the order in which they were loaded.
+If the  word is found in any one of the dictionaries,  the search
+stops.)
+
+      The   dictionary   lookup  procedure   involves
+decomposing words into simpler forms by stripping affixes such as
+-ed  and  -ing. If the word is found in  the dictionary,  DECtalk
+speaks the associated phonemic  transcription.
+      
+       2.  If the word is not found, any punctuation around the word
+is  removed. If present, the punctuation symbols " ( (( <<   <  [
+are  removed  from  the front of the word, and  the   punctuation
+symbols " ) )) >> > ] are removed from the end  of the word.  The
+square  brackets  [  ]  are  already  discarded  if  the  command
+[:phoneme arpabet speak on] has been given
+
+        3. If some punctuation was removed, DECtalk performs a
+special test for abbreviations "(e.g., Gen., Gov.,)" and embedded
+sentence punctuation ("I went (last year?) to school").
+
+        4. Next, DECtalk looks for initialisms. (An initialism is a
+word  written as a string of uppercase letters that may  or   may
+not  be  separated  by  ".") For example, the  string   "APO"  is
+pronounced  as  "ey pee oh." Other strings with embedded  periods
+may be spelled out.  If an initialism is recognized, the last "."
+will  terminate the clause, unless it is followed by  some  other
+punctuation.
+
+          DECtalk  also  looks  for  relatively  short  sequences
+(typically  3-4  letters)  of  all uppercase  characters  without
+periods  and treats these as initialisms. If these are determined
+(by  a  special  set  of internal rules) to be  non-pronounceable
+(e.g.,  ABC, FBI, IBM, etc.) then DECtalk will spell the  string.
+This is a new feature of DECtalk.
+
+        5. At this point, all diacritical marks are removed.
+
+        6. If the word is still not found, it is examined for
+hyphenation   (as   in  compound  nouns)  and  the   single-quote
+character.  A test is also performed to make sure  any  word   or
+word  fragment  has enough consonants and vowels.  If  the   test
+fails, the word is spelled out.
+
+        This test makes sure that the word does not contain
+embedded  punctuation. A word like "sys$system" is  spelled   out
+except when the command [:punc none] is given.
+
+        7. If DECtalk decides the word is pronounceable, it
+processes  each  part of a compound noun independently.  If the
+word is not in the dictionary, it is processed by the  letter-to-
+sound rules.
+
+        8. If the word was pronounced, DECtalk examines the
+punctuation  after  the word for silence or clause   terminators.
+The punctuation marks " ) ] )) produce a  brief silence (only one
+silence  is produced, even if  several characters are processed).
+The punctuation marks  ; : ! , . ? terminate a clause.
+
+         9. If DECtalk decides that the word must be spelled out, the
+entire word is spelled, including left and right  punctuation. If
+the  last  letter  of  the word is a clause   terminator,  it  is
+considered punctuation and is not  spelled.
+
+         10.  A  single letter, digit, or other character  within
+quotes
+or   parentheses  is  spelled  out  (but  the  punctuation  isn't
+spoken).  "aA""  is pronounced "[aey]" rather  than  "uh."   This
+helps DECtalk process lists such as the following.
+                (a) books
+                (b) newspapers
+
+        11. Brackets, parentheses, and braces act as commas,
+producing    a    clause   boundary.   Therefore,   parenthetical
+expressions (such as this one) sound more natural.
+
+         12.  When  text is spelled out, a brief pause  is  added
+after  each  character. This makes it easier to transcribe  text,
+such as part numbers.
+
+
+Homographs.
+Homographs  are  pairs of words whch are spelled  alike  but  are
+pronounced  differently (from homo 'same' and  graph  'writing').
+For  example, refuse as a verb can mean 'to decline' or  'reject'
+and  as a noun can mean 'garbage.'  DECtalk V4.1 will do many  of
+these  alternate  forms  automatically.   For  example  it   will
+automatically disambiguate and correctly pronounce the  words  in
+the  following sentences:
+
+        They refused the produce.
+        They produced the refuse.
+
+As  you can see, it takes some intelligence to choose the correct
+pronunciation  automatically, although DECtalk  does  very  well.
+Occasionally,  however,  it is difficult  if  not  impossible  to
+predict  the  correct  pronunciation  as  in  the  case  of  read
+(pronouned  as  in  reed or red) since they  can  both  occur  in
+identical  syntactic  contexts.  DECtalk  recognizes  a   primary
+pronunciation   and  a  secondary  pronunciation.   The   primary
+pronunciation  is  the  more  frequent  pronunciation.  If    the
+DECtalk's   pronunciation  is  incorrect,  you  can  obtain   the
+alternate  pronunciation in a number of ways: (a)  by  placing  a
+slash  at  the  beginning of the word  to obtain   the  alternate
+pronunciation;  (b)  by  using  the  [:pronounce   primary]   and
+[:pronouce  alternate] commands (Chapter 3); (c) by phoneticizing
+the word; (d) by inserting a clever misspelling.
+
+        They'll read good books but they /read nothing yesterday.
+        They'll read good books but they [:pron alt] read nothing
+yesterday.
+         They'll  read  good  books  but  they  [r'ehd]   nothing
+yesterday.
+        They'll read good books but they red nothing yesterday.
+
+
+Note:  Placing a slash at the beginning of a homograph to  obtain
+the  alternate pronunciation will work only if the  [:punc  some]
+command is enabled.
+
+Appendix   C   lists the pairs of common homographs that  DECtalk
+knows.
+                                
+End of Chapter 4.
+

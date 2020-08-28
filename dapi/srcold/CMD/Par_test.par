@@ -1,0 +1,252 @@
+;/*
+; ***********************************************************************
+; *
+; *                           Copyright ©
+; *    Copyright © 2000 Force Computer, Inc., a Solectron company. All rights reserved.
+; *    © Digital Equipment Corporation 1996. All rights reserved.
+; *
+; *    Restricted Rights: Use, duplication, or disclosure by the U.S.
+; *    Government is subject to restrictions as set forth in subparagraph
+; *    (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
+; *    52.227-14 Alt. III, as applicable.
+; *
+; *    This software is proprietary to and embodies the confidential
+; *    technology of Force Computer Incorporated and other parties.
+; *    Possession, use, or copying of this software and media is authorized
+; *    only pursuant to a valid written license from Force or an
+; *    authorized sublicensor.
+; *
+; ***********************************************************************
+; *    File Name:	par_rule.h
+; *    Author:       Matthew Schnee
+; *    Creation Date:05/15/96
+; *
+; *    Functionality:
+; * 		Text preprocessor main file
+; *
+; ***********************************************************************
+; *    Revision History:                    
+; *
+; *	Rev	Who		Date		Description
+; *	---	-----	-----------	---------------------------------------
+; *	001	MGS		05/15/1996	File Created
+; * 002 CAB		10/18/2000	Changed copyright info and formatted comments
+; *
+; */
+;
+[RULE]
+;  /* punctuation mode rules */
+; if there is a lone punctuation, just skip it 
+;0xFFFF-0x0003:R95;H95,a/T<1>/' '/E<1>
+0xFFFF-0x0003:R95,T<1>                    
+; rule for word... -> word..  and word.,, -> word.,
+; on a miss go to process the word.(clause_boundry) rule
+0xFFFF-0x0003:R0;H0;GM101,W~<+>'.'d/E<1>/E<1>W~<*>
+; clause boundry multiple deletion. leave the last clause boundry.
+0xFFFF-0x0003:R1;H0,W~<+>d/E<1>/E<1>
+; delete all the punctuation after a clause boundry
+0xFFFF-0x0003:R2;H12,W~<+>E<1>d/P<+>/                  
+; delete a punct if there is a clause boundry after it
+0xFFFF-0x0003:R90;H0,W~<+>d/P<1>/E<1>
+; punct multiple deletion  --- -> -   ==== -> =
+0xFFFF-0x0003:R3;H0,W~<*>($1,P<1>)d/S{$1}<+>/W~<*>
+; punct some rule. replace all { < [ with )  and } > ] with ) 
+0xFFFF-0x0002:R121;H95,h/punct_some_del,T<1>/d/$7/|a/$7/' '//W~<*>
+0xFFFF-0x0002:R122;H95,W~<*>h/punct_some_del,T<1>/d/$7/|b/$7/' '//W~<*>
+; insert space after punct all, before punct all
+0xFFFF-0x0003:R123;H95,W~<*>a/P<1>/' '/P<1>W~<*>           
+; insert space after a punct all, before a punct some
+0xFFFF-0x0003:R4;H95,W~<*>a/P<1>/' '/T<1>W~<*>           
+; insert space after a punct some, before a punct some
+0xFFFF-0x0003:R5;H95,W~<*>a/T<1>/' '/T<1>W~<*>        
+; insert a space after a punct some before a punct all
+0xFFFF-0x0003:R6;H95,W~<*>a/T<1>/' '/P<1>W~<*>
+; punct all rule. insert a sync after a clause boundry
+0xFFFF-0x0004:R7;H12,a/E<1>/0x0B/W~<*>
+; punct all rule. insert a space after a punct all 
+0xFFFF-0x0004:R91;H95,a/P<1>/' '/W~<*>
+; punct all rule. insert a space before a punct all
+0xFFFF-0x0004:R8;H0,a/W~<+>/' '/P<1>W~<*>         
+; punct some rule. insert a space before a punct some
+0xFFFF-0x0002:R9;H95,a/T<1>/' '/W~<*>
+;  /* punct some rule */
+0xFFFF-0x0002:R10;H95,a/W~<+>/' '/T<1>W~<*>
+;  /* punct none rule */
+0xFFFF-0x0001:R11;H11,W~<*>r/T<+>/' '/W~<*>
+STOP,R12            
+; replace word.E<1> with word.[E<1>] if E<1> is a phoneme and delete any other phonemes
+0xFFFF-0x0003:R101;H103;M102,W~<+>E~<*>'.'h/clause_b's,E<1>/r/$7/' '$9/|FAIL/
+RETURN,R102             
+STOP,R103
+;  /* punct multiple deletion */
+;0xFFFF-0x000F:R13;H13,($1,P<1>)d/$1/W~<*>
+;  /* end of punctuation mode rules */
+[RULE]
+;  /* regular rules now until the end */
+; German Rules 0x0004
+0x0004-0xFFFF:R300,D[0-23]r/($1,S{',',':'}<1>)/':'/D[0-59]o/r/$1/':'/D[0-59]/W<0-3>d/S{'U'`hr`,`h.`,`h`}<1>/
+
+;Spanish Rules 0x0008
+
+; common rules
+;  /* phone number 1-800-555-1212  and 800-555-1212 */
+0x7FFF-0x7FFF:R15,o/'1'r/'-'/', '//D[8-9]'00'r/'-'/', '/i/D[2-9]D<2>/' '/r/'-'/', '/i/D<4>/' '/ 
+;  /* phone number 1 800 555 1212  and 800 555 1212 */
+0x7FFF-0x7FFF:R16,o/'1'r/' '/', '//D[8-9]'00'r/' '/', '/i/D[2-9]D<2>/' '/r/' '/', '/i/D<4>/' '/
+;  /* phone number  (800)555-1212 (800) 555-1212 (800)555 1212 (800) 555 1212 */
+;  /* (800)5551212 (800) 5551212 */
+0x7FFF-0x7FFF:R17,d/'('/D[8-9]'00'r/')'W<*>/', '/i/D[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/i/D<4>/' '/
+;  /* phone number 18005551212 and 8005551212 */
+0x7FFF-0x7FFF:R18,o/a/'1'/', '//a/D[8-9]'00'/', '/a/i/D[2-9]D<2>/' '//', '/a/i/D<4>/' '//', '/
+;  /* phone number 1-508-555-1212  and 508-555-1212 */
+0x7FFF-0x7FFF:R19,o/'1'r/'-'/', '//i/D<3>/' '/r/'-'/', '/i/D[2-9]D<2>/' '/r/'-'/', '/i/D<4>/' '/ 
+;  /* phone number 1 508 555 1212  and 508 555 1212 */
+0x7FFF-0x7FFF:R20,o/'1'r/' '/', '//i/D<3>/' '/r/' '/', '/i/D[2-9]D<2>/' '/r/' '/', '/i/D<4>/' '/
+;  /* phone number  (508)555-1212 (508) 555-1212 (508)555 1212 (508) 555 1212 */
+;  /* (508)5551212 (508) 5551212 */
+0x7FFF-0x7FFF:R21,d/'('/i/D<3>/' '/r/')'W<*>/', '/i/D[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/i/D<4>/' '/
+;  /* phone number 15085551212 and 5085551212 */
+0x7FFF-0x7FFF:R22,o/a/'1'/', '//a/i/D[2-9]D<2>/' '//', '/a/i/D[2-9]D<2>/' '//', '/a/i/D<4>/' '//', '/
+;  /* phone number 555-1212   555 1212  5551212 */
+0x7FFF-0x7FFF:R23,i/D[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/i/D<4>/' '/
+;  /* state and zip code */
+;  /*0x7FFF-0x7FFF:R5,U<2>W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//, */
+0x7FFF-0x7FFF:R24,'A'r/S{'L','K','Z','R'}<1>/'labama'|'laska'|'rizona'|'rkansas'/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R25,'C'r/S{'A','O','T'}<1>/'alifornia'|'olorado'|'onnecticut'/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R26,r/S{'DE','FL','GA','HI'}<1>/'Delaware'|'Florida'|'Georgia'|'Hawaii'/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R27,'I'r/S{'D','L','N','A'}<1>/'daho'|'llinois'|'ndiana'|'owa'/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R28,r/S{'KY','KS','LA'}<1>/'Kansas'|'Kentucky'|'Louisiana'|/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R29,'M'r/S{'E','D','A','I'}<1>/'aine'|'aryland'|'assachusetts'|'ichigan'|/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R30,'M'r/S{'N','S','O','T'}<1>/'innesota'|'ississippi'|'issouri'|'ontana'|/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R31,'N'r/S{'E','V','H','J'}<1>/'ebraska'|'evada'|'ew Hampshire'|'ew Jersey'|/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R32,'N'r/S{'M','Y','C','D'}<1>/'ew Mexico'|'ew York'|'orth Carolina'|'orth Dakota'|/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R33,'O'r/S{'H','K','R'}<1>/'hio'|'klahoma'|'regon'|/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R34,r/S{'PA','RI','DC'}<1>/'Pennsylvania'|'Rhode Island'|'District of Columbia'/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R35,r/S{'SC','SD','TN','TX'}<1>/'South Carolina'|'South Dakota'|'Tennessee'|'Texas'/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R36,r/S{'UT','VT','VA'}<1>/'Utah'|'Vermont'|'Virginia'|/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+0x7FFF-0x7FFF:R37,'W'r/S{'A','V','I','Y'}<1>/'ashington'|'est Virginia'|'isconsin'|'yoming'/W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//
+;  /* Dr. Lin  DR. Lin  Dr. LIN  DR. LIN  */
+0x0001-0xFFFF:R38,r/'D'`r.`/'Doctor'/r/W<1-3>/' '/c/S{U<1>L<+>,U<*>}<1>/
+;  /* St. John  ST. John  St. JOHN  ST. JOHN  */
+0x0001-0xFFFF:R39,r/'S'`t.`/'Saint'/r/W<1-3>/' '/c/S{U<1>L<+>,U<*>}<1>/  
+;  /* file name rules */
+;0xFFFF-0xFFFF:R40;H50,H<1-7>A<1>r/'.'/' dot '/i/S{'exe',H<1-3>}<1>/' '|''/
+0xFFFF-0xFFFF:R41;H50;DM,H<3-20>r/'.'/' dot '/i/S{O<1>V<1>O<1>,A<1>H<0-2>}<1>/''|' '/
+;  /* 42 St. -> 42nd St. */
+0x0001-0xFFFF:R42,a/D<1-4>/'th'|'st'|'nd'|'rd'|'th'|'th'|'th'|'th'|'th'|'th'/r/W<1-4>/' '/S{`st.`,`ave.`,`dr.`}<1>
+; fix for english ordinal numbers
+0x0001-0xFFFF:R120,D<*>h/ordinals,D<1>S{`th`,`st`,`nd`,`rd`}<1>/$7|FAIL/
+;  /* dates */	/* 5/10/96  5-10-96 */
+0x7FFF-0x7FFF:R43,d/($1,r/D[1-12]/'Jan'|'Feb'|'Mar'|'Apr'|'May'|'Jun'|'Jul'|'Aug'|'Sep'|'Oct'|'Nov'|'Dec'/)($2,S{'/','-'}<1>)/D[1-31]r/$2/'-'$1'-'/D<2,4>
+;  /* dates */ /* May. 3, 1996   May 3, 96 */
+0x7FFF-0x7FFF:R44,d/($1,S{'J'`an`,'F'`eb`,'M'`ar`,'A'`pr`,'M'`ay`,'J'`un`,'J'`ul`,'A'`ug`,'S'`ep`,'O'`ct`,'N'`ov`,'D'`ec`}<1>)o/'.'/W<1-4>/a/D[1-31]/'-'$1/o/r/o/','/W<1-4>/'-'/D<2,4>/
+;  /* compound fractions */
+0x7FFF-0x7FFF:R45,D<1-4>r/S{' ','-'}<1>/' and '/D[1-99]'/'D[1-100]
+;  /* number-alpha */
+0xFFFF-0xFFFF:R46;DM,D<1-4>r/'-'/' '/A<+>
+;  /* price/performance -> price-performance */
+0x7FFF-0x7FFF:R47;DM,A<+>r/'/'/'-'/A<+>
+;  /* OS/2 -> OS 2  matt/3  -> matt 3 */
+0xFFFF-0xFFFF:R48;DM,A<+>r/'/'/' '/D<+>
+;  /* 3/matt -> 3 matt   */
+0xFFFF-0xFFFF:R49;DM,D<+>r/'/'/' '/A<+>
+;
+;  /* the set of part number rules */
+;
+;  /* vt100 -> vt 100   net1000 -> net 1000 */ /* repeat the rules */
+0x7FFF-0x7FFF:R50;H50;GH60,a/D<+>/' '/A<+>r/'-'/' dash '/H<+>W~<*>
+; /* to ultra a rule 1 */ 
+0x7FFF-0x7FFF:R51;H50;GH61,a/A<+>/' '/D<+>r/'-'/' dash '/H<+>W~<*>
+; /* to ultra a rule 2 */
+;  /* v4.2... -> v 4.2... */	/* repeat the rules */
+0x7FFF-0x7FFF:R52;H50;GH58,a/A<+>/' '/D<1-6>o/'.'D<1-4>/D~<0-1>W~<*>
+; /* to simple a rule */
+;  /* 4.2bw -> 4.2 bw */
+0x7FFF-0x7FFF:R53;H50;GH59,a/D<+>o/'.'D<+>//' '/A<+>W~<*>
+; /* to skip 1 w bound a rule */
+;  /* bw-x01 -> bw dash x01 */
+0x7FFF-0x7FFF:R54;H50;GH58,A<+>r/'-'/' dash '/S{A<+>D<+>,D<+>A<+>}<1>W~<*>
+; /*to simple A rule */
+0x7FFF-0x7FFF:R55;H50,D<+>r/'-'/' dash '/A<+>D<+>W~<*>
+;  /* 34.45-45 -> 34.45 - 45 */ /* ???? */
+0x7FFF-0x7FFF:R56;H50,D<+>o/'.'D<+>/b/a/'-'/' '//' '/D<+>W~<*>
+STOP,R57
+;
+;
+;  /* rule for the letter a or A bring broken out of a part number thing */
+;  /* simple  A rule */
+0x0001-0xFFFF:R58;H62;M62,r/`a`/'eyh'/
+;  /* skip 1 w bound A rule */              
+0x0001-0xFFFF:R59;H62;M62,W~<*>' 'r/`a`/'eyh'/
+;  /* ultra a rule 1 */
+0x0001-0xFFFF:R60;H62;M62,W~<*>' 'o/r/`a`/'eyh'//' dash 'o/r/`a`/'eyh'//
+;  /* ultra a rule 2 */
+0x0001-0xFFFF:R61;H62;M62,o/r/`a`/'eyh'//W~<*>' dash 'o/r/`a`/'eyh'//
+;                                                                 
+;#ifdef TEST_RULES
+;/* punct duplicate deletetion rule */
+;R40;H40,W~<*>($1,P<1>)d/$1/W~<*>"
+;/* punct all rule */
+;R41;H41,a/W~<*>/' '/a/($1,P<1>)/0x0B/W~<*>"
+;/* punct some */           
+;R42;H42,a/W~<*>/' '/a/($1,T<1>)/' '/W~<*>"
+;/* word,' -> word, */
+;R46,d/o/'\''//A<+>','d/'\''/"
+;/* punct none */                   
+;R43;H43W~<*>r/T<1>/' '/W~<*>"
+;/* punct pass */
+;/* don't do any text pre-processing */
+;/* this has to be done in cm_text.c */
+;/* math mode */
+;// done by punct modes
+;//R50;H50;M60,a/D<+>/' '/a/S{'+','-','*','/','%','=','^','<','>','.'}<1>/' '/D<*>
+;//R51;H50;M60,a/S{'+','-','*','/','%','=','^','<','>','.'}<1>/' '/D<+>
+;// by lts
+;//R70,r/S{'+','-','*','/','%'}<1>/'plus'|'minus'|'multiplied by'|'divided by'|'percent'/
+;//R71,r/S{'=','^','<','>','.'}<1>/'equals'|'to the power of'|'less than'|'greater than'|'point'/
+;R70,S{D<+>,A<+>}<1>o/r/'\''/' prime '//r/'x'/' times '/S{D<+>,A<+>}<1>o/'\''/" /* to simple A rule */
+;R71,S{D<+>,A<+>}<1>r/'\''/' prime'/" /* to simple A rule */
+;#endif
+;#ifdef EDS_RULES
+;0xFFFF-0xFFFF:R0,a/S{`blue`,`fire`,`apple`}<1>/'-'/O<+>V<+>W~<*> 
+;0xFFFF-0xFFFF:R1,C<*>V<1>A<*>b/`fire`/'-'/
+;STOP
+;#endif
+;#ifdef OTHER_RULES
+;/* without rule */
+;r/'w/o'/'with out'/"
+;/* with rule */
+;r/'w/'/'with '/W~<*>"
+;/* v4.4 -> version 4.4 */
+;r/'v'/'version '/D<1-4>'.'D<1-4>o/'.'D<1-4>/W~<*>"
+;#endif
+
+[dict,clause_b's]
+!~[!]
+?~[?]
+:~[,]
+\;~[,]
+,~[,]
+.~[.]
+
+[dict,ordinals]
+0th~
+1st~
+2nd~
+3rd~
+4th~
+5th~
+6th~
+7th~
+8th~
+9th~
+
+[dict,punct_some_del]
+{~(
+}~)
+[~(
+]~)
+(~(
+)~)
+<~(
+>~)

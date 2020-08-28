@@ -1,0 +1,39 @@
+VerCheck v1.0  FORCE computer Inc.
+--------------------------------------------
+Purpose: VerCheck will detect the version number and version string from a DECtalk DLL file.
+
+Theory of Operation: Beginning with DECtalk software v4.4a, the DLL contains a function
+called TextToSpeechVersion which can return the DLL version information. This function can
+be used without going through any of the DLL locking mechanisms used for licensing. Earlier
+versions of the DLL are detected based on the functions available in the DLL.
+
+Step 1: LoadLibrary("DECtalk.DLL")
+ On failure, the error code is checked. If the error is due to 16-bit DLL loading into a
+ 32-bit OS (NT) or from a DEV (Device) error. This will flag the system to fill in the
+ information as follows:
+  DECtalk version 1.0 (build 10)
+  DECtalk PC 16-bit DLL v1.0
+
+ If the error code is from another reason, the version is listed as follows:
+  DECtalk version 0.0 (build ???)
+  DECtalk DLL not found
+ The build number lists the Windows GetLastError number returned from LoadLibrary
+
+Step 2: GetProcAddress(mod,"TextToSpeechVersion")
+ The next step is to fetch the address of the TextToSpeechVersion function for calling. If
+ the function returns a non-NULL pointer, we will call the function, and use it's return
+ data to display the version, otherwise, we continue.
+
+Step 3: GetProcAddress(mod,"TextToSpeechStartup")
+ Our last test is to try to fetch the TextToSpeechStartup function. Since this is only
+ implimented in the DECtalk software releases that do not contain version information (4.3)
+ we can safely assume if the function exists without TextToSpeechVersion that it is 4.3.
+ In this case, we issue the following:
+  DECtalk version 4.3 (build 100)
+  DECtalk 4.3 or earlier
+
+ Otherwise, we assume a 32-bit DECtalk PC interface (Currently, no known versions exist)
+  DECtalk version 1.0 (build 10)
+  DECtalk PC 32-bit DLL v1.0
+
+After this, we close the DLL, and wait for the user to press OK.

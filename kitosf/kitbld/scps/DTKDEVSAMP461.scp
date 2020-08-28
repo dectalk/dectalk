@@ -1,0 +1,414 @@
+#
+# @DEC_COPYRIGHT@
+#
+# HISTORY
+# Revision 1.1.2.3  1996/03/18  18:01:29  Krishna_Mangipudi
+# 	Added softlinks to Imakefile
+# 	[1996/03/18  18:01:19  Krishna_Mangipudi]
+#
+# Revision 1.1.2.2  1996/03/15  00:03:22  Krishna_Mangipudi
+# 	Initial creation from DTKSAMP430
+# 	[1996/03/15  00:03:09  Krishna_Mangipudi]
+# 
+# $EndLog$
+#
+#
+#  Copyright (c) Digital Equipment Corporation, 1996 All Rights Reserved.
+#  Unpublished rights reserved under the copyright laws of the United States.
+#  The software contained on this media is proprietary to and embodies the
+#  confidential technology of Digital Equipment Corporation.  Possession, use,
+#  duplication or dissemination of the software and media is authorized only
+#  pursuant to a valid written license from Digital Equipment Corporation.
+#
+#  RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the U.S.
+#  Government is subject to restrictions as set forth in Subparagraph
+#  (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, as applicable.
+#
+#
+
+. /usr/share/lib/shell/libscp
+
+##############################
+#      LMF Particulars
+##############################
+
+product=DECTALK-SW97-USER
+product_int=DECTALK-SW97-INT
+producer=DEC
+prod_version=4.4
+prod_date=15-OCT-1997
+
+# Subset check flags
+
+SUBSETS_PRESENT=0
+VERSION_MISMATCH=0
+
+RT_FLAG=0
+DELRT_FLAG=0
+
+SUBSETNAME=`basename $0`
+SUBSETNAME=`expr "$SUBSETNAME" : '^\(.*\)\.scp'`
+SUBSETVER=`expr "$SUBSETNAME" : '^\DTKDEVSAMP*\(.*\)'`
+
+
+CheckPreRequisteConfig()
+{
+        ###################################################################
+        #
+        # check the architecture type
+        #
+        ###################################################################
+        MACH=vax
+        [ -f /bin/machine ] && MACH=`/bin/machine`
+        [ $MACH = alpha ] ||
+        {
+            cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKDEVSAMP461.
+
+        This version of DECtalk Software may be installed on Alpha AXP only.
+                                                                           
+   ***********************************************************************
+
+EOF
+            exit 1
+        }
+
+        ###################################################################
+        #
+        # Check if MME is installed  
+        #
+        ###################################################################
+        [ ! -f /usr/.smdb./MMERT[0-9][0-9][0-9].lk ] &&
+        {
+           cat <<EOF
+
+   ***********************************************************************
+
+     Error installing DECtalk Software V4.61 subset DTKDEVSAMP461.
+
+       DECtalk Software installation has detected that MME, the Multimedia 
+       Services for Digital UNIX, is not installed.  If you wish to run 
+       DECtalk Software applets you will need to install MME after you 
+       install DECtalk Software.
+
+   ***********************************************************************
+
+EOF
+        }
+
+
+}
+
+CheckIfRtIsAlreadyInstalled() 
+{
+   ###################################################################
+   #
+   # Check for currently installed DTK kits 
+   #
+   ###################################################################
+   [ -f /usr/.smdb./DTKDEVSAMP[0-9][0-9][0-9].lk ] &&
+   {
+      SUBSETS_PRESENT=1
+      RT_FLAG=1
+      DtkRt=`ls /usr/.smdb./DTKDEVSAMP[0-9][0-9][0-9].lk | sed "s/\/usr\/.smdb.\///" | sed s/.lk//`
+      cat <<EOF
+
+      $DtkRt is currently installed.
+EOF
+   }
+}
+
+CheckVersions()
+{
+   VERSION_MISMATCH=0
+
+   # Check DTKDEVSAMP version
+
+   if [ "$RT_FLAG" = "1" ]
+   then
+      ThisVer=`expr "$DtkRt" : '^\DTKDEVSAMP*\(.*\)'`
+      if [ ! "$ThisVer" = "$SUBSETVER" ]
+      then
+         VERSION_MISMATCH=1  
+      fi
+   fi
+}
+
+DeleteSubset()
+{
+   if [ "$RT_FLAG" = "1" ]
+   then
+      while :
+         do echo "
+Do you wish to delete subset $DtkRt at this time? (y/n) [y]: \c"
+            read ANS
+            ANS=`echo $ANS`
+
+            case $ANS in
+               "" | [yY]* )
+                  DELRT_FLAG=1
+                  break
+               ;;
+                  [nN]* )
+                  DELRT_FLAG=0
+                  break
+               ;;
+            esac
+      done
+   fi
+
+  if [ "$DELRT_FLAG" = "1" ]
+  then
+     /usr/sbin/setld -d $DtkRt
+     RT_FLAG=0
+     DELRT_FLAG=0
+  fi
+}
+
+CopyrightMsg ()
+{
+	cat <<EOF
+
+   ***********************************************************************
+   *                                                                     *
+   * DECtalk Software Application Services V4.61                          *
+   * Sample Programs Subset                                              *
+   *                                                                     *
+   * Copyright(c)Digital Equipment Corporation, 1996 All Rights          *
+   * Reserved                                                            *
+   *                                                                     *
+   * Unpublished rights reserved under the copyright laws of the United  *
+   * States.   The software contained on this media is proprietary to    *
+   * and embodies the confidential technology of Digital Equipment       *
+   * Corporation.  Possession, use, duplication or dissemination of the  *
+   * software and media is authorized only pursuant to a valid written   *
+   * license from Digital Equipment Corporation.                         *
+   *                                                                     *
+   * RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the   *
+   * U.S. Government is subject to restrictions as set forth in          *
+   * Subparagraph (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, *
+   * or in FAR 52.227-14 Alt. III as applicable.                         *
+   *                                                                     *
+   ***********************************************************************
+
+EOF
+}
+
+    #######################################################################
+    #
+    # Start main case statement for this module
+    #
+    #######################################################################
+
+case $ACT in
+    #######################################################################
+    #
+    # Before presenting subset menu: check dependencies and display
+    # copyright information.
+    #
+    #######################################################################
+    M)
+
+       CheckPreRequisteConfig
+       CheckIfRtIsAlreadyInstalled 
+
+       if [ "$SUBSETS_PRESENT" = "1" ]
+       then
+          DeleteSubset
+          CheckVersions
+          if [ "$VERSION_MISMATCH" = "1" ] 
+          then
+             cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKDEVSAMP461.
+
+        You may not mix different versions of DECtalk Software, please 
+        delete the installed version of DECtalk Software before installing 
+        the current version.
+
+   ***********************************************************************
+EOF
+             DeleteSubset
+          fi
+       fi
+
+    #######################################################################
+    #
+    # If DTKDEVSAMP subset is still present, then do not prompt for it
+    # in the installation menu
+    #
+    #######################################################################
+  
+        [ -f /usr/.smdb./DTKDEVSAMP[0-9][0-9][0-9].lk ] &&
+        {
+           exit 1
+        }
+   ;;
+
+   ###########################################################
+   #
+   #    Subset verification
+   #
+   ###########################################################
+   V)
+   ;;
+
+   #######################################################################
+   #
+   # Pre-installation : check to make sure any prerequisites are met.
+   #
+   #######################################################################
+   PRE_L)
+        /usr/sbin/lmfck -m $product_int $producer $prod_version $prod_date 2> /dev/null
+	if [ $? -ne 0 ]
+	then
+          /usr/sbin/lmfck -m $product $producer $prod_version $prod_date 2> /dev/null
+	  if [ $? -ne 0 ]
+	  then
+	    cat <<EOF
+
+   ***********************************************************************
+                                                                        
+      Error installing DECtalk Software V4.61 subset DTKDEVSAMP461.
+       
+        DTKDEVSAMP461 requires a license, this product cannot be installed 
+        without a proper license.     
+                                                                        
+        For more information about licenses please refer to the Software 
+        License Management guide provided with the Digital UNIX documentation 
+        set.
+                                                                        
+   ***********************************************************************
+
+EOF
+	    exit 1
+	fi
+	fi
+        if [ ! -f /usr/lib/dtk/dtalk_us.dic ]
+        then
+            cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKDEVSAMP461.
+
+        DTKDEVSAMP461 requires the DECtalk Software Runtime kit. Please make
+        sure you install DTKRT461 before you load this library.
+
+   ***********************************************************************
+
+EOF
+            exit 1
+        fi
+        CopyrightMsg
+	;;
+
+   ###########################################################
+   #
+   #    After loading a subset
+   #
+   ###########################################################
+   POST_L)
+      cat <<EOF
+
+  **************************************************************************
+                                                                          
+     DECtalk Software V4.61 sample program subset (DTKDEVSAMP461) installation 
+     completed successfully.  This installation puts the sample programs in 
+     the following directory:
+
+                        /usr/examples/dtk/dtsamples
+
+  **************************************************************************
+
+EOF
+             ;;
+
+    ###########################################################
+    #
+    #	Setup/Cleanup Phase
+    #   (used by both install and delete )
+    #
+    ###########################################################
+    C)
+        case $1 in
+            INSTALL)
+                ###########################################################
+                #
+                # create soft links to the examples
+                #
+                ###########################################################
+
+                ###########################################################
+                # Softlinks to Imakefile 
+                ###########################################################
+                ln -fs /usr/opt/DTKDEV461/examples/dtk/dtsamples/Imakefile \
+                       ./usr/examples/dtk/dtsamples/Imakefile
+ 
+                ###########################################################
+                # Softlinks to aclock.c
+                ###########################################################
+                ln -fs /usr/opt/DTKDEV461/examples/dtk/dtsamples/aclock.c \
+                        ./usr/examples/dtk/dtsamples/aclock.c
+                ###########################################################
+                # Softlinks to dtmemory.c
+                ###########################################################
+                ln -fs /usr/opt/DTKDEV461/examples/dtk/dtsamples/dtmemory.c \
+                        ./usr/examples/dtk/dtsamples/dtmemory.c
+                ###########################################################
+                # Softlinks to say.c
+                ###########################################################
+                ln -fs /usr/opt/DTKDEV461/examples/dtk/dtsamples/say.c \
+			./usr/examples/dtk/dtsamples/say.c
+                ###########################################################
+                # Softlinks to xmsay
+                ###########################################################
+                ln -fs /usr/opt/DTKDEV461/examples/dtk/dtsamples/xmsay.uil \
+			./usr/examples/dtk/dtsamples/xmsay.uil
+                ln -fs /usr/opt/DTKDEV461/examples/dtk/dtsamples/xmsay.c \
+			./usr/examples/dtk/dtsamples/xmsay.c
+                exit 0
+                ;;
+
+            DELETE)
+                ###########################################################
+                #
+                # delete the soft link examples
+                #
+                ###########################################################
+                rm -f ./usr/examples/dtk/dtsamples/Imakefile
+                rm -f ./usr/examples/dtk/dtsamples/aclock.c
+                rm -f ./usr/examples/dtk/dtsamples/dtmemory.c
+		rm -f ./usr/examples/dtk/dtsamples/say.c
+                rm -f ./usr/examples/dtk/dtsamples/xmsay.c
+                rm -f ./usr/examples/dtk/dtsamples/xmsay.uil
+                ;;
+        esac
+        ;;
+                               
+    ###########################################################
+    #
+    # Post-deletion : unlock dependencies
+    #
+    ###########################################################
+    POST_D)
+        ###########################################################
+        #
+        # delete the directories
+        #
+        ###########################################################
+        rmdir /usr/examples/dtk/dtsamples       2> /dev/null
+        rmdir /usr/examples/dtk 		2> /dev/null
+        rmdir /usr/opt/DTKDEV461/examples/dtk/dtsamples  2> /dev/null
+        rmdir /usr/opt/DTKDEV461/examples/dtk 	2> /dev/null
+        rmdir /usr/opt/DTKDEV461/examples       2> /dev/null
+        rmdir /usr/opt/DTKDEV461                2> /dev/null
+        ;;
+esac
+
+exit 0

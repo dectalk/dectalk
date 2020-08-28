@@ -1,0 +1,363 @@
+
+DECtalk for Windows DLL                             Revised: 07-JUN-1995.
+
+1.0 Introduction.
+
+This file contains information on using the pre-release DECtalk for 
+Windows  DLL.  The DLL will run only under Windows version 3.1 or later.
+All information is this document should be considered preliminary and is
+subject to change.  This document makes no attempt to explain Windows, 
+how to write applications to run under Windows or how the DECtalk PC 
+itself works.  It is assumed the the user of this document understands 
+Windows and uses standard tools (Microsoft C/C++ v7.0 or Borland C v3.0)
+to develop the software applications.
+
+2.0 Files
+
+Six files are included in the pre-release version of the Windows 
+software.  They are:
+
+	DTPC.DLL.
+
+The DLL is the actual runtime code.  It replaces the DOS driver, loader,
+and configuration program and provides additional Windows Setup and 
+initialization file features to the user.  This file sould be placed in
+the Windows system directory (note: As of this release, no attempt has 
+been made to split the dll major functions into separate runtime 
+segments so the resident load size is quite large.  This will be fixed 
+in a later update.) Sources for the DLL are included.
+
+	DTPCW.LIB.      (Replaces DTPC.LIB Previously Supplied)
+
+This is an import library that can be linked with the user application 
+to avoid having to explicitly import the DECtalk DLL functions.
+
+	DLL_USYM.H.     (Replaces USETR_DLL.H Previously Supplied)
+
+This library is a MicroSoft C compatable include file that contains 
+function prototypes and various defined symbols necessary to use the 
+dll.  Those symbols and functions are explained in greater detail 
+later in this document.
+
+	DECTALK.INI.
+
+The init file contains default parameter setting for the DECtalk 
+module that are sent over as part of the initialization and loading of 
+the module.  Users can either change these setting by editing the init 
+file (via notepad or some other editor) or via applications calling 
+the setup function provided by the dll.
+
+	DLL.WRI.      (Replaces DTPC.WRI Previously Supplied)
+
+This file is pre-release documentation for the DLL and other related 
+files.
+
+	WSR.EXE.
+
+This is a demo program used in the design and debug of the DLL.  It 
+performs simple windows file reading tasks and allows the developer to 
+view the setup and load message and dialog boxes before begining to 
+develop any code.  This is include merely as a 'quick and dirty' 
+example of how the DECtalk for Windows code can work and is not a 
+shippable or crash proof progam. Source files are included.
+
+3.0 Functions.
+
+All DECtalk dll calls (except for dtpcCloseDll) return one of the 
+following integer values to indicate the status of the call:
+
+	DLL_FAILURE.
+
+Failure indicates that a severe error has occured and all calls to the 
+DLL should be discontinued.
+
+	DLL_SUCCESS.
+
+The called function completed successfully.
+
+	DLL_BUSY.
+
+The DLL has a pending operation and can not complete the function at 
+this time.  The desired operation will not complete until the DLL has 
+a chance to run again.   This usually occurs when user applications 
+call the DLL from via interrupts and normal operations with the 
+interrupt occuring while a DLL call is in progress.  The calling 
+applications should pend the operation until some later time.
+
+	DLL_RETRY.
+
+The DECtalk PC module is busy and can not complete the function at this
+time.  The user can either try again immediately or later with little 
+impact in most cases.
+
+	dtpcInitDll(void).
+
+This is the first call that should be made to the DLL.  When this is 
+called, the DLL searches for installed DECtalk module, initializes them,
+and build control structures for them.  Success indicates that at 
+least one module has been installed and is ready to be loaded.
+
+	dtpcCloseDll(void).
+
+When the application is complete, the user should release the DLL from 
+ram and disable all DECtalk module via this call.
+
+	dtpcVolumeUp(int mod,int vol).
+	dtpcVolumeDown(int mod,int vol).
+	dtpcVolumeSet(int mod,int vol).
+
+These calls increment, decrement and set the output volume of the module
+by the amount indicated by vol.
+
+	dtpcPause(int mod).
+	dtpcResume(int mod).
+
+Pause and Resume are used to suspend and restart all output of the 
+module . All commands and output are preserved while the module is 
+paused.  Sending too much text to a paused module will cause the input 
+processes of a module to hang.
+
+        dtpcResumeSpc(int mod).
+	dtpcFlushSpeech(int mod).
+
+FlushSpeech and ResumeSpc are used to allow the module to continue to 
+work on text, indexes, commands, etc. with no audible output and at a 
+higher rate than is possible by simply setting the output volume to 
+zero.
+
+	dtpcFlushText(int mod).
+	dtpcFlushChar(int mod,unsigned char c).
+
+FlushText flushes all pending input and output of the module.   
+FlushChar flushes all pending input and output of the module specified 
+by mod and send the character  c to the module for speaking as a single
+character.
+
+	dtpcImmdVoice(int mod,int voice).
+	dtpcImmdRate(int mod,int rate).
+	dtpcImmdRateDelta(int mod,int rate).
+	dtpcImmdPeriod(int mod,int pause).
+	dtpcImmdComma(int mod,int pause).
+
+The immediate commands change the desired DECtalk parameter of the 
+module to the desired value at the next natural pause available in the 
+output.  This depends on the mode that the modue is currently operating
+in and will be no later than two of the specified 'say' boundaries 
+(ie two clause, two words, or two characters).
+
+	dtpcBuffFree(int mod,int __far *bytes).
+	dtpcBuffUsed(int mod,int __far *bytes).
+
+BuffFree and BuffUsed returns the number of bytes available or used in 
+the character input buffer of the module .
+
+	dtpcLastIndex(int mod,int __far *index).
+
+LastIndex returns the last index that the module has encountered.  A 
+return value of DLL_RETRY means that no new index has been encountered. 
+This call returns the last index mark passed by the module and does not
+ensure that all index marks sent to the module will be returned by calls
+to this function.
+
+	dtpcFreeMem(int mod,int __far *paras).
+
+The call returns the amound of free ram available on the module for load
+ing user dictionarys or alternate language files.  The return value is 
+paragraphs (16 byte chunks) or memory.
+
+	dtpcIoPriority(int mod,int priority).
+
+This call changes the internal module priority for receiving and sending
+characters.  The default priority (priority = 0) instructs the module to
+attempt to speak all buffered characters before receiving new ones.  
+Changeing the priority (priority = 1) causes the DECtalk module to 
+receive and send characters before attempting to speak.  If the priority
+is changed, the user must be careful not to 'saturate' the module with 
+so many calls that the speech output becomes 'garbled'.
+
+        dtpcDigitizedMode(int mod).
+	dtpcTextMode(int mod).
+	dtpcSendDigitized(int mod,unsigned char __far *buff,unsigned int frames).
+
+Digitized mode allows the DECtalk to play .WAV type files.  The mode the
+module is in, is switched via calls to DigitizedMode (.WAV files) and 
+TextMode (normal text processing).   Wave files are sent to the module 
+via calls to SendDigitized.  All .WAV output is played at 10KHz with
+each milisecond of output represented by 64 integer values (one frame). 
+The high four bits or each sample in the frame are ignored.
+
+	dtpcReset(int mod).
+
+To reset a module without unloading the DLL, dtpcReset can be called.  
+This completely resets the module to a power-up state so the module must
+ be loaded again before any calls to the DLL will successfully complete.
+
+	dtpcGetStatus(int mod,unsigned int *mod_status,int *number, int *mode).
+
+GetStatus returns the status of each module (mod_status), the number of
+modules installed (number) and the mode that the module is in 
+(mode, 0 == not loaded, 1== loaded).  The  module status is defined as 
+follows:
+
+	STAT_int        0x0001  Module running in interrupt mode.
+	STAT_tr_char    0x0002  Transmit character ready to send to user.
+	STAT_rr_char    0x0004  Module ready to receive a character.
+	STAT_cmd_ready  0x0008  Module ready to start new command.
+	STAT_dma_ready  0x0010  Module ready to receive dma data buffers.
+	STAT_digitized  0x0020  Module running in digitized data mode.
+	STAT_new_index  0x0040  New index available since last index read.
+	STAT_new_status 0x0080  New status available since status read.
+	STAT_index_valid0x0200  Index still valid in module data register.
+	STAT_flushing   0x0400  Module is currently flushing  buffers.
+	STAT_self_test  0x0800  Module is in power-up selftest.
+
+	dtpcSendChar(int mod,unsigned char c).
+	dtpcSendBuff(int mod,unsigned char __far *buff,int __far *count).
+
+The Send routines send a single character at a time or a buffer of characters to 
+the DECtalk module.  If the call return value is DLL_RETRY, the buffer is full or 
+has become full during the call.  For SendChar, resend the character.  For SendBuff,
+count is modified to indicate the number of bytes that were not succesfully sent.  
+Modify buff and count and retry the call later.
+
+	dtpcGetChar(int mod,unsigned char __far *c).
+	dtpcGetBuff(int mod,unsigned char __far *buff,unsigned int __far *count).
+
+The Get routines get a single character at a time or a buffer of characters from 
+the DECtalk module.  If the call returns DLL_RETRY then no characters were available.  
+DLL_SUCCESS is returned when GetChar returns the single indicated character or count 
+characters have been placed in buff.  Call GetBuff with count equal to the maximum 
+number of characters to return.
+
+        dtpcLoadModule(int mod).
+
+LoadModule is used to load the executeable images into the DECtalk PC module and set 
+up the module as specified by the DECTALK.INI  file (see below).  For this pre-release 
+version,  message boxes will be display by the DLL to indicate the progress of loading 
+and setting up the module.
+
+	dtpcSetup(int mod,unsigned int wnd).
+
+Setup is called to allow the user to interactively view, change and test the various 
+settings in the DECTALK.INI file.  If a window handle is passed in wnd, all dialog 
+and message boxes will be owned by that window.  If no value is specified, all dialogs 
+are owned by the default desktop window.
+
+	dtpcGetSetting(int mod,int setting,unsigned int __far *rvalue).
+
+GetSetting is used to retrieve actual hardware settings from the DECtalk module. 
+Call with setting equal to DTPC_get_volume,  DTPC_get_rate, DTPC_get_voice, 
+DTPC_get_period, or DTPC_get_comma to retrieve the desired value in rvalue.
+
+4.0 DECtalk Init file.
+
+The DECTALK.INI file is used to specify load and runtime default parameter settings 
+for the DECtalk module.  When a call is made to the DLL load routine, the .ini file 
+is opened and the load files and paramenters are read and sent to the module.  While 
+this file can be edited via any installed editor, it is recomended that the Setup 
+routine be used to change any parameters in the file.
+
+The format of the DECTALK.INI file is:
+
+	[module_x].
+
+This section header identifys the settings for module x where x  is actually 0, 1, 2 or
+3.  (ie [module_0] for the first module).
+
+	Path=
+The Path statement is a string variable that points to the drive and directory path 
+the DECtalk software has been installed in.  Default is c:\dectalk\.
+
+	Kernel=
+
+Specifys the name of the DECtalk control kernel load file.  Default is kernel.sys.
+
+	Lts=
+
+Specifys the name of the DECtalk Letter-to-Sound file.  Default is lts.exe.
+
+	Ph=
+
+Specifys the name of the DECtalk phonetic rules file.  Default is ph.exe.
+	Cmd=
+
+Specifys the name of the DECtalk command interpreter file.  Default is cmd.exe.
+
+        Dictionary=
+
+Specifys the name of the DECtalk dictionary file.  Default is dtpc.dic.
+
+	Welcome=
+
+Specifys the DECtalk load welcome string.  If blank nothing is spoken.  Default is 
+Welcome to DECtalk for Windows.
+
+	Test=
+
+Specifys the DECtalk test string that is used for testing various parameter changes.  
+If blank, nothing is spoken.  Default is This is a test string.
+
+	Volume=
+
+Specifys the startup volume fo the module.  Valid volumes range from 0 to 100.  
+Default is 5.
+
+	Voice=
+
+Specifys the startup voice for the module.  The voice/numeric equivalents are 0=paul, 
+1=betty, 2=harry,  3=frank, 4=dennis,  5=kit,  6=ursula, 7=rita,  8=wendy,  and 9=val.  
+Default is 0.  If the  voice is set to Val (9), then additional fields will be added 
+to the init file to represent the value of the voice parameters for the variable voice.  
+The fields take the form Val_nn, where nn is the standard two letter abbreivation for 
+the voice parameter.  The ranges for each parameter are variable and are listed in the 
+DECtalk Developers Guide.  It is strongly recommended that the user only change this 
+setting via the provided setup dialogs (see dtpcSetup).
+
+	Rate=
+
+Specifys the startup speaking rate for the module.  Valid rates range from 75 to 650.  
+Default is 220.
+
+	Comma=
+
+Specifys the delta change to the comma pause in miliseconds.  Valid comma pause offsets 
+range from -20000 to 20000.  Default is 0.
+
+	Period=
+
+Specifys the delta chage to the period pause in miliseconds.  Valid period pause offsets 
+range from -20000 to 20000.  Default is 0.
+
+	Say=
+
+Specifys the say mode the module defaults to.  Vaild say modes are 0 for letter, 
+1 for word, 2 for clause and 3 for line.  Default is 2.
+
+	Punct=
+Specifys the punctuation mode the module defaults to.  Valid punctutation modes 
+are 0 for none, 1 for some, and 2 for all.  Default is 1.
+
+        Log=
+
+Specifys the default output logging the module will perform.  This is a bit encoded 
+value with bit 0 set to enable text logging, bit 1 set to enable phoneme logging, 
+bit 2 set to enable word type logging and bit 3 set to enable form class logging.  
+Default is  0.
+
+	Mode=
+
+Specifys the default text interpretation mode of the module.  This is a bit encoded 
+value wil bit 0 set to enable math mode, bit 1 set to enable european symbol mode, 
+bit 2 set to enable spell mode, bit 3 set to enable automatic name mode, bit 4 set 
+to enable homograph mode, and bit 5 set to enable citiation mode.  Default is 0.
+
+	Error=
+
+Specifys the error mode the module will default to.  Valid error modes are 0 for 
+ignore, 1 for text, 2 for escape, 3 for speak and 4 for tone.  Default is 4.
+
+	Timeout=
+
+Specifys the time characters can remain in the input buffer before they are spoken. 
+Vailid timeout settings are 0 for infinite to 32000.  Each increment is one tenth 
+of a second.  Default is 0.

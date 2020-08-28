@@ -1,0 +1,42 @@
+
+How to detect the DECtalk PC version number:
+
+In the TSR, DT_DRIV.EXE, we have a GET_STATUS case:
+	
+	case GET_STATUS	:
+	 DFW.dx = DTC.module_status;
+	 DFB.cl = num_modules;
+	 DFW.ax = TSR_SUCCESS;
+	 DFB.ch = 422;	/* version number */
+	break;
+
+
+Example from DTDEMO.C to retrieve the version number from GET_STATUS
+
+	case 'z':       /* to get the DECtalk version number*/
+            if (status() == TSR_SUCCESS)
+            break;         
+
+
+	status()  
+		{       
+		RB.ah = DECTALK_ID;
+		RB.al = GET_STATUS;
+		RW.si = 0;
+	 	_int86(0x2f, &regs, &regs);
+		stat=RB.ch;
+   		printf("The DECtalk version number is %d.\n",stat);
+		return(RW.ax);
+		} 
+
+Version 4.2A:
+
+What is printed is "the DECtalk version number is 165."
+To get the correct version, add 256 to 165.  That equals 421, which is 
+4.21 essentially 4.2A.
+
+Version 4.2B:
+
+What is printed is "the DECtalk version number is 166."
+To get the correct version, add 256 to 166.  That equals 422, which is 
+4.22 essentially 4.2B.

@@ -1,0 +1,253 @@
+				APPENDIX2.TXT
+      DEVELOPMENT HINTS FOR DECTALK[R] SOFTWARE
+				October 15,2003
+   
+ DEVELOPMENT HINTS:
+
+1. An application is responsible for NOT SENDING text while the 
+   TextToSpeechReset() function is still active.  Appletts defining
+   a callback function in TextToSpeech StartUpEx() that contain any
+   TextToSpeech...() function calls are likely to cause the DECtalk[R]
+   Software to hang.
+  
+   The callback is implemented mid-way though the TextToSpeechReset()
+   function when the DECtalk synthesizer has not finished resetting the
+   system.  In addition to hanging, other possible problems include 
+   leaving the TextToSpeech...Speaker() and TextToSpeech...Speak() 
+   commands waiting for the pipes to finish and the TextToSpeechReset() 
+   function waiting for the callback fo finish, e.g. DECtalk Software
+   stops speaking.   
+
+   TextToSpeechReset should be called before TextToSpeechCloseInMemory. 
+   Failing to do this in a situation where the synthesizer is busy
+   may result in a deadlock.
+
+2. When using the in-line [:index mark DD] command, it is not 
+   recommended to be used with the Microsoft Speech API (SAPI).
+   This command was designed for the DIGITAL API (DAPI) only.
+
+3. When linking DECtalk Software DLLs with development environments, 
+   other than Microsoft's Visual C ++ V6.0,  you may wish to use the 
+   DEF file from our environment, included below.
+
+4. DECtalk ML only registry has changed to eliminate its version dependency:
+
+   Was:
+   //HKEY_LOCAL_MACHINE/Software/DECtalk Software/DECtalk/4.62/DefaultLang = "US"
+   Now:
+   //HKEY_LOCAL_MACHINE/SOFTWARE/DECtalk Software/DECtalk/Langs/
+   "DefaultLang = "US"
+
+   note: Multi-Language (ML) is currently supported under Windows CE
+
+5. Creating a release kit with your DECtalk SDK.
+
+   Key: Where {lang} is "US", "UK", "SP", "LA", "GR", or "FR".
+		Quotes are NOT part of the value.
+	Where {langname} is the language name for a specific language:
+	{lang}	{langname}
+	US		"ENGLISH, US"
+	SP		"SPANISH"
+	LA		"LATIN AMERICAN"
+	GR		"GERMAN"
+	UK		"ENGLISH, UK"
+	FR		"FRENCH"
+		Quotes are NOT part of the value.
+	Where {version} is "5.00" or current version number.
+	Where {appname} is the name of an application using DECtalk,
+	Where {licpswd} is encrypted password for licenseu.exe program.
+	Where {liccount} is encrypted no. of authorized engine licenses.
+	Where {clsidno} is the CLSID numbers for a specific {lang}.
+	{lang}		{clsidno}
+	"US"		"{ED737300-8FCB-11ce-AB5D-00AA00590F2B}"
+	"SP"		"{99EE9560-A4A6-11d1-BEB2-0060083E8376}"
+	"LA"		"{99EE9550-A4A6-11d1-BEB2-0060083E8376}"
+	"GR"		"{99EE9570-A4A6-11d1-BEB2-0060083E8376}"
+	"UK"		"{99EE9540-A4A6-11d1-BEB2-0060083E8376}"
+		You MUST include the {} around the clsidno specified.
+		Quotes are NOT part of value.
+
+   This section will cover the necessary points for making an
+   installable kit that uses the DECtalk components.
+
+   The required DECtalk files:
+   (These must be included in your distributed kits)
+
+   a) DTALK_{lang}.DLL  (and msvcrt.dll) [dapi products] 
+      OR 
+      DTLKTTSE_{lang}.DLL (and speech.dll) [sapi products] 
+
+   b) DTALK_{lang}.DIC  (dictionary file) 
+      ie. DTALK_US.DIC, DTALK_UK.DIC, DTALK_SP.DIC, DTALK_LA.DIC, DTALK_GR.DIC and DTALK_FR.DIC
+
+   And any files that are necessary for your application. 
+   This includes your USER_{lang}.DIC file 
+   (this is an optional file - DECtalk will still run 
+   without USER_{lang}.DIC). 
+
+   The DLL files must be installed in the following directory: 
+	  windows\system  (Win95\98\ME) 
+      winnt\system32  (NT\WIN2000) 
+      windows\        (Win CE, Note: SAPI is not currently supported) 
+
+   Also note that the DIC file must be located in the same
+   directory as your application if it is located in a
+   different place than noted in the registry entry
+   (see below for more details).
+
+   The following registry entries MUST be set:
+  
+   For SAPI supported products(French not supported):
+
+   HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{clsidno}
+   "DECtalk_{lang}"="DECtalk TTS Engine {lang}"
+
+   * Not for French 
+   HKEY_LOCAL_MACHINE\SOFTWARE\Classes\CLSID\{clsidno}\InprocServer32
+   @="C:\WIN95\Speech\dtlkttse_{lang}.dll"
+
+   HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Software\DECtalk Software\DECtalk\{version}
+   "Version"="DECtalk MultLang version {version}
+   "Language"="MULTI LANGUAGE"
+
+   For SAPI products (MicroSoft standard keys):
+
+   HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{appname}.exe
+   "Path"="C:\Program Files\DECtalk\;C:\Program Files\DECtalk\Help"
+   @="C:\Program Files\DECtalk\{appname}.exe"
+
+   HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DECtalkDeinstKey
+   "UninstallString"="C:\WIN95\uninst.exe -f\"C:\Program Files\DECtalk\DeIsL6.isu\""
+   "DisplayName"="DECtalk V{version}"
+
+   * Not for french
+   HKEY_LOCAL_MACHINE\SOFTWARE\Voice\TextToSpeech\Engine
+   "DECtalk_{lang}"="{clsidno}"
+
+   * Not for french
+   HKEY_CLASSES_ROOT\CLSID\{CB96B400-C743-11cd-80E5-00AA003E4B50}
+   @ = "Audio Destination Object"
+   
+   * Not for french
+   HKEY_CLASSES_ROOT\CLSID\{CB96B400-C743-11cd-80E5-00AA003E4B50}\InprocServer32
+   @ = "C:\WINNT\Speech\speech.dll" *
+   "ThreadingModel" = "Apartment"
+
+   For DAPI and SAPI supported products:
+
+   LICENSING:
+
+   HKEY_LOCAL_MACHINE\SOFTWARE\DECtalk Software\DECtalk\{version}
+   "Company"="q"
+   "Installer"="q"
+   "LicUpdPwd"="{licpswd}"
+   "Lock_MGR"="2"
+   "Licenses"="{liccount}"
+   "MultiLang"="1"
+
+   MAIN DICTIONARY:
+
+   HKEY_LOCAL_MACHINE\SOFTWARE\DECtalk Software\DECtalk\{version}\{lang}
+   "Version"="DECtalk {lang} version {version}"
+   "Language"="{langname}"
+   "MainDict"="C:\Program Files\DECtalk\{lang}\DTALK_{lang}.DIC"
+
+   USER DICTIONARY:
+
+   HKEY_CURRENT_USER\Software\DECtalk Software\DECtalk\{version}\{lang}
+   "UserDict"="C:\Program Files\DECtalk\{lang}\USER_{lang}.DIC"
+
+
+   MULTI-LANGUAGE:
+
+   HKEY_LOCAL_MACHINE\SOFTWARE\DECtalk Software\DECtalk\Langs
+   "US"="ENGLISH, US"
+   "DefaultLang"="UK"
+   "SP"="SPANISH"
+   "LA"="LATIN AMERICAN"
+   "GR"="GERMAN"
+   "UK"="ENGLISH, UK"
+   "FR"="FRENCH"
+
+;-----------------------------------------------------------------------
+;  Copyright (c) 1993,1998 Digital Equipment Corporation
+;  Copyright (c) 1999 SMART Modular Technologies, All rights reserved.
+;  Copyright (c) 2000-2001 Force Computers inc. All rights reservred.
+;-----------------------------------------------------------------------
+
+LIBRARY      DECTALK
+
+DESCRIPTION  'Text-To-Speech API function library'
+
+CODE         PRELOAD MOVEABLE DISCARDABLE
+DATA         PRELOAD MOVEABLE MULTIPLE
+
+HEAPSIZE     8192
+STACKSIZE    8192
+
+EXPORTS
+    TextToSpeechStartup					@1
+    TextToSpeechShutdown				@2
+    TextToSpeechSpeak					@3
+    TextToSpeechPause					@4
+    TextToSpeechResume					@5
+    TextToSpeechOpenWaveOutFile			@6
+    TextToSpeechCloseWaveOutFile		@7
+    TextToSpeechGetStatus				@8
+    TextToSpeechReset					@9
+    TextToSpeechSync					@10
+    TextToSpeechGetRate					@11
+    TextToSpeechSetRate					@12
+    TextToSpeechGetSpeaker				@13
+    TextToSpeechSetSpeaker				@14
+    TextToSpeechGetLanguage				@15
+    TextToSpeechSetLanguage				@16
+    TextToSpeechGetCaps					@17
+    TextToSpeechLoadUserDictionary		@18
+    TextToSpeechUnloadUserDictionary	@19
+    TextToSpeechOpenInMemory			@20
+    TextToSpeechCloseInMemory			@21
+    TextToSpeechAddBuffer				@22
+    TextToSpeechReturnBuffer			@23
+    TextToSpeechOpenLogFile				@24
+    TextToSpeechCloseLogFile			@25
+    TextToSpeechStartupEx				@26
+    TextToSpeechVersion					@27
+    TextToSpeechControlPanel			@28	; Reserved function (Later version)
+    TextToSpeechTyping					@29	; Reserved function (Later version)
+    TextToSpeechGetLastError			@30	; Reserved function (Later version)
+    TextToSpeechReserved1				@31	; Reserved function
+    TextToSpeechReserved2				@32	; Reserved function
+    TextToSpeechVersionEx				@33	; New features function
+    TextToSpeechStartLang				@34	; Start Language
+    TextToSpeechSelectLang				@35	; Select Language
+    TextToSpeechCloseLang				@36	; Close Language
+    TextToSpeechGetFeatures				@37	; Get Features
+    TextToSpeechEnumLangs				@38	; Enumerate available languages
+    TextToSpeechReserved3				@39       ; Reserved Function
+	TextToSpeechGetSpeakerParams		@40
+	TextToSpeechSetSpeakerParams		@41
+	TextToSpeechDictionaryHit			@42
+	TextToSpeechDumpDictionary			@43
+	TextToSpeechUserDictionaryHit		@44
+	TextToSpeechDumpUserDictionary		@45
+	TextToSpeechAddUserEntry			@46
+	TextToSpeechDeleteUserEntry			@47
+	TextToSpeechChangeUserPhoneme		@48
+	TextToSpeechSaveUserDictionary		@49
+	TextToSpeechConvertToPhonemes		@50
+	TextToSpeechTuning					@51 ; tek 01dec98 
+
+  Copyright (c) 2001-2003 FONIX Corporation. All rights reserved.
+  Copyright (c) 2000-2001 FORCE Computers Inc. All rights reserved.	
+  (c) 1999 SMART Modular Technologies, Inc. All riights reserved.
+  (c) 1996 Digital Equipment Corporation. All rights reserved.
+  [R] Microsoft, Windows 95/98/ME/NT/2000 are registered trademarks of
+      Microsoft Corporation.
+  [R] PostScript is a registered trademark of Adobe Systems, Inc.
+  [TM] Intel is a trademark of Intel Corporation.
+  [TM] The Digital Logo, AlphaStation, DEC, and Digital are
+       trademarks of Digital Equipment Corporation.
+  [R] DECtalk and SMART are trademarks of FORCE Computers Inc.
+
+Last Revised: 04/20/2001

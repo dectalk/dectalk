@@ -1,0 +1,225 @@
+
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            
+//   File Name:   Setup.rul                                                   
+//                                                                            
+//   Description: InstallShield script                                        
+//                                                                            
+//   Comments:    This script was generated based on the selections you made in
+//                the Project Wizard.  Refer to the help topic entitled "Modify      
+//                the script that the Project Wizard generates" for information
+//                on possible next steps.
+//
+////////////////////////////////////////////////////////////////////////////////
+
+
+// Include header files
+    
+#include "ifx.h"
+    
+////////////////////// string defines ////////////////////////////
+
+//////////////////// installation declarations ///////////////////
+
+// ----- DLL function prototypes -----
+
+
+    // your DLL function prototypes
+
+
+// ---- script function prototypes -----
+
+
+    // your script function prototypes
+
+    // your global variables
+
+
+
+//////////////////////////////////////////////////////////////////////////////
+//                                                                           
+//  FUNCTION:   OnFirstUIBefore                                            
+//                                                                           
+//  EVENT:      FirstUIBefore event is sent when installation is run for the first
+//              time on given machine. In the handler installation usually displays
+//              UI allowing end user to specify installation parameters. After this
+//              function returns, ComponentTransferData is called to perform file
+//              transfer.
+//                                                                           
+///////////////////////////////////////////////////////////////////////////////
+function OnFirstUIBefore()
+    number  nResult;
+    string  szTitle, szMsg;
+    string  szLicenseFile, szQuestion;
+    string  szName, szCompany;
+    string  szTargetPath;
+    string  szDir;
+    string  szComponents, szTargetdir;
+    number  nLevel;
+    LIST    listStartCopy;
+    number  nvSize, nSetupType;
+    string szSetupType;
+begin	
+    // TO DO: if you want to enable background, window title, and caption bar title                                                                     
+    // SetTitle( @TITLE_MAIN, 24, WHITE );                                        
+    // SetTitle( @TITLE_CAPTIONBAR, 0, BACKGROUNDCAPTION ); 	                   
+    // Enable( FULLWINDOWMODE );						   
+    // Enable( BACKGROUND );							  
+    // SetColor( BACKGROUND, RGB( 0, 128, 128 ) );					   
+   
+    nSetupType = TYPICAL;	
+    TARGETDIR = PROGRAMFILES ^ @COMPANY_NAME ^ @PRODUCT_NAME;	
+    szDir = TARGETDIR;
+    szName = "";
+    szCompany = "";
+
+Dlg_Start:
+    // beginning of dialogs label
+
+Dlg_SdWelcome:
+    szTitle = "";
+    szMsg = "";
+    nResult = SdWelcome( szTitle, szMsg );
+    if (nResult = BACK) goto Dlg_Start;
+
+Dlg_SdLicense:
+    szLicenseFile = SUPPORTDIR ^ "license.txt";
+    szTitle = "";
+    szMsg = "";
+    szQuestion = "";
+    nResult = SdLicense( szTitle, szMsg, szQuestion, szLicenseFile );
+    if (nResult = BACK) goto Dlg_SdWelcome;
+
+Dlg_SdRegisterUser:
+    szMsg = "";
+    szTitle = "";	
+    nResult = SdRegisterUser( szTitle, szMsg, szName, szCompany );
+    if (nResult = BACK) goto Dlg_SdLicense;
+
+Dlg_SetupType:   
+    szTitle = "";
+    szMsg = ""; 
+    szSetupType = "Full Installation";
+   // nResult = SetupType ( szTitle, szMsg, "", nSetupType, 0 );
+    nResult = SdSetupTypeEx ( szTitle, szMsg, "", szSetupType, 0 ); 
+    
+    if (szSetupType == "Custom") then
+         nSetupType = CUSTOM;
+       endif;
+                      
+    if (nResult = BACK) then
+        goto Dlg_SdRegisterUser;
+    else   
+        nSetupType = nResult;
+       if (szSetupType != "Custom") then 
+            szTargetPath = TARGETDIR;
+            nvSize = 0;
+            ComponentCompareSizeRequired( MEDIA, szTargetPath, nvSize );
+            if (nvSize != 0) then      
+                MessageBox( szSdStr_NotEnoughSpace, WARNING );
+                goto Dlg_SetupType;
+            endif;
+        endif;   
+    endif;
+
+Dlg_SdAskDestPath:
+    if ((nResult = BACK) && (szSetupType != "Custom")) goto Dlg_SetupType;
+    szTitle = "";
+    szMsg = "";
+    if (nSetupType = CUSTOM) then
+        nResult = SdAskDestPath( szTitle, szMsg, szDir, 0 );
+        TARGETDIR = szDir;
+        if (nResult = BACK) goto Dlg_SetupType;
+    endif;
+
+Dlg_SdComponentTree: 
+    if ((nResult = BACK) && (szSetupType != "Custom")) goto Dlg_SdAskDestPath;
+    szTitle = "";
+    szMsg = "";
+    szTargetdir = TARGETDIR;
+    szComponents = "";
+    nLevel = 2;
+    if (szSetupType == "Custom") then
+        nResult = SdComponentTree( szTitle, szMsg, szTargetdir, szComponents, nLevel );
+        if (nResult = BACK) goto Dlg_SdAskDestPath;  
+    endif;
+
+Dlg_ObjDialogs:
+    nResult = ShowObjWizardPages( nResult );
+    if (nResult = BACK) goto Dlg_SdComponentTree;
+    
+//Dlg_SdStartCopy:
+//    szTitle = "";
+//    szMsg = "";
+//    listStartCopy = ListCreate( STRINGLIST );
+//    //The following is an example of how to add a string (szName) to a list (listStartCopy).
+//    //e.g.
+//    ListAddString( listStartCopy,"", AFTER );      	
+//   	ListAddString( listStartCopy,"Installing:" , AFTER );
+//   	ListAddString( listStartCopy,"	DECtalk US English Demo" , AFTER );
+//   	ListAddString( listStartCopy,"	DECtalk UK English Demo" , AFTER );
+//   	ListAddString( listStartCopy,"	DECtalk Spanish Demo" , AFTER );
+//   	ListAddString( listStartCopy,"	DECtalk Latin American Demo" , AFTER );
+//   	ListAddString( listStartCopy,"	DECtalk French Demo" , AFTER );
+//   	ListAddString( listStartCopy,"	DECtalk German Demo" , AFTER );
+
+//    nResult = SdStartCopy( szTitle, szMsg, listStartCopy );	
+//    ListDestroy( listStartCopy );
+//    if (nResult = BACK) goto Dlg_ObjDialogs;
+
+    // set up default status
+    SetStatusWindow( 0, "" );
+    Enable( STATUSEX );
+    StatusUpdate( ON, 100 );
+
+    return 0;
+end;
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnMoving
+//
+//  EVENT:      Moving event is sent when file transfer is started as a result of
+//              ComponentTransferData call, before any file transfer operations 
+//              are performed.
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnMoving()
+    string szAppPath;
+begin
+    // Set Logo Compliance Application Path 
+    szAppPath = TARGETDIR;
+    // TO DO: if your application's main executable file is in a subfolder of TARGETDIR then append this subfolder to szAppPath 
+    RegDBSetItem( REGDB_APPPATH, szAppPath );
+    RegDBSetItem( REGDB_APPPATH_DEFAULT, szAppPath ^ @PRODUCT_KEY );
+end;
+ 
+///////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnMaintUIAfter
+//
+//  EVENT:      MaintUIAfter event is sent after file transfer, when end user runs 
+//              installation that has already been installed on the machine. Usually 
+//              this happens through Add/Remove Programs applet. 
+//              In the handler installation usually displays UI that will inform 
+//              end user that maintenance/uninstallation has been completed successfully.
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnMaintUIAfter()
+    STRING szTitle, szMsg1, szMsg2, szOption1, szOption2;
+    NUMBER bOpt1, bOpt2;
+begin
+	Disable(STATUSEX);
+
+    ShowObjWizardPages(NEXT);
+
+	bOpt1   = FALSE;
+    bOpt2   = FALSE;
+    szMsg1  = SdLoadString(IFX_SDFINISH_MAINT_MSG1);
+	szTitle = SdLoadString(IFX_SDFINISH_MAINT_TITLE);
+    SdFinishEx(szTitle, szMsg1, szMsg2, szOption1, szOption2, bOpt1, bOpt2);
+end;
+
+// --- include script file section ---
+
+

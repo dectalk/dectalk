@@ -1,0 +1,98 @@
+/**/# 
+/**/# @DEC_COPYRIGHT@
+/**/#
+/**/# HISTORY
+/**/# Revision 1.1.2.4  1996/02/13  22:48:58  Krishna_Mangipudi
+/**/# 	Added -threads flag
+/**/# 	[1996/02/13  22:48:49  Krishna_Mangipudi]
+/**/#
+/**/# Revision 1.1.2.3  1996/02/13  22:45:16  Krishna_Mangipudi
+/**/# 	Added CDEBUGFLAGS, CFLAGS and PassCDebugFlags
+/**/# 	[1996/02/13  22:45:06  Krishna_Mangipudi]
+/**/# 
+/**/# Revision 1.1.2.2  1995/11/20  21:27:06  Darrell_Stam
+/**/# 	Initial drop into source pool.
+/**/# 	[1995/11/20  21:26:57  Darrell_Stam]
+/**/# 
+/**/# $EndLog$
+/**/# 
+/**/#
+/**/# COPYRIGHT NOTICE
+/**/#
+/**/# Copyright (c) Digital Equipment Corporation, 1994
+/**/# All Rights reserved. Unpublished rights reserved under the
+/**/# copyright laws of the United States. Copyright is claimed in
+/**/# the computer program and user interface thereof.
+/**/#
+/**/# The software contained on this media is proprietary to and
+/**/# embodies the confidential technology of Digital Equipment
+/**/# Corporation. Possession, use, duplication or dissemination of
+/**/# the software and media is authorized only pursuant to a valid
+/**/# written license from Digital Equipment Corporation.
+/**/#
+/**/# The name of Digital Equipment Corporation may not be used to endorse or
+/**/# promote products derived from this software without specific prior
+/**/# written permission. All other rights reserved.
+/**/#
+/**/# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+/**/# WARRANTIES, INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OF
+/**/# NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+/**/# Digital assumes no responsibility AT ALL for the use or reliability of
+/**/# this software.
+/**/#
+/**/#
+/**/# +---------------------------------------------------------------------+
+/**/# | USE, DUPLICATION OR DISCLOSURE BY THE U.S. GOVERNMENT IS SUBJECT TO |
+/**/# | RESTRICTIONS AS SET FORTH IN SUBPARAGRAPH (c)                       |
+/**/# | DFARS 252.227-7013, OR IN FAR 52.227-14 ALT. II, AS APPLICABLE.     |
+/**/# |                                                                     |
+/**/# +---------------------------------------------------------------------+
+/**/#
+
+#define PassCDebugFlags 'CDEBUGFLAGS=$(CDEBUGFLAGS)'
+
+INCLUDES =  -I../../../synth/include/ -I../../tts
+CDEBUGFLAGS = -O -Olimit 2000 
+CFLAGS = $(CDEBUGFLAGS) -std0 $(INCLUDES) -threads
+
+#
+# the DECtalk API library to link against
+#
+DT_LIBS = -lttsmme
+
+MME_LIBS = -lmme -ldnet_stub
+
+#
+# the Motif API libraries to link against
+#
+MOTIF_LIBS = -lMrm -lXm -lXt -lXext -lX11
+
+#
+# UIL compiler
+#
+UIL = /usr/bin/X11/uil
+
+#
+# OS-specific libraries
+#
+# OS_LIBS = -lpthreads -lc_r -lmach -lrt 
+OS_LIBS = -lpthreads -lc_r -lmach 
+
+LINK_LIBS = $(DT_LIBS) $(MME_LIBS) $(MOTIF_LIBS) $(OS_LIBS) 
+
+TARGETS = windict windict.uid 
+
+AllTarget($(TARGETS))
+
+DependTarget()
+
+NormalProgramTarget(windict,windict.o compile_dict.o loadgif.o,,$(LINK_LIBS),)
+
+windict.uid : windict.uil
+	$(UIL) -o windict.uid windict.uil
+
+loadgif.o : ../speak/loadgif.o
+	ln -s ../speak/loadgif.o ./loadgif.o
+
+clean::
+	rm -f *.o $(TARGETS)

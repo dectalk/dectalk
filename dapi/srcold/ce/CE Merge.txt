@@ -1,0 +1,106 @@
+Notes on the CE Code Merge
+By Jason Warlikowski, February 27, 1998
+
+Please read this entire document if you are interested in building or working on the CE
+version of DECtalk.
+
+I merged the CE code into AD, being careful not to change any of the existing code when a
+non-CE version of DECtalk is being built.  One thing I noticed while merging the code into
+playaud.c is that Kevin apparently made some "fixes" in the CE code so half packets wouldn't
+be sent to the audio device (see BATS 605).  Even though the BATS report is assigned to me,
+after reading the replies, I'm not entirely sure what's going on there, so Kevin's "fixes"
+will only be used when we're compiling the CE version.  I've copied these "fixes" to this
+document.  The first "fix" appears several times in the code, while the second one only
+appears once:
+
+"Fix" 1:
+
+#ifdef UNDER_CE
+		  if (!pPlayAudio->bConvertToEightBit)	uiWriteSize &= 0xFFFFFFFE;		// Let's not send in a half-block
+#endif
+
+"Fix" 2:
+
+#ifdef UNDER_CE
+  if (!pPlayAudio->bConvertToEightBit && uiWriteLength & 0x01) {
+	  if (uiWriteLength & 0x01)		MessageBox(NULL, _T("Misalligned data"), _T("DECtalk"), MB_OK);
+	  return uiWriteLength;			// Throw away the packet!!!
+  }
+#endif
+
+The files that have added CE code are:
+
+dapi\src\api\ttsapi.c
+dapi\src\cmd\cmd_wav.c
+dapi\src\lts\loaddict.c
+dapi\src\nt\dbgwins.c
+dapi\src\nt\mmalloc.c
+dapi\src\nt\mmalloc.h
+dapi\src\nt\playaud.c
+dapi\src\vtm\vtmiont.c
+
+In addition to added code to existing files, there are two new source files for CE.  Kevin
+set them up as:
+
+dapi\src\api\wince.h
+dapi\src\include\cemm.h
+
+Ginger advised me that it would be better to have all of the CE-specific files in their own
+directory.  However, to make sure that I was able to build CE in AD after the code merge, I
+put these files into the original locations Kevin specified in the CE project (afterward, I
+took them out and put all of the CE related files in this directory).  The CE project needs
+to have its configurations set up properly, but I'm not going to start trying to do that,
+since I'm not sure if we're going to integrate the CE configurations into the main DECtalk
+project (it seems to me that we may want to eventually do this or else the CE project will
+get out of sync with the rest of DECtalk).
+
+Besides these new files, Kevin had to make some modifications to stdio.h in order to get
+DECtalk to work on the CE.  I also had to copy additional files from the standard include
+directory for non-CE development into the standard CE include directory.  These files are in
+the "CE Include Files" directory off of this directory.  The files are:
+
+Assert.h
+Direct.h    newly included in DECtalk since Kevin left
+Io.h        newly included in DECtalk since Kevin left
+Process.h
+Stdio.h     Kevin-modified
+Time.h
+
+Direct.h and Io.h have recently been included in DECtalk (AFTER Kevin left), so if there are
+problems with the new version of CE DECtalk, those are possible culprits.  As I currently
+don't have a CE machine (Sue has it at the show), I HAVE NOT TESTED the new CE library on a
+CE machine, so it's possible IT DOES NOT WORK.  All I know is that all of the CE code is now
+in AD, and with the correct paths set, it will build.  In a week when we get the CE machine
+back, I'll be able to see if it actually works (I'm not sure how to set up CEtalk to test it
+with the emulator).
+
+--------------------------------------------------------------------------------------------
+
+Additional Notes on the CE Code Merge
+By Jason Warlikowski, March 4, 1998
+
+I tried to build CEtalk using the CE library generated from AD after the code merge.
+Unfortunately, CEtalk wouldn't build.  The problems were in the library in lsw_main.c, with
+code (using Direct.h and Io.h) Tom recently added.  Since the new code seemed non-crucial, I
+ifdef'd it out so when UNDER_CE is defined, it will not be used, and the original code will
+be used instead.  Here's a description of Tom's code I ifdef'd out:
+
+ *  xxx	tek	25feb98		repair DEMO build to allow spaces in dictionary
+ *				path (bats 607) and to look in additional places.
+
+Now CEtalk will build.  However, since I still don't have a CE machine, I can't test it out.
+I have removed Direct.h and Io.h from the "CE Include Files" directory, as they are no
+longer needed because they were only being used by the code I ifdef'd out.
+
+--------------------------------------------------------------------------------------------
+
+Another Round of Notes on the CE Code Merge
+By Jason Warlikowski, March 16, 1998
+
+The day has finally come for the CE code to be checked into AD (DECtalk has been tested on
+the CE machine).  All of the CE specific files are now in this directory, including the
+project/workspace files from Developer Studio.  The project/workspace files are set up to
+run from one directory higher (dapi\src), so they will probably have to be copied there to
+run correctly (in addition to putting other files in their proper places, as described
+earlier in this document).  I put a comment about defining UNDER_CE in dectalkf.h and
+included dectalkf.h in the appropriate files.

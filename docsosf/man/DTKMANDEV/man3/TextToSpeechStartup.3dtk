@@ -1,0 +1,178 @@
+.\"
+.\" @DEC_COPYRIGHT@
+.\"
+.\"
+.\" HISTORY
+.\" Revision 1.1.2.3  1996/02/15  22:52:52  Krishna_Mangipudi
+.\" 	Added Synopsis
+.\" 	[1996/02/15  22:34:39  Krishna_Mangipudi]
+.\"
+.\" Revision 1.1.2.2  1996/02/15  20:12:01  Krishna_Mangipudi
+.\" 	Moved to man3
+.\" 	[1996/02/15  20:06:18  Krishna_Mangipudi]
+.\"
+.\" $EndLog$
+.\"
+.TH "TextToSpeechStartup" 3dtk "" "" "" "DECtalk" ""
+.SH Name
+.PP
+\fBTextToSpeechStartup\fP \-
+Initializes the text-to-speech system.
+.SH Syntax
+.EX
+MMRESULT \fBTextToSpeechStartup\fP (LPTTS_HANDLE_T \fI*phtTTS\fP,
+                             UINT \fIuiDeviceNumber\fP,
+                             DWORD \fIdwDeviceOptions\fP,
+                             VOID \fI(*DtCallbackRoutine)()\fP,
+                             LONG \fIdwCallbackParameter\fP)
+.EE
+.SH Parameters
+.IP "LPTTS_HANDLE_T \fI*phTTS\fP" 20
+Specifies a pointer to a pointer to a text-to-speech handle.
+.IP "UINT \fIuiDeviceNumber\fP" 20
+Specifies the device number of the wave output device. A
+value of WAVE_MAPPER can be used to select the first available
+device.
+.IP "DWORD \fIdwDeviceOptions\fP" 20
+Specifies how the wave output device is managed. It can be
+a combination of the device-option constants OWN_AUDIO_DEVICE,
+REPORT_OPEN_ERROR, and DO_NOT_USE_AUDIO_DEVICE, which
+are defined in the include
+file ttsapi.h and described below.
+.IP "VOID \fI*(DtCallbackRoutine)()\fP" 20
+Specifies
+a callback routine, which is used by DECtalk Software to
+inform the application when the buffer is full (if DECtalk Software
+in-memory calls are being used) or when the TextToSpeechSpeak() function
+encounters an index mark.  Refer to the DECtalk Software Programmer's Guide,
+Callback Routines and Window Procedures section for information about the
+argument list for the callback routine.
+A value of NULL should be passed if no callback routine is desired.
+.IP "LONG \fIdwCallbackParameter\fP" 20
+Specifies a pointer to a user-specified parameter. This is used
+to pass parameters into the callback routine.
+A value of NULL should be passed if no user-specified parameters are
+desired.
+.PP
+.TS
+tab(@);
+lfR lw(4i)fR .
+.sp 4p
+Device-Option Constant@Description
+.sp 6p
+OWN_AUDIO_DEVICE 
+@T{
+The wave output device is opened.
+No other process can allocate the wave output device until
+TextToSpeechShutdown() is called.
+IF OWN_AUDIO_DEVICE is NOT specified, the wave output device is opened after
+audio is queued by the TextToSpeechSpeak() function.  The wave output device
+is released when the text-to-speech system has completed speaking.
+T}
+.sp
+REPORT_OPEN_ERROR
+@T{
+If an attempt is made to open the wave output device while another process
+owns it, a callback is made to the callback routine that was specified
+in the DtCallbackRoutine parameter.
+T}
+.sp
+DO_NOT_USE_AUDIO_DEVICE
+@T{
+When this flag is set, speech samples are ignored until one of the
+text-to-speech special modes (log-file, wave-file, or speech-to-memory)
+is set.  The special modes can be used to write the speech samples to log
+files, wave files, or memory buffers.  No error is returned if a wave output
+device is not present.
+T}
+.sp
+.TE
+.PP
+.SH Description
+.PP
+This function initializes the text-to-speech system; defines the callback
+routine; checks for valid licenses; and loads the main and user
+pronunciation dictionaries.
+.PP
+A single process can run multiple instances of DECtalk.
+.PP
+If a callback routine is defined, DECtalk Software will alert the
+calling application when a buffer is filled while in speech-to-memory mode,
+when an error occurs, or when an index mark is encountered.
+.PP
+The default parameters are:
+.IP \(bu 3
+Language: American English
+.IP \(bu 3
+Speaking rate: 200 words per minute
+.IP \(bu 3
+Speaker: Paul
+.PP
+.SH Return Values
+.PP
+This function returns a value of type MMRESULT. The value is zero
+if the function is successful. The return value is one of the
+following constants:
+.PP
+.TS
+tab(@);
+lfR lw(4i)fR .
+.sp 4p
+Constant@Description
+.sp 6p
+MMSYSERR_NOERROR
+@T{
+Normal successful completion (zero).
+T}
+.sp
+MMSYSERR_NODRIVER
+@T{
+No wave output device present.
+T}
+.sp
+MMSYSERR_NOMEM
+@T{
+Memory allocation error.
+T}
+.sp
+MMSYSERR_ERROR
+@T{
+DECtalk dictionary not found.
+T}
+.sp
+MMSYSERR_BADDEVICE_ID 
+@T{
+Device ID out of range.
+T}
+.sp
+MMSYSERR_ALLOCATED
+@T{
+License exists but no more units available.
+T}
+.sp
+MMSYSERR_NOTENABLED
+@T{
+License does not exist.
+T}
+.sp
+WAVERR_BADFORMAT
+@T{
+Wave output device does not support the request format.
+T}
+.sp
+.TE
+.PP
+.SH See Also
+.PP
+Callback Routines and Window Procedures (DECtalk Software Programmer's Guide)
+.PP
+Dictonary Functions (Linux and UNIX) (DECtalk Software Programmer's Guide)
+.PP
+\fITextToSpeechLoadUserDictionary\fP(3dtk),
+\fITextToSpeechOpenInMemory\fP(3dtk),
+\fITextToSpeechOpenLogFile\fP(3dtk),
+\fITextToSpeechOpenWaveOutFile\fP(3dtk),
+\fITextToSpeechShutdown\fP(3dtk),
+\fITextToSpeechSpeak\fP(3dtk),
+\fITextToSpeechStartupEx\fP(3dtk),
+\fITextToSpeechUnloadUserDictionary\fP(3dtk)

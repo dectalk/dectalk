@@ -1,0 +1,199 @@
+Control Panel API  Spec v0.9a
+-----------------------------
+
+General Information:
+	Header file/s:	cpanel.h	cpapi.h
+	API file/s:	cpanel.c	cpapi.c
+
+	All API external header is in cpapi.h
+
+Variable types:
+CPTAB:	Used for Control Panel tab fields. Passed to all CP control functions.
+
+
+Function:	CPInitAPI
+Usage:		void CPInitAPI(void);
+Description:	This call will initialize the Control Panel API, and allocate the
+		neccessary memory for the pages.
+Passed:		void
+Return:		void
+Comments:	This function must be called before any other CP function.
+Example:	See CPInitTab
+
+
+Function:	CPUnitAPI
+Usage:		void CPUnitAPI(void);
+Description:	This call uninitializes the Control Panel API, shuts down any threads
+		still active, and frees all memory allocated by the Control Panel API.
+Passed:		void
+Return:		void
+Comments:	This function should be called during shutdown.
+Example:	See CPInitTab
+
+
+Function:	CPInitTab
+Usage:		CPTAB CPInitTab(LPSTR title);
+Description:	Allocate a tab field in the control panel fields. The title will be
+		displayed on the tab. All access to the control panel page is done
+		with the CPTAB value.
+Passed:		LPSTR title	String to display on the tab
+Return:		CPTAB		Page ID used by other CPAPI functions, -1 on error
+Comments:	This function needs to be called at least once for a general tab field.
+Example:
+	#include "cpapi.h"
+
+	CPTAB main_tab;
+
+	void initCP(void) {
+		CPInitAPI();					// Init API
+		if ((main_tab = CPInitTab("General")) == -1) {	// Init TAB
+			exit(1);				// Error
+		return;
+	}
+
+	void unitCP(void) {
+		CPUnitAPI();
+		return;
+	}
+
+
+General structures:
+
+typedef struct {
+	ULONG	xPos;		// X-Position
+	ULONG	yPos;		// Y-Position
+} CPPOS;
+typedef CPPOS* LPCPPOS;
+
+
+Text Function:
+
+Function:	CPText
+Usage:		BOOL CPText(CPTAB tab, LPSTR string, LPCPPOS pos);
+Description:	Display text at a given position on a control panel window.
+Passed:		CPTAB tab	Page ID to place the text
+		LPSTR string	String to display
+		LPCPPOS pos	Position to display the string
+Return:		0 = success / 1 = failure
+Example:	none
+
+
+TrackBar functions:
+
+typedef struct {
+	ULONG	*VarPtr;	// Pointer to variable to adjust
+	ULONG	Min;		// Minimum selection
+	ULONG	Max;		// Maximum selection
+	ULONG	Pos;		// Initial Trackbar Selection
+	void	(*Callback)(ULONG*);	// Callback routine
+} CPTRACKBAR;
+typedef CPTRACKBAR* LPCPTRACKBAR;
+
+Function:	CPRegisterTB
+Usage:		CPTBID CPRegisterTB(CPTAB tab, LPCPTRACKBAR trackbar, LPCPPOS pos);
+Description:	Create a Trackbar in the Control Panel page tab, with the specifications
+		described in the structure TRACKBAR.
+Passed:		CPTAB tab		Page ID to place the trackbar
+		LPCPTRACKBAR trackbar	Pointer to the trackbar structure
+		LPCPPOS pos		Pointer to the CP Position structure
+Return:		CPTBID			Trackbar ID to use with CPUpdateTB	-1 on error
+Example:	none
+
+
+Function:	CPUpdateTB
+Usage:		BOOL CPUpdateTB(CPTBID id, ULONG pos);
+Description:	Set the trackbar specified by the id to the position pos, and update the
+		variable pointed in the structure.
+Passed:		CPTBID id	Trackbar ID to update
+		ULONG pos	New value for the trackbar
+Return:		0 = success / 1 = failure
+Comments:	Use this function to set the variable specified in CPRegisterTB, or the
+		trackbar may replace the value.
+Example:	none
+
+Function:	CPStateTB
+Usage:		BOOL CPStateTB(CPTBID id, int state);
+Description:	Retrieve or set the state of the trackbar
+Passed:		CPTBID id	Trackbar ID
+		int state	State of bar. -1 = Get state, 1 = enabled, 0 = disabled
+Return:		BOOL		State of bar. 1 = enabled, 0 = disabled
+Example:	none
+
+
+Radio Button Functions
+
+typedef struct {
+	BOOL*	value;			// Pointer to a BOOL for status
+	UCHAR	group;			// Group ID
+	BOOL	status;			// 0 = unmarked, 1 = marked
+	LPSTR	title;			// Title to display to right of button
+	void	(*CallBack)(BOOL*,UCHAR);
+} CPRADIOBUTTON;
+typedef CPRADIOBUTTON* LPCPRADIOBUTTON;
+
+Function:	CPRegisterRB
+Usage:		CPRBID CPRegisterRB(CPTAB tab, LPCPRADIOBUTTON button, LPCPPOS pos);
+Description:	Register a Radio Button with the Control Panel on the page specified by tab.
+Passed:		CPTAB tab		Page ID
+		LPCPRADIOBUTTON button	Pointer to the radio button structure
+		LPCPPOS pos		Position on page
+Return:		CPRBID			RadionButton ID for RB functions	-1 on error
+Comments:	If another radio button in the same group is already set to marked, it will
+		be unset, and this button will become the active button.
+
+Function:	CPSetRB
+Usage:		BOOL CPSetRB(CPRBID id);
+Description:	Set the radio button to the marked status, unsetting any other radio button.
+Passed:		CPRBID id	Radio Button ID
+Return:		BOOL		0 = success / 1 = error
+Example:	none
+
+Function:	CPStateRB
+Usage:		BOOL CPStateRB(CPRBID id, int state);
+Description:	Change the state of a radio button
+Passed:		CPRBID id	Radio Button ID
+		int state	State of button, -1 = get state, 1 = enabled, 0 = disabled
+Return:		BOOL		State of the button
+Comments:	If this button is currently marked, it will remain marked.
+
+
+CheckBox Functions
+
+typedef struct {
+	BOOL*	value;			// Pointer to a BOOL for status
+	BOOL	status;			// 0 = unmarked, 1 = marked
+	LPSTR	title;			// Title to display to right of button
+	void	(*CallBack)(BOOL*);
+} CPCHECKBOX;
+typedef CPCHECKBOX* LPCPCHECKBOX;
+
+Function:	CPRegisterCB
+Usage:		CPCBID CPRegisterCB(CPTAB tab, LPCPCHECKBOX button, LPCPPOS pos);
+Description:	Register a Check Box with the Control Panel on the page specified by tab.
+Passed:		CPTAB tab		Page ID
+		LPCPCHECKBOX button	Pointer to the checkbox structure
+		LPCPPOS pos		Position on page
+Return:		CPCBID			Checkbox ID for RB functions	-1 on error
+
+Function:	CPSetCB
+Usage:		BOOL CPSetCB(CPCBID id);
+Description:	Set the checkbox to the marked status.
+Passed:		CPCBID id	Checkbox ID
+Return:		BOOL		0 = success / 1 = error
+Example:	none
+
+Function:	CPClearCB
+Usage:		BOOL CPClearCB(CPCBID id);
+Description:	Set the checkbox to the unmarked status.
+Passed:		CPCBID id	Checkbox ID
+Return:		BOOL		0 = success / 1 = error
+Example:	none
+
+Function:	CPStateCB
+Usage:		BOOL CPStateCB(CPCBID id, int state);
+Description:	Change the state of a checkbox
+Passed:		CPCBID id	Checkbox ID
+		int state	State of button, -1 = get state, 1 = enabled, 0 = disabled
+Return:		BOOL		State of the button
+Comments:	If this button is currently marked, it will remain marked.
+

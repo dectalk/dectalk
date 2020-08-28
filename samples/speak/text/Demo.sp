@@ -1,0 +1,33 @@
+Castilian Spanish Version
+
+Bienvenidos. Permítanos demostrar la nueva tecnología de Fonix DECtalk texto a voz 
+(text-to-speech)
+
+Fonix orgullosamente presenta DECtalk versión 5.0, el líder mundial de "texto a voz" 
+inteligible, ahora con una voz más natural.
+
+DECtalk tiene la huella digital de memoria más pequeña en la industria para un 
+sintetizador completo e idiomas múltiples. La huella digital de DECtalk permite que 
+dispositivos que donde un motor de TTS generalmente no sería viable. DECtalk soporta 6 
+diferentes idiomas: inglés americano, inglés reino unido, castellano, español 
+latinoamericano, alemán y francés.
+
+Ofrece también nueve voces, Pablo, [:nb] Berta, [:nh] Humberto, [:nd] Domingo, [:nf] 
+Francisco, [:nu] Úrsula, [:nr] Rita, [:nw] Wendy, [:nk] y Juanito, la única voz de niño en 
+la industria.  
+
+[:np] DECtalk® Software viene con un fácil de utilizar interfaz de programación de 
+DAPI, así como Microsoft  Speech API, así que usted puede dar a sus aplicaciones el 
+poder de voz.
+
+DECtalk tiene más de 1.400 reglas de "letra a sonido" como procesamiento extenso de 
+texto, así que habla correctamente texto monetario como: $1,25, o tiempos de reloj: 12:31 
+p.m., o las fechas: enero. 1, 2004, e incluso  números de teléfono: 800-297-4863. 
+
+¿Quiere oír lo qué DECtalk puede hacer? Apenas escriba algún texto, escoja el botón en 
+la parte inferior derecha  de esta ventana, o marque el texto y pulse el botón derecho de 
+su ratón. 
+
+Para oír más, pregunte a su representante de Fonix para una demostración. Y no olvide de 
+preguntar por nuestra línea de reconocimiento de voz,  líder en la industria. 
+Gracias por su tiempo. Fonix DECtalk. Óigalo por usted mismo.

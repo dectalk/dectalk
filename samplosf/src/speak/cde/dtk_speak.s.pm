@@ -1,0 +1,36 @@
+/* XPM */
+static char * dtk_speak_s_pm[] = {
+/* width height ncolors cpp [x_hot y_hot] */
+"24 24 6 1 0 0",
+/* colors */
+" 	c #808080808080",
+".	s iconColor1	m black	c black",
+"X	s iconColor2	m white	c white",
+"o	s iconColor6	m white	c yellow",
+"O	s iconColor7	m white	c cyan",
+"+	c #000000008080",
+/* pixels */
+" .XXoXXoXXoXXX.XXXXXX..X",
+" .o.........X.XXXXXXXXX.",
+" .XXOXXOXXOX.XXXXXXXXXXX",
+" .XXOXXOXXOX.X++X+XXXX+X",
+" .oOXOOXOOXO.X++X+++X++X",
+" .XXOXXOXXOX.XXXXXXXXXXX",
+" .XXOXXOXXOX.XXXXXXXXXX.",
+" .oOXOOXOOXOO.XXXXX.....",
+" .XXOXXOXXOX.XX....OXXXX",
+" XX......XOXXOXXOXXOX.o.",
+"XX.XXXXXXOXOOXOOXOOXO.X.",
+"XX.XXXXXX...XOXXOXXOX.o.",
+"X.XXXXX+XX.XXOXXOXXOX.o.",
+"X.XX+XXX+X.XOXOOXOOXO.X.",
+"X.X+XXXX+X.XXOXXOXXOX.o.",
+"X.XXXXXXXX.XXoXXoXXoXXo.",
+"X.XXXXXXXX.X............",
+"XX.XXXXXX.X           XX",
+"XXXX XX XX XX.XX.XX.X..X",
+"XXX.X..X..X..X..X..X.X.X",
+"X.XX.XX.XX.XX.XX.XX.XXX.",
+" .XXoXXoXXoXXoXXoXXoXXo.",
+" .......................",
+"XX                      "};

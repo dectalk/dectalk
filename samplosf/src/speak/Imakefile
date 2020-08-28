@@ -1,0 +1,128 @@
+/**/# 
+/**/# @DEC_COPYRIGHT@
+/**/#
+/**/# HISTORY
+/**/# Revision 1.1.2.7  1996/10/01  17:14:35  Cathy_Page
+/**/# 	Added /usr/include/mme to include path
+/**/# 	[1996/10/01  17:13:24  Cathy_Page]
+/**/#
+/**/# Revision 1.1.2.6  1996/02/15  16:02:53  Darrell_Stam
+/**/# 	Make sure the -threads flag is on the link line via the LOCAL_LDFLAGS.
+/**/# 	[1996/02/15  16:02:40  Darrell_Stam]
+/**/# 
+/**/# Revision 1.1.2.5  1996/02/13  22:49:59  Krishna_Mangipudi
+/**/# 	Added -threads flag
+/**/# 	[1996/02/13  22:49:47  Krishna_Mangipudi]
+/**/# 
+/**/# Revision 1.1.2.4  1996/02/13  22:42:51  Krishna_Mangipudi
+/**/# 	Added CDEBUGFLAGS, CFLAGS and PassCDebugFlags
+/**/# 	[1996/02/13  22:42:43  Krishna_Mangipudi]
+/**/# 
+/**/# Revision 1.1.2.3  1996/01/03  21:06:55  Bill_Hallahan
+/**/# 	New audio subsystem
+/**/# 	[1996/01/03  21:02:20  Bill_Hallahan]
+/**/# 
+/**/# Revision 1.1.2.2  1995/11/20  21:12:45  Darrell_Stam
+/**/# 	Initial drop into source pool.
+/**/# 	[1995/11/20  21:12:34  Darrell_Stam]
+/**/# 
+/**/# $EndLog$
+/**/# 
+/**/#
+/**/#
+/**/# COPYRIGHT NOTICE
+/**/#
+/**/# Copyright (c) Digital Equipment Corporation, 1994
+/**/# All Rights reserved. Unpublished rights reserved under the
+/**/# copyright laws of the United States. Copyright is claimed in
+/**/# the computer program and user interface thereof.
+/**/#
+/**/# The software contained on this media is proprietary to and
+/**/# embodies the confidential technology of Digital Equipment
+/**/# Corporation. Possession, use, duplication or dissemination of
+/**/# the software and media is authorized only pursuant to a valid
+/**/# written license from Digital Equipment Corporation.
+/**/#
+/**/# The name of Digital Equipment Corporation may not be used to endorse or
+/**/# promote products derived from this software without specific prior
+/**/# written permission. All other rights reserved.
+/**/#
+/**/# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+/**/# WARRANTIES, INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OF
+/**/# NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+/**/# Digital assumes no responsibility AT ALL for the use or reliability of
+/**/# this software.
+/**/#
+/**/#
+/**/# +---------------------------------------------------------------------+
+/**/# | USE, DUPLICATION OR DISCLOSURE BY THE U.S. GOVERNMENT IS SUBJECT TO |
+/**/# | RESTRICTIONS AS SET FORTH IN SUBPARAGRAPH (c)                       |
+/**/# | DFARS 252.227-7013, OR IN FAR 52.227-14 ALT. II, AS APPLICABLE.     |
+/**/# |                                                                     |
+/**/# +---------------------------------------------------------------------+
+/**/#
+
+#define PassCDebugFlags 'CDEBUGFLAGS=$(CDEBUGFLAGS)'
+
+        INCLUDES = -I../../tts -I../include -I/usr/include/mme
+     CDEBUGFLAGS = -O2 -Olimit 2000 
+          CFLAGS = $(CDEBUGFLAGS) -std0 $(INCLUDES) -threads
+   LOCAL_LDFLAGS = -threads
+
+#ifdef BUILD_AUDIO_FILE
+EXTRA_DEFINES = -DAFDRIVER
+#endif
+
+#
+# the DECtalk API library to link against
+#
+DT_LIBS = -lttsmme
+DTAF_LIBS = /usr/shlib/libttsaf.so
+
+#
+# MME or AudioFile APIs to link against
+#
+AF_LIBS = /usr/local/lib/libAF.a
+MME_LIBS = -lmme -ldnet_stub
+
+#
+# the Motif API libraries to link against
+#
+MOTIF_LIBS = -lMrm -lXm -lXt -lXext -lX11
+
+#
+# UIL compiler
+#
+UIL = /usr/bin/X11/uil
+
+#
+# OS-specific libraries
+#
+OS_LIBS = -lpthreads -lc_r -lmach -lrt -llmf
+
+LINK_MME = $(MOTIF_LIBS) $(DT_LIBS)    $(MME_LIBS) $(OS_LIBS)
+LINK_AF  = $(MOTIF_LIBS) $(DTAF_LIBS)  $(AF_LIBS) $(OS_LIBS)
+
+#TARGETS = speak speak.uid speakaf speakaf.uid 
+
+TARGETS = speak speak.uid 
+AllTarget($(TARGETS))
+
+DependTarget()
+
+NormalProgramTarget(speak,speak.o loadgif.o,,$(LINK_MME),)
+
+#ifdef BUILD_AUDIO_FILE
+ObjectFromSpecialSource(speakaf.o,speak.c,-DAFDRIVER)
+NormalProgramTarget(speakaf,speakaf.o loadgif.o,,$(LINK_AF),)
+#endif
+
+speak.uid : speak.uil
+	$(UIL) -o speak.uid speak.uil
+
+speakaf.uid : speak.uil
+	$(UIL) -o speakaf.uid speak.uil
+
+
+clean :: 
+	$(RM) $(TARGETS)

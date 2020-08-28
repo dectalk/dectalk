@@ -1,0 +1,1316 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            
+//  IIIIIII SSSSSS                                                            
+//    II    SS                          InstallShield (R)                     
+//    II    SSSSSS      (c) 1996-2000, InstallShield Software Corporation     
+//    II        SS      (c) 1990-1996, InstallShield Corporation              
+//  IIIIIII SSSSSS                     All Rights Reserved.                   
+//                                                                            
+//                                                                            
+//  This code is generated as a starting setup template.  You should   
+//  modify it to provide all necessary steps for your setup.
+//                                                                            
+//                                                                            
+//    File Name:  Setup.rul                                                   
+//                                                                            
+//  Description:  InstallShield script                                        
+//                                                                            
+//     Comments:  This template script performs a basic setup. With minor           
+//                modifications, this template can be adapted to create       
+//                new, customized setups.
+//
+////////////////////////////////////////////////////////////////////////////////
+// COMMENTS
+/* 001 CAB 10-06-00 Comment out function SdRegisterUserEx(...) need to figure out how to
+                    check Cd key value.                             
+   002 CAB 10-18-00 Need to add french interface
+   003 CAB 11-01-00 Separated install into windows ce and windows workspaces
+   004 CAB 11-01-00 1. Fixed single language dll install component  
+   					2. Changed name of program folder(DECtalk) to shell_object_folder if user 
+  					   changes its name
+   005 CAB 11-09-00	1. Added preprocessor variable TESTING to make installing easier
+   					2. Changed setup for default language dialog box. Created two new functions
+   					   using after data move
+   					3. Removed ComponentEvents.rul file
+   006 CAB 11-14-00 1. Fix Installation summary
+   007 CAB 02-20-01 Add French
+   008 CAB 02-24-01 1. Changed where files readme.txt and license.txt obtain
+                       to display in install dialog boxes.
+                    2. Added Release identifier to welcome dialog.
+   009 CAB 04-04-01 1. Added Triple install of Win, Win CE and SAPI 5.0
+   					2. Add one path directory for both Win and Win CE
+   					3. Fixed OnBegin() to run for initial install only
+   010 CAB 04-10-01 1. Fixed triple installation issues
+   					2. Fixed dialog display of Win\Win CE
+   011 CAB 04-11-01 1. Added company and installer info to registry
+   012 CAB 05-02-01 1. Found error in goto and change to right label
+   013 CAB 10-12-01 Added trial sdk setup
+   014 CAB 10-22-01	Changed Sapi 5 to last action
+   015 CAB 01-25-02	1. Changed startmenu to start with Fonix
+   					2. Created TRIAL_VERSION_RELEASE				
+*/				
+
+// Include header files
+    
+#include "ifx.h" //DO NOT REMOVE   
+
+////////////////////// string defines ////////////////////////////
+// Since you can't test for 0
+// The variables TESING values can be
+// 1 = FALSE
+// 2 = TRUE  
+
+	
+#define	COMPANY "DECtalk Software"
+#define PRODUCT "DECtalk"
+
+//////////////////// installation declarations ///////////////////
+
+// ----- DLL function prototypes -----
+
+
+    // your DLL function prototypes
+
+
+// ---- script function prototypes -----
+
+
+// your script function prototypes
+prototype  InstallSystemDll();
+
+prototype  SetUpDefaultLang();		// Setup dialog box
+prototype  DefaultLang(VARIANT, VARIANT);
+
+// your global variables
+STRING Lang_Installed[5];	// Languages that were installed SP[0],UK[1],US[2],GR[3],LA[4]
+NUMBER bvCheck1, bvCheck2, bvCheck3; // DECtalk products, Windows\Windows CE\ Sapi 5.0						
+STRING DECTALK_DIR;			// Installation path
+
+//////////////////////////////////////////////////////////////////////////////
+//                                                                           
+//  FUNCTION:   OnFirstUIBefore                                            
+//                                                                           
+//  EVENT:      FirstUIBefore event is sent when installation is run for the first
+//              time on given machine. In the handler installation usually displays
+//              UI allowing end user to specify installation parameters. After this
+//              function returns,
+//              ComponentTransferData is called to perform file transfer.
+//                                                                           
+///////////////////////////////////////////////////////////////////////////////
+function OnFirstUIBefore()
+    NUMBER  nResult,nSetupType;
+    STRING  SetupName;
+    STRING  szTitle, szMsg;
+    STRING  szLicenseFile, szQuestion;
+    STRING  svName, svCompany, svSerial;
+    STRING  szFile;
+    STRING  szTargetPath;
+    STRING  szDir;
+    STRING  szfolder;
+    STRING  szComponents, szTargetdir;
+    NUMBER  nLevel;
+    LIST    listStartCopy;
+    LIST    list;
+    NUMBER  nvSize;    
+    NUMBER  i, count;				// Loop counter
+    NUMBER nInfo, index1, nvResult, langSelected;
+	STRING szComponent, szComponentSource, svResult;
+	STRING lang(7);				// Add New Language Here
+	NUMBER langInstalled(7);	// Add New Language Here
+    
+    // For DECtalk products
+    STRING szText1, szText2, szText3;
+begin	
+    //InstallationInfo (@COMPANY_NAME, @PRODUCT_NAME, @VERSION_NUMBER, @PRODUCT_KEY);
+    
+    // TO DO: if you want to enable background, window title, and caption bar title                                                                     
+    // SetTitle( @TITLE_MAIN, 24, WHITE );                                        
+    // SetTitle( @TITLE_CAPTIONBAR, 0, BACKGROUNDCAPTION ); 	                   
+    // Enable( FULLWINDOWMODE );						   
+    // Enable( BACKGROUND );							  
+    // SetColor(BACKGROUND,RGB (0, 128, 128));					   
+    
+    // Which version of SDK is being built
+    #if ( (SDK = FALSE) && (TRIAL = FALSE) )
+    	MessageBox("Please change preprocessor define for either SDK or TRIAL", SEVERE);
+    #elif ( SDK = TRUE )
+    //	MessageBox("Built for DECtalk full SDK is setup", SEVERE);
+    #else
+    	//MessageBox("Built for DECtalk Trial Version SDK is setup", SEVERE);
+    #endif
+    
+    // Initialize lang_installed
+    // Add New language Here
+    for i = 0 to 5	
+    	Lang_Installed[i] = FALSE;
+    endfor;
+    	
+    //nSetupType = CUSTOM;//TYPICAL;
+    // Install folder	
+    /* TARGETDIR = PROGRAMFILES ^@FOLDER_NAME;	
+    szDir = TARGETDIR;
+ 	*/
+    SHELL_OBJECT_FOLDER = @FOLDER_NAME;
+    /* svName    = "";
+       svCompany = "";
+    */
+
+// Labels
+Dlg_Start:
+    
+Dlg_MainWelcome:
+    szTitle = "Welcome to the InstallShield Wizard for " + @COMPANY_NAME;
+	#if (TRIAL = TRUE)
+    	szMsg = "Installation for Windows Trial Version SDK V" +
+    	    	@PRODUCT_VERSION + " " + @TRIAL_VERSION_RELEASE;
+	#else
+ 	   	szMsg = "Installing the Windows Version of " + @COMPANY_NAME + " V" +
+    	    	@PRODUCT_VERSION + " " + @PRODUCT_VERSION_RELEASE;
+	#endif
+    
+    #if ( TESTING = 2)
+    	nResult = NEXT ;
+    	if (nResult = BACK) goto Dlg_Start;
+    #else            
+    	nResult = SdWelcome( szTitle, szMsg );
+    	if (nResult = BACK) goto Dlg_Start;
+    #endif
+// Displays user info
+Dlg_SdRegisterUserEx:
+    szMsg   = "";
+    szTitle = "";
+    	
+    #if (TESTING = 2)
+    	nResult = NEXT;
+    #else
+    	nResult = SdRegisterUser( szTitle, szMsg, svName, svCompany );
+		ComponentSetTarget(MEDIA, "<COMPANY>", svCompany);
+    	ComponentSetTarget(MEDIA, "<INSTALLER>", svName);  
+    #endif
+    if (nResult = BACK) goto Dlg_Start;
+
+    // Displays setup type
+Dlg_SetupType:
+    szTitle    = "";
+    szMsg      = "";
+    SetupName = "Full Installation";
+    #if (TESTING = 2)
+    	nResult = 0;	// Success
+    	SetupName = "Custom"; 
+    #else
+    	nResult = SdSetupTypeEx(szTitle, szMsg, "", SetupName, 0);
+    #endif
+    
+    if (nResult = BACK) then
+        goto Dlg_SdRegisterUserEx;
+    else
+        //nSetupType = nResult;
+        if ( SetupName != "Custom") then
+	       szTargetPath = TARGETDIR;
+	       nvSize = 0;                                          
+	    
+	       // Install system dll
+	       InstallSystemDll();
+	       ComponentCompareSizeRequired(MEDIA,szTargetPath,nvSize);
+	       if (nvSize != 0) then      
+            	   MessageBox( szSdStr_NotEnoughSpace, WARNING );
+	           goto Dlg_SetupType;
+            endif;
+        endif;   
+    endif;
+
+// Display custom options
+Dlg_SdComponentTree: 
+    if ((nResult = BACK) && ( SetupName != "Custom")) goto Dlg_SetupType;
+    
+    szTitle    = "";
+    szMsg      = "";
+    szTargetdir = TARGETDIR;
+    // Default display all components
+    szComponents = ""; 
+    nLevel = 2;
+    if ( SetupName = "Custom") then
+		    nResult = SdComponentTree(szTitle, szMsg, szTargetdir, szComponents, nLevel);
+		    if (nResult = BACK) goto Dlg_SetupType;  
+		    // Installs system DLL
+    		InstallSystemDll();
+    endif;
+
+Dlg_ObjDialogs:
+    nResult = ShowObjWizardPages(nResult);
+    if (nResult = BACK) goto Dlg_SdComponentTree;      
+    
+Dlg_SdSelectFolder:
+    szfolder   = "Fonix" ^ @SOFTWARE_VERSION;	//SHELL_OBJECT_FOLDER;     	
+    szTitle    = ""; 	//@SOFTWARE_VERSION;
+    szMsg      = "";	//@SOFTWARE_VERSION;
+    nResult    = SdSelectFolder( szTitle, szMsg, szfolder );
+    SHELL_OBJECT_FOLDER = szfolder;
+    if (nResult = BACK) goto Dlg_ObjDialogs;
+   
+Dlg_SdStartCopy:
+    szTitle = "";
+    szMsg   = "";
+	
+	// Start list to display installtion summary
+    listStartCopy = ListCreate( STRINGLIST );
+
+    ListAddString(listStartCopy, "User Information: ", AFTER);
+    ListAddString(listStartCopy, " " + svName, AFTER);
+    ListAddString(listStartCopy, " " + svCompany, AFTER);
+    ListAddString(listStartCopy, " ", AFTER);
+    
+    // Initialize names of components
+    // Add New Language Here
+   	lang(0) = "DECtalk For Castilian Spanish";
+    lang(1) = "DECtalk For English UK";
+    lang(2) = "DECtalk For English US";
+    lang(3) = "DECtalk For French";     
+    lang(4) = "DECtalk For German";
+    lang(5) = "DECtalk For Latin American Spanish";     
+     	
+    // Initialize languages installed 
+    // Add New Language Here
+    for index1 = 0 to 5					// order in array langInstalled[0]=SP,UK,US,GR,LA, and FR.
+    	langInstalled(index1) = FALSE;
+    endfor;
+   
+	szComponentSource = MEDIA;
+   	nInfo = COMPONENT_FIELD_SELECTED;	
+   	// Add New Language Here
+   	for index1 = 0 to 5
+		szComponent = "Program Files\\" + lang(index1);	// Set language component
+   		langSelected = ComponentGetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+   		if ( langSelected = 0 ) then // Return without error
+   			if ( nvResult = TRUE ) then	// Component was selected
+   				langInstalled(index1) = TRUE; 				
+   		   	endif;
+   		endif; 
+   	endfor;   	
+   	
+    ListAddString(listStartCopy, "Languages: ", AFTER);
+    // Add New Language Here
+    for index1 = 0 to 5
+    	if ( (langInstalled(index1) = TRUE) ) then 
+    		switch ( index1 )
+    			// Add New Language Here
+    			case 0:	ListAddString(listStartCopy, " Castilian Spanish", AFTER);
+    			case 1:	ListAddString(listStartCopy, " English UK", AFTER);
+    			case 2:	ListAddString(listStartCopy, " English US", AFTER);
+    			case 3:	ListAddString(listStartCopy, " French ", AFTER);
+    			case 4:	ListAddString(listStartCopy, " German", AFTER);
+    			case 5:	ListAddString(listStartCopy, " Latin American Spanish", AFTER);
+    		endswitch;
+    	endif;
+    endfor;
+    
+    // Initialize names of components
+   	lang(0) = "Dtmemory";
+    lang(1) = "Dtsample";
+    lang(2) = "Multi Language Demo";
+    lang(3) = "Say";
+    lang(4) = "Ttstest";
+    lang(5) = "Vercheck";
+    lang(6) = "Windic";  
+    
+    // Initialize
+    for index1 = 0 to 6		
+    	langInstalled(index1) = FALSE; 
+    endfor;
+    
+    count = 0;
+   	for index1 = 0 to 6 
+		szComponent = "Program Files\\Sample Programs\\" + lang(index1);	// Set language component
+   		langSelected = ComponentGetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+   		if ( langSelected = 0 ) then // Return without error
+   			if ( nvResult = TRUE ) then	// Component was selected
+   				langInstalled(index1) = TRUE; 				
+   				count++;
+   		   	endif;
+   		endif; 
+   	endfor;   	
+    
+    ListAddString(listStartCopy, " ", AFTER);
+    ListAddString(listStartCopy, "Sample programs: ", AFTER);
+    if (count = 0) then
+    	ListAddString(listStartCopy, "NONE", AFTER);
+    endif;
+    
+    for index1 = 0 to 6
+    	if ( (langInstalled(index1) = TRUE) ) then 
+    		switch ( index1 )
+    			case 0:	ListAddString(listStartCopy, " Dtmemory", AFTER);
+    			case 1:	ListAddString(listStartCopy, " Dtsample", AFTER);
+    			case 2:	ListAddString(listStartCopy, " MLDemo", AFTER);
+    			case 3:	ListAddString(listStartCopy, " Say", AFTER);
+    			case 4:	ListAddString(listStartCopy, " Ttstest", AFTER);
+    			case 5:	ListAddString(listStartCopy, " Vercheck", AFTER);
+    			case 6:	ListAddString(listStartCopy, " Windic", AFTER);
+    		endswitch;
+    	endif;
+    endfor;
+    ListAddString(listStartCopy, " ", AFTER);
+    nResult = SdStartCopy( szTitle, szMsg, listStartCopy );	
+    ListDestroy(listStartCopy);
+    if (nResult = BACK) goto Dlg_SdSelectFolder;
+
+    // setup default status
+    SetStatusWindow(0, "");
+    Enable(STATUSEX);
+    StatusUpdate(ON, 100);
+    return 0;
+end;
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnMoving
+//
+//  EVENT:      Moving event is sent when file transfer is started as a result of
+//              ComponentTransferData call, before any file transfer operations 
+//              are performed.
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnMoving()
+    STRING szAppPath;
+begin
+	// Only gets executed during initial installtion
+	if !MAINTENANCE then
+    	// Set LOGO Compliance Application Path 
+    	// TO DO : if your application .exe is in a subfolder of TARGETDIR then add subfolder 
+    	szAppPath = TARGETDIR;
+    	RegDBSetItem(REGDB_APPPATH, szAppPath);
+    	RegDBSetItem(REGDB_APPPATH_DEFAULT, szAppPath ^ @PRODUCT_KEY); 
+   
+   	// non-maintenance code
+   	endif;
+end;
+ 
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnMaintUIBefore
+//
+//  EVENT:      MaintUIBefore event is sent when end user runs installation that
+//              has already been installed on the machine. Usually this happens 
+//              through Add/Remove Programs applet. In the handler installation 
+//              usually displays UI allowing end user to modify existing installation
+//              or uninstall application. After this function returns, 
+//              ComponentTransferData is called to perform file transfer.
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnMaintUIBefore()
+    NUMBER nResult, nType;
+    STRING szTitle, szMsg, svDir, svResult, szCaption;
+begin
+	// TO DO: if you want to enable background, window title, and caption bar title   								
+	// SetTitle( @TITLE_MAIN, 24, WHITE );					
+	// SetTitle( @TITLE_CAPTIONBAR, 0, BACKGROUNDCAPTION );  			
+	// SetColor(BACKGROUND,RGB (0, 128, 128));					
+	// Enable( FULLWINDOWMODE );						
+	// Enable( BACKGROUND );							
+   					
+
+// beginning of dialogs label
+Dlg_Start:
+	Disable(BACKBUTTON);
+	nType = SdWelcomeMaint(szTitle, szMsg, MODIFY);
+	Enable(BACKBUTTON);
+	
+    if (nType = REMOVEALL) then
+		svResult = SdLoadString(IFX_MAINTUI_MSG);
+		szCaption = SdLoadString(IFX_ONMAINTUI_CAPTION);
+		nResult = SprintfBox(MB_OKCANCEL,szCaption,"%s",svResult);
+		if (nResult = IDCANCEL) goto Dlg_Start;
+	endif;
+
+    nResult = NEXT;
+
+Dlg_SdComponentTree:
+	if (nType = MODIFY) then
+		szTitle = "";
+		szMsg = "";
+		nResult = SdComponentTree(szTitle, szMsg, TARGETDIR, "", 2);
+		if (nResult = BACK) goto Dlg_Start;
+		// Install system DLL 
+		InstallSystemDll();
+    endif;                    
+
+Dlg_ObjDialogs:
+    nResult = ShowObjWizardPages(nResult);
+    if ((nResult = BACK) && (nType != MODIFY)) goto Dlg_Start;
+    if ((nResult = BACK) && (nType = MODIFY)) goto Dlg_SdComponentTree;
+
+	switch(nType)
+        case REMOVEALL: ComponentRemoveAll();
+        case REPAIR:    ComponentReinstall();
+    endswitch;
+    
+    // setup default status 
+ 	SetStatusWindow(0, "");
+	Enable(STATUSEX);
+	StatusUpdate(ON, 100);
+end;
+  
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Function: InstallSystemDll() This function handles setting up the Dectalk.dll for single or multi language setup
+//								 In addtion it displays a dialog box to choose the default language
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+function InstallSystemDll()
+    STRING szComponentSource, szComponent, svResult;	// Variables in set\getDataComponent function(s)
+	STRING szKey, szName, szValue, nSize, svValue;				// Registry variabels
+	STRING szMsg;			// Message in AskOptions Dialog box
+   	STRING components(8);	// Contains names of components
+   	NUMBER bvCheck(5);		                                 // Receives state of radio butons
+   	NUMBER bvCheck1, bvCheck2, bvCheck3, bvCheck4, bvCheck5; // State of radio button 
+	NUMBER nValue;              // For exculsive dialog buttons
+	NUMBER nvResult, nInfo;    // For call to component dialog box
+	NUMBER langSelected;		// Counts the languages
+	NUMBER langCount;			// Counter languages being installed
+	NUMBER index1, index2;      // counters                                       
+	NUMBER retValue;			// Return value of functions
+	NUMBER nvSize;				// Sizeof string in regsitry(bytes)
+	NUMBER nType;				// Type of registry value
+	
+	// Add New Language Here
+	STRING lang(6);				
+	STRING langDll(6);			// Names of language DLL components
+	NUMBER langInstalled(6);	// Holds which languages installed
+begin
+    
+Check_Components:
+    langCount = 0; // Intialize language count
+    	
+    // Initialize names of components
+   	// Add New Language Here
+   	lang(0) = "DECtalk For Castilian Spanish";
+    lang(1) = "DECtalk For English UK";
+    lang(2) = "DECtalk For English US";
+    lang(3) = "DECtalk For French";
+    lang(4) = "DECtalk For German";
+    lang(5) = "DECtalk For Latin American Spanish";
+    
+	// Initialize names of dll components
+	// Add New Language Here
+	langDll(0) = "Castilian Spanish System DLL";
+	langDll(1) = "English UK System DLL";
+	langDll(2) = "English US System DLL";
+	langDll(3) = "French System DLL";
+	langDll(4) = "German System DLL";
+	langDll(5) = "Latin American Spanish System DLL";
+    	
+    // Initialize languages installed
+    // Add New Language Here
+    for index1 = 0 to 5					// order in array langInstalled[0]=SP,UK,US,FR,GR and LA.
+    	langInstalled(index1) = FALSE;
+    endfor;
+    	
+    szComponentSource = MEDIA;
+   	nInfo = COMPONENT_FIELD_SELECTED;	
+   	// Add New Language Here 
+   	for index1 = 0 to 5
+		szComponent = "Program Files\\" + lang(index1);	// Set language component
+   		langSelected = ComponentGetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+   		if ( langSelected = 0 ) then // Return without error
+   			if ( nvResult = TRUE ) then	// Component was selected
+   				langCount++;
+   				langInstalled(index1) = TRUE; 				
+   		   	endif;
+   		endif;
+   	endfor;
+   	
+   	// Install multi language support
+   	if ( langCount >= 2 ) then
+		szComponent = "Program Files\\DECtalk Multi Language Support" ;	// Setup Multi language DLL component
+		
+   		nInfo = COMPONENT_FIELD_SELECTED;
+   		nvResult = TRUE;
+   		langSelected = ComponentSetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+   		
+   		// Change Lock_MGR value in registry
+   		retValue = RegDBSetDefaultRoot( HKEY_LOCAL_MACHINE );	// Change default root key in registry
+   		if ( retValue < 0 ) then
+   			MessageBox("RegDBSetDefaultRoot failed!", SEVERE);
+   		endif;
+	    
+		// Set data for registry function
+   		szKey = "\\Software\\" + COMPANY + "\\" + PRODUCT + "\\" + @PRODUCT_VERSION;
+   		szName = "Lock_MGR";
+   		szValue = "2";
+   		nType = REGDB_STRING;
+   		/*	
+   		if MAINTENANCE then
+   			retValue = RegDBDeleteValue (szKey, szName);
+   			if ( retValue < 0 ) then
+   				MessageBox("RegDBDeleteValue failed!", SEVERE);
+   			endif;          
+   		endif;
+   		*/							 
+   		retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);	
+   		if ( retValue < 0 ) then
+	   		MessageBox("RegDBSetValueEx failed!", SEVERE);
+   		endif;
+   		
+	   	//for index1 = 0 to 4		// UnSelect language DLL component
+	   	szComponent = "Program Files\\DECtalk Single Dlls For All Languages";	// \\" + langDll(index1);	
+	   	nInfo = COMPONENT_FIELD_SELECTED;
+	   	nvResult = FALSE;
+	   	langSelected = ComponentSetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+	   	//endfor;
+   	elseif (langCount = 1) then
+   		// Unselect Multi Language component
+   		szComponent = "Program Files\\DECtalk Multi Language Support";	// UnSelect language DLL component
+   		
+   		nInfo = COMPONENT_FIELD_SELECTED;
+   		nvResult = FALSE;
+   		langSelected = ComponentSetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+   		
+
+   		// Change Lock_MGR value in registry
+   		retValue = RegDBSetDefaultRoot( HKEY_LOCAL_MACHINE );	// Change default root key in registry
+   		if ( retValue < 0 ) then
+   			MessageBox("RegDBSetDefaultRoot failed!", SEVERE);
+   		endif;
+	
+		// Set data for registry function
+   		szKey = "\\Software\\" + COMPANY + "\\" + PRODUCT + "\\" + @PRODUCT_VERSION;
+   		szName = "Lock_MGR";
+   		szValue = "1";
+   		nType = REGDB_STRING;
+   		
+   		if MAINTENANCE then
+   			retValue = RegDBDeleteValue (szKey, szName);
+   			if ( retValue < 0 ) then
+   				MessageBox("RegDBDeleteValue failed!", SEVERE);
+   			endif;
+   		endif;            
+   									 
+   		retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);	
+   		if ( retValue < 0 ) then
+   			MessageBox("RegDBSetValueEx failed!", SEVERE);
+   		endif;  
+   		
+	   	// Add New Language Here 
+	   	for index1 = 0 to 5
+			szComponent = "Program Files\\DECtalk Single Dlls For All Languages\\" + langDll(index1);	// Set language DLL component
+			nInfo = COMPONENT_FIELD_SELECTED;
+			if ( langInstalled(index1) = TRUE )then
+				nvResult = TRUE;
+	   		else 
+	   			nvResult = FALSE;
+	   		endif;
+	   		langSelected = ComponentSetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+	   	endfor;
+   	endif;
+   end;
+
+ 
+//////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnFileLocked
+//
+//  EVENT:      FileLocked event is sent during file transfer when a file that needs
+//              to be overwritten or removed is in use by another application.
+//              This event will not be sent for files that are in file group
+//              marked as potentially locked. In this case operation is automatically
+//              performed after reboot.
+//
+//  ARGUMENTS:  File - full path of file that is locked
+//
+//  RETURN:     ERR_IGNORE - engine should ignore the file and continue file transfer
+//              ERR_RETRY  - engine should retry to perform operation on the file
+//              ERR_ABORT  - file transfer should be aborted
+//              ERR_PERFORM_AFTER_REBOOT - necessary operation should be performed
+//                                         after system is rebooted
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnFileLocked(File)
+begin
+	return SdExceptions(LOCKED, File);
+end;
+  
+///////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnFirstUIAfter
+//
+//  EVENT:      FirstUIAfter event is sent after file transfer, when installation 
+//              is run for the first time on given machine. In this event handler 
+//              installation usually displays UI that will inform end user that
+//              installation has been completed successfully.
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnFirstUIAfter()
+    STRING szCommand;
+	STRING szCmdLine;
+	STRING svResult;	// Name of the file found
+	NUMBER retValue;
+    STRING szTitle, szMsg1, szMsg2, szOption1, szOption2;    
+    NUMBER bOpt1, bOpt2;
+begin                      	
+	// setup dialog box
+	SetUpDefaultLang();
+	/*
+	if ( (bvCheck2 != TRUE) || (bvCheck3 != TRUE) ) then
+		// Launch application
+		szCommand = TARGETDIR^"speak.exe";
+		szCmdLine = TARGETDIR^"readme.txt";
+		LongPathToQuote(szCommand,TRUE); 
+		LongPathToQuote(szCmdLine,TRUE);
+		ChangeDirectory(TARGETDIR);
+	
+		retValue = LaunchApp(szCommand, szCmdLine);
+		if (retValue < 0 ) then
+		   	MessageBox ("Unable to launch "+szCommand+" with "+szCmdLine+".", SEVERE);
+		endif;
+	endif;
+	*/
+	#if (TESTING = 1)	
+		bOpt1  = FALSE;
+    	bOpt2  = FALSE;
+    	szMsg1 = SdLoadString(IFX_SDFINISH_MSG1);
+    	SdFinishEx(szTitle, szMsg1, szMsg2, szOption1, szOption2, bOpt1, bOpt2);
+	#endif
+end;
+ 
+///////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnMaintUIAfter
+//
+//  EVENT:      MaintUIAfter event is sent after file transfer, when end user runs 
+//              installation that has already been installed on the machine. Usually 
+//              this happens through Add/Remove Programs applet. 
+//              In the handler installation usually displays UI that will inform 
+//              end user that maintenance/uninstallation has been completed successfully.
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnMaintUIAfter()
+	NUMBER retValue;
+    STRING szTitle, szMsg1, szMsg2, szOption1, szOption2;
+    NUMBER bOpt1, bOpt2;
+begin
+	Disable(STATUSEX);
+
+    ShowObjWizardPages(NEXT);
+    
+    // Seup dialog box
+    SetUpDefaultLang();
+	
+	#if (TESTING = 1)	
+		bOpt1   = FALSE;
+    	bOpt2   = FALSE;
+    	szMsg1  = SdLoadString(IFX_SDFINISH_MAINT_MSG1);
+		szTitle = SdLoadString(IFX_SDFINISH_MAINT_TITLE);
+    	SdFinishEx(szTitle, szMsg1, szMsg2, szOption1, szOption2, bOpt1, bOpt2);
+    #endif
+end;
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Function: SetUpDefaultLang() 	Sets ups what language will be displayed and which will be the
+//									the default language
+//		
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+function SetUpDefaultLang()
+   STRING szComponentSource, szComponent, svResult;	// Variables in set\getDataComponent function(s)
+	STRING szKey, szName, szValue, nSize, svValue;				// Registry variabels
+	STRING szMsg;			// Message in AskOptions Dialog box
+	NUMBER nValue;              // For exculsive dialog buttons
+	NUMBER nvResult, nInfo;    // For call to component dialog box
+	NUMBER langSelected;		// Counts the languages
+	NUMBER langCount;			// Counter languages being installed
+	NUMBER index1, index2;      // counters                                      
+	NUMBER retValue;			// Return value of functions
+	NUMBER nvSize;				// Sizeof string in regsitry(bytes)
+	NUMBER nType;				// Type of registry value 
+    
+    // Add New Language
+   	STRING lang(6);			// Names of language components
+ 	STRING langDll(6);		// Names of language DLL components
+ 	STRING szText(6);		// Label for radio button
+ 	STRING langInitials(6);	// Languages initials
+ 	STRING szLanguages(6);	// Languages to display AskOptions dialog box
+   	STRING langNewOrder(6);	// Order of languages in AskOptions Dialog box   	
+ 	NUMBER langInstalled(6);	// Holds which languages installed
+ 	NUMBER bvCheck(6);		// Receives state of radio butons
+   	NUMBER bvCheck1, bvCheck2, bvCheck3, bvCheck4, bvCheck5, bvCheck6; // State of radio button 
+   
+   	
+   begin
+   Check_Components:
+    langCount = 0; // Intialize language count
+    	
+    // Initialize names of components
+    // Add New Language Here 
+   	lang(0) = "DECtalk For Castilian Spanish";
+    lang(1) = "DECtalk For English UK";
+    lang(2) = "DECtalk For English US";
+    lang(3) = "DECtalk For French";
+    lang(4) = "DECtalk For German";
+    lang(5) = "DECtalk For Latin American Spanish";
+    
+	// Initialize names of dll components
+	// Add New Language Here 
+	langDll(0) = "Castilian Spanish System DLL";
+	langDll(1) = "English UK System DLL";
+	langDll(2) = "English US System DLL";
+	langDll(3) = "French System DLL";
+	langDll(4) = "German System DLL";
+	langDll(5) = "Latin American Spanish System DLL";
+    	
+    // Initialize languages installed
+    // Add New Language Here 
+    for index1 = 0 to 5					// order in array langInstalled[0]=SP,UK,US,FR,GR and LA.
+    	langInstalled(index1) = FALSE;
+    endfor;
+    	
+    szComponentSource = MEDIA;
+   	nInfo = COMPONENT_FIELD_SELECTED;	
+   	// Add New Language Here 
+   	for index1 = 0 to 5
+		szComponent = "Program Files\\" + lang(index1);	// Set language component
+   		langSelected = ComponentGetData(szComponentSource, szComponent, nInfo, nvResult, svResult);
+   		if ( langSelected = 0 ) then // Return without error
+   			if ( nvResult = TRUE ) then	// Component was selected
+   				langCount++;
+   				langInstalled(index1) = TRUE; 				
+   		   	endif;
+   		endif;
+   	endfor;
+
+    Disable(STATUSEX);
+
+    ShowObjWizardPages(NEXT);
+    
+   	if (langCount > 1) then
+   		nValue = EXCLUSIVE;   
+   		szMsg = "Which Language do you want to be the default?";
+   		// Names of languages
+   		// Add New Language Here 
+   		szText(0) = "Castilian Spanish";
+   		szText(1) = "English UK";
+   		szText(2) = "English US";
+   		szText(3) = "French";
+   		szText(4) = "German";
+   		szText(5) = "Latin American Spanish";
+   		
+   		// Initalize values
+   		// Add New Language Here 
+   		langInitials(0) = "SP";
+   		langInitials(1) = "UK";
+   		langInitials(2) = "US";
+   		langInitials(3) = "FR";
+   		langInitials(4) = "GR";
+   		langInitials(5) = "LA";
+   		
+   		
+   		// Set radio state
+   		// Add New Language Here
+   		bvCheck1 = 0;
+   		bvCheck2 = 0;
+   		bvCheck3 = 0;
+   		bvCheck4 = 0;
+   		bvCheck5 = 0;
+   		bvCheck6 = 0;
+   		
+   		// find which languages installed
+   		index2 = 0;
+   		// Add New Language Here
+   		for index1 = 0 to 5
+   			if ( langInstalled(index1) = TRUE ) then
+   				szLanguages(index2) = szText(index1);
+   				langNewOrder(index2) = langInitials(index1);	// Store order of languages
+   				szName = langInitials(index1); 
+   				index2++;
+   			endif;
+   		endfor;
+   		
+   		// Check this code here!
+   		// Add New Language Here
+   		if ( index1 != 6 ) then
+   			index2--;
+   			// Add New Language Here
+   			for index1 = index2 to 5
+   				langNewOrder(index1) = "empty";
+   			endfor;
+   		endif;
+   			
+   		// To change title
+   		SetDialogTitle(DLG_ASK_OPTIONS,"Setup for Default language");
+   		
+   		// setup option
+   		// Add New Language Here
+   		for index1 = 0 to 5
+ 			if ( StrCompare(langNewOrder(index1), "empty") != 0 ) then
+ 				switch(langNewOrder(index1))
+ 					 // Add New Language Here
+ 					 case "SP":	for index2 = index1 to 5
+ 					 				szName = langInitials(index2); 
+ 					 				if ( StrCompare(langNewOrder(index2), "US") = 0 ) then
+ 					 					bvCheck3 = TRUE;
+ 					 				endif;
+ 					 			endfor;
+ 					 			bvCheck1 = TRUE;
+ 					 // Add New Language Here
+ 					 case "UK":	for index2 = index1 to 5
+ 					 				szName = langInitials(index2); 
+ 					 				if ( StrCompare(langNewOrder(index2), "US") = 0 ) then
+ 					 					bvCheck3 = TRUE;
+ 					 				endif;
+ 					 			endfor;
+ 					 			bvCheck1 = TRUE;
+ 					 case "US":	bvCheck1 = TRUE;
+ 					 case "FR":	bvCheck1 = TRUE;
+ 					 case "GR":	bvCheck1 = TRUE;
+ 					 case "LA":	bvCheck1 = TRUE;
+ 				endswitch; 
+ 				// Add New Language Here
+ 				index1 = 6;
+ 			endif;
+ 		endfor;
+   		
+   		// Setups English as default Language choice if being installed
+   		switch (langCount)
+ 			case 2:  Disable(BACKBUTTON);
+ 					 if (bvCheck3 = TRUE) then
+ 					 	bvCheck1 = FALSE;
+ 					 	bvCheck2 = TRUE;
+ 					 	bvCheck3 = FALSE;
+ 					 endif; 
+ 					 retValue = AskOptions(nValue, szMsg, szLanguages(0), bvCheck1, szLanguages(1), bvCheck2);
+ 					 bvCheck(0) = bvCheck1;
+   			         bvCheck(1) = bvCheck2;
+ 					 DefaultLang(langNewOrder,bvCheck);
+   			case 3:  Disable(BACKBUTTON); 
+   					 if (bvCheck3 = TRUE) then
+   					 	//bvCheck3 = FALSE;
+   					 	//bvCheck1 = FALSE;
+   					 	bvCheck1 = FALSE;
+   					 	bvCheck2 = FALSE;
+   					 	//Add New Language Here
+   					 	/*for index1 = 0 to 5
+   					 		if ( StrCompare(langNewOrder(index1), "US") = 0 ) then
+   					 			index1++;
+   					 			switch(index1)
+   					 				case 1: bvCheck1 = TRUE;
+   					 				case 2: bvCheck2 = TRUE;
+   					 				case 3: bvCheck3 = TRUE;
+   					 			endswitch;
+   					 			index1 = 6;
+   					 		endif;  
+   					 	endfor;
+   					 	*/
+ 					 endif; 
+   			 		 retValue = AskOptions(nValue, szMsg, szLanguages(0), bvCheck1, szLanguages(1), bvCheck2, szLanguages(2), bvCheck3);
+   			         bvCheck(0) = bvCheck1;
+   			         bvCheck(1) = bvCheck2;
+   			         bvCheck(2) = bvCheck3;
+   			         DefaultLang(langNewOrder,bvCheck);
+   			case 4:  Disable(BACKBUTTON);
+   					 if (bvCheck3 = TRUE) then
+   					 	//bvCheck3 = FALSE; 
+   					 	//bvCheck1 = FALSE;
+   					 	bvCheck1 = FALSE; 
+   					 	bvCheck2 = FALSE;
+   					 	bvCheck4 = FALSE;
+   					 	/*for index1 = 0 to 4
+   					 		if ( StrCompare(langNewOrder(index1), "US") = 0 ) then
+   					 			index1++;
+   					 			switch(index1)
+   					 				case 1: bvCheck1 = TRUE;
+   					 				case 2: bvCheck2 = TRUE;
+   					 				case 3: bvCheck3 = TRUE;
+   					 			endswitch;
+   					 			index1 = 5;
+   					 		endif;
+   					 	endfor;
+   					 	*/
+ 					 endif; 
+   					 retValue = AskOptions(nValue, szMsg, szLanguages(0), bvCheck1, szLanguages(1), bvCheck2, szLanguages(2), bvCheck3, szLanguages(3), bvCheck4);
+   					 bvCheck(0) = bvCheck1;
+   			         bvCheck(1) = bvCheck2;
+   			         bvCheck(2) = bvCheck3;
+   			         bvCheck(3) = bvCheck4;
+   					 DefaultLang(langNewOrder,bvCheck);
+   			case 5:  Disable(BACKBUTTON);
+   					 if (bvCheck3 = TRUE) then
+   					 	bvCheck1 = FALSE; 
+   					 	//bvCheck2 = FALSE;
+   					 	//bvCheck4 = FALSE;
+   					 	//bvCheck5 = FALSE;
+ 					 endif; 
+   					 retValue = AskOptions(nValue, szMsg, szLanguages(0), bvCheck1, szLanguages(1), bvCheck2, szLanguages(2), bvCheck3, szLanguages(3), bvCheck4, szLanguages(4), bvCheck5);
+   					 bvCheck(0) = bvCheck1;
+   			         bvCheck(1) = bvCheck2;
+   			         bvCheck(2) = bvCheck3;
+   			         bvCheck(3) = bvCheck4;
+   			         bvCheck(4) = bvCheck5;
+   					 DefaultLang(langNewOrder,bvCheck);
+   			
+   			default: Disable(BACKBUTTON);
+   					 if (bvCheck3 = TRUE) then
+   					 	//bvCheck3 = FALSE; 
+   					 	//bvCheck1 = FALSE;
+   					 	bvCheck1 = FALSE; 
+   					 	bvCheck2 = FALSE;
+   					 	/*for index1 = 0 to 4
+   					 		if ( StrCompare(langNewOrder(index1), "US") = 0 ) then
+   					 			index1++;
+   					 			switch(index1)
+   					 				case 1: bvCheck1 = TRUE;
+   					 				case 2: bvCheck2 = TRUE;
+   					 				case 3: bvCheck3 = TRUE;
+   					 			endswitch;
+   					 			index1 = 5;
+   					 		endif;
+   					 	endfor;
+   					 	*/
+ 					 endif; 
+   					 AskOptions(nValue, szMsg, szLanguages(0), bvCheck1, szLanguages(1), bvCheck2, szLanguages(2), bvCheck3, szLanguages(3), bvCheck4, szLanguages(4), bvCheck5, szLanguages(5), bvCheck6 );
+   			         bvCheck(0) = bvCheck1;
+   			         bvCheck(1) = bvCheck2;
+   			         bvCheck(2) = bvCheck3;
+   			         bvCheck(3) = bvCheck4;
+   			         bvCheck(4) = bvCheck5;
+   			         bvCheck(5) = bvCheck6;
+   			         DefaultLang(langNewOrder,bvCheck);
+   		endswitch;
+   	endif;
+end;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Function: DefaultLang() 	Sets up the registry for the default language
+//  	langNewOrder:	Order of languages displayed in dialog box
+//		bvCheck:		Radio button checked 						
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+function DefaultLang(langNewOrder, bvCheck)
+    STRING szKey, szName, szValue, nSize;		// Registry variabels
+   	NUMBER nType;                               // Type of registry data
+   	NUMBER retValue;							// error testing
+   	NUMBER index;                               // counter
+   begin
+   	// Change default root key in registry
+   	retValue = RegDBSetDefaultRoot( HKEY_LOCAL_MACHINE );
+   	if ( retValue < 0 ) then
+   		MessageBox("RegDBSetDefaultRoot failed!", SEVERE);
+   	endif;
+	
+	// Set data for registry function
+   	szKey = "\\Software\\DECtalk Software\\DECtalk\\Langs";
+   	szName = "DefaultLang";
+   	nType = REGDB_STRING;
+   	// Add New Language Here
+   	for index = 0 to 5
+   		if ( bvCheck(index) = TRUE ) then
+   			// Add New Language Here
+   			switch ( langNewOrder(index) ) 
+   				case "SP": 	szValue = langNewOrder(index);  
+   							if MAINTENANCE then 
+   								retValue = RegDBDeleteValue (szKey, szName);
+   					 			if ( retValue < 0 ) then
+   									MessageBox("RegDBDeleteValue failed!", SEVERE);
+   								endif;
+   							endif;
+   					 		         
+   					 		retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);			
+   					 		if ( retValue < 0 ) then
+   								MessageBox("RegDBSetValueEx failed!", SEVERE);
+   							endif;
+   					 		index = 6;
+   				
+   				case "UK": 	szValue = langNewOrder(index);
+   							if MAINTENANCE then
+   								retValue = RegDBDeleteValue (szKey, szName);
+   								if ( retValue < 0 ) then
+   									MessageBox("RegDBDeleteValue failed!", SEVERE);
+   								endif;
+   							endif;
+   									 
+   							retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);	
+   							if ( retValue < 0 ) then
+   								MessageBox("RegDBSetValueEx failed!", SEVERE);
+   							endif;
+   							index = 6; 
+   				case "US": 	szValue = langNewOrder(index);
+   							if MAINTENANCE then
+   								retValue = RegDBDeleteValue (szKey, szName);
+   								if ( retValue < 0 ) then
+	   								MessageBox("RegDBDeleteValue failed!", SEVERE);
+   								endif;
+   							endif;		 
+   					 		retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);	
+   					 		if ( retValue < 0 ) then
+   								MessageBox("RegDBSetValueEx failed!", SEVERE);
+   							endif;
+   					 		index = 6;
+   				case "FR": 	szValue = langNewOrder(index);
+   				            if MAINTENANCE then
+   				            	retValue = RegDBDeleteValue (szKey, szName);
+   				            	if ( retValue < 0 ) then
+   									MessageBox("RegDBDeleteValue failed!", SEVERE);
+   								endif;        
+   							endif;
+   									 
+   					 		retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);	
+   					 		if ( retValue < 0 ) then
+   								MessageBox("RegDBSetValueEx failed!", SEVERE);
+   							endif;
+   					 		index = 6;
+   				case "GR": 	szValue = langNewOrder(index);
+   				            if MAINTENANCE then
+   				            	retValue = RegDBDeleteValue (szKey, szName);
+   				            	if ( retValue < 0 ) then
+   									MessageBox("RegDBDeleteValue failed!", SEVERE);
+   								endif;        
+   							endif;
+   									 
+   					 		retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);	
+   					 		if ( retValue < 0 ) then
+   								MessageBox("RegDBSetValueEx failed!", SEVERE);
+   							endif;
+   					 		index = 6;
+   				case "LA": 	szValue = langNewOrder(index);
+   					 		if MAINTENANCE then
+   					 			retValue = RegDBDeleteValue (szKey, szName);
+   					 			if ( retValue < 0 ) then
+   									MessageBox("RegDBDeleteValue failed!", SEVERE);
+   								endif;
+   							endif;
+   									 
+   					 		retValue = RegDBSetKeyValueEx(szKey, szName, nType, szValue, -1);	
+   					 		if ( retValue < 0 ) then
+   								MessageBox("RegDBSetValueEx failed!", SEVERE);
+   							endif;
+   					 		index = 6;		   
+   			endswitch;
+   		endif;
+   	endfor;
+   end; 
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnEnd
+//
+//  EVENT:      End event is the last event. It is not sent if the installation
+//              has been aborted. In this case Abort event is sent
+//
+///////////////////////////////////////////////////////////////////////////////
+function OnEnd()  
+	NUMBER nReturn;
+	STRING svResult;	// Return File name of windic
+	STRING temp;
+	STRING szCommand, szCmdLine;
+begin
+	
+	// Launch Windows Ce Installation
+	if ( bvCheck2 = TRUE ) then 
+		SdShowMsg("Preparing to install Windows CE", TRUE);
+   		// Launch the second setup.
+		szCommand = SRCDIR ^ "wince\\setup.inx";
+		//szCommand = "D:\\work\\rnd\\Latest DECtalk 4.61R002.01\\Windows CE DECtalk 4.61R002.01\\Media\\Windows CE\\Disk Images\\Disk1\\setup.inx";
+		
+   		DoInstall(szCommand, TARGETDIR, WAIT);
+   		//nReturn = DoInstall(szCommand, TARGETDIR, WAIT);
+   	    SdShowMsg("Preparing to install Windows CE", FALSE); 
+   		// Not cancel by user
+   		if ( (nReturn != 0) ) then
+   			temp = FormatMessage (nReturn );
+        	SprintfBox(SEVERE,"", "DoInstall failed with a return code of %s.",temp);
+    	endif;
+    endif;
+   	
+	if !MAINTENANCE then
+		// Run applications
+		if ( bvCheck1 = TRUE) then
+			if (TRIAL = TRUE)then
+				MessageBox("The application WINDIC.EXE which is used to create an \n" +
+			           	   "application specfic dictionary does not always \n" +
+		                   "work because of the intentional tone noise with \n" +
+		                   "the trial version of the SDK.", WARNING);
+		    endif;
+			// Launch application
+			szCommand = TARGETDIR^"speak.exe";
+			szCmdLine = TARGETDIR^"readme.txt";
+			LongPathToQuote(szCommand,TRUE); 
+			LongPathToQuote(szCmdLine,TRUE);
+			ChangeDirectory(TARGETDIR);
+	
+			nReturn = LaunchAppAndWait(szCommand, szCmdLine, WAIT);
+			if (nReturn < 0 ) then
+				MessageBox ("Unable to launch "+szCommand+" with "+szCmdLine+".", SEVERE);
+			endif;
+		endif;
+     	
+		if ( bvCheck2 = TRUE) then
+			// Start windic US by default
+			if ( FindFile(TARGETDIR, "windic_us.exe", svResult)  < 0 ) then
+				FindFile(TARGETDIR, "windic*.exe", svResult);
+			endif;
+	
+			// Launch application 
+			szCommand = TARGETDIR^svResult;
+			LongPathToQuote(szCommand,TRUE);
+			ChangeDirectory(TARGETDIR);
+			nReturn = LaunchApp(szCommand, "");
+			if (nReturn < 0 ) then
+	    		MessageBox ("Unable to launch "+szCommand+".", SEVERE);
+			endif;
+		endif;
+	endif;	//MAINTENANCE
+	
+	// Launch Sapi5 installation
+    if (bvCheck3 = TRUE) then
+		szCommand = SRCDIR ^ "sapi5\\setup.exe";
+	//	szCommand = "D:\\work\\tools\\MySetups\\build\\DECtalk Sapi5\\Build\\DiskImages\\DISK1\\setup.exe";
+		
+		LongPathToQuote(szCommand,TRUE); 
+		szCmdLine = "";
+		//ChangeDirectory(SRCDIR);
+		nReturn = LaunchApp(szCommand, "");
+		if ( nReturn < 0 ) then 
+			SprintfBox (SEVERE, "", "Attempt to run Sapi 5.0 installation failed with file %s", szCommand);  
+		endif;
+	endif;
+end;
+
+//////////////////////////////////////////////////////////////////////////////
+//
+//  FUNCTION:   OnBegin
+//
+//  EVENT:      Begin event is always sent as the first event during installation.
+//
+//////////////////////////////////////////////////////////////////////////////
+function OnBegin()
+	STRING szTitle, szMsg, szQuestion, szLicenseFile, szFile, svName, svCompany, szDir;
+	STRING szText1, szText2, szText3;
+	LIST   list;
+	NUMBER nResult;
+	HWND   hFont;	// Handle for font
+begin
+    // TO DO: you may change default non-UI setting, for example
+    //
+    // Disable(SELFREGISTERBATCH)
+    // SetInstallationInfo with arguments other then default
+    //
+    // You may also perform your custom initialization steps, check requirements, etc.
+	
+	if !MAINTENANCE then
+	Dlg_SdWelcome:
+    	szTitle = "Welcome to the InstallShield Wizard for " + @COMPANY_NAME;
+		#if ( TRIAL = TRUE )
+			szMsg = "Installation for the Trial Version SDK for Windows and Windows CE for DECtalk V" +
+			        @PRODUCT_VERSION + " " + @TRIAL_VERSION_RELEASE;
+			//DECtalk V4.61 R002 ";
+		#else
+    		szMsg = "Installation for Windows and Windows CE SDK for " + @SOFTWARE_VERSION;
+    		//szMsg = "Installation for Windows and Windows CE SDK for DECtalk V5.00 R001 ";
+    		//szMsg = "Installation for Windows SDK for DECtalk V4.61 R002.01 ";
+    	#endif
+
+    	nResult = SdWelcome( szTitle, szMsg );
+    	if (nResult = BACK) goto Dlg_SdWelcome;
+	
+		if ( TRIAL == TRUE ) then
+ 		// Display regrading trial version SDK  
+ 		Dlg_AskOptions:
+   			szLicenseFile = SRCDIR ^ "trial.txt"; 
+   			nResult = SdLicense("DECtalk Trial Version SDK", "The trial version SDK allows you to try our Text-To-Speech SDK.",
+               			        "Do you agree to use this SDK for trial use only?", szLicenseFile);           
+			if ( nResult = BACK) goto Dlg_SdWelcome;
+		endif;
+	endif;
+	    	
+    Dlg_SdAskYesNo:
+    if MAINTENANCE then
+   		szTitle = "DECtalk";
+   		szMsg = "Do you wish to install an additional SDK? \n If no, the Windows SDK Maintenance mode will run";
+   		SetDialogTitle (DLG_ASK_YESNO, szTitle);
+		nResult =  AskYesNo(szMsg, NO);
+		if (nResult = YES) goto Dlg_DECtalkSetup;
+		// Running Maintenance mode
+		goto OnBegin_end;
+    endif;
+
+    // Displays which DECtalk software the user wishes to install
+	Dlg_DECtalkSetup:
+		szTitle = "DECtalk Products Installation Setup";
+		szMsg   = "Which DECtalk SDK do you wish to install?";
+		szText1 = "Windows SDK";
+		szText2 = "Windows CE( Pocket PC SDK, HPC2000 )";
+		szText3 = "Sapi 5.0 SDK";
+	    
+		SetDialogTitle (DLG_ASK_OPTIONS, szTitle);
+		nResult =  AskOptions(NONEXCLUSIVE, szMsg, szText1, bvCheck1, szText2, bvCheck2, szText3, bvCheck3);
+		//nResult =  AskOptions(NONEXCLUSIVE, szMsg, szText1, bvCheck1, szText3, bvCheck3);
+		if !MAINTENANCE then 
+			#if (TRIAL = TRUE)
+				if (nResult = BACK) goto Dlg_AskOptions;
+			#else
+				if (nResult = BACK) goto Dlg_SdWelcome;
+			#endif
+		else 
+			if (nResult = BACK) goto Dlg_SdAskYesNo;
+		endif;
+
+		// user did not select any
+		if ( (bvCheck1=FALSE) && (bvCheck2=FALSE) && (bvCheck3=FALSE) ) then
+			MessageBox("You did not select an SDK to install!", INFORMATION);
+			goto Dlg_DECtalkSetup;
+		endif;
+		
+		// Skip Windows and Windows CE installation
+		if ( (bvCheck1 = FALSE) && (bvCheck2 = FALSE) ) then
+			OnEnd();
+			abort;
+		endif;
+	
+	if !MAINTENANCE then	
+	// Display License agreement
+	Dlg_SdLicense:
+		// License file
+    	szLicenseFile = SRCDIR ^ "license.txt"; 
+    
+    	szTitle    = "";
+    	szMsg      = "";
+    	szQuestion = "";
+    	nResult = SdLicense( szTitle, szMsg, szQuestion, szLicenseFile );
+    	
+    	// If user hits back button
+    	if (nResult = BACK) goto Dlg_DECtalkSetup;
+
+	// Displays readme file
+	Dlg_SdShowInfoList:
+    	// Readme file
+    	szFile = SRCDIR ^ "readme.txt";
+    	list = ListCreate( STRINGLIST );
+    	ListReadFromFile( list, szFile );
+    	szTitle  = "Readme";
+    	szMsg    = "Please review the following text before installing DECtalk";
+   
+   		nResult  = SdShowInfoList( szTitle, szMsg, list );
+    	ListDestroy( list );
+    	if (nResult = BACK) goto Dlg_SdLicense;
+    	
+	endif;	// MAINTENANCE
+	
+	// Displays directory of install
+	Dlg_SdAskDestPath:
+    	szTitle = "";
+    	szMsg   = "";
+    
+    	TARGETDIR = PROGRAMFILES ^ @FOLDER_NAME;	
+    	szDir = TARGETDIR;
+    	nResult = SdAskDestPath( szTitle, szMsg, szDir, 0 );
+    	TARGETDIR = szDir;
+    	if (nResult = BACK) goto Dlg_SdShowInfoList;
+    
+    // Skip Windows installation
+	if ( bvCheck1 = FALSE) then
+		OnEnd();
+		abort;
+	endif;
+	
+	// Can't have before end;
+	OnBegin_end:
+	szMsg="Finished";
+end;     
+//#include "ComponentEvents.rul"

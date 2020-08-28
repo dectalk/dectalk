@@ -1,0 +1,67 @@
+/**/#
+/**/# @DEC_COPYRIGHT@
+/**/#
+/**/# HISTORY
+/**/# Revision 1.1.2.6  1996/02/15  16:40:23  Darrell_Stam
+/**/# 	Add -threads via the LOCAL_LDFLAGS to the link line.
+/**/# 	Make sure the softlinks isn't an infinite loop of links!
+/**/# 	[1996/02/15  16:40:15  Darrell_Stam]
+/**/#
+/**/# Revision 1.1.2.5  1996/02/13  22:40:19  Krishna_Mangipudi
+/**/# 	Added CDEBUGFLAGS, CFLAGS and PassCDebugFlags
+/**/# 	[1996/02/13  22:40:10  Krishna_Mangipudi]
+/**/# 
+/**/# Revision 1.1.2.4  1995/12/14  20:43:57  Krishna_Mangipudi
+/**/# 	make softlinks to ../emacsMacros
+/**/# 	[1995/12/14  20:43:49  Krishna_Mangipudi]
+/**/# 
+/**/# Revision 1.1.2.3  1995/11/14  22:05:13  Krishna_Mangipudi
+/**/# 	Removed references to AF
+/**/# 	[1995/11/14  22:05:06  Krishna_Mangipudi]
+/**/# 
+/**/# Revision 1.1.2.2  1995/11/14  21:35:02  Krishna_Mangipudi
+/**/# 	Initial checkin into DECtalk Software source pool
+/**/# 	[1995/11/14  21:33:31  Krishna_Mangipudi]
+/**/# 
+/**/# $EndLog$
+/**/#
+/* DECtalk Tcl Shell */
+
+/* $Id: Imakefile,v 1.1.2.6 1996/02/15 16:40:23 Darrell_Stam Exp $ */
+
+/* #include <Library.tmpl> */
+#define PassCDebugFlags 'CDEBUGFLAGS=$(CDEBUGFLAGS)'
+
+       INCLUDES = -I../../lib -I/usr/local/include
+        DEPLIBS =
+           SRCS = dtk.c phoneme.c mme.c queue.c
+       MME_OBJS = dtk.o phoneme.o mme.o queue.o
+       MME_LIBS = -lmme -lttsmme
+        OS_LIBS = -llmf -lpthreads -lc_r -lmach
+           LIBS = -ltts $(OS_LIBS) -lm
+    CDEBUGFLAGS = -O2 -Olimit 2000 
+         CFLAGS = $(CDEBUGFLAGS) -threads
+  LOCAL_LDFLAGS = -threads
+
+/* SRCS is necessary for generating dependencies (makedepend) */
+
+
+all:: dtk-mme 
+	rm -f ../emacsMacros/dtk-mme
+	ln -fs `pwd`/dtk-mme ../emacsMacros
+
+NormalProgramTarget(dtk-mme,$(MME_OBJS),$(DEPLIBS),$(MME_LIBS),$(LIBS))
+
+NormalLibraryObjectRule()
+
+DependTarget()
+
+build: check
+	$(MAKE) $(MFLAGS) Makefile Makefiles includes depend
+
+CHECK = makeco /* default */
+
+check:
+	@$(TOP)/$(CHECK) "$(MAKE)" "$(MFLAGS)" "$(SUBDIRS)" "$(CURRENT_DIR)"
+
+/* Last modified on Mon Jul 10 10:59:57 EDT 1995 by weikart */

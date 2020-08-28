@@ -1,0 +1,271 @@
+.\"
+.\" @DEC_COPYRIGHT@
+.\"
+.\"
+.\" HISTORY
+.\" Revision 1.1.2.3  1996/02/15  22:52:52  Krishna_Mangipudi
+.\" 	Added Synopsis
+.\" 	[1996/02/15  22:34:39  Krishna_Mangipudi]
+.\"
+.\" Revision 1.1.2.2  1996/02/15  20:12:01  Krishna_Mangipudi
+.\" 	Moved to man3
+.\" 	[1996/02/15  20:06:18  Krishna_Mangipudi]
+.\" 
+.\" $EndLog$
+.\"
+.TH "TextToSpeechStartup" 3dtk
+
+
+.\" MANDOC->Begin TEMPLATE_PARA 
+.SH Name
+
+\fBTextToSpeechStartup\fP --- Initializes the Text-To-Speech system.
+.\" MANDOC->End TEMPLATE_PARA 
+
+.\" MANDOC->Begin TEMPLATE_PARA
+.SH Synopsis
+ 
+\fBTextToSpeechStartup\fP --- This function
+initializes the Text-To-Speech system and returns MMRESULT. This
+value is zero if initialization was successful.
+.\" MANDOC->End TEMPLATE_PARA
+
+.\" MANDOC->Begin TEMPLATE_PARA 
+.SH Syntax
+
+MMRESULT \fBTextToSpeechStartup\fP
+\fI(LPTTS_HANDLE_T *phtTTS, UINT uiDeviceNumber, DWORD
+dwDeviceOptions,VOID (*DTCallbackRoutine) (), LONG dwDTCallbackParameter)\fP
+.\" MANDOC->End TEMPLATE_PARA 
+
+
+.\" MANDOC->Begin TEMPLATE_PARA 
+.SH Arguments
+
+\fBLPTTS_HANDLE_T\fP
+\fI*phTTS \fP A pointer to a pointer to a structure of
+type LPTTS_HANDLE_T.
+
+.br
+
+.br
+
+\fBUINT\fP \fI uiDeviceNumber\fP
+ Specifies a device number of the wave output device. A
+value of WAVE_MAPPER can be used to select the first available
+device.
+
+.br
+
+.br
+
+\fBDWORD\fP \fI dwDeviceOptions\fP
+
+.br
+Specifies how the wave output device is managed. It can be
+a combination of the following constants defined in the include
+file ttsapi.h:
+
+.br
+
+.\" MANDOC->Begin TABLE
+.PP
+.TS
+tab(@);
+
+lfR lfR .
+.sp 4p
+Constant@Description
+.sp 6p
+
+OWN_AUDIO_DEVICE @T{
+The wave output device is opened.
+No other process can allocate the wave output device until the
+TextToSpeechShutdown() function is called. If there are no wave
+output devices in the system, the MMSYSERR_NODRIVER value is
+returned and the Text-To-Speech system is shut down.
+T}
+.sp
+DO_NOT_USE_AUDIO_DEVICE @T{
+The Text-To-Speech system
+can be used only to write wave files, write speech samples to
+memory, or log phonemes. No error is returned if a wave output
+device is not present.
+T}
+.sp
+OUTPUT_TO_MME_DEVICE @T{
+Specify this flag to use the
+Multimedia Services for OSF/1 device driver.
+T}
+.sp
+.TE
+.PP
+.\" MANDOC->End TABLE
+
+.PP
+If this parameter is not specified (for example, if a value of 0 is passed
+in), then DECtalk Software assigns the value OUTPUT_TO_MME_DEVICE by default.
+.PP
+\fBVOID \fP \fI (*DtCallbackRoutine)()\fP This parameter is used to specify a callback routine. The
+callback routine is used by DECtalk Software to inform the
+application when the buffer is full (if DECtalk Software in-memory 
+calls are being used) or when the TextToSpeechSpeak()
+function encounters an index mark.
+.PP
+A value of NULL is passed in if no callback routine is desired. 
+
+.br
+
+.br
+
+\fBLONG\fP
+\fI dwCallbackParameter\fP
+ This is a pointer to a user specified parameter. It is used
+to pass parameters into the callback routine.
+.PP
+
+A value of NULL should be passed in if no user-specified parameters are
+desired.
+.\" MANDOC->End TEMPLATE_PARA 
+
+.\" MANDOC->Begin DESCRIPTION
+.SH Description
+
+The default parameters are: 
+.\" MANDOC->Begin UNNUMBERED LIST
+
+
+.IP \(bu 3
+Language: American English
+
+.IP \(bu 3
+Speaking rate: 180 words per minute
+
+.IP \(bu 3
+Speaker: Paul
+.\" MANDOC->End LIST
+
+.PP
+\fBAsynchronous Messages\fP
+.PP
+
+A callback routine can be specified in the TextToSpeechStartup
+call. If specified, this routine is used to inform the
+application when the memory buffer is full (if the DECtalk
+Software in-memory calls are being used) or when the
+TextToSpeechSpeak() function encounters an index mark.
+.PP
+The callback function is defined as follows:
+
+
+.\" MANDOC->Begin CODE_EXAMPLE
+.EX
+
+void AnyCallbackName  (
+     DWORD param1,
+     LONG  param2,
+     LONG UserDefined
+          )
+
+.EE
+.\" MANDOC->End CODE_EXAMPLE
+
+.PP
+Where:
+.\" MANDOC->Begin TABLE
+.PP
+.TS
+tab(@);
+
+lfR lfR .
+.sp 4p
+Parameter@Description
+.sp 6p
+
+DWORD param1 @T{
+Specifies the type of callback. It is
+equal to constant INDEX_MARK if the callback is an index mark
+callback or if it is equal to the constant MEMORY_BUFFER, if the
+callback is in response to a request for memory buffer output
+from the TextToSpeechSpeak() function.
+T}
+.sp
+LONG param2@T{
+The values of param2 depend upon the
+type of callback. If it is an index mark callback, then param2 is
+the integer value specifying the index number encountered. If, on
+the other hand, it is a memory buffer callback, then param2 is a
+pointer to a memory buffer.
+T}
+.sp
+LONG UserDefined@T{
+Specifies a pointer to the user-
+defined parameter that is passed into the TextToSpeechStartup
+call.
+T}
+.sp
+.TE
+.PP
+.\" MANDOC->End TABLE
+
+.\" MANDOC->End DESCRIPTION
+
+.\" MANDOC->Begin RSDEFLIST
+.SH Return Values
+
+This function returns a value of type MMRESULT. The value is zero
+if the function is successful. The return value is one of the
+following constants:
+.\" MANDOC->End RSDEFLIST
+
+.br
+
+
+.\" MANDOC->Begin TABLE
+.PP
+.TS
+tab(@);
+
+
+lfR lfR .
+.sp 4p
+Constant@Description
+.sp 6p
+
+MMSYSERR_NOERROR@T{
+Normal successful completion.
+T}
+.sp
+MMSYSERR_NODRIVER@T{
+No wave output device present.
+T}
+.sp
+MMSYSERR_NOMEM@T{
+Memory allocation error.
+T}
+.sp
+MMSYSERR_ERROR@T{
+DECtalk dictionary not found.
+T}
+.sp
+MMSYSERR_BADDEVICE_ID @T{
+Device ID out of range.
+T}
+.sp
+.TE
+.PP
+.\" MANDOC->End TABLE
+
+
+.\" MANDOC->Begin TEMPLATE_PARA 
+.SH See Also
+
+
+
+\fITextToSpeechShutdown\fP(3)
+
+.\" MANDOC->End TEMPLATE_PARA 
+
+
+
+

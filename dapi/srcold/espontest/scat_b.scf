@@ -1,0 +1,53 @@
+;;; Copyright ARM Ltd 2001. All rights reserved.
+;
+; This scatterloading descriptor file defines: one load region (ROM_LOAD) 
+; and five execution regions (ROM_EXEC, RAM, HEAP, STACKS, UART0).
+;
+; The entire program (code & data) is placed in ROM at ROM_LOAD.
+;
+; The RO code will execute from ROM_EXEC.  Its execution address (0x0) is the same
+; as its load address (0x0), so it does not need to be moved (a 'root region').
+; The exception vector table (AREA Vect in vectors.s) must appear at 0x0, so is 
+; placed '+First' in the image.
+;
+; The RW data will get relocated (copied) from ROM_LOAD to RAM at 0x28000000.
+; The ZI data will get created (initialized) in RAM, above the RW data.
+; 
+; The region HEAP is used to locate the bottom of the heap immediately above 
+; the ZI data ("+0"). The heap will grow up from this address.
+;
+; The region STACKS is used to locate the top of the memory used to store
+; the stacks for each mode. The stacks will grow down from this address.
+;
+; The region UART0 is used to map the position of the Integrator UART0 registers.
+;
+; Regions marked UNINIT will be left uninitialized, i.e. they will not be 
+; zero-initialized by the C library when it starts-up.
+
+
+RAM_LOAD 0x080000
+{
+    RAM_EXEC 0x080000
+    {
+        init.o (Init, +First)
+        vectors.o (Vect, +First)
+        * (+RO)
+    }
+
+    RAM +0
+    {
+        * (+RW,+ZI)
+    }    
+    
+    HEAP +0 UNINIT
+    {
+        heap.o (+ZI)
+    }
+
+    STACKS +0x20000 UNINIT
+    {
+        stack.o (+ZI)
+    }
+
+}
+
