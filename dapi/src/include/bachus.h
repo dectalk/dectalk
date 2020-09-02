@@ -422,9 +422,10 @@ GERSYLL;
 #endif
 
 typedef struct _walk_info{
-  uBOOL succeeded;
+  unsigned char succeeded;
   unsigned char  wordpos;
-} walkinfo;
+}
+walkinfo;
 
 
 typedef struct _bachus_global_information{
