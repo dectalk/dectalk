@@ -1,0 +1,98 @@
+# Makefile for dapi/src/ph/ for Dectalk software for x86_64-unknown-linux-gnu 
+#
+# 001 ETT 10/22/1998 moved to autoconf system. 
+#
+
+#### Start of system configuration section. ####  
+
+# where is the standard include dir? (cross compile critical)
+STD_INCLUDE=/usr/include/
+# which compiler do we use?
+CC=gcc
+# to debug or not to debug?
+DEBUG_FLAGS= -g
+# how much optomization do we use?
+OPTO_FLAGS= -O2
+# how many silly compile warnings do we want?
+WARN_FLAGS= -Wall
+# what do we define?
+DEFINES= -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D$(LANGUAGE) -DACCESS32 -DTYPING_MODE
+# include mme stuff?
+MME_DIR=.
+
+#### End of system configuration section. #### 
+
+RM=rm -f
+
+API_DIR	    = ../api
+CMD_DIR     = ../cmd
+DIC_DIR     = ../dic
+INCLUDE_DIR = ../include
+KERNEL_DIR  = ../kernel
+LTS_DIR     = ../lts
+NT_DIR      = ../nt
+OSF_DIR     = ../osf
+PH_DIR      = ../ph
+PROTOS_DIR  = ../protos
+VTM_DIR	    = ../vtm
+HL_DIR      = ../hlsyn
+DECTALKF_H  = ../../../
+
+INCLUDES= -I$(INCLUDE_DIR) -I$(API_DIR) -I$(CMD_DIR) -I$(DIC_DIR) -I$(KERNEL_DIR) \
+	  -I$(LTS_DIR) -I$(NT_DIR) -I$(OSF_DIR) -I$(PH_DIR) -I$(DECTALKF_H)\
+          -I$(PROTOS_DIR) -I$(VTM_DIR) -I$(HL_DIR) -I$(MME_DIR) -I$(STD_INCLUDE) 
+
+CFLAGS= $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES)
+
+HL_SRC=	acxf1c.c hlframe.c log10table.c brent.c \
+	inithl.c nasalf1x.c sqrttable.c circuit.c
+
+HL_OBJ=	$(OUTPUT_DIR)/acxf1c.o $(OUTPUT_DIR)/hlframe.o \
+	$(OUTPUT_DIR)/log10table.o \
+	$(OUTPUT_DIR)/brent.o $(OUTPUT_DIR)/inithl.o \
+	$(OUTPUT_DIR)/nasalf1x.o $(OUTPUT_DIR)/sqrttable.o \
+	$(OUTPUT_DIR)/circuit.o 
+
+all:: $(HL_OBJ)
+
+$(OUTPUT_DIR)/acxf1c.o:acxf1c.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/hlframe.o:hlframe.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/log10table.o:log10table.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/sample.o:sample.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/brent.o:brent.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/inithl.o:inithl.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/nasalf1x.o:nasalf1x.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/sqrttable.o:sqrttable.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/circuit.o:circuit.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/frame.o:frame.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/llinit.o:llinit.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/reson.o:reson.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/voice.o:voice.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+clean::
+	rm $(OUTPUT_DIR)/*.o
