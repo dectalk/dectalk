@@ -1,5 +1,5 @@
 /**********************************************************************/
-/*                         Copyright ©                                */
+/*                         Copyright ï¿½                                */
 /*																	  */
 /*  Copyright (c) 2000, 2001 Force Computers Inc. a Solectron comapny. All rights reserved */
 /*  Copyright Digital Equipment Corporation, 1994,                    */
@@ -419,11 +419,11 @@ main( int argc, char *argv[] )
     }
 
 
-#if defined VXWORKS 
+// #if defined VXWORKS 
     devOptions |= DO_NOT_USE_AUDIO_DEVICE;
-#else
-    devOptions |= WAVE_OPEN_SHAREABLE;
-#endif
+// #else
+//     devOptions |= WAVE_OPEN_SHAREABLE;
+// #endif
 
     status = TextToSpeechStartup( &ttsHandle,devNo, devOptions, NULL, NULL );
 
