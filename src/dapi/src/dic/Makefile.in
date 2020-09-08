@@ -54,7 +54,7 @@ all::	/usr/lib/dtk/dtalk_$(LANG_CODE).dic
 
 $(OUTPUT_DIR)/dtalk_$(LANG_CODE).dic: $(OUTPUT_DIR)/dic_$(LANG_CODE) \
                                     dic_$(LANG_CODE).zip
-#	unzip -o dic_$(LANG_CODE).zip 
+	unzip -o dic_$(LANG_CODE).zip 
 	-mv DIC_$(U_LANG_CODE).TXT dic_$(LANG_CODE).txt
 	-mv DIC_$(U_LANG_CODE).txt dic_$(LANG_CODE).txt
 	-mv DIC_$(LANG_CODE).txt dic_$(LANG_CODE).txt
