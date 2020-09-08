@@ -19,7 +19,7 @@ DEBUG_FLAGS= -g
 OPTO_FLAGS= -O2
 # how many silly compile warnings do we want?
 WARN_FLAGS= -Wall
-OS_VERSION=4.19.128-microsoft-standard
+OS_VERSION=4.19.104-microsoft-standard
 DT_LIB= -ltts
 LIBS= -lpthread 
 DEFINES= -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D$(LANGUAGE) -DACCESS32 -DTYPING_MODE

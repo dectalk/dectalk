@@ -24,7 +24,7 @@ OPTO_FLAGS= -O2
 WARN_FLAGS= -Wall
 # what do we define?
 DEFINES= -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D$(LANGUAGE) -DACCESS32 -DTYPING_MODE
-OS_VERSION=4.19.128-microsoft-standard
+OS_VERSION=4.19.104-microsoft-standard
 LD=ld
 AR=ar cqls
 ALL=$(LIB_LN_S_A_DIR)/libtts.a $(SHLIB)/libtts.so

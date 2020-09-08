@@ -10,7 +10,7 @@
 # first run autoconf in this dir the exe configure will pop out.
 # run configure and it will produce all the make files for you
 
-OS_VERSION=4.19.128-microsoft-standard
+OS_VERSION=4.19.104-microsoft-standard
 BUILD_DIR=/dectalk/dapi/build
 
 #### End of system configuration section. #### 

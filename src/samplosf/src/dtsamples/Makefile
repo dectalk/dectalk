@@ -21,7 +21,7 @@ DEBUG_FLAGS= -g
 OPTO_FLAGS= -O2
 # how many silly compile warnings do we want?
 WARN_FLAGS= -Wall
-OS_VERSION=4.19.128-microsoft-standard
+OS_VERSION=4.19.104-microsoft-standard
 DTSAMPLE_ALL=$(OUTPUT_DIR)/say $(OUTPUT_DIR)/dtmemory 	$(OUTPUT_DIR)/say_demo_$(LANG_CODE) 	$(OUTPUT_DIR)/dtmemory_demo_$(LANG_CODE) $(OUTPUT_DIR)/aclock
 DT_LIB= -ltts
 LIBS= -lpthread 
