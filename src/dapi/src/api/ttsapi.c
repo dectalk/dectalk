@@ -1397,8 +1397,8 @@ static unsigned int guiLoadedLicenseShare = FALSE;
 static license_struct_t *MemLicense = NULL; /* address of shared memory */
 static int licensefd=0;
 static int file_exists=0;
-int shared_mem_id;
-int allocated;
+static int shared_mem_id;
+static int allocated;
 
 
 int AddLicenseRef(int *a32_lic);

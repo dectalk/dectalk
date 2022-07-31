@@ -412,7 +412,7 @@ shared_mem_t Shm_t={0,1,0,0,0,0
 		    ,0,0,0
 #endif
 };
-shared_mem_t *pShm_t = &Shm_t;
+static shared_mem_t *pShm_t = &Shm_t;
 #endif  // !__osf__
 
 #ifdef MOVED_TO_SHARED_MEMORY

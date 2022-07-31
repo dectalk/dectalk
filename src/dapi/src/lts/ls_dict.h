@@ -216,7 +216,7 @@ struct  dic_entry
 
 #define DICT_INDEX       ((U32 *)pKsd_t->fdic_index[DICT_LANG])
 #define FDICT_INDEX      ((U32 *)pKsd_t->foreigndic_index[DICT_LANG])
-#define UDICT_INDEX      ((U32 *)pKsd_t->udic_index[DICT_LANG])
+#define UDICT_INDEX      (pKsd_t->udic_index[DICT_LANG])
 #define ADICT_INDEX      ((U32 *)pKsd_t->adic_index[DICT_LANG])
 
 #define DICT_DATA       (((pKsd_t->fdic_data[DICT_LANG])))

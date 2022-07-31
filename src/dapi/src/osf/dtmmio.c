@@ -1642,13 +1642,13 @@ DTKmmioDescend(
 
     /* figure out what chunk id and form/list type to search for */
     if (uFlags & MMIO_FINDCHUNK)
-	ckidFind = (FOURCC)lpck->ckid, (FOURCC)fccTypeFind = NULL;
+	ckidFind = (FOURCC)lpck->ckid, fccTypeFind = NULL;
     else if (uFlags & MMIO_FINDRIFF)
 	ckidFind = (FOURCC)FOURCC_RIFF, fccTypeFind = lpck->fccType;
     else if (uFlags & MMIO_FINDLIST)
 	ckidFind = (FOURCC)FOURCC_LIST, fccTypeFind = lpck->fccType;
     else
-	ckidFind = (FOURCC)fccTypeFind = NULL;
+	ckidFind = fccTypeFind = NULL;
 	
     lpckRet.dwFlags = 0L;
 

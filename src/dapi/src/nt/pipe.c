@@ -463,97 +463,145 @@ void write_pipe( LPPIPE_T pPipe, void * pItems, UINT uiNumberToWrite )
     {
     case BYTE_PIPE:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((BYTE_T *)pPipe->pInput) = *((BYTE_T *)pItems);
+       pPipe->pInput += sizeof(BYTE_T);
+       pItems += sizeof(BYTE_T);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((BYTE_T *)pPipe->pInput) = *((BYTE_T *)pItems);
+       pPipe->pInput += sizeof(BYTE_T);
+       pItems += sizeof(BYTE_T);
+      }
 
       break;
 
     case WORD_PIPE:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((WORD_T *)pPipe->pInput)++ = *((WORD_T *)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((WORD_T *)pPipe->pInput) = *((WORD_T *)pItems);
+       pPipe->pInput += sizeof(WORD_T);
+       pItems += sizeof(WORD_T);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((WORD_T *)pPipe->pInput)++ = *((WORD_T *)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((WORD_T *)pPipe->pInput) = *((WORD_T *)pItems);
+       pPipe->pInput += sizeof(WORD_T);
+       pItems += sizeof(WORD_T);
+      }
 
       break;
 
     case DWORD_PIPE:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((DWORD_T *)pPipe->pInput)++ = *((DWORD_T *)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((DWORD_T *)pPipe->pInput) = *((DWORD_T *)pItems);
+       pPipe->pInput += sizeof(DWORD_T);
+       pItems += sizeof(DWORD_T);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((DWORD_T *)pPipe->pInput)++ = *((DWORD_T *)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((DWORD_T *)pPipe->pInput) = *((DWORD_T *)pItems);
+       pPipe->pInput += sizeof(DWORD_T);
+       pItems += sizeof(DWORD_T);
+      }
 
       break;
 
     case QWORD_PIPE:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((QWORD_T *)pPipe->pInput)++ = *((QWORD_T *)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((QWORD_T *)pPipe->pInput) = *((QWORD_T *)pItems);
+       pPipe->pInput += sizeof(QWORD_T);
+       pItems += sizeof(QWORD_T);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((QWORD_T *)pPipe->pInput)++ = *((QWORD_T *)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((QWORD_T *)pPipe->pInput) = *((QWORD_T *)pItems);
+       pPipe->pInput += sizeof(QWORD_T);
+       pItems += sizeof(QWORD_T);
+      }
 
       break;
 
     case FLOAT_PIPE:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((float *)pPipe->pInput)++ = *((float *)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((float *)pPipe->pInput) = *((float *)pItems);
+       pPipe->pInput += sizeof(float);
+       pItems += sizeof(float);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((float *)pPipe->pInput)++ = *((float *)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((float *)pPipe->pInput) = *((float *)pItems);
+       pPipe->pInput += sizeof(float);
+       pItems += sizeof(float);
+      }
 
       break;
 
     case DOUBLE_PIPE:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((double *)pPipe->pInput)++ = *((double *)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((double *)pPipe->pInput) = *((double *)pItems);
+       pPipe->pInput += sizeof(double);
+       pItems += sizeof(double);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((double *)pPipe->pInput)++ = *((double *)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((double *)pPipe->pInput) = *((double *)pItems);
+       pPipe->pInput += sizeof(double);
+       pItems += sizeof(double);
+      }
 
       break;
 
     case VOID_PTR_PIPE:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((void **)pPipe->pInput)++ = *((void **)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((void **)pPipe->pInput) = *((void **)pItems);
+       pPipe->pInput += sizeof(void *);
+       pItems += sizeof(void *);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((void **)pPipe->pInput)++ = *((void **)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((void **)pPipe->pInput) = *((void **)pItems);
+       pPipe->pInput += sizeof(void *);
+       pItems += sizeof(void *);
+      }
 
       break;
 
     default:
 
-      for ( i = 0; i < uiRemaining; i++ )
-       *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+      for ( i = 0; i < uiRemaining; i++ ) {
+       *((BYTE_T *)pPipe->pInput) = *((BYTE_T *)pItems);
+       pPipe->pInput += sizeof(BYTE_T);
+       pItems += sizeof(BYTE_T);
+      }
 
       pPipe->pInput = pPipe->pStart;
 
-      for ( i = uiRemaining; i < uiNumberToWrite; i++ )
-       *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+      for ( i = uiRemaining; i < uiNumberToWrite; i++ ) {
+       *((BYTE_T *)pPipe->pInput) = *((BYTE_T *)pItems);
+       pPipe->pInput += sizeof(BYTE_T);
+       pItems += sizeof(BYTE_T);
+      }
 
       break;
     }
@@ -574,57 +622,81 @@ void write_pipe( LPPIPE_T pPipe, void * pItems, UINT uiNumberToWrite )
     {
     case BYTE_PIPE:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((BYTE_T *)pPipe->pInput) = *((BYTE_T *)pItems);
+       pPipe->pInput += sizeof(BYTE_T);
+       pItems += sizeof(BYTE_T);
+      }
 
       break;
 
     case WORD_PIPE:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((WORD_T *)pPipe->pInput)++ = *((WORD_T *)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((WORD_T *)pPipe->pInput) = *((WORD_T *)pItems);
+       pPipe->pInput += sizeof(WORD_T);
+       pItems += sizeof(WORD_T);
+      }
 
       break;
 
     case DWORD_PIPE:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((DWORD_T *)pPipe->pInput)++ = *((DWORD_T *)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((DWORD_T *)pPipe->pInput) = *((DWORD_T *)pItems);
+       pPipe->pInput += sizeof(DWORD_T);
+       pItems += sizeof(DWORD_T);
+      }
 
       break;
 
     case QWORD_PIPE:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((QWORD_T *)pPipe->pInput)++ = *((QWORD_T *)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((QWORD_T *)pPipe->pInput) = *((QWORD_T *)pItems);
+       pPipe->pInput += sizeof(QWORD_T);
+       pItems += sizeof(QWORD_T);
+      }
 
       break;
 
     case FLOAT_PIPE:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((float *)pPipe->pInput)++ = *((float *)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((float *)pPipe->pInput) = *((float *)pItems);
+       pPipe->pInput += sizeof(float);
+       pItems += sizeof(float);
+      }
 
       break;
 
     case DOUBLE_PIPE:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((double *)pPipe->pInput)++ = *((double *)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((double *)pPipe->pInput) = *((double *)pItems);
+       pPipe->pInput += sizeof(double);
+       pItems += sizeof(double);
+      }
 
       break;
 
     case VOID_PTR_PIPE:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((void **)pPipe->pInput)++ = *((void **)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((void **)pPipe->pInput) = *((void **)pItems);
+       pPipe->pInput += sizeof(void *);
+       pItems += sizeof(void *);
+      }
 
       break;
 
     default:
 
-      for ( i = 0; i < uiNumberToWrite; i++ )
-       *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+      for ( i = 0; i < uiNumberToWrite; i++ ) {
+       *((BYTE_T *)pPipe->pInput) = *((BYTE_T *)pItems);
+       pPipe->pInput += sizeof(BYTE_T);
+       pItems += sizeof(BYTE_T);
+      }
 
       break;
     }
@@ -938,97 +1010,145 @@ void read_pipeEx( LPPIPE_T *pPipe, void * pItems, UINT uiNumberToRead )
 		{
 		case BYTE_PIPE:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((BYTE_T *)pItems)++ = *((BYTE_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((BYTE_T *)pItems) = *((BYTE_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(BYTE_T);
+				pItems += sizeof(BYTE_T);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((BYTE_T *)pItems)++ = *((BYTE_T *)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((BYTE_T *)pItems) = *((BYTE_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(BYTE_T);
+				pItems += sizeof(BYTE_T);
+			}
 			
 			break;
 			
 		case WORD_PIPE:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((WORD_T *)pItems)++ = *((WORD_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((WORD_T *)pItems) = *((WORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(WORD_T);
+				pItems += sizeof(WORD_T);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((WORD_T *)pItems)++ = *((WORD_T *)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((WORD_T *)pItems) = *((WORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(WORD_T);
+				pItems += sizeof(WORD_T);
+			}
 			
 			break;
 			
 		case DWORD_PIPE:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((DWORD_T *)pItems)++ = *((DWORD_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((DWORD_T *)pItems) = *((DWORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(DWORD_T);
+				pItems += sizeof(DWORD_T);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((DWORD_T *)pItems)++ = *((DWORD_T *)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((DWORD_T *)pItems) = *((DWORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(DWORD_T);
+				pItems += sizeof(DWORD_T);
+			}
 			
 			break;
 			
 		case QWORD_PIPE:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((QWORD_T *)pItems)++ = *((QWORD_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((QWORD_T *)pItems) = *((QWORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(QWORD_T);
+				pItems += sizeof(QWORD_T);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((QWORD_T *)pItems)++ = *((QWORD_T *)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((QWORD_T *)pItems) = *((QWORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(QWORD_T);
+				pItems += sizeof(QWORD_T);
+			}
 			
 			break;
 			
 		case FLOAT_PIPE:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((float *)pItems)++ = *((float *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((float *)pItems) = *((float *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(float);
+				pItems += sizeof(float);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((float *)pItems)++ = *((float *)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((float *)pItems) = *((float *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(float);
+				pItems += sizeof(float);
+			}
 			
 			break;
 			
 		case DOUBLE_PIPE:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((double *)pItems)++ = *((double *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((double *)pItems) = *((double *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(double);
+				pItems += sizeof(double);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((double *)pItems)++ = *((double *)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((double *)pItems) = *((double *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(double);
+				pItems += sizeof(double);
+			}
 			
 			break;
 			
 		case VOID_PTR_PIPE:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((void **)pItems)++ = *((void **)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((void **)pItems) = *((void **)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(void *);
+				pItems += sizeof(void *);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((void **)pItems)++ = *((void **)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((void **)pItems) = *((void **)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(void *);
+				pItems += sizeof(void *);
+			}
 			
 			break;
 			
 		default:
 			
-			for ( i = 0; i < uiRemaining; i++ )
-				*((BYTE_T *)pItems)++ = *((BYTE_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiRemaining; i++ ) {
+				*((BYTE_T *)pItems) = *((BYTE_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(BYTE_T);
+				pItems += sizeof(BYTE_T);
+			}
 			
 			(*pPipe)->pOutput = (*pPipe)->pStart;
 			
-			for ( i = uiRemaining; i < uiNumberToRead; i++ )
-				*((BYTE_T *)pItems)++ = *((BYTE_T *)(*pPipe)->pOutput)++;
+			for ( i = uiRemaining; i < uiNumberToRead; i++ ) {
+				*((BYTE_T *)pItems) = *((BYTE_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(BYTE_T);
+				pItems += sizeof(BYTE_T);
+			}
 			
 			break;
 		}
@@ -1049,57 +1169,81 @@ void read_pipeEx( LPPIPE_T *pPipe, void * pItems, UINT uiNumberToRead )
 		{
 		case BYTE_PIPE:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((BYTE_T *)pItems)++ = *((BYTE_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((BYTE_T *)pItems) = *((BYTE_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(BYTE_T);
+				pItems += sizeof(BYTE_T);
+			}
 			
 			break;
 			
 		case WORD_PIPE:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((WORD_T *)pItems)++ = *((WORD_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((WORD_T *)pItems) = *((WORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(WORD_T);
+				pItems += sizeof(WORD_T);
+			}
 			
 			break;
 			
 		case DWORD_PIPE:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((DWORD_T *)pItems)++ = *((DWORD_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((DWORD_T *)pItems) = *((DWORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(DWORD_T);
+				pItems += sizeof(DWORD_T);
+			}
 			
 			break;
 			
 		case QWORD_PIPE:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((QWORD_T *)pItems)++ = *((QWORD_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((QWORD_T *)pItems) = *((QWORD_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(QWORD_T);
+				pItems += sizeof(QWORD_T);
+			}
 			
 			break;
 			
 		case FLOAT_PIPE:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((float *)pItems)++ = *((float *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((float *)pItems) = *((float *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(float);
+				pItems += sizeof(float);
+			}
 			
 			break;
 			
 		case DOUBLE_PIPE:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((double *)pItems)++ = *((double *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((double *)pItems) = *((double *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(double);
+				pItems += sizeof(double);
+			}
 			
 			break;
 			
 		case VOID_PTR_PIPE:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((void **)pItems)++ = *((void **)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((void **)pItems) = *((void **)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(void *);
+				pItems += sizeof(void *);
+			}
 			
 			break;
 			
 		default:
 			
-			for ( i = 0; i < uiNumberToRead; i++ )
-				*((BYTE_T *)pItems)++ = *((BYTE_T *)(*pPipe)->pOutput)++;
+			for ( i = 0; i < uiNumberToRead; i++ ) {
+				*((BYTE_T *)pItems) = *((BYTE_T *)(*pPipe)->pOutput);
+				(*pPipe)->pOutput += sizeof(BYTE_T);
+				pItems += sizeof(BYTE_T);
+			}
 			
 			break;
 		}

@@ -219,7 +219,7 @@ void fr_phtiming (LPTTS_HANDLE_T phTTS) {
   PDPHSETTAR_ST  pDphsettar = pDph_t->pSTphsettar;
 
   short pcnt;
-  extern short fr_inhdr[];
+  extern const short fr_inhdr[];
 
 #define NbSyll_Phrase_Courte  6
 #define Duree_Min_Syll        45

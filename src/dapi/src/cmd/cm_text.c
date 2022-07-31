@@ -153,7 +153,7 @@ extern int _far par_dict_lookup(PKSD_T, char *, int);
 #endif
 
 //#ifdef WIN32
-#ifndef __linux__
+#ifdef __linux__
 #if !defined ARM7 || (defined ARM7 && defined ACCESS_SOLUTIONS)
 #ifdef NEW_BINARY_PARSER
 #ifndef DEBUG
