@@ -9264,6 +9264,7 @@ static OP_THREAD_ROUTINE(TextToSpeechThreadMain, LPTTS_HANDLE_T phTTS)
 
 		if ( uiCurrentTextLength != 0 )
 		{
+			UINT uiMsgNumber = pTextMsg->uiMsgNumber;
 			
 			OP_LockMutex(phTTS->pcsFlushMsgNumber);
 	
@@ -9327,7 +9328,7 @@ static OP_THREAD_ROUTINE(TextToSpeechThreadMain, LPTTS_HANDLE_T phTTS)
 			}
 	
 			OP_LockMutex( phTTS->pcsLastQueuedTextMsgNumber );
-			phTTS->uiLastQueuedTextMsgNumber = pTextMsg->uiMsgNumber;
+			phTTS->uiLastQueuedTextMsgNumber = uiMsgNumber;
 			OP_UnlockMutex( phTTS->pcsLastQueuedTextMsgNumber );
 		}
 
