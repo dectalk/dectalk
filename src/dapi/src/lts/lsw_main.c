@@ -1420,6 +1420,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 	char *home_dir;
 	char temp_dict_name[1000];
 	int ret_value=0;
+	int parent=0;
 	
 	main_dict_name[0]='\0';
 	foreign_dict_name[0]='\0';
@@ -1444,9 +1445,26 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 			config_file=fopen(cfg,"r");
 		}
 	}
+
+	if (config_file==NULL)
+	{
+		char p[PATH_MAX] = {};
+		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+		if (count != -1) {
+			char *cfg;
+			cfg = dirname(p);
+			strcat(cfg,"/../");
+			strcat(cfg,"DECtalk.conf");
+			config_file=fopen(cfg,"r");
+		}
+		if (config_file != NULL) {
+			parent = 1;
+		}
+	}
 #endif
 	
-#ifdef DEMO
+//#ifdef DEMO
+#if 0
         strcpy(main_dict_name,DEMO_DICT_NAME);
         strcpy(foreign_dict_name,DEMO_FDICT_NAME);
         ret_value++;
@@ -1467,6 +1485,8 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 						char *dict;
 						dict = dirname(p);
 						strcat(dict,"/");
+						if (parent)
+							strcat(dict,"../");
 						strcat(dict,main_dict_name);
 						strcpy(main_dict_name,dict);
 					}
@@ -1490,6 +1510,8 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 				char *dict;
 				dict = dirname(p);
 				strcat(dict,"/");
+				if (parent)
+					strcat(dict,"../");
 				strcat(dict,DEF_LINUX_MAIN_DICT);
 				strcpy(main_dict_name,dict);
 			}
@@ -1517,6 +1539,8 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 						char *dict;
 						dict = dirname(p);
 						strcat(dict,"/");
+						if (parent)
+							strcat(dict,"../");
 						strcat(dict,foreign_dict_name);
 						strcpy(foreign_dict_name,dict);
 					}
@@ -1540,6 +1564,8 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 				char *dict;
 				dict = dirname(p);
 				strcat(dict,"/");
+				if (parent)
+					strcat(dict,"../");
 				strcat(dict,DEF_LINUX_FOREIGN_DICT);
 				strcpy(foreign_dict_name,dict);
 			}
