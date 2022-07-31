@@ -251,7 +251,7 @@ static void usage(char *progname)
 
 main( int argc, char *argv[] )
 {
-    char buf[256];
+    char buf[4096];
     char cli_text[4096];
     unsigned int  devNo = WAVE_MAPPER;
     int  userSelectedDevice = 0;
@@ -494,7 +494,8 @@ main( int argc, char *argv[] )
         /* Read and play 256 bytes at a time until out of data */
         /*******************************************************/
         dwFlags = TTS_FORCE;
-	while ( fgets(buf,255,stdin))
+	memset(buf, 0, sizeof(buf));
+	while ( fgets(buf,sizeof(buf)-1,stdin))
 	{
 	    text_len = strlen( buf );
 	    if (text_len==2)
