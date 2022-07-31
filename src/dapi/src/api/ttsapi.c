@@ -1415,7 +1415,9 @@ static int GetFromSomeWhere(void)
 	char line[500];
 	unsigned char decrypted[500];
 
-	def_file=fopen("/etc/DECtalk.conf","r");
+	return 0;
+
+	def_file=fopen("DECtalk.conf","r");
 #ifdef TESTING
 	if (def_file==NULL)
 	{

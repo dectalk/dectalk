@@ -113,6 +113,7 @@ LTS_T   Lts_t;
 
 #if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
 #include <stdlib.h>
+#include <linux/limits.h>
 #endif
 
 #ifdef WIN32
@@ -511,7 +512,7 @@ char ch_dictionary_file_name[500];
 
 //nAdicLoad = load_dictionary( &(pKsd_t->adic[LANG_english]),
       //		   &(pKsd_t->adic_entries[LANG_english]),
-      //		   "/usr/lib/dtk/abbr_us.dic",
+      //		   "abbr_us.dic",
       //		   TRUE );
 
     if( nDicLoad == MMSYSERR_INVALPARAM || nDicLoad == MMSYSERR_NOMEM ||
@@ -532,7 +533,7 @@ char ch_dictionary_file_name[500];
 //	nAdicLoad == MMSYSERR_ERROR)
 //    {
 //      fprintf(stderr,"DECtalk cannot run without the abbr. dictionary file %s\n",
-//				  "/usr/lib/dtk/abbr.dic");
+//				  "abbr.dic");
 //      phTTS->uiThreadError = nAdicLoad;
 //    }
 
@@ -1359,8 +1360,8 @@ int LTSLibMain( DT_HANDLE hInst,
 #define DEF_LINUX_MAIN_DICT "dtalk_us.dic"
 #define DEF_LINUX_FOREIGN_DICT "dtalk_fl_us.dic"
 #else
-#define DEF_LINUX_MAIN_DICT "/usr/lib/dtk/dtalk_us.dic"
-#define DEF_LINUX_FOREIGN_DICT "/usr/lib/dtk/dtalk_fl_us.dic"
+#define DEF_LINUX_MAIN_DICT "dtalk_us.dic"
+#define DEF_LINUX_FOREIGN_DICT "dtalk_fl_us.dic"
 #endif
 #define DEMO_DICT_NAME "dtalk_us.dic"
 #define DEMO_FDICT_NAME "dtalk_fl_us.dic"
@@ -1369,8 +1370,8 @@ int LTSLibMain( DT_HANDLE hInst,
 #define LINUX_DICT_TAG "UK_dict:"
 #define LINUX_FDICT_TAG "UK_fdict:"
 #define LINUX_UDICT_TAG "UK_udict:"
-#define DEF_LINUX_MAIN_DICT "/usr/lib/dtk/dtalk_uk.dic"
-#define DEF_LINUX_FOREIGN_DICT "/usr/lib/dtk/dtalk_fl_uk.dic"
+#define DEF_LINUX_MAIN_DICT "dtalk_uk.dic"
+#define DEF_LINUX_FOREIGN_DICT "dtalk_fl_uk.dic"
 #define DEMO_DICT_NAME "dtalk_uk.dic"
 #define DEMO_FDICT_NAME "dtalk_fl_uk.dic"
 #endif
@@ -1378,8 +1379,8 @@ int LTSLibMain( DT_HANDLE hInst,
 #define LINUX_DICT_TAG "GR_dict:"
 #define LINUX_FDICT_TAG "GR_fdict:"
 #define LINUX_UDICT_TAG "GR_udict:"
-#define DEF_LINUX_MAIN_DICT "/usr/lib/dtk/dtalk_gr.dic"
-#define DEF_LINUX_FOREIGN_DICT "/usr/lib/dtk/dtalk_fl_gr.dic"
+#define DEF_LINUX_MAIN_DICT "dtalk_gr.dic"
+#define DEF_LINUX_FOREIGN_DICT "dtalk_fl_gr.dic"
 #define DEMO_DICT_NAME "dtalk_gr.dic"
 #define DEMO_FDICT_NAME "dtalk_fl_gr.dic"
 #endif
@@ -1387,8 +1388,8 @@ int LTSLibMain( DT_HANDLE hInst,
 #define LINUX_DICT_TAG "SP_dict:"
 #define LINUX_FDICT_TAG "SP_fdict:"
 #define LINUX_UDICT_TAG "SP_udict:"
-#define DEF_LINUX_MAIN_DICT "/usr/lib/dtk/dtalk_sp.dic"
-#define DEF_LINUX_FOREIGN_DICT "/usr/lib/dtk/dtalk_fl_sp.dic"
+#define DEF_LINUX_MAIN_DICT "dtalk_sp.dic"
+#define DEF_LINUX_FOREIGN_DICT "dtalk_fl_sp.dic"
 #define DEMO_DICT_NAME "dtalk_sp.dic"
 #define DEMO_FDICT_NAME "dtalk_fl_sp.dic"
 #endif
@@ -1396,8 +1397,8 @@ int LTSLibMain( DT_HANDLE hInst,
 #define LINUX_DICT_TAG "LA_dict:"
 #define LINUX_FDICT_TAG "LA_fdict:"
 #define LINUX_UDICT_TAG "LA_udict:"
-#define DEF_LINUX_MAIN_DICT "/usr/lib/dtk/dtalk_la.dic"
-#define DEF_LINUX_FOREIGN_DICT "/usr/lib/dtk/dtalk_fl_la.dic"
+#define DEF_LINUX_MAIN_DICT "dtalk_la.dic"
+#define DEF_LINUX_FOREIGN_DICT "dtalk_fl_la.dic"
 #define DEMO_DICT_NAME "dtalk_la.dic"
 #define DEMO_FDICT_NAME "dtalk_fl_la.dic"
 #endif
@@ -1405,8 +1406,8 @@ int LTSLibMain( DT_HANDLE hInst,
 #define LINUX_DICT_TAG "FR_dict:"
 #define LINUX_FDICT_TAG "FR_fdict:"
 #define LINUX_UDICT_TAG "FR_udict:"
-#define DEF_LINUX_MAIN_DICT "/usr/lib/dtk/dtalk_fr.dic"
-#define DEF_LINUX_FOREIGN_DICT "/usr/lib/dtk/dtalk_fl_fr.dic"
+#define DEF_LINUX_MAIN_DICT "dtalk_fr.dic"
+#define DEF_LINUX_FOREIGN_DICT "dtalk_fl_fr.dic"
 #define DEMO_DICT_NAME "dtalk_fr.dic"
 #define DEMO_FDICT_NAME "dtalk_fl_fr.dic"
 #endif
@@ -1424,10 +1425,24 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 	foreign_dict_name[0]='\0';
 	user_dict_name[0]='\0';
 	config_file=fopen("/etc/DECtalk.conf","r");
-#ifdef TESTING
+//#ifdef TESTING
 	if (config_file==NULL)
 	{
 		config_file=fopen("DECtalk.conf","r");
+	}
+//#endif
+#ifdef __linux__
+	if (config_file==NULL)
+	{
+		char p[PATH_MAX] = {};
+		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+		if (count != -1) {
+			char *cfg;
+			cfg = dirname(p);
+			strcat(cfg,"/");
+			strcat(cfg,"DECtalk.conf");
+			config_file=fopen(cfg,"r");
+		}
 	}
 #endif
 	
@@ -1444,6 +1459,19 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 			{
 				line[strlen(line)-1]='\0';
 				strcpy(main_dict_name,line+8);
+#ifdef __linux__
+				if ((access(main_dict_name, R_OK) == -1) && (main_dict_name[0] != '/')) {
+					char p[PATH_MAX] = {};
+					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+					if (count != -1) {
+						char *dict;
+						dict = dirname(p);
+						strcat(dict,"/");
+						strcat(dict,main_dict_name);
+						strcpy(main_dict_name,dict);
+					}
+				}
+#endif
 				break;
 			}
 		}
@@ -1454,6 +1482,19 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 		fprintf(stderr,"libtts.so: Using default dictionary name\n");
 #endif
 		strcpy(main_dict_name,DEF_LINUX_MAIN_DICT);
+#ifdef __linux__
+		if ((access(main_dict_name, R_OK) == -1) && (main_dict_name[0] != '/')) {
+			char p[PATH_MAX] = {};
+			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+			if (count != -1) {
+				char *dict;
+				dict = dirname(p);
+				strcat(dict,"/");
+				strcat(dict,DEF_LINUX_MAIN_DICT);
+				strcpy(main_dict_name,dict);
+			}
+		}
+#endif
 	}
 	else
 	{
@@ -1468,6 +1509,19 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 			{
 				line[strlen(line)-1]='\0';
 				strcpy(foreign_dict_name,line+8);
+#ifdef __linux__
+				if ((access(foreign_dict_name, R_OK) == -1) && (foreign_dict_name[0] != '/')) {
+					char p[PATH_MAX] = {};
+					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+					if (count != -1) {
+						char *dict;
+						dict = dirname(p);
+						strcat(dict,"/");
+						strcat(dict,foreign_dict_name);
+						strcpy(foreign_dict_name,dict);
+					}
+				}
+#endif
 				break;
 			}
 		}
@@ -1478,6 +1532,19 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 		//fprintf(stderr,"libtts.so: Using default foreign dictionary name\n");
 #endif
 		strcpy(foreign_dict_name,DEF_LINUX_FOREIGN_DICT);
+#ifdef __linux__
+		if ((access(foreign_dict_name, R_OK) == -1) && (foreign_dict_name[0] != '/')) {
+			char p[PATH_MAX] = {};
+			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+			if (count != -1) {
+				char *dict;
+				dict = dirname(p);
+				strcat(dict,"/");
+				strcat(dict,DEF_LINUX_FOREIGN_DICT);
+				strcpy(foreign_dict_name,dict);
+			}
+		}
+#endif
 	}
 	else
 	{

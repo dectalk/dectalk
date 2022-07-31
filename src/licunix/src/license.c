@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	{
 		printf("Please enter your serial number\n");
 		fgets(line,999,stdin);
-		conffile=fopen("/etc/DECtalk.conf","w");
+		conffile=fopen("DECtalk.conf","w");
 		line[strlen(line)-1]='\0';
 		/* check serial number now */
 		success=snDecode ( line, &snData );

@@ -32,11 +32,11 @@ int main(void)
 	int licenses=0;
 	char temp_name[100];
 
-	config_file=fopen("/etc/DECtalk.conf","r+");
+	config_file=fopen("DECtalk.conf","r+");
 
 	if (config_file==NULL)
 	{
-		fprintf(stderr,"Cannot open the config file /etc/DECtalk.conf\n");
+		fprintf(stderr,"Cannot open the config file DECtalk.conf\n");
 		exit(-1);
 	}
 	strcpy(temp_name,"/tmp/DT");
