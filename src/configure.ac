@@ -122,6 +122,7 @@ DEBUG_FLAGS=" -G3 -migrate"
 case "$target" in
 	arm-ipaq-linux-*) DEBUG_FLAGS=" -g -fPIC -D__ipaq__";;
 	arm-*-linux-*) DEBUG_FLAGS=" -g -fPIC";;
+	x86_64-*-linux-*) DEBUG_FLAGS=" -g -fPIC -m32" ;;
 	*-*-linux-*) DEBUG_FLAGS=" -g" ;;
 	sparc-sun-*) DEBUG_FLAGS=" -g" ;;
 	powerpc-apple-*) DEBUG_FLAGS=" -g" ;;
@@ -144,12 +145,13 @@ AC_SUBST(PLATFORM_DEFS)dnl
 ALIGN_OPT=""
 case "$target" in
 	sparc-sun-*) ALIGN_OPT="" ;;
+	x86_64-*-linux-*) ALIGN_OPT="-m32" ;;
 esac
 AC_SUBST(ALIGN_OPT)dnl
 
 WARN_FLAGS=" -threads -w1"
 case "$target" in
-	*-*-linux-*) WARN_FLAGS=" -Wall" ;;
+	*-*-linux-*) WARN_FLAGS=" -Wall -Wno-missing-braces -Wno-pointer-sign -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function" ;;
 	powerpc-apple-*) WARN_FLAGS=" -Wall" ;;
 	sparc-sun-*) WARN_FLAGS=" " ;;
 esac
@@ -201,6 +203,7 @@ case "$target" in
 	arm-*-linux-*) STD_INCLUDE="" ;;
 dnl the itsy cross compiler knows where to get the std includes.
 esac
+STD_INCLUDE="${PWD}/build/include/"
 AC_SUBST(STD_INCLUDE)dnl
 
 MME_DIR="."
@@ -279,6 +282,7 @@ case "$target" in
 	arm-ipaq-linux-*)LIB_LN_S_A_DIR="/skiff/local/arm-linux/lib" ;;
 	*-*-linux-*)LIB_LN_S_A_DIR="/usr/local/lib" ;;
 esac
+LIB_LN_S_A_DIR="${PWD}/build/lib"
 AC_SUBST(LIB_LN_S_A_DIR)dnl
 
 LIB_LN_S_SO_DIR="/usr/lib"
@@ -286,12 +290,14 @@ case "$target" in
 	arm-ipaq-linux-*)LIB_LN_S_SO_DIR="/skiff/local/arm-linux/lib" ;;
 	*-*-linux-*)LIB_LN_S_SO_DIR="/usr/local/lib" ;;
 esac
+LIB_LN_S_SO_DIR="${PWD}/build/lib"
 AC_SUBST(LIB_LN_S_SO_DIR)dnl
 
 INC_LN_S_DIR="/usr/include/dtk"
 case "$target" in
 	arm-ipaq-linux-*)INC_LN_S_DIR="/skiff/local/arm-linux/include/dtk" ;;
 esac
+INC_LN_S_DIR="${PWD}/build/include/dtk"
 AC_SUBST(INC_LN_S_DIR)dnl
 
 MME_COMPILE_FLAGS=""
@@ -365,7 +371,8 @@ dnl always use the "-lpthread" NOT "-lpthreads" in linux
 MMELIBS=" -lmme"
 case "$target" in
 	arm-*-linux-*) MMELIBS=" -lpthread " ;;
-	*-*-linux-*) MMELIBS=" -lpthread" ;;
+	x86_64-*-linux-*) MMELIBS=" -lpthread -lm -m32" ;;
+	*-*-linux-*) MMELIBS=" -lpthread -lm" ;;
 	powerpc-apple-*) MMELIBS=" -lpthread" ;;
 	sparc-sun-*) MMELIBS=" " ;;
 esac
@@ -375,6 +382,7 @@ LIBS=" -llmf -lpthreads -lmach -lexc -lc -lrt -lots"
 case "$target" in 
 	arm-ipaq-linux-*) LIBS=" -lpthread -L/skiff/local/lib/gcc-lib/arm-linux/2.95.2/ -lgcc" ;;
 	arm-*-linux-*) LIBS=" -L- -L/usr/local/arm-unknown-linuxelf/lib -lpthread " ;;
+	x86_64-*-linux-*) LIBS=" -lpthread -lm -m32" ;;
 	*-*-linux-*) LIBS=" -lpthread " ;;
 	powerpc-apple-*) LIBS=" -lpthread -L../../../dapi/src/portaudio/lib -lportaudio -framework CoreAudio -framework AudioToolbox" ;;
 	sparc-sun-*) LIBS=" " ;;
@@ -385,6 +393,7 @@ DT_SO_LIBS=" -llmf -lpthreads -lmach -lexc -lc -lrt -lots"
 case "$target" in 
 	arm-ipaq-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -L/skiff/local/lib/gcc-lib/arm-linux/2.95.2/ -lgcc -lfloat -lm" ;;
 	arm-*-linux-*) DT_SO_LIBS=" -L- -L/usr/local/arm-unknown-linuxelf/lib -lpthread -lm" ;;
+	x86_64-*-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -melf_i386" ;;
 	*-*-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc" ;;
 	powerpc-apple-*) DT_SO_LIBS="-lpthread -Lportaudio/lib -lportaudio -framework CoreAudio -framework AudioToolbox" ;;
 	sparc-sun-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -lrt -lm" ;;
@@ -398,6 +407,7 @@ case "$target" in
 	sparc-sun-*) SHLIB="/usr/lib" ;;
 	powerpc-apple-*) SHLIB="/usr/lib" ;;
 esac
+SHLIB="${PWD}/build/lib"
 AC_SUBST(SHLIB)dnl
 
 SO_LOCATIONS=" \$(CP) /usr/shlib/so_locations ."
@@ -412,6 +422,8 @@ DAPI_LD_SHARED="\$(LD) -shared -update_registry \
 	./so_locations -hidden \
 	-soname libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)"
 case "$target" in
+	x86_64-*-linux-*) DAPI_LD_SHARED="\$(LD) -shared -Bsymbolic -soname \
+		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -lm -melf_i386 -lpulse-simple" ;;
 	*-*-linux-*) DAPI_LD_SHARED="\$(LD) -shared -Bsymbolic -soname \
 		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 	powerpc-apple-*) DAPI_LD_SHARED="\$(CC) -dynamic -dynamiclib -dylib \
@@ -436,8 +448,12 @@ dnl: see how simple this is for linux?
 ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
 	-o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-	../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc"
+	../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm"
 case "$target" in
+	x86_64-*-linux-*) ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
+		-o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm -melf_i386" ;;
 	alpha-dec-osf4.0) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
 		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
 		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
@@ -553,6 +569,7 @@ case "$target" in
 	*-*-linux-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 	powerpc-apple-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 esac
+SAMPLE_LINKFLAGS=" -ldl -L${PWD}/build/lib -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
 AC_SUBST(SAMPLE_LINKFLAGS)dnl
 
 SAMPLE_DTLIB=" -lttsmme"
