@@ -54,6 +54,8 @@
 #ifndef LINUX_AUDIO_C
 #define LINUX_AUDIO_C
 
+#define USE_PULSEAUDIO
+
 //#define _DEBUG
 
 #include <unistd.h>
@@ -86,6 +88,9 @@
 #include <linux/audio-sa1100.h>
 #endif
 #endif
+#ifdef USE_PULSEAUDIO
+#include <pulse/simple.h>
+#endif
 #include "linux_audio.h"
 
 #define EMULATE_SB16
@@ -93,7 +98,9 @@
 #ifdef _SPARC_SOLARIS_
 #define SOUND_DEV "/dev/audio"
 #else
+#ifndef USE_PULSEAUDIO
 #define SOUND_DEV "/dev/dsp"
+#endif
 #endif
 
 #define MIXER_DEV "/dev/mixer"
@@ -144,7 +151,11 @@ typedef struct {
 
 #define WWO_RING_BUFFER_SIZE	30
 typedef struct {
+#ifdef USE_PULSEAUDIO
+    pa_simple      *pa_conn;
+#else
     int            unixdev;
+#endif
     volatile int   state;			/* one of the WINE_WS_ manifest constants */
     DWORD          dwFragmentSize;		/* size of OSS buffer fragment */
     WAVEOPENDESC   waveDesc;
@@ -230,6 +241,7 @@ DWORD WINAPI GetTickCount(void)
     return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - server_startticks;
 }
 
+#ifndef USE_PULSEAUDIO
 char *GetAudioDev(char *name)
 {
 	FILE *infile;
@@ -237,7 +249,7 @@ char *GetAudioDev(char *name)
 	char line[500];
 	char *env_dev;
 
-	infile=fopen("/etc/DECtalk.conf","r");
+	infile=fopen("DECtalk.conf","r");
 	if (infile==NULL)
 	{
 #ifdef TESTING
@@ -275,6 +287,7 @@ char *GetAudioDev(char *name)
 	}
 	return(name);
 }
+#endif
 
 
 
@@ -307,11 +320,31 @@ LONG OSS_WaveInit(void)
   /* initialize all device handles to -1 */
   for (i = 0; i < MAX_WAVEOUTDRV; ++i)
     {
+#ifdef USE_PULSEAUDIO
+      WOutDev[i].pa_conn = NULL;
+#else
       WOutDev[i].unixdev = -1;
+#endif
     }
 
   /* FIXME: only one device is supported */
   memset(&WOutDev[0].caps, 0, sizeof(WOutDev[0].caps));
+
+#ifdef USE_PULSEAUDIO
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2M08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2S08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2M16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2S16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1M08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1S08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1M16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1S16;
+  return 0;
+#else
 
   GetAudioDev(audio_dev);
 #ifdef _SPARC_SOLARIS_
@@ -559,6 +592,7 @@ LONG OSS_WaveInit(void)
 	WOutDev[0].caps.dwFormats, WOutDev[0].caps.dwSupport);
 
   return 0;
+#endif // USE_PULSEAUDIO
 }
 
 /**************************************************************************
@@ -1095,10 +1129,17 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
    info.fragstotal=16;
    info.bytes=12406;
 #else
+#ifndef USE_PULSEAUDIO
     if (ioctl(wwo->unixdev, SNDCTL_DSP_GETOSPACE, &info) < 0) {
       ERR("ioctl failed (%s)\n", strerror(errno));
       return FALSE;
     }
+#else
+    info.fragments=3;
+    info.fragsize=1024;
+    info.fragstotal=16;
+    info.bytes=12406;
+#endif
 #endif
 	
     TRACE("info={frag=%d fsize=%d ftotal=%d bytes=%d}\n", info.fragments, info.fragsize, info.fragstotal, info.bytes);
@@ -1136,7 +1177,13 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       DWORD	toWrite = lpWaveHdr->dwBufferLength - wwo->dwOffCurrHdr;
 	    
       /* write end of current wave hdr */
+#ifndef USE_PULSEAUDIO
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, toWrite);
+#else
+      count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, toWrite, NULL);
+      if (count == 0)
+	      count = toWrite;
+#endif
       TRACE("write(%p[%5lu], %5lu) => %d\n", lpData, wwo->dwOffCurrHdr, toWrite, count);
       //OP_Sleep(1);
 	    
@@ -1182,7 +1229,13 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       }
       continue; /* try to go to use next wavehdr */
     }  else	{
+#ifndef USE_PULSEAUDIO
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, wwo->dwRemain);
+#else
+      count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, wwo->dwRemain, NULL);
+      if (count == 0)
+	      count = wwo->dwRemain;
+#endif
       //OP_Sleep(1);
       TRACE("write(%p[%5lu], %5lu) => %d\n", lpData, wwo->dwOffCurrHdr, wwo->dwRemain, count);
       if (count > 0) {
@@ -1293,7 +1346,11 @@ static	void	wodPlayer_Reset(WINE_WAVEOUT* wwo, WORD uDevID, BOOL reset)
 #ifdef _SPARC_SOLARIS_
   if (ioctl(wwo->unixdev, I_FLUSH, FLUSHW) == -1) 
 #else
+#ifdef USE_PULSEAUDIO
+  if (pa_simple_flush(wwo->pa_conn, NULL) != 0)
+#else
   if (ioctl(wwo->unixdev, SNDCTL_DSP_RESET, 0) == -1) 
+#endif
 #endif
   {
     perror("ioctl SNDCTL_DSP_RESET");
@@ -1472,6 +1529,9 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 #ifdef __ipaq__
 	int temp,samplesize,smplrate;
 #endif
+#ifdef USE_PULSEAUDIO
+    pa_sample_spec	pa_ss;
+#endif
     WINE_WAVEOUT*	wwo;
 
 	TRACE("(%u, %p, %08lX);\n", wDevID, lpDesc, dwFlags);
@@ -1507,6 +1567,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	/* not supported, ignore it */
 	dwFlags &= ~WAVE_DIRECTSOUND;
 
+#ifndef USE_PULSEAUDIO
     GetAudioDev(audio_dev);
 
     if (access(audio_dev, 0) != 0)
@@ -1523,10 +1584,25 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	}
     fcntl(audio, F_SETFD, 1); /* set close on exec flag */
     wwo->unixdev = audio;
+#else
+    pa_ss.format = PA_SAMPLE_S16NE;
+    pa_ss.channels = lpDesc->lpFormat->nChannels;
+    pa_ss.rate = lpDesc->lpFormat->nSamplesPerSec;
+    wwo->pa_conn = pa_simple_new(NULL,
+                  "DECtalk",
+                  PA_STREAM_PLAYBACK,
+                  NULL,
+                  "Speech",
+                  &pa_ss,
+                  NULL,
+                  NULL,
+                  NULL
+                  );
+#endif
     wwo->wFlags = HIWORD(dwFlags & CALLBACK_TYPEMASK);
     
     memcpy(&wwo->waveDesc, lpDesc, 	     sizeof(WAVEOPENDESC));
-    memcpy(&wwo->format,   lpDesc->lpFormat, sizeof(PCMWAVEFORMAT));
+    memcpy(&wwo->format,   lpDesc->lpFormat, sizeof(WAVEFORMATEX));
     
     if (wwo->format.wBitsPerSample == 0 || (wwo->format.wBitsPerSample >16 )) {
 	WARN("Resetting zeroed wBitsPerSample\n");
@@ -1598,11 +1674,13 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	ioctl(audio,AUDIO_SETINFO,&audio_info);
 
 #else
+#ifndef USE_PULSEAUDIO
     IOCTL(audio, SNDCTL_DSP_SETFRAGMENT, audio_fragment);
 /* First size and stereo then samplerate */
 	IOCTL(audio, SNDCTL_DSP_SAMPLESIZE, format);
 	IOCTL(audio, SNDCTL_DSP_CHANNELS, dsp_stereo);
 	IOCTL(audio, SNDCTL_DSP_SPEED, sample_rate);
+#endif
 #endif
 
     /* paranoid checks */
@@ -1616,7 +1694,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	ERR2("Can't set sample_rate to %lu (%d)\n", 
 	    wwo->format.wf.nSamplesPerSec, sample_rate);
 #endif
-#ifdef _SPARC_SOLARIS_
+#if defined(_SPARC_SOLARIS_) || defined(USE_PULSEAUDIO)
     wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #else
     /* even if we set fragment size above, read it again, just in case */
@@ -1674,7 +1752,11 @@ static DWORD wodClose(WORD wDevID)
 
 	TRACE("(%u);\n", wDevID);
     
+#ifdef USE_PULSEAUDIO
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+#endif
 	WARN("bad device ID !\n");
 	return MMSYSERR_BADDEVICEID;
 	}
@@ -1695,8 +1777,13 @@ static DWORD wodClose(WORD wDevID)
 	    wwo->mapping = NULL;
 	}
 
+#ifndef USE_PULSEAUDIO
 	close(wwo->unixdev);
 	wwo->unixdev = -1;
+#else
+	pa_simple_free(wwo->pa_conn);
+	wwo->pa_conn = NULL;
+#endif
 	wwo->dwFragmentSize = 0;
 	if (OSS_NotifyClient(wDevID, WOM_CLOSE, 0L, 0L) != MMSYSERR_NOERROR) {
 		WARN("can't notify client !\n");
@@ -1715,7 +1802,11 @@ static DWORD wodWrite(WORD wDevID, LPWAVEHDR lpWaveHdr, DWORD dwSize)
 	TRACE("(%u, %p, %08lX);\n", wDevID, lpWaveHdr, dwSize);
     
     /* first, do the sanity checks... */
+#ifdef USE_PULSEAUDIO
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+#endif
         WARN("bad dev ID !\n");
 	return MMSYSERR_BADDEVICEID;
 	}
@@ -1784,7 +1875,11 @@ static DWORD wodPause(WORD wDevID)
 {
     TRACE("(%u);!\n", wDevID);
     
+#ifdef USE_PULSEAUDIO
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+#endif
 	WARN("bad device ID !\n");
 	return MMSYSERR_BADDEVICEID;
     }
@@ -1803,7 +1898,11 @@ static DWORD wodRestart(WORD wDevID)
 {
 	TRACE("(%u);\n", wDevID);
     
+#ifdef USE_PULSEAUDIO
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+#endif
 	WARN("bad device ID !\n");
 	return MMSYSERR_BADDEVICEID;
     }
@@ -1832,7 +1931,11 @@ static DWORD wodReset(WORD wDevID)
 {
 	TRACE("(%u);\n", wDevID);
     
+#ifdef USE_PULSEAUDIO
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+#endif
 	WARN("bad device ID !\n");
 	return MMSYSERR_BADDEVICEID;
 	}
@@ -1856,7 +1959,11 @@ static DWORD wodGetPosition(WORD wDevID, LPMMTIME lpTime, DWORD uSize)
 
 	TRACE("(%u, %p, %lu);\n", wDevID, lpTime, uSize);
     
+#ifdef USE_PULSEAUDIO
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+#endif
 	WARN("bad device ID !\n");
 	return MMSYSERR_BADDEVICEID;
 	}
@@ -2034,6 +2141,7 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 static	DWORD	wodGetNumDevs(void)
 {
     DWORD	ret = 1;
+#ifndef USE_PULSEAUDIO
     char audio_dev[500];
     int audio;
     
@@ -2047,6 +2155,7 @@ static	DWORD	wodGetNumDevs(void)
     } else {
 	close(audio);
     }
+#endif
     return ret;
 }
 
