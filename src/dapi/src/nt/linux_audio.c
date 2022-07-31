@@ -103,7 +103,9 @@
 #endif
 #endif
 
+#ifndef USE_PULSEAUDIO
 #define MIXER_DEV "/dev/mixer"
+#endif
 
 #define AUDIO_DEV_TAG "AUDIODEV:"
 
@@ -2018,6 +2020,7 @@ static DWORD wodGetPosition(WORD wDevID, LPMMTIME lpTime, DWORD uSize)
  */
 static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
 {
+#ifndef USE_PULSEAUDIO
 	int 	mixer;
     int		volume;
     DWORD	left, right;
@@ -2064,6 +2067,9 @@ static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
     *lpdwVol = ((left * 0xFFFFl) / 100) + (((right * 0xFFFFl) / 100) << 16);
 #endif
 	return MMSYSERR_NOERROR;
+#else
+	return MMSYSERR_NOTENABLED;
+#endif //PULSEAUDIO
 }
 
 
@@ -2072,6 +2078,7 @@ static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
  */
 static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 {
+#ifndef USE_PULSEAUDIO
 	int 	mixer;
 	int		volume;
     DWORD	left, right;
@@ -2133,6 +2140,9 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 	close(mixer);
 #endif
 	return MMSYSERR_NOERROR;
+#else
+	return MMSYSERR_NOTENABLED;
+#endif //PULSEAUDIO
 }
 
 /**************************************************************************
