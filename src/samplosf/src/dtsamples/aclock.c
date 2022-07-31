@@ -163,16 +163,17 @@ speak_date( struct tm *t )
      TextToSpeechSpeak( ttsHandle, buf, TTS_FORCE );
 }
 
-speak_time( struct tm *t )
+speak_time( struct tm *t, int twentyfourhour)
 {
-    char *am_pm = "\"A\" \"M\"";
+    char *am_pm = "am";
     char mtext[32], buf[256];
     int hour    = t->tm_hour;
     int minutes = t->tm_min;
 
-    if ( hour >= 12 )
-    {
-	am_pm = "\"P\" \"M\"";
+    if (twentyfourhour) {
+	    am_pm = "";
+    } else if ( hour >= 12 ) {
+	am_pm = "pm";
 	if ( hour > 12 ) hour -= 12;
     }
 
@@ -183,7 +184,7 @@ speak_time( struct tm *t )
     else
 	sprintf(mtext,"%d",minutes);
 
-    sprintf(buf,"[:nb] The time is %d %s %s.\n",hour,mtext,am_pm);
+    sprintf(buf,"[:nb] The time is %d %s%s\n",hour,mtext,am_pm);
     TextToSpeechSpeak( ttsHandle, buf, TTS_FORCE );
 }
 
@@ -191,13 +192,14 @@ speak_time( struct tm *t )
 
 Usage( )
 {
-    fprintf(stderr,"Usage: %s [-h] [ # ]\n",program_name);
+    fprintf(stderr,"Usage: %s [-24] [-h] [ # ]\n",program_name);
     fprintf(stderr,"       where # is the interval in minutes\n");
-    fprintf(stderr,"       5  - every five minutes\n");
-    fprintf(stderr,"       15 - every fifteen minutes\n");
-    fprintf(stderr,"       30 - on the hour and half hour\n");
-    fprintf(stderr,"       60 - on the hour\n");
-    fprintf(stderr,"       -h - this help message\n");
+    fprintf(stderr,"       5   - every five minutes\n");
+    fprintf(stderr,"       15  - every fifteen minutes\n");
+    fprintf(stderr,"       30  - on the hour and half hour\n");
+    fprintf(stderr,"       60  - on the hour\n");
+    fprintf(stderr,"       -24 - 24 hour mode\n");
+    fprintf(stderr,"       -h  - this help message\n");
     exit( -1 );
 }
 
@@ -208,17 +210,33 @@ main( int argc, char *argv[] )
     int interval = DEFAULT_INTERVAL;
     UINT devOptions = 0;
     int devNo = (int)WAVE_MAPPER;
+    int twentyfourhour = 0;
 
     program_name = argv[0];
 
-    if ( argc > 2 )
+    if ( argc > 3 )
 	Usage();
-    if ( argc > 1 ) {
-	if ( !strcmp( "-h", argv[1] ))
+    if ( argc == 2 ) {
+	if ( !strcmp( "-h", argv[1] )) {
 	    Usage();
-	interval = atoi( argv[1] );
-	if ( interval < 1 || interval > 60 )
+	} else if ( !strcmp( "-24", argv[1])) {
+	    twentyfourhour = 1;
+	} else {
+	    interval = atoi( argv[1] );
+	    if ( interval < 1 || interval > 60 )
+	        Usage();
+        }
+    }
+    if ( argc == 3 ) {
+	if ( !strcmp( "-h", argv[1] ) || !strcmp( "-h", argv[2] )) {
 	    Usage();
+	} else if ( !strcmp( "-24", argv[1]) || strcmp( "-24", argv[2])) {
+	    twentyfourhour = 1;
+	} else {
+	    interval = atoi( argv[2] );
+	    if ( interval < 1 || interval > 60 )
+	        Usage();
+        }
     }
     ttsHandle = NULL;
     if ( TextToSpeechStartup(&ttsHandle, devNo, devOptions, NULL, NULL ) !=
@@ -229,7 +247,7 @@ main( int argc, char *argv[] )
     t = localtime( &tv );
     if ( t == NULL ) error_exit("NULL return from localtime()");
     speak_date(t);
-    speak_time(t);
+    speak_time(t, twentyfourhour);
     
     while( 1 )
       {
@@ -239,7 +257,7 @@ main( int argc, char *argv[] )
 	if ( ( t->tm_min % interval ) == 0 )
 	  {
 	    if ( t->tm_min == 0 ) speak_date(t);
-	    speak_time(t);
+	    speak_time(t, twentyfourhour);
 	    sleep(60);
 	  }
 	sleep(30);
