@@ -211,6 +211,7 @@ main( int argc, char *argv[] )
     UINT devOptions = 0;
     int devNo = (int)WAVE_MAPPER;
     int twentyfourhour = 0;
+    int last_min;
 
     program_name = argv[0];
 
@@ -232,11 +233,10 @@ main( int argc, char *argv[] )
 	    Usage();
 	} else if ( !strcmp( "-24", argv[1]) || strcmp( "-24", argv[2])) {
 	    twentyfourhour = 1;
-	} else {
-	    interval = atoi( argv[2] );
-	    if ( interval < 1 || interval > 60 )
-	        Usage();
-        }
+	}
+	interval = atoi( argv[2] );
+	if ( interval < 1 || interval > 60 )
+		Usage();
     }
     ttsHandle = NULL;
     if ( TextToSpeechStartup(&ttsHandle, devNo, devOptions, NULL, NULL ) !=
@@ -248,19 +248,23 @@ main( int argc, char *argv[] )
     if ( t == NULL ) error_exit("NULL return from localtime()");
     speak_date(t);
     speak_time(t, twentyfourhour);
+
+    time( &tv );
+    t = localtime( &tv );
+    last_min = t->tm_min;
     
     while( 1 )
       {
 	time( &tv );
 	t = localtime( &tv );
 	if ( t == NULL ) error_exit("NULL return from localtime()");
-	if ( ( t->tm_min % interval ) == 0 )
+	if ((last_min != t->tm_min) && ( t->tm_min % interval ) == 0 )
 	  {
 	    if ( t->tm_min == 0 ) speak_date(t);
 	    speak_time(t, twentyfourhour);
-	    sleep(60);
 	  }
-	sleep(30);
+	last_min = t->tm_min;
+	sleep(1);
       }
     
     TextToSpeechShutdown( ttsHandle );
