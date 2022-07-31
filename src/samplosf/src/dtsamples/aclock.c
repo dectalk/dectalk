@@ -175,10 +175,12 @@ speak_time( struct tm *t, int twentyfourhour)
     } else if ( hour >= 12 ) {
 	am_pm = "pm";
 	if ( hour > 12 ) hour -= 12;
+    } else if ( hour == 0 ) {
+	hour = 12;
     }
 
     if ( minutes == 0 )
-	mtext[0] = '\0';
+	strcpy(mtext, "o clock");
     else if ( minutes < 10 )
 	sprintf(mtext,"o %d",minutes);
     else
