@@ -519,9 +519,20 @@ case "$target" in
 	arm-*-linux-*) SPEAK_ALL="" ;;
 	sparc-sun-*) SPEAK_ALL="" ;;
 	powerpc-apple-*) SPEAK_ALL="" ;;
-	*-*-linux-*) SPEAK_ALL="\$(OUTPUT_DIR)/gspeak \$(OUTPUT_DIR_2)/gspeak_\$(LANG_CODE) \
-		\$(OUTPUT_DIR_2)/gspeakdem_\$(LANG_CODE)" ;;
+	*-*-linux-*) SPEAK_ALL="" ;;
 esac
+
+case "$target" in
+	x86_64-*-linux-*) export PKG_CONFIG_PATH="/usr/lib/i386-linux-gnu/pkgconfig:${PKG_CONFIG_PATH}" ;;
+esac
+
+PKG_CHECK_MODULES(GTK, [gtk+-2.0], have_gtk2=yes, have_gtk2=no)
+
+if test "${have_gtk2}" = "yes"; then
+	SPEAK_ALL="\$(OUTPUT_DIR)/gspeak \$(OUTPUT_DIR_2)/gspeak_\$(LANG_CODE) \
+		\$(OUTPUT_DIR_2)/gspeakdem_\$(LANG_CODE)"
+	
+fi
 AC_SUBST(SPEAK_ALL)dnl
 
 WINDICT_ALL="\$(OUTPUT_DIR)/windict \$(OUTPUT_DIR)/windict.uid"
