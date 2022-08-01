@@ -38,6 +38,7 @@ TODO:
 #include <sys/stat.h>
 #include <unistd.h>   
 #include <strings.h>
+#include <libgen.h>
 #include <gtk/gtk.h>
 //#include <gtk/gtkenums.h>
 /***************************************************************************
@@ -103,7 +104,7 @@ void LoadUserDictCallback(GtkWidget *, gpointer);
 void LoadUserDictOkCallback(GtkWidget *, gpointer);
 void UnloadUserDictCallback(GtkWidget *, gpointer);
 void NotAvailableCallback(GtkWidget *, gpointer);
-void TextWidgetModified(GtkWidget *, GdkEvent *, gpointer);
+void TextWidgetModified(GtkTextBuffer *, gpointer);
 void RateScaleModified(GtkAdjustment *);
 char *strip_filename (gchar *);
 void ERROR(char *);
@@ -134,6 +135,8 @@ int FileLen = 0;
 int FilePos = 0;
 /* text window */
 GtkWidget *text_entry;
+GtkTextBuffer *text_buffer;
+
 gint modified_id;
 
 unsigned int TTS_us=NUM_LANGS+1, TTS_sp=NUM_LANGS+1, TTS_gr=NUM_LANGS+1;
@@ -271,12 +274,12 @@ void ShutdownDectalk(void)
 #ifndef DEMO
 static GtkItemFactoryEntry menu_items[] =
 {
-  {"/_File/", NULL, NULL, 0, "<Branch>"},
+  {"/_File", NULL, NULL, 0, "<Branch>"},
   {"/File/_New", "<control>N", FileNewCallback, 0, NULL},
   {"/File/_Open...", "<control>O", FileOpenCallback, 0, NULL},
   {"/File/S_ave", "<control>A", FileSaveCallback, 0, NULL},
   {"/File/Save as", NULL, FileSaveAsCallback, 0, NULL},
-  {"/File/_Close", "<control>C", FileNewCallback, 0, NULL},
+  {"/File/_Close", NULL, FileNewCallback, 0, NULL},
   {"/File/sep", NULL, NULL, 0, "<Separator>"},
   {"/File/_Load User Dictionary...","<control>L", LoadUserDictCallback, 0, NULL},
   {"/File/_Unload User Dictionary","<control>U", UnloadUserDictCallback, 0, NULL},
@@ -286,7 +289,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/File/Convert to Wave File/MONO 11.025kHz, 16-Bit", NULL, FileSaveWaveCallback, menu_save1M16 , NULL},
   {"/File/Convert to Wave File/MONO 11.025kHz, 8-Bit", NULL, FileSaveWaveCallback, menu_save1M08, NULL},
   {"/File/Convert to Wave File/MONO 8kHz, uLaw", NULL, FileSaveWaveCallback, menu_save08M08, NULL},
-  {"/_Edit/", NULL, NULL, 0, "<Branch>"},
+  {"/_Edit", NULL, NULL, 0, "<Branch>"},
   {"/Edit/Cut", "<control>X", EditCutCallback, 0, NULL},
   {"/Edit/Copy", "<control>C", EditCopyCallback, 0, NULL},
   {"/Edit/Paste", "<control>V", EditPasteCallback, 0, NULL},
@@ -297,7 +300,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/Edit/_Latin American", NULL, LangMenuSelect, menu_latin_american, NULL},
   {"/Edit/English U_K", NULL, LangMenuSelect, menu_british, NULL},
   {"/Edit/_French", NULL, LangMenuSelect, menu_french, NULL},
-  {"/_Help/", NULL, NULL, 0, "<LastBranch>"},
+  {"/_Help", NULL, NULL, 0, "<LastBranch>"},
   {"/Help/_Help on DECtalk", "F1", HelpHelpCallback, 0, NULL},
   {"/Help/About _GSpeak", "F2", HelpAboutCallback, 0, NULL},
 };
@@ -311,7 +314,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/File/_Open...", "<control>O", FileOpenCallback, 0, NULL},
   {"/File/S_ave", "<control>A", FileSaveCallback, 0, NULL},
   {"/File/Save as", NULL, FileSaveAsCallback, 0, NULL},
-  {"/File/_Close", "<control>C", FileNewCallback, 0, NULL},
+  {"/File/_Close", NULL, FileNewCallback, 0, NULL},
   {"/File/sep", NULL, NULL, 0, "<Separator>"},
   {"/File/_Load User Dictionary...","<control>L", NotAvailableCallback, 0, NULL},
   {"/File/_Unload User Dictionary","<control>U", NotAvailableCallback, 0, NULL},
@@ -380,8 +383,8 @@ int main (int argc, char *argv[])
   int devNo = WAVE_MAPPER;
   GtkWidget *main_vbox; //holds all widgets
   GtkWidget *menubar = NULL; 
-  GtkWidget *text_box; //holds text_entry and vscrollbar
-  GtkWidget *vscrollbar;
+  GtkWidget *text_box; //holds text_entry and scrollbox
+  GtkWidget *scrollbox;
   GtkWidget *button_box; //holds the play, pause, stop buttons
   GtkWidget *button;
   GtkWidget *pixmapwid; //widget for the pixmap
@@ -392,10 +395,12 @@ int main (int argc, char *argv[])
   GtkObject *rate_adjustment;
   GtkWidget *rate_scale;
   GtkWidget *wpm_label;
-  char bitmap_path[500];
+  char bitmap_path[500] = {0};
   char bitmap_name[500];
   FILE *config_file;
   LANG_ENUM *dt_langs;
+  int parent = 0;
+  int exe_path = 0;
   
   /* initialize GTK catching any GTK arguments. */
   gtk_init (&argc, &argv);
@@ -708,9 +713,52 @@ int main (int argc, char *argv[])
 
 #ifndef DEMO
   config_file=fopen("/etc/DECtalk.conf","r");
+
   if (config_file==NULL)
   {
-    fprintf(stderr,"cannot open config file /etc/DECtlk.conf\n");
+	  config_file=fopen("DECtalk.conf","r");
+  }
+
+
+#ifdef __linux__
+  if (config_file==NULL)
+  {
+	  char p[PATH_MAX] = {};
+	  ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	  if (count != -1) {
+		  char *cfg;
+		  cfg = dirname(p);
+		  strcat(cfg,"/");
+		  strcat(cfg,"DECtalk.conf");
+		  config_file=fopen(cfg,"r");
+	  }
+	  if (config_file != NULL) {
+		  exe_path = 1;
+	  }
+
+  }
+
+  if (config_file==NULL)
+  {
+	  char p[PATH_MAX] = {};
+	  ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	  if (count != -1) {
+		  char *cfg;
+		  cfg = dirname(p);
+		  strcat(cfg,"/../");
+		  strcat(cfg,"DECtalk.conf");
+		  config_file=fopen(cfg,"r");
+	  }
+	  if (config_file != NULL) {
+		  exe_path = 1;
+		  parent = 1;
+	  }
+  }
+#endif
+
+  if (config_file==NULL)
+  {
+    fprintf(stderr,"cannot open config file DECtalk.conf\n");
     memset(bitmap_path,0,500);
   }
   else
@@ -719,8 +767,24 @@ int main (int argc, char *argv[])
     {
       if (strncmp(bitmap_name,"Speak_xpm_dir:",14)==0)
       {
+        memset(bitmap_path,0,500);
         bitmap_name[strlen(bitmap_name)-1]='\0';
         strcpy(bitmap_path,bitmap_name+14);
+#ifdef __linux
+	if (exe_path && (bitmap_path[0] != '/')) {
+	   char p[PATH_MAX] = {};
+	   ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	   if (count != -1) {
+	     char *bmp;
+	     bmp = dirname(p);
+	     strcat(bmp,"/");
+	     if (parent)
+	             strcat(bmp,"../");
+	     strcat(bmp,bitmap_path);
+	     strcpy(bitmap_path,bmp);
+	   }
+	}
+#endif
         break;
       }
     }
@@ -867,22 +931,26 @@ int main (int argc, char *argv[])
   gtk_box_pack_start(GTK_BOX(button_box), button, FALSE, FALSE, 0);
     gtk_widget_show(button);
 
-  /* hbox to put the text_entry and vscrollbar in */
+  /* hbox to put the text_entry and scrollbox in */
   text_box = gtk_hbox_new(FALSE,0);
   gtk_box_pack_start(GTK_BOX(main_vbox), text_box, TRUE, TRUE, 0);
    gtk_widget_show(text_box); 
   
-  text_entry = gtk_text_new(NULL,NULL);
-  gtk_text_set_editable (GTK_TEXT(text_entry), TRUE);
-  gtk_text_set_word_wrap(GTK_TEXT(text_entry), TRUE);
-  gtk_box_pack_start(GTK_BOX(text_box), text_entry, TRUE, TRUE, 0);
+  text_entry = gtk_text_view_new();
+  gtk_widget_set_size_request(text_entry, 400, 400);
+  scrollbox = gtk_scrolled_window_new(NULL, NULL);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbox), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+
+  gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text_entry), GTK_WRAP_WORD);
+  gtk_container_add(GTK_CONTAINER(scrollbox), text_entry);
+  gtk_box_pack_start(GTK_BOX(text_box), scrollbox, TRUE, TRUE, 0);
   gtk_widget_show(text_entry);
-  modified_id = gtk_signal_connect(GTK_OBJECT(text_entry),"changed", 
-				   GTK_SIGNAL_FUNC(TextWidgetModified),text_entry);
-  
-  vscrollbar = gtk_vscrollbar_new(GTK_TEXT(text_entry)->vadj);
-  gtk_box_pack_end(GTK_BOX(text_box), vscrollbar, FALSE, FALSE, 0);
-    gtk_widget_show (vscrollbar);
+  gtk_widget_show(scrollbox);
+
+  text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_entry));
+  modified_id = g_signal_connect(G_OBJECT(text_buffer),"changed", 
+				   G_CALLBACK(TextWidgetModified),text_buffer);
   
   button_box = gtk_hbox_new(FALSE,0);
   gtk_container_border_width(GTK_CONTAINER(button_box), 5);
@@ -987,7 +1055,7 @@ int PlaySome()
       TextToSpeechSpeak( ttsHandle[current_language], playBuffer, dwFlags );
       playStatus = STOP;
       
-      gtk_text_set_editable (GTK_TEXT(text_entry), TRUE);
+      gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
     }
   else /* if items_in_pipe != 0 */
     {
@@ -1001,7 +1069,7 @@ int PlaySome()
 	}
       if ( playBuffer != NULL )
 	free( playBuffer );
-      gtk_text_set_editable (GTK_TEXT(text_entry), TRUE);
+      gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
     }      
   return(FALSE);
 }
@@ -1036,6 +1104,10 @@ int PlaySome()
 ***************************************************************************/
 static int StartPlay(GtkWidget *widget, gpointer data)
 {
+  GtkTextIter start, end;
+  gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &start);
+  gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(text_buffer), &end);
+
   switch( playStatus )
     {
     case PLAY:
@@ -1044,7 +1116,7 @@ static int StartPlay(GtkWidget *widget, gpointer data)
       
     case STOP:
       /* get buffer contents       */
-      sfile = gtk_editable_get_chars((GtkEditable *)text_entry,0,-1);
+      sfile = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
       /* get size of buffer        */
       FileLen = strlen( sfile );
       /* set starting and ending positions */
@@ -1053,7 +1125,7 @@ static int StartPlay(GtkWidget *widget, gpointer data)
       TextToSpeechSetSpeaker( ttsHandle[current_language], CurrentSpeaker );
       TextToSpeechSetRate ( ttsHandle[current_language], SpeakingRate );
       /* disable the user interface */
-      gtk_text_set_editable (GTK_TEXT(text_entry), FALSE);
+      gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), FALSE);
       /* set status                 */
       playStatus = PLAY;
       /* Play the file              */
@@ -1187,7 +1259,7 @@ void StopPlay(GtkWidget *widget, gpointer data)
 	free( playBuffer );
       
       /* enable the user interface  */
-      gtk_text_set_editable (GTK_TEXT(text_entry), TRUE);
+      gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
       
       /* set status                 */
       playStatus = STOP;
@@ -1201,7 +1273,7 @@ void StopPlay(GtkWidget *widget, gpointer data)
       TextToSpeechReset ( ttsHandle[current_language], TRUE );
       //      TextToSpeechSetSpeaker();
       // TextToSpeechSetRate();
-      gtk_text_set_editable (GTK_TEXT(text_entry), TRUE);
+      gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
       break;
     }
 }
@@ -1345,6 +1417,9 @@ void FileSaveWaveOkCallback(GtkWidget *w, gpointer fs)
   
   char WaveFileName[PATH_MAX];
   gchar *temp;
+
+  GtkTextIter start, end;
+
   
   temp = gtk_file_selection_get_filename(GTK_FILE_SELECTION (fs));
   strncpy(WaveFileName,temp,PATH_MAX);
@@ -1385,7 +1460,9 @@ void FileSaveWaveOkCallback(GtkWidget *w, gpointer fs)
      }
    
    // get the text in the window...
-   sText = gtk_editable_get_chars((GtkEditable *)text_entry,0,-1);
+   gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &start);
+   gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(text_buffer), &end);
+   sText = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
    sLength = strlen( sText );
    
    while ( FilePos < sLength )
@@ -1491,10 +1568,10 @@ void DemoFileOpen()
   /*********************************/
   if ( text_entry != NULL ) 
     {
-      gtk_text_freeze (GTK_TEXT (text_entry));
-      gtk_text_set_point(GTK_TEXT (text_entry), 0);
-      gtk_text_insert(GTK_TEXT(text_entry), NULL, NULL, NULL, text, -1);
-      gtk_text_thaw (GTK_TEXT (text_entry));
+      GtkTextIter iter;
+      gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &iter);
+      gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &iter);
+      gtk_text_buffer_insert(GTK_TEXT_BUFFER(text_buffer), &iter, text, -1);
     }
   
   gtk_window_set_title(GTK_WINDOW (window), "GSpeak Demonstration");
@@ -1510,6 +1587,7 @@ void DemoFileOpen()
 void FileNewCallback(GtkWidget *w, gpointer data)
 {
   guint length = 0;
+  gulong handler;
   
   if(textModified)
       FileSaveAsCallback(w,NULL);
@@ -1519,23 +1597,24 @@ void FileNewCallback(GtkWidget *w, gpointer data)
    * the valuechanged callback, TextWidgetModified(),
    * does not set the textModified flag.
    */
+  handler = g_signal_handler_find(G_OBJECT(text_buffer), G_SIGNAL_MATCH_FUNC, 0, 0, NULL, G_CALLBACK(TextWidgetModified), text_buffer);
+  if (handler) {
+    g_signal_handler_disconnect(G_OBJECT(text_buffer), handler);
+  }
   textModified = FALSE;
   newFile = TRUE;
-  gtk_signal_disconnect_by_func (GTK_OBJECT(text_entry),
-				 GTK_SIGNAL_FUNC(TextWidgetModified),
-				 text_entry);
   //gtk_signal_disconnect( GTK_OBJECT(text_entry),modified_id);
-  modified_id = gtk_signal_connect(GTK_OBJECT(text_entry),"changed", 
-				   GTK_SIGNAL_FUNC(TextWidgetModified),text_entry);
+  modified_id = g_signal_connect(G_OBJECT(text_buffer),"changed", 
+				   G_CALLBACK(TextWidgetModified),text_buffer);
   
   /* delete what's in the text_entry */
   if ( text_entry != NULL ) 
     {
-      gtk_text_freeze (GTK_TEXT (text_entry));
-      gtk_text_set_point(GTK_TEXT (text_entry), 0);
-      length = gtk_text_get_length(GTK_TEXT(text_entry));
-      gtk_text_forward_delete(GTK_TEXT(text_entry), length);
-      gtk_text_thaw (GTK_TEXT (text_entry));
+      GtkTextIter start, end;
+      gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &start);
+      gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(text_buffer), &end);
+      gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &start);
+      gtk_text_buffer_delete(GTK_TEXT_BUFFER(text_buffer), &start, &end);
     }
   
   /* change name of window here... */
@@ -1584,10 +1663,10 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
   /*********************************/
   if ( text_entry != NULL ) 
     {
-      gtk_text_freeze (GTK_TEXT (text_entry));
-      gtk_text_set_point(GTK_TEXT (text_entry), 0);
-      gtk_text_insert(GTK_TEXT(text_entry), NULL, NULL, NULL, text, -1);
-      gtk_text_thaw (GTK_TEXT (text_entry));
+      GtkTextIter iter;
+      gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &iter);
+      gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &iter);
+      gtk_text_buffer_insert(GTK_TEXT_BUFFER(text_buffer), &iter, text, -1);
     }
   
   /* change name of window here... */
@@ -1642,9 +1721,12 @@ void FileSaveCallback(GtkWidget *w, gpointer data)
   FILE *fp;
   char *text = NULL;
   guint length = 0;
+  GtkTextIter start, end;
   
   // get the text in the window...
-  text = gtk_editable_get_chars((GtkEditable *)text_entry,0,-1);
+  gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &start);
+  gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(text_buffer), &end);
+  text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
   length = (guint)strlen( text );
   
   if(( fp = fopen(SaveFileName, "w")) == NULL )
@@ -1666,12 +1748,14 @@ void FileSaveCallback(GtkWidget *w, gpointer data)
   return;
 }
 
-void TextWidgetModified(GtkWidget *widget, GdkEvent *event, gpointer callback_data)
+void TextWidgetModified(GtkTextBuffer *widget, gpointer callback_data)
 {
-  gtk_signal_disconnect_by_func (GTK_OBJECT(text_entry),
-				 GTK_SIGNAL_FUNC(TextWidgetModified),
-				 text_entry);
-  //  gtk_signal_disconnect( GTK_OBJECT(text_entry),modified_id);
+  gulong handler;
+
+  handler = g_signal_handler_find(G_OBJECT(text_buffer), G_SIGNAL_MATCH_FUNC, 0, 0, NULL, G_CALLBACK(TextWidgetModified), text_buffer);
+  if (handler) {
+    g_signal_handler_disconnect(G_OBJECT(text_buffer), handler);
+  }
   if ( ! newFile )
     {
       textModified = TRUE;
@@ -1731,7 +1815,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   GtkWidget *about_button_box = NULL;
   GtkStyle *style;
   char bitmap_name[500];
-  char bitmap_path[500];
+  char bitmap_path[500] = {0};
   FILE *config_file;
   
   long version;
@@ -1741,6 +1825,8 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   int dt_min;
   int dll_maj;
   int dll_min;
+  int parent = 0;
+  int exe_path = 0;
   
   version = TextToSpeechVersion(&DECtalk_version);
   dt_maj = (version & 0x7F000000) >> 24;
@@ -1757,9 +1843,48 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   style = gtk_widget_get_style(window);
 
   config_file=fopen("/etc/DECtalk.conf","r");
+
   if (config_file==NULL)
   {
-    fprintf(stderr,"cannot open config file /etc/DECtlk.conf\n");
+	  config_file=fopen("DECtalk.conf","r");
+  }
+
+
+#ifdef __linux__
+  if (config_file==NULL)
+  {
+	  char p[PATH_MAX] = {};
+	  ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	  if (count != -1) {
+		  char *cfg;
+		  cfg = dirname(p);
+		  strcat(cfg,"/");
+		  strcat(cfg,"DECtalk.conf");
+		  config_file=fopen(cfg,"r");
+	  }
+
+  }
+
+  if (config_file==NULL)
+  {
+	  char p[PATH_MAX] = {};
+	  ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	  if (count != -1) {
+		  char *cfg;
+		  cfg = dirname(p);
+		  strcat(cfg,"/../");
+		  strcat(cfg,"DECtalk.conf");
+		  config_file=fopen(cfg,"r");
+	  }
+	  if (config_file != NULL) {
+		  parent = 1;
+	  }
+  }
+#endif
+
+  if (config_file==NULL)
+  {
+    fprintf(stderr,"cannot open config file DECtlk.conf\n");
     memset(bitmap_path,0,500);
   }
   else
@@ -1768,8 +1893,24 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
     {
       if (strncmp(bitmap_name,"Speak_xpm_dir:",14)==0)
       {
+        memset(bitmap_path,0,500);
         bitmap_name[strlen(bitmap_name)-1]='\0';
         strcpy(bitmap_path,bitmap_name+14);
+#ifdef __linux
+	if ((access(bitmap_path, R_OK) == -1) && (bitmap_path[0] != '/')) {
+	   char p[PATH_MAX] = {};
+	   ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	   if (count != -1) {
+	     char *bmp;
+	     bmp = dirname(p);
+	     strcat(bmp,"/");
+	     if (parent)
+	             strcat(bmp,"../");
+	     strcat(bmp,bitmap_path);
+	     strcpy(bitmap_path,bmp);
+	   }
+	}
+#endif
         break;
       }
     }
@@ -1922,17 +2063,17 @@ void NotAvailableCallback(GtkWidget *w, gpointer data)
 
 void EditCopyCallback(GtkWidget *w, gpointer data)
 {
-  gtk_editable_copy_clipboard(GTK_EDITABLE(text_entry));
+  gtk_text_buffer_copy_clipboard(GTK_TEXT_BUFFER(text_buffer), gtk_clipboard_get(GDK_NONE));
 }
 
 void EditPasteCallback(GtkWidget *w, gpointer data)
 {
-  gtk_editable_paste_clipboard(GTK_EDITABLE(text_entry));
+  gtk_text_buffer_paste_clipboard(GTK_TEXT_BUFFER(text_buffer), gtk_clipboard_get(GDK_NONE), NULL, TRUE);
 }
 
 void EditCutCallback(GtkWidget *w, gpointer data)
 {
-  gtk_editable_cut_clipboard(GTK_EDITABLE(text_entry));
+  gtk_text_buffer_cut_clipboard(GTK_TEXT_BUFFER(text_buffer), gtk_clipboard_get(GDK_NONE), TRUE);
 }
 
 void UnloadUserDictCallback(GtkWidget *w, gpointer data)
