@@ -966,7 +966,7 @@ int main (int argc, char *argv[])
   gtk_scale_set_digits(GTK_SCALE(rate_scale),0);
   gtk_scale_set_value_pos(GTK_SCALE(rate_scale),GTK_POS_RIGHT);
   //gtk_scale_set_draw_value(
-  gtk_box_pack_start(GTK_BOX(button_box), rate_scale, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(button_box), rate_scale, TRUE, TRUE, 0);
    gtk_widget_show(rate_scale);
 
   wpm_label = gtk_label_new (" WPM");
