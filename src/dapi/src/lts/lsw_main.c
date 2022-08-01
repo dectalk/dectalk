@@ -1421,6 +1421,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 	char temp_dict_name[1000];
 	int ret_value=0;
 	int parent=0;
+	int exe_path=0;
 	
 	main_dict_name[0]='\0';
 	foreign_dict_name[0]='\0';
@@ -1444,6 +1445,9 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 			strcat(cfg,"DECtalk.conf");
 			config_file=fopen(cfg,"r");
 		}
+		if (config_file != NULL) {
+			exe_path = 1;
+		}
 	}
 
 	if (config_file==NULL)
@@ -1459,6 +1463,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 		}
 		if (config_file != NULL) {
 			parent = 1;
+			exe_path = 1;
 		}
 	}
 #endif
@@ -1478,7 +1483,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 				line[strlen(line)-1]='\0';
 				strcpy(main_dict_name,line+8);
 #ifdef __linux__
-				if ((access(main_dict_name, R_OK) == -1) && (main_dict_name[0] != '/')) {
+				if (exe_path && (main_dict_name[0] != '/')) {
 					char p[PATH_MAX] = {};
 					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 					if (count != -1) {
