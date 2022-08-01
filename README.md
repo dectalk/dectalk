@@ -1,5 +1,5 @@
 # Fonix DECtalk
-These files were found off a HTTP server on [grossgang.com](http://grossgang.com/tts/dectalk%20software%20and%20manual/Ad%202.zip)
+These files were found off a HTTP server on [grossgang.com](https://keybase.pub/datajake1999/Grossgang/tts/dectalk%20software%20and%20manual/Ad%202.zip)
 
 ## Building
 To build DECtalk, run `./configure` and `make` in `src`.
