@@ -60,6 +60,8 @@
 #include <stdlib.h>
 
 #include <dtk/ttsapi.h>
+#include <libgen.h>
+#define GTK_ENABLE_BROKEN
 #include <gtk/gtk.h>
 #include <strings.h>
 #include <sys/types.h>
@@ -132,7 +134,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/File/_Save", "<control>S", FileSaveCallback, 0, NULL},
   {"/File/Save as...", NULL, FileSaveAsCallback, 0, NULL},
   {"/File/_Quit", "<control>Q", FileQuitCallback, 0, NULL},
-  {"/Edit/", NULL, NULL, 0, "<Branch>"},
+  {"/Edit", NULL, NULL, 0, "<Branch>"},
   //  {"/Edit/Undo", "<control>Z", NotAvailableCallback, 0, NULL},
   {"/Edit/Cu_t", "<control>X", EditCutCallback, 0, NULL},
   {"/Edit/_Copy", "<control>C", EditCopyCallback, 0, NULL},
@@ -145,7 +147,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/Edit/English _UK", "<control>U", LangMenuSelect, menu_british,  "<CheckItem>"},
   {"/Edit/_French", "<control>F", LangMenuSelect, menu_french, "<RadioItem>" },
   {"/_Translate", "<control>T", TranslateCallback, 0, NULL},
-  {"/_Help/", NULL, NULL, 0, "<LastBranch>"},
+  {"/_Help", NULL, NULL, 0, "<LastBranch>"},
   {"/Help/Help on DECtalk Windic", "F1", HelpHelpCallback, 0, NULL},
   {"/Help/_About Windic", "F2", HelpAboutCallback, 0, NULL},
 };
@@ -489,6 +491,9 @@ void MakeGUI(void)
   gtk_widget_set_usize(GTK_WIDGET(window), 370, 475);
   gtk_window_set_policy(GTK_WINDOW(window), 0, 0, 0);
 
+  gtk_signal_connect(GTK_OBJECT (window), "delete_event",
+		     (GtkSignalFunc)FileQuitCallback, NULL);
+
   main_vbox = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(window), main_vbox);
   gtk_container_border_width(GTK_CONTAINER(main_vbox), 1);
@@ -499,7 +504,7 @@ void MakeGUI(void)
   main_hbuttonbox = gtk_hbutton_box_new();
   gtk_container_border_width(GTK_CONTAINER(main_hbuttonbox), 2);
   gtk_box_pack_start(GTK_BOX(main_vbox), main_hbuttonbox, FALSE, FALSE, 0);
-  gtk_button_box_set_child_size_default(120, 16);
+  //gtk_button_box_set_child_size_default(120, 16);
  
   button = gtk_button_new_with_label("Pronounce");
   gtk_box_pack_start(GTK_BOX(main_hbuttonbox), button, FALSE, FALSE, 0);
@@ -633,8 +638,8 @@ void TranslateCallback(GtkWidget *w, gpointer data)
   char *logfile = "log.txt";  /* Default DECtalk logfile */
   
   /* Get the selected text */
-  start = GTK_EDITABLE(text_entry)->selection_start_pos;
-  end = GTK_EDITABLE(text_entry)->selection_end_pos;
+  start = GTK_OLD_EDITABLE(text_entry)->selection_start_pos;
+  end = GTK_OLD_EDITABLE(text_entry)->selection_end_pos;
 
   if(start == end)
     {
@@ -792,8 +797,8 @@ void PronounceCallback()
   int start, end, temp;
   char text_buf[256];
   
-  start = GTK_EDITABLE(text_entry)->selection_start_pos;
-  end = GTK_EDITABLE(text_entry)->selection_end_pos; 
+  start = GTK_OLD_EDITABLE(text_entry)->selection_start_pos;
+  end = GTK_OLD_EDITABLE(text_entry)->selection_end_pos; 
 
   if(start==end)
     SpeakCurrentLine();
@@ -1175,6 +1180,8 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   int dt_min;
   int dll_maj;
   int dll_min;
+  int parent = 0;
+  int exe_path = 0;
   
   version = TextToSpeechVersion(&DECtalk_version);
   dt_maj = (version & 0x7F000000) >> 24;
@@ -1187,9 +1194,51 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   style = gtk_widget_get_style(window);
 
   config_file=fopen("/etc/DECtalk.conf","r");
+
   if (config_file==NULL)
   {
-    fprintf(stderr,"cannot open config file /etc/DECtlk.conf\n");
+	  config_file=fopen("DECtalk.conf","r");
+  }
+
+
+#ifdef __linux__
+  if (config_file==NULL)
+  {
+	  char p[PATH_MAX] = {};
+	  ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	  if (count != -1) {
+		  char *cfg;
+		  cfg = dirname(p);
+		  strcat(cfg,"/");
+		  strcat(cfg,"DECtalk.conf");
+		  config_file=fopen(cfg,"r");
+	  }
+	  if (config_file != NULL) {
+		  exe_path = 1;
+	  }
+
+  }
+
+  if (config_file==NULL)
+  {
+	  char p[PATH_MAX] = {};
+	  ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	  if (count != -1) {
+		  char *cfg;
+		  cfg = dirname(p);
+		  strcat(cfg,"/../");
+		  strcat(cfg,"DECtalk.conf");
+		  config_file=fopen(cfg,"r");
+	  }
+	  if (config_file != NULL) {
+		  exe_path = 1;
+		  parent = 1;
+	  }
+  }
+#endif
+  if (config_file==NULL)
+  {
+    fprintf(stderr,"cannot open config file DECtalk.conf\n");
     memset(bitmap_path,0,500);
   }
   else
@@ -1198,8 +1247,24 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
     {
       if (strncmp(bitmap_name,"Speak_xpm_dir:",14)==0)
       {
+        memset(bitmap_path,0,500);
         bitmap_name[strlen(bitmap_name)-1]='\0';
         strcpy(bitmap_path,bitmap_name+14);
+#ifdef __linux
+	if (exe_path && (bitmap_path[0] != '/')) {
+	   char p[PATH_MAX] = {};
+	   ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+	   if (count != -1) {
+	     char *bmp;
+	     bmp = dirname(p);
+	     strcat(bmp,"/");
+	     if (parent)
+	             strcat(bmp,"../");
+	     strcat(bmp,bitmap_path);
+	     strcpy(bitmap_path,bmp);
+	   }
+	}
+#endif
         break;
       }
     }

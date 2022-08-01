@@ -541,8 +541,12 @@ case "$target" in
 	arm-*-linux-*) WINDICT_ALL="" ;;
 	sparc-sun-*) WINDICT_ALL="" ;;
 	powerpc-apple-*) WINDICT_ALL="" ;;
-	*-*-linux-*) WINDICT_ALL="\$(OUTPUT_DIR)/windic" ;;
+	*-*-linux-*) WINDICT_ALL="" ;;
 esac
+
+if test "${have_gtk2}" = "yes"; then
+	WINDICT_ALL="\$(OUTPUT_DIR)/windic"
+fi
 AC_SUBST(WINDICT_ALL)dnl
 
 GTK_DEFINES=""
