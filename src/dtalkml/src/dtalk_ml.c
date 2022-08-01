@@ -98,6 +98,9 @@ _CRTIMP wchar_t __cdecl towupper(wchar_t);
 #include "port.h"
 #include "tts.h"
 #include <ctype.h>
+#if defined __linux__
+#include <linux/limits.h>
+#endif
 #endif // linux
 #endif // osf || linux
 
@@ -1434,7 +1437,41 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 
 	FILE *config_file;
 
-	config_file=fopen("DECtalk.conf","r");	
+	config_file=fopen("/etc/DECtalk.conf","r");	
+	if (config_file==NULL)
+	{
+		config_file=fopen("DECtalk.conf","r");	
+	}
+
+#ifdef __linux__
+	if (config_file==NULL)
+	{
+		char p[PATH_MAX] = {};
+		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+		if (count != -1) {
+			char *cfg;
+			cfg = dirname(p);
+			strcat(cfg,"/");
+			strcat(cfg,"DECtalk.conf");
+			config_file=fopen(cfg,"r");
+		}
+
+	}
+
+	if (config_file==NULL)
+	{
+		char p[PATH_MAX] = {};
+		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+		if (count != -1) {
+			char *cfg;
+			cfg = dirname(p);
+			strcat(cfg,"/../");
+			strcat(cfg,"DECtalk.conf");
+			config_file=fopen(cfg,"r");
+		}
+	}
+#endif
+
 	if (config_file==NULL)
 	{
 		(*langs)=NULL;
