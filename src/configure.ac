@@ -57,7 +57,6 @@ dnl to the name of the compiler found.
 AC_PROG_CC
 case "$target" in
 	arm-ipaq-linux-*) CC="/skiff/local/bin/arm-linux-gcc" ;;
-	arm-*-linux-*) CC="/usr/local/bin/arm-unknown-linuxelf-gcc" ;;
 dnl use the itsy cross compiler.
 esac
 
@@ -97,7 +96,6 @@ case "$target" in
 	sparc-sun-*) DEFINES=" -DLTSSIM -D_SPARC_SOLARIS_ -D_BIGENDIAN_ -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE" ;;
 	powerpc-apple-*) DEFINES=" -DLTSSIM -D_APPLE_MAC_ -D_BIGENDIAN_ -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE -dynamic" ;;
 	arm-ipaq-linux-*) DEFINES=" -D_REENTRANT -D_GNU_SOURCE -DNOMME -D__ipaq__ -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE" ;;
-	arm-*-linux-*) DEFINES=" -D_REENTRANT -D_GNU_SOURCE -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE" ;;
 	*-*-linux-*) DEFINES=" -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE" ;;
 esac
 AC_SUBST(DEFINES)dnl
@@ -114,7 +112,6 @@ LICENSE_ALL="\$(OUTPUT_DIR)/licenin1 \$(OUTPUT_DIR)/licenin3 \
             \$(OUTPUT_DIR)/licenin7 \$(OUTPUT_DIR)/installer"
 case "$target" in
 	alpha-dec-osf*) LICENSE_ALL="";;
-	arm-*-linux-*) LICENSE_ALL="\$(OUTPUT_DIR)/licenin1 \$(OUTPUT_DIR)/licenin3 \$(OUTPUT_DIR)/licenin7 \$(OUTPUT_DIR)/arminstaller" ;;
 esac
 AC_SUBST(LICENSE_ALL)dnl
 	
@@ -122,7 +119,7 @@ DEBUG_FLAGS=" -G3 -migrate"
 case "$target" in
 	arm-ipaq-linux-*) DEBUG_FLAGS=" -g -fPIC -D__ipaq__";;
 	arm-*-linux-*) DEBUG_FLAGS=" -g -fPIC";;
-	x86_64-*-linux-*) DEBUG_FLAGS=" -g -fPIC -m32" ;;
+	x86_64-*-linux-*) DEBUG_FLAGS=" -g -fPIC" ;;
 	*-*-linux-*) DEBUG_FLAGS=" -g" ;;
 	sparc-sun-*) DEBUG_FLAGS=" -g" ;;
 	powerpc-apple-*) DEBUG_FLAGS=" -g" ;;
@@ -145,7 +142,6 @@ AC_SUBST(PLATFORM_DEFS)dnl
 ALIGN_OPT=""
 case "$target" in
 	sparc-sun-*) ALIGN_OPT="" ;;
-	x86_64-*-linux-*) ALIGN_OPT="-m32" ;;
 esac
 AC_SUBST(ALIGN_OPT)dnl
 
@@ -159,7 +155,6 @@ AC_SUBST(WARN_FLAGS)dnl
 
 PH_VTM_OPTO_FLAGS=" -O2"
 case "$target" in
-	arm-*-linux-*) PH_VTM_OPTO_FLAGS="" ;;
 	sparc-sun-*) PH_VTM_OPTO_FLAGS="-O2" ;;
 	powerpc-apple-*) PH_VTM_OPTO_FLAGS="-O2" ;;
 dnl for some reason the itsy ph and vtm files can't be optimized too far.
@@ -176,14 +171,12 @@ AC_SUBST(DIC_CC)dnl
 
 case "$target" in
 	arm-ipaq-linux-*) RANLIB="/skiff/local/bin/arm-linux-ranlib" ;;
-	arm-*-linux-*) RANLIB="/usr/local/bin/arm-unknown-linuxelf-ranlib" ;;
 dnl use the itsy ranlib.
 esac
 
 LD="ld"
 case "$target" in
 	arm-ipaq-linux-*) LD="/skiff/local/bin/arm-linux-ld" ;;
-	arm-*-linux-*) LD="/usr/local/bin/arm-unknown-linuxelf-ld" ;;
 dnl use the itsy dynamic linker.
 esac
 AC_SUBST(LD)dnl
@@ -191,7 +184,6 @@ AC_SUBST(LD)dnl
 AR="ar cqls"
 case "$target" in
 	arm-ipaq-linux-*) AR="/skiff/local/bin/arm-linux-ar cqls" ;;
-	arm-*-linux-*) AR="/usr/local/bin/arm-unknown-linuxelf-ar cqls" ;;
 	powerpc-apple-*) AR="ar ruvs" ;;
 dnl use the itsy archiver.
 esac
@@ -200,7 +192,6 @@ AC_SUBST(AR)dnl
 STD_INCLUDE="/usr/include/"
 case "$target" in
 	arm-ipaq-linux-*) STD_INCLUDE="/skiff/local/arm-linux/include" ;;
-	arm-*-linux-*) STD_INCLUDE="" ;;
 dnl the itsy cross compiler knows where to get the std includes.
 esac
 STD_INCLUDE="${PWD}/build/include/"
@@ -370,8 +361,6 @@ AC_SUBST(DECTALK_DEMO_OBJS)dnl
 dnl always use the "-lpthread" NOT "-lpthreads" in linux
 MMELIBS=" -lmme"
 case "$target" in
-	arm-*-linux-*) MMELIBS=" -lpthread " ;;
-	x86_64-*-linux-*) MMELIBS=" -lpthread -lm -m32" ;;
 	*-*-linux-*) MMELIBS=" -lpthread -lm" ;;
 	powerpc-apple-*) MMELIBS=" -lpthread" ;;
 	sparc-sun-*) MMELIBS=" " ;;
@@ -381,9 +370,7 @@ AC_SUBST(MMELIBS)dnl
 LIBS=" -llmf -lpthreads -lmach -lexc -lc -lrt -lots"
 case "$target" in 
 	arm-ipaq-linux-*) LIBS=" -lpthread -L/skiff/local/lib/gcc-lib/arm-linux/2.95.2/ -lgcc" ;;
-	arm-*-linux-*) LIBS=" -L- -L/usr/local/arm-unknown-linuxelf/lib -lpthread " ;;
-	x86_64-*-linux-*) LIBS=" -lpthread -lm -m32" ;;
-	*-*-linux-*) LIBS=" -lpthread " ;;
+	*-*-linux-*) LIBS=" -lpthread -lm" ;;
 	powerpc-apple-*) LIBS=" -lpthread -L../../../dapi/src/portaudio/lib -lportaudio -framework CoreAudio -framework AudioToolbox" ;;
 	sparc-sun-*) LIBS=" " ;;
 esac
@@ -392,8 +379,6 @@ AC_SUBST(LIBS)dnl
 DT_SO_LIBS=" -llmf -lpthreads -lmach -lexc -lc -lrt -lots"
 case "$target" in 
 	arm-ipaq-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -L/skiff/local/lib/gcc-lib/arm-linux/2.95.2/ -lgcc -lfloat -lm" ;;
-	arm-*-linux-*) DT_SO_LIBS=" -L- -L/usr/local/arm-unknown-linuxelf/lib -lpthread -lm" ;;
-	x86_64-*-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -melf_i386" ;;
 	*-*-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc" ;;
 	powerpc-apple-*) DT_SO_LIBS="-lpthread -Lportaudio/lib -lportaudio -framework CoreAudio -framework AudioToolbox" ;;
 	sparc-sun-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -lrt -lm" ;;
@@ -422,10 +407,8 @@ DAPI_LD_SHARED="\$(LD) -shared -update_registry \
 	./so_locations -hidden \
 	-soname libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)"
 case "$target" in
-	x86_64-*-linux-*) DAPI_LD_SHARED="\$(LD) -shared -Bsymbolic -soname \
-		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -lm -melf_i386 -lpulse-simple" ;;
 	*-*-linux-*) DAPI_LD_SHARED="\$(LD) -shared -Bsymbolic -soname \
-		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
+		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -lm -lpulse-simple" ;;
 	powerpc-apple-*) DAPI_LD_SHARED="\$(CC) -dynamic -dynamiclib -dylib \
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 	sparc-sun-*) DAPI_LD_SHARED="\$(LD) -G -Bsymbolic \
@@ -450,10 +433,6 @@ ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
 	../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
 	../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm"
 case "$target" in
-	x86_64-*-linux-*) ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
-		-o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm -melf_i386" ;;
 	alpha-dec-osf4.0) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
 		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
 		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
@@ -516,14 +495,9 @@ dnl * sample targets go here:
 SPEAK_ALL="\$(OUTPUT_DIR)/speak \$(OUTPUT_DIR)/speak.uid"
 case "$target" in
 	alpha-dec-osf*) SPEAK_ALL="\$(OUTPUT_DIR)/speak \$(OUTPUT_DIR)/speak.uid" ;;
-	arm-*-linux-*) SPEAK_ALL="" ;;
 	sparc-sun-*) SPEAK_ALL="" ;;
 	powerpc-apple-*) SPEAK_ALL="" ;;
 	*-*-linux-*) SPEAK_ALL="" ;;
-esac
-
-case "$target" in
-	x86_64-*-linux-*) export PKG_CONFIG_PATH="/usr/lib/i386-linux-gnu/pkgconfig:${PKG_CONFIG_PATH}" ;;
 esac
 
 PKG_CHECK_MODULES(GTK, [gtk+-2.0], have_gtk2=yes, have_gtk2=no)
@@ -538,7 +512,6 @@ AC_SUBST(SPEAK_ALL)dnl
 WINDICT_ALL="\$(OUTPUT_DIR)/windict \$(OUTPUT_DIR)/windict.uid"
 case "$target" in
 	alpha-dec-osf*) WINDICT_ALL="\$(OUTPUT_DIR)/windict \$(OUTPUT_DIR)/windict.uid" ;;
-	arm-*-linux-*) WINDICT_ALL="" ;;
 	sparc-sun-*) WINDICT_ALL="" ;;
 	powerpc-apple-*) WINDICT_ALL="" ;;
 	*-*-linux-*) WINDICT_ALL="" ;;
@@ -548,20 +521,6 @@ if test "${have_gtk2}" = "yes"; then
 	WINDICT_ALL="\$(OUTPUT_DIR)/windic"
 fi
 AC_SUBST(WINDICT_ALL)dnl
-
-GTK_DEFINES=""
-case "$target" in
-	arm-*-linux-*) GTK_DEFINES="" ;;
-	*-*-linux-*) GTK_DEFINES="\`gtk-config --cflags\`" ;;
-esac
-AC_SUBST(GTK_DEFINES)dnl
-
-GTK_LIBS=""
-case "$target" in
-	arm-*-linux-*) GTK_LIBS="" ;;
-	*-*-linux-*) GTK_LIBS="\`gtk-config --libs\`" ;;
-esac
-AC_SUBST(GTK_LIBS)dnl
 
 DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \$(OUTPUT_DIR)/aclock \$(OUTPUT_DIR)/xmsay \$(OUTPUT_DIR)/xmsay.uid"
 case "$target" in
@@ -589,7 +548,6 @@ AC_SUBST(SAMPLE_LINKFLAGS)dnl
 
 SAMPLE_DTLIB=" -lttsmme"
 case "$target" in
-	arm-*-linux-*) SAMPLE_DTLIB=" -ltts_\$(LANG_CODE)" ;;
 	*-*-linux-*) SAMPLE_DTLIB=" -ltts" ;;
 	sparc-sun-*) SAMPLE_DTLIB=" -ltts" ;;
 	powerpc-apple-*) SAMPLE_DTLIB=" -ltts" ;;

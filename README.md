@@ -3,12 +3,10 @@ These files were found off a HTTP server on [grossgang.com](https://keybase.pub/
 
 ## Building
 To build DECtalk, run `./configure` and `make` in `src`.
-This needs 32bit multiarch development libraries to be installed on a 64bit system:
+This needs the following dependencies to be installed:
 ```shell
-dpkg --add-architecture i386
-apt-get update
-apt-get install build-essential gcc-multilib libpulse-dev:i386 libgtk2.0-dev:i386 unzip
+apt-get install build-essential libpulse-dev libgtk2.0-dev unzip
 ```
-(libgtk2.0-dev:i386 is only needed if you want the graphical frontend)
+(libgtk2.0-dev is only needed if you want the graphical frontend)
 
 The result will be in the folder `dist` in the root.
