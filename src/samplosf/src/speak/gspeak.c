@@ -1280,7 +1280,7 @@ void StopPlay(GtkWidget *widget, gpointer data)
 
 void LangMenuSelect(GtkWidget *widget, gpointer data)
 {
-  switch((int)data)
+  switch((long)data)
     {
     case menu_english:
 #ifdef S_DEBUG
@@ -1349,7 +1349,7 @@ void LangMenuSelect(GtkWidget *widget, gpointer data)
 ****************************************************************************/
 void SelectSpeaker(GtkWidget *w, gpointer data)
 {
-    CurrentSpeaker = (int)data;
+    CurrentSpeaker = (long)data;
     TextToSpeechSetSpeaker( ttsHandle[current_language], CurrentSpeaker );
 #ifdef S_DEBUG
     fprintf(stderr,"Switching to speaker: %d\nName: %s\n",(int)data,
@@ -1401,7 +1401,7 @@ void FileSaveWaveCallback(GtkWidget *w, gpointer data)
 			    GTK_OBJECT (filew));
   gtk_widget_show(filew);
 
-  outputWaveFormat = (int)data;
+  outputWaveFormat = (long)data;
 }
 
 void FileSaveWaveOkCallback(GtkWidget *w, gpointer fs)

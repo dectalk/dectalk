@@ -264,7 +264,7 @@ struct listup *save_up(struct listup *head,unsigned char *word)
 	return(head);
 }
 
-unsigned char *sort_up(unsigned char *word,struct listup *head)
+unsigned char sort_up(unsigned char *word,struct listup *head)
 /*unsigned char *word;*/
 /*struct listup *head;*/
 {
@@ -280,7 +280,7 @@ unsigned char *sort_up(unsigned char *word,struct listup *head)
 			return(0);
 			}
 		}
-   return (unsigned char *)(*word - *tmp);
+   return (unsigned char)(*word - *tmp);
 }
 
 void write_up(struct listup *head)

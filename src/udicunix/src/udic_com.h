@@ -102,7 +102,7 @@ int legal_alpha(char c);
 
 int get_Aentry(unsigned char word[256]);
 struct listup *save_up(struct listup *head,unsigned char *word);
-unsigned char *sort_up(unsigned char *word,struct listup *head);
+unsigned char sort_up(unsigned char *word,struct listup *head);
 void write_up(struct listup *head);
 unsigned char *strsave(unsigned char *word);
 

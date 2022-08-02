@@ -563,7 +563,7 @@ void MakeGUI(void)
 ********************************************************************************/
 void LangMenuSelect(GtkWidget *widget, gpointer data)
 {
-  switch((int)data)
+  switch((long)data)
     {
     case menu_english:
 #ifdef DEBUG_ME
