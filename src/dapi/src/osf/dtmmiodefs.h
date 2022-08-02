@@ -163,7 +163,7 @@ typedef struct                  /* The MMIO state */
 
         /* fields maintained by I/O procedure */
         LONG            lDiskOffset;    /* disk offset of next read or write */
-        DWORD           adwInfo[3];     /* data specific to type of MMIOPROC */
+        DWORD           adwInfo[4];     /* data specific to type of MMIOPROC */
 
         /* other fields maintained by MMIO */
         DWORD           dwReserved1;    /* reserved for MMIO use */

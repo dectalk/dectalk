@@ -646,6 +646,8 @@ ULONG TextToSpeechVersion(LPSTR* VersionStr);
 void TextToSpeechTyping(LPTTS_HANDLE_T phTTS, unsigned char key);  //BATS#657
 #endif
 ULONG TextToSpeechGetLastError(LPTTS_HANDLE_T phTTS);
+#else
+void TextToSpeechTyping(LPTTS_HANDLE_T phTTS, unsigned char key);  //BATS#657
 #endif
 
 MMRESULT TextToSpeechOpenSapi5Output( LPTTS_HANDLE_T phTTS,

@@ -186,6 +186,7 @@
 #include <stdlib.h>
 
 #if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_
+#include <string.h>
 #include <sys/time.h>
 #ifndef _SPARC_SOLARIS_
 #include <sys/resource.h>
@@ -876,7 +877,7 @@ MMRESULT PA_CreatePlayHandleEx( HPLAY_AUDIO_T * ppPlayAudio,
   /********************************************************************/
 
   pPlayAudio->CallbackRoutine = NULL;
-  pPlayAudio->hWaveOut = (int)NULL;
+  pPlayAudio->hWaveOut = NULL;
   pPlayAudio->hTimerThread = NULL;
   pPlayAudio->hevAudioDeviceInactive = NULL;
   pPlayAudio->hevTimerThreadActive = NULL;
@@ -4183,7 +4184,7 @@ OP_THREAD_ROUTINE( TimerThreadMain, HPLAY_AUDIO_T pPlayAudio )
 OP_THREAD_ROUTINE( PlayAudioThreadMain, HPLAY_AUDIO_T pAudioHandle )
 {
   unsigned int uiResult;
-  unsigned int uiMessage;
+  unsigned long uiMessage;
   HPLAY_AUDIO_T pPlayAudio;
   ATYPE_T aParam;
 
@@ -5277,7 +5278,7 @@ static ATYPE_T Process_MM_WOM_CLOSE_Message( HPLAY_AUDIO_T pPlayAudio )
 
   if (( pPlayAudio->dwDeviceOptions & PA_OWN_DEVICE ) == 0 )
   {
-    pPlayAudio->hWaveOut = (int)NULL;
+    pPlayAudio->hWaveOut = NULL;
   }
 
   /********************************************************************/
@@ -5745,7 +5746,7 @@ static ATYPE_T ProcessOpenWaveOutputDeviceMessage( HPLAY_AUDIO_T pPlayAudio )
     /******************************************************************/
 
     if (( pPlayAudio->dwDeviceOptions & PA_OWN_DEVICE )
-      && ( pPlayAudio->hWaveOut != (int)NULL ))
+      && ( pPlayAudio->hWaveOut != NULL ))
     {
       /****************************************************************/
       /*  Block the PA_WaitForPlayToComplete() function.              */
@@ -5915,7 +5916,7 @@ static MMRESULT OpenWaveOutputDevice( HPLAY_AUDIO_T pPlayAudio )
   LOCK_MME_CALL(
     mmStatus = waveOutOpen( &(pPlayAudio->hWaveOut),
                             pPlayAudio->uiSelectedDeviceID,
-                            (LPWAVEFORMAT)pWaveFormat,
+                            (LPWAVEFORMATEX)pWaveFormat,
                             WaveOutCallbackRoutine,
                             pPlayAudio->uiHandleListIndex,
                             dwOpenFlags ))
@@ -5978,7 +5979,7 @@ static MMRESULT OpenWaveOutputDevice( HPLAY_AUDIO_T pPlayAudio )
     LOCK_MME_CALL(
       mmStatus = waveOutOpen( &(pPlayAudio->hWaveOut),
                               pPlayAudio->uiSelectedDeviceID,
-                              (LPWAVEFORMAT)pWaveFormat,
+                              (LPWAVEFORMATEX)pWaveFormat,
                               WaveOutCallbackRoutine,
                               pPlayAudio->uiHandleListIndex,
                               dwOpenFlags ))

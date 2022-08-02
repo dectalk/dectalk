@@ -697,8 +697,8 @@ DTKmmioOpen(
 	  DTKmmioOpenSetError(MMIOERR_CANNOTOPEN);
 
     if ( lpmmioinfo != (MMIOINFO FAR *)NULL && (
-        lpmmioinfo->dwFlags     != (int) NULL           ||
-    	lpmmioinfo->fccIOProc 	!= (FOURCC)NULL		||
+        lpmmioinfo->dwFlags     != 0                    ||
+    	lpmmioinfo->fccIOProc 	!= (FOURCC)0   		||
     	lpmmioinfo->pIOProc	!= (LPMMIOPROC)NULL	||
     	lpmmioinfo->wErrorRet	!= (WORD)0		||
     	lpmmioinfo->cchBuffer	!= (LONG)0		||
@@ -771,7 +771,7 @@ DTKmmioOpen(
 	  DTKmmioOpenSetError(MMIOERR_OUTOFMEMORY);
     }
     handle->mmioInfo.dwFlags 	= dwOpenFlags;
-    handle->mmioInfo.fccIOProc 	= (FOURCC)NULL;
+    handle->mmioInfo.fccIOProc 	= (FOURCC)0;
     handle->mmioInfo.pIOProc	= (LPMMIOPROC)NULL;
     handle->mmioInfo.wErrorRet	= (WORD)0;
     handle->mmioInfo.cchBuffer	= (LONG)0;
@@ -895,7 +895,7 @@ DTKmmioStringToFOURCC(
 )
 {
     int size, i;
-    char tmp[4];
+    char tmp[5];
 
     if ( sz == (LPCSTR)NULL )
 	return (FOURCC)0;
@@ -1642,13 +1642,13 @@ DTKmmioDescend(
 
     /* figure out what chunk id and form/list type to search for */
     if (uFlags & MMIO_FINDCHUNK)
-	ckidFind = (FOURCC)lpck->ckid, fccTypeFind = NULL;
+	ckidFind = (FOURCC)lpck->ckid, fccTypeFind = 0;
     else if (uFlags & MMIO_FINDRIFF)
 	ckidFind = (FOURCC)FOURCC_RIFF, fccTypeFind = lpck->fccType;
     else if (uFlags & MMIO_FINDLIST)
 	ckidFind = (FOURCC)FOURCC_LIST, fccTypeFind = lpck->fccType;
     else
-	ckidFind = fccTypeFind = NULL;
+	ckidFind = fccTypeFind = 0;
 	
     lpckRet.dwFlags = 0L;
 
@@ -1689,11 +1689,11 @@ DTKmmioDescend(
 	    lpckRet.fccType=SWAP_32_LITTLE(lpckRet.fccType);
 	}
 	else
-	    lpckRet.fccType = (int) NULL;
+	    lpckRet.fccType = (long) NULL;
 
 	/* if this is the chunk we're looking for, stop looking */
-	if ( ((ckidFind == (int) NULL) || (ckidFind == lpckRet.ckid)) &&
-	     ((fccTypeFind == (int) NULL) || (fccTypeFind == lpckRet.fccType)) )
+	if ( ((ckidFind == (long) NULL) || (ckidFind == lpckRet.ckid)) &&
+	     ((fccTypeFind == (long) NULL) || (fccTypeFind == lpckRet.fccType)) )
 	    break;
 	
 	/* ascend out of the chunk and try again */

@@ -114,6 +114,7 @@ LTS_T   Lts_t;
 #if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
 #include <stdlib.h>
 #include <linux/limits.h>
+#include <libgen.h>
 #endif
 
 #ifdef WIN32

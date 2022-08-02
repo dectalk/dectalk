@@ -191,7 +191,7 @@ typedef Uint16      	    WORD;
 
 typedef Int32               INT;
 #if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
-typedef Int32               LONG;
+typedef long                LONG;
 #else
 typedef Int64               LONG;
 #endif

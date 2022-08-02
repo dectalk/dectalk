@@ -57,7 +57,7 @@ typedef unsigned int    UINT32;
 #endif
 typedef UINT32          MMVERSION;
 typedef int             HWAVE16;
-typedef int             HWAVE;
+typedef unsigned long	HWAVE;
 typedef unsigned short  BOOL16;
 typedef int             BOOL32;
 typedef UINT16          HANDLE16;
@@ -244,7 +244,7 @@ typedef struct {
 typedef struct {
 	HWAVE			hWave;
 	LPWAVEFORMATEX		lpFormat;
-	DWORD			dwCallback;
+	void (*dwCallback)(void *, unsigned int,  unsigned int,  long int,  long int);
 	DWORD			dwInstance;
 	UINT			uMappedDeviceID;
         DWORD			dnDevNode;
@@ -437,7 +437,7 @@ UINT32 waveOutGetDevCaps(UINT32 uDeviceID, LPWAVEOUTCAPS lpCaps,
 UINT16 waveOutGetErrorText(UINT16 uError, LPSTR lpText, UINT16 uSize);
 
 UINT16 waveOutOpen(LPHWAVEOUT lphWaveOut, UINT16 uDeviceID,
-                            const LPWAVEFORMATEX lpFormat, DWORD dwCallback,
+                            const LPWAVEFORMATEX lpFormat, void (*dwCallback)(void *, unsigned int,  unsigned int,  long,  long),
                             DWORD dwInstance, DWORD dwFlags);
 
 UINT16 waveOutClose(HWAVEOUT hWaveOut);
@@ -468,8 +468,8 @@ UINT16 waveOutBreakLoop(HWAVEOUT hWaveOut);
 
 UINT32 waveOutGetID(HWAVEOUT hWaveOut, UINT32 * lpuDeviceID);
 
-DWORD OSS_wodMessage(UINT16 wDevID, UINT wMsg, DWORD dwUser,
-                 DWORD dwParam1, DWORD dwParam2);
+DWORD OSS_wodMessage(UINT16 wDevID, UINT wMsg, unsigned long dwUser,
+                 unsigned long dwParam1, unsigned long dwParam2);
 
 
 typedef LONG LRESULT;
@@ -491,9 +491,9 @@ extern const CALLBACKS_TABLE *Callbacks;
 #define DCB_FUNC32      0x0007             /* (ugly hack) 32-bit FARPROC */
 #define DCB_TYPEMASK    0x0007
 
-BOOL16 DriverCallback(DWORD dwCallBack, UINT16 uFlags, HANDLE16 hDev, 
-                             WORD wMsg, DWORD dwUser, DWORD dwParam1, 
-			     DWORD dwParam2);
+BOOL16 DriverCallback(void (*dwCallBack)(void *, unsigned int,  unsigned int, long int, long int), UINT16 uFlags, HANDLE16 hDev, 
+                             WORD wMsg, DWORD dwUser, long dwParam1, 
+			     long dwParam2);
      
 
 #undef _DEBUG

@@ -86,7 +86,7 @@
 #include "port.h"
 
 #if defined __linux__  || defined VXWORKS || defined _SPARC_SOLARIS_
-#define HWND unsigned int
+#define HWND unsigned long
 #include "dtmmedefs.h"
 #endif
 

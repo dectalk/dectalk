@@ -148,7 +148,7 @@
 
 typedef struct {
     int msg;
-    DWORD param;
+    unsigned long param;
 } WWO_MSG;
 
 #define WWO_RING_BUFFER_SIZE	30
@@ -622,8 +622,8 @@ UINT16 MMSYSTEM_NextDevID(UINT16 wDevID) {
 /**************************************************************************
  * 			OSS_NotifyClient			[internal]
  */
-static DWORD OSS_NotifyClient(UINT16 wDevID, WORD wMsg, DWORD dwParam1, 
-			      DWORD dwParam2)
+static DWORD OSS_NotifyClient(UINT16 wDevID, WORD wMsg, unsigned long dwParam1, 
+			      unsigned long dwParam2)
 {
   TRACE("OSS_NotifyClient: wDevID = %04X wMsg = %d dwParm1 = %04lX dwParam2 = %04lX\n",wDevID, wMsg, dwParam1, dwParam2);
 
@@ -683,7 +683,7 @@ UINT32 waveOutGetDevCaps(UINT32 uDeviceID, LPWAVEOUTCAPS lpCaps,
   if (uDeviceID > waveOutGetNumDevs() - 1) return MMSYSERR_BADDEVICEID;
   /* FIXME: do we have a wave mapper ? */
   if (uDeviceID == (UINT16)WAVE_MAPPER) return MMSYSERR_BADDEVICEID; 
-  return OSS_wodMessage(uDeviceID, WODM_GETDEVCAPS, 0L, (DWORD)lpCaps, uSize);
+  return OSS_wodMessage(uDeviceID, WODM_GETDEVCAPS, 0L, (unsigned long)lpCaps, uSize);
 	
 }
 
@@ -765,7 +765,7 @@ UINT16 waveOutGetErrorText(UINT16 uError, LPSTR lpText, UINT16 uSize)
  *			waveOutOpen			[MMSYSTEM.404]
  */
 UINT16 waveOutOpen(LPHWAVEOUT lphWaveOut, UINT16 uDeviceID,
-		   const LPWAVEFORMATEX lpFormat, DWORD dwCallback,
+		   const LPWAVEFORMATEX lpFormat, void (*dwCallback)(void *, unsigned int,  unsigned int,  long int,  long int),
 		   DWORD dwInstance, DWORD dwFlags)
 {
   HWAVEOUT	hWaveOut;
@@ -787,11 +787,11 @@ UINT16 waveOutOpen(LPHWAVEOUT lphWaveOut, UINT16 uDeviceID,
   }
   if (lpFormat == NULL) return WAVERR_BADFORMAT;
 
-  hWaveOut = (int) malloc(sizeof(WAVEOPENDESC));
+  hWaveOut = malloc(sizeof(WAVEOPENDESC));
   if (lphWaveOut != NULL) *lphWaveOut = hWaveOut;
   lpDesc = (LPWAVEOPENDESC) hWaveOut;
   if (lpDesc == NULL) return MMSYSERR_NOMEM;
-  lpDesc->hWave = hWaveOut;
+  lpDesc->hWave = (unsigned long)hWaveOut;
   lpDesc->lpFormat = (LPWAVEFORMATEX)lpFormat;  /* should the struct be copied iso pointer? */
   lpDesc->dwCallback = dwCallback;
   lpDesc->dwInstance = dwInstance;
@@ -800,7 +800,7 @@ UINT16 waveOutOpen(LPHWAVEOUT lphWaveOut, UINT16 uDeviceID,
     uDeviceID = 0;
   while(uDeviceID < MAXWAVEDRIVERS) {
     dwRet = OSS_wodMessage(uDeviceID, WODM_OPEN, 
-			   lpDesc->dwInstance, (DWORD)lpDesc, dwFlags);
+			   lpDesc->dwInstance, (unsigned long)lpDesc, dwFlags);
     if (dwRet == MMSYSERR_NOERROR) break;
     if (!bMapperFlg) break;
     uDeviceID++;
@@ -851,7 +851,7 @@ UINT32 waveOutPrepareHeader(HWAVEOUT hWaveOut,
 	lpDesc = (LPWAVEOPENDESC) USER_HEAP_LIN_ADDR(hWaveOut);
 	if (lpDesc == NULL) return MMSYSERR_INVALHANDLE;
 	return OSS_wodMessage( lpDesc->uMappedDeviceID, WODM_PREPARE, lpDesc->dwInstance, 
-			   (DWORD)lpWaveOutHdr,uSize);
+			   (unsigned long)lpWaveOutHdr,uSize);
 }
 
 
@@ -871,7 +871,7 @@ UINT32 waveOutUnprepareHeader(HWAVEOUT hWaveOut,
 	lpDesc = (LPWAVEOPENDESC) USER_HEAP_LIN_ADDR(hWaveOut);
 	if (lpDesc == NULL) return MMSYSERR_INVALHANDLE;
 	return OSS_wodMessage(lpDesc->uMappedDeviceID,WODM_UNPREPARE,lpDesc->dwInstance, 
-					(DWORD)lpWaveOutHdr, uSize);
+					(unsigned long)lpWaveOutHdr, uSize);
 }
 
 
@@ -890,8 +890,8 @@ UINT32 waveOutWrite(HWAVEOUT hWaveOut, WAVEHDR * lpWaveOutHdr,
 
 	lpDesc = (LPWAVEOPENDESC) USER_HEAP_LIN_ADDR(hWaveOut);
 	if (lpDesc == NULL) return MMSYSERR_INVALHANDLE;
-	lpWaveOutHdr->reserved = (DWORD)lpWaveOutHdr->lpData;
-	return OSS_wodMessage( lpDesc->uMappedDeviceID, WODM_WRITE, lpDesc->dwInstance, (DWORD)lpWaveOutHdr, uSize);
+	lpWaveOutHdr->reserved = (unsigned long)lpWaveOutHdr->lpData;
+	return OSS_wodMessage( lpDesc->uMappedDeviceID, WODM_WRITE, lpDesc->dwInstance, (unsigned long)lpWaveOutHdr, uSize);
 }
 
 /**************************************************************************
@@ -981,9 +981,9 @@ UINT16 waveOutGetVolume(HWAVEOUT hWaveOut, LPDWORD pdwVolume )
 	lpDesc = (LPWAVEOPENDESC) USER_HEAP_LIN_ADDR(hWaveOut);
 	//if (lpDesc == NULL) return MMSYSERR_INVALHANDLE;
 	if (lpDesc == NULL) 
-		return OSS_wodMessage( 65535, WODM_GETVOLUME, 0, (int)pdwVolume, 0L);
+		return OSS_wodMessage( 65535, WODM_GETVOLUME, 0, (unsigned long)pdwVolume, 0L);
 	return OSS_wodMessage( lpDesc->uMappedDeviceID, WODM_GETVOLUME, lpDesc->dwInstance, 
-			   (int)pdwVolume, 0L);
+			   (unsigned long)pdwVolume, 0L);
 }
 
 /**************************************************************************
@@ -1022,7 +1022,7 @@ UINT16 waveOutGetPosition(HWAVEOUT hWaveOut,LPMMTIME lpTime,
 	lpDesc = (LPWAVEOPENDESC) USER_HEAP_LIN_ADDR(hWaveOut);
 	if (lpDesc == NULL) return MMSYSERR_INVALHANDLE;
 	return OSS_wodMessage( lpDesc->uMappedDeviceID, WODM_GETPOS, lpDesc->dwInstance, 
-							(DWORD)lpTime, (DWORD)uSize);
+							(unsigned long)lpTime, uSize);
 }
 
 #define WAVEOUT_SHORTCUT_1(xx,XX,atype) \
@@ -1032,7 +1032,7 @@ UINT16 waveOutGetPosition(HWAVEOUT hWaveOut,LPMMTIME lpTime,
 	lpDesc = (LPWAVEOPENDESC) USER_HEAP_LIN_ADDR(hWaveOut);		\
 	if (lpDesc == NULL) return MMSYSERR_INVALHANDLE;		\
 	return OSS_wodMessage(lpDesc->uMappedDeviceID, WODM_##XX, lpDesc->dwInstance,\
-			  (DWORD)x, 0L);				\
+			  (unsigned long)x, 0L);				\
 }
 
 WAVEOUT_SHORTCUT_1(GetPitch,GETPITCH,DWORD*)
@@ -1043,7 +1043,7 @@ WAVEOUT_SHORTCUT_1(SetPlaybackRate,SETPLAYBACKRATE,DWORD)
 #define WAVEOUT_SHORTCUT_2(xx,XX,atype) \
         UINT16 waveOut##xx##16(UINT16 devid, atype x)		\
 {									\
-	return OSS_wodMessage(devid, WODM_##XX, 0L,	(DWORD)x, 0L);		\
+	return OSS_wodMessage(devid, WODM_##XX, 0L,	(unsigned long)x, 0L);		\
 }
 	
 
@@ -1260,7 +1260,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 }
 
 
-int wodPlayer_Message(WINE_WAVEOUT *wwo, int msg, DWORD param)
+int wodPlayer_Message(WINE_WAVEOUT *wwo, int msg, unsigned long param)
 {
   EnterCriticalSection(&wwo->msg_crst);
   if ((wwo->msg_tosave == wwo->msg_toget) /* buffer overflow ? */
@@ -1282,7 +1282,7 @@ int wodPlayer_Message(WINE_WAVEOUT *wwo, int msg, DWORD param)
   return 1;
 }
 
-int wodPlayer_RetrieveMessage(WINE_WAVEOUT *wwo, int *msg, DWORD *param)
+int wodPlayer_RetrieveMessage(WINE_WAVEOUT *wwo, int *msg, unsigned long *param)
 {
   EnterCriticalSection(&wwo->msg_crst);
 
@@ -1328,7 +1328,7 @@ static	void	wodPlayer_Notify(WINE_WAVEOUT* wwo, WORD uDevID, BOOL force)
     lpWaveHdr->dwFlags |= WHDR_DONE;
 
     TRACE("Notifying client with %p\n", lpWaveHdr);
-    if (OSS_NotifyClient(uDevID, WOM_DONE, (DWORD)lpWaveHdr, 0) != MMSYSERR_NOERROR) {
+    if (OSS_NotifyClient(uDevID, WOM_DONE, (unsigned long)lpWaveHdr, 0) != MMSYSERR_NOERROR) {
       WARN("can't notify client !\n");
     }
   }
@@ -1382,12 +1382,12 @@ static	void	wodPlayer_Reset(WINE_WAVEOUT* wwo, WORD uDevID, BOOL reset)
  */
 void wodPlayer(LPVOID pmt)
 {
-  WORD		uDevID = (DWORD)pmt;
+  unsigned long		uDevID = (unsigned long)pmt;
   WINE_WAVEOUT*	wwo = (WINE_WAVEOUT*)&WOutDev[uDevID];
   WAVEHDR*		lpWaveHdr;
   DWORD		dwSleepTime;
   int			msg;
-  DWORD		param;
+  unsigned long	param;
   DWORD		tc;
 
   wwo->state = WINE_WS_STOPPED;
@@ -1689,7 +1689,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     if (format != ((wwo->format.wBitsPerSample == 16) ? 16 : 8))
 	ERR2("Can't set format to %d (%d)\n", 
 	    (wwo->format.wBitsPerSample == 16) ? 16 : 8, format);
-    if (dsp_stereo != (wwo->format.wf.nChannels > 1) ? 2 : 1) 
+    if (dsp_stereo != ((wwo->format.wf.nChannels > 1) ? 2 : 1))
 	ERR2("Can't set stereo to %u (%d)\n", 
 	    (wwo->format.wf.nChannels > 1) ? 2 : 1, dsp_stereo);
     if (!NEAR_MATCH(sample_rate,wwo->format.wf.nSamplesPerSec))
@@ -1719,7 +1719,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     if (!(dwFlags & WAVE_DIRECTSOUND)) {
 	wwo->hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
 	//wwo->hThread = CreateThread(NULL, 0, wodPlayer, (LPVOID)(DWORD)wDevID, 0, &(wwo->dwThreadID));
-	wwo->hThread = OP_CreateThread(0, (THREAD_PROCEDURE_T)wodPlayer, (LPVOID)(DWORD)wDevID );
+	wwo->hThread = OP_CreateThread(0, (THREAD_PROCEDURE_T)wodPlayer, (LPVOID)(unsigned long)wDevID );
 	WaitForSingleObject(wwo->hEvent, INFINITE);
     } else {
 	wwo->hEvent = (HEVENT_T) INVALID_HANDLE_VALUE;
@@ -1819,12 +1819,12 @@ static DWORD wodWrite(WORD wDevID, LPWAVEHDR lpWaveHdr, DWORD dwSize)
     if (lpWaveHdr->dwFlags & WHDR_INQUEUE) 
 	return WAVERR_STILLPLAYING;
 
-	lpWaveHdr->dwFlags &= ~WHDR_DONE;
-	lpWaveHdr->dwFlags |= WHDR_INQUEUE;
+    lpWaveHdr->dwFlags &= ~WHDR_DONE;
+    lpWaveHdr->dwFlags |= WHDR_INQUEUE;
     lpWaveHdr->lpNext = 0;
 
     TRACE("imhere[3-HEADER]\n");
-    wodPlayer_Message(&WOutDev[wDevID], WINE_WM_HEADER, (DWORD)lpWaveHdr);
+    wodPlayer_Message(&WOutDev[wDevID], WINE_WM_HEADER, (unsigned long)lpWaveHdr);
 
 	return MMSYSERR_NOERROR;
 }
@@ -2172,8 +2172,8 @@ static	DWORD	wodGetNumDevs(void)
 /**************************************************************************
  * 				wodMessage     
  */
-DWORD OSS_wodMessage(UINT16 wDevID, UINT wMsg, DWORD dwUser, 
-		 DWORD dwParam1, DWORD dwParam2)
+DWORD OSS_wodMessage(UINT16 wDevID, UINT wMsg, unsigned long dwUser, 
+		 unsigned long dwParam1, unsigned long dwParam2)
 {
     TRACE("(%u, %04X, %08lX, %08lX, %08lX);\n",
 		wDevID, wMsg, dwUser, dwParam1, dwParam2);
@@ -2246,8 +2246,8 @@ const CALLBACKS_TABLE *Callbacks;
 /**************************************************************************
  * 				DriverCallback	[MMSYSTEM.31]
 */
-BOOL16 DriverCallback(DWORD dwCallBack, UINT16 uFlags, HANDLE16 hDev, 
-                             WORD wMsg, DWORD dwUser, DWORD dwParam1, DWORD dwParam2)
+BOOL16 DriverCallback(void (*dwCallBack)(void *, unsigned int,  unsigned int,  long int,  long int), UINT16 uFlags, HANDLE16 hDev, 
+                             WORD wMsg, DWORD dwUser, long dwParam1, long dwParam2)
 {
   //LPWAVEOPENDESC	lpDesc; // MGS warning removal
   

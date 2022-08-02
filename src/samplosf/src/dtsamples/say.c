@@ -249,7 +249,7 @@ static void usage(char *progname)
 **
 ******************************************************************************/
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
     char buf[4096];
     char cli_text[4096];
@@ -425,7 +425,7 @@ main( int argc, char *argv[] )
      devOptions |= WAVE_OPEN_SHAREABLE;
 #endif
 
-    status = TextToSpeechStartup( &ttsHandle,devNo, devOptions, NULL, NULL );
+    status = TextToSpeechStartup( &ttsHandle,devNo, devOptions, NULL, (long)NULL );
 
     switch (status)
     {
@@ -600,7 +600,7 @@ int play_file( char *file_name, int isAPipe )
        {
           text_len = strlen( buf );
 
-          if (value=TextToSpeechSpeak( ttsHandle, buf, dwFlags) != MMSYSERR_NOERROR  )
+          if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
           {
              fprintf(stderr,"Error writing %d bytes to TextToSpeech 1 with code %d.\n",text_len,value);
              break;
@@ -632,7 +632,7 @@ int play_file( char *file_name, int isAPipe )
     while( ( nbytes = fread( buf, 1, 4096, fileHandle ) ) > 0 )
     {
         text_len = strlen( buf );
-        if (value=TextToSpeechSpeak( ttsHandle, buf, dwFlags) != MMSYSERR_NOERROR  )
+        if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
         {
           fprintf(stderr,"Error writing %d bytes to TextToSpeech 2 with code %d.\n",text_len,value);
           break;

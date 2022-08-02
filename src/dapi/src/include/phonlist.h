@@ -514,4 +514,4 @@ static PTAB	ptab[]	= {			/* Phoneme name table (again)	*/
 
 #define	NPTAB	(sizeof(ptab)/sizeof(struct PTAB))
 
-#endif PHONLIST_H
+#endif //PHONLIST_H

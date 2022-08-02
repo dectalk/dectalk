@@ -128,13 +128,13 @@ static char *weekdays[7] = {
     "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 };
 
-error_exit( char *msg )
+void error_exit( char *msg )
 {
     fprintf(stderr,"%s: %s\n",program_name,msg);
     exit(-1);
 }
 
-speak_date( struct tm *t )
+void speak_date( struct tm *t )
 {
     char day[32], buf[256];
 
@@ -163,7 +163,7 @@ speak_date( struct tm *t )
      TextToSpeechSpeak( ttsHandle, buf, TTS_FORCE );
 }
 
-speak_time( struct tm *t, int twentyfourhour)
+void speak_time( struct tm *t, int twentyfourhour)
 {
     char *am_pm = "am";
     char mtext[32], buf[256];
@@ -192,7 +192,7 @@ speak_time( struct tm *t, int twentyfourhour)
 
 #define DEFAULT_INTERVAL 15
 
-Usage( )
+void Usage( )
 {
     fprintf(stderr,"Usage: %s [-24] [-h] [ # ]\n",program_name);
     fprintf(stderr,"       where # is the interval in minutes\n");
@@ -205,7 +205,7 @@ Usage( )
     exit( -1 );
 }
 
-main( int argc, char *argv[] )
+int main( int argc, char *argv[] )
 {
     time_t tv;
     struct tm *t;
@@ -241,7 +241,7 @@ main( int argc, char *argv[] )
 		Usage();
     }
     ttsHandle = NULL;
-    if ( TextToSpeechStartup(&ttsHandle, devNo, devOptions, NULL, NULL ) !=
+    if ( TextToSpeechStartup(&ttsHandle, devNo, devOptions, NULL, (long)NULL ) !=
             MMSYSERR_NOERROR  ) 
         error_exit("Error starting up DECtalk");
 

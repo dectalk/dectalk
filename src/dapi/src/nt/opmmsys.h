@@ -65,6 +65,10 @@ extern "C" {
 
 #endif
 
+#if ( __WORDSIZE == 64 )
+#define  OS_SIXTY_FOUR_BIT
+#endif
+
 /**********************************************************************/
 /*  Multimedia include files and type definitions for OpenVMS.        */
 /**********************************************************************/

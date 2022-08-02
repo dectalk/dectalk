@@ -128,8 +128,8 @@ void unload_dictionary( void **dict_index, void **dict_data, unsigned int *dict_
 #endif // WIN32
 
 #if defined __linux__ || defined __osf__ || defined _SPARC_SOLARIS_
-		munmap(*dicMapStartAddr,*dicMapObject);
-		close(*dicFileHandle);
+		munmap(*dicMapStartAddr,(long)*dicMapObject);
+		close((long)*dicFileHandle);
 		*dicMapStartAddr=NULL;
 		*dicMapObject=0;
 		*dicFileHandle=0;
@@ -452,15 +452,15 @@ restart:if ( *dict_siz > 0 )
 #if defined __linux__ || defined __osf__  || defined _SPARC_SOLARIS_//|| defined VXWORKS
 		fclose(dict_file);
 		// open the file */
-		*dicFileHandle=open(dict_nam,O_RDONLY);
-		if (((int)*dicFileHandle)==-1)
+		*dicFileHandle=(DT_HANDLE)(long)open(dict_nam,O_RDONLY);
+		if (((long)*dicFileHandle)==-1)
 		{	*dicFileHandle=0;
 			return(MMSYSERR_ERROR);
 		}
-		*dicMapObject=size+8;
-		*dicMapStartAddr=mmap(0,size+8,PROT_READ,MAP_SHARED,*dicFileHandle,0);
-		if (((int)*dicMapStartAddr)==-1)
-		{	close(*dicFileHandle);
+		*dicMapObject=(DT_HANDLE)(unsigned long)(size+8);
+		*dicMapStartAddr=mmap(0,size+8,PROT_READ,MAP_SHARED,(long)*dicFileHandle,0);
+		if (((long)*dicMapStartAddr)==-1)
+		{	close((long)*dicFileHandle);
 			*dicFileHandle=0;
 			*dicMapObject=0;
 			*dicMapStartAddr=0;
@@ -473,15 +473,15 @@ restart:if ( *dict_siz > 0 )
 	{
 		fc_entry = (int *)(((int)*dicMapStartAddr) + 12); //start the index buffer at start address + 8 bytes
 
-		dict_index_buffer = (int *)(((int)*dicMapStartAddr) + 12 + fc_entries*4); //start the index buffer at start address + 8 bytes
+		dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 12 + fc_entries*4); //start the index buffer at start address + 8 bytes
 	}
 	else
 #endif
 	{
-		dict_index_buffer = (int *)(((int)*dicMapStartAddr) + 8); //start the index buffer at start address + 8 bytes
+		dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 8); //start the index buffer at start address + 8 bytes
 	}
 	  
-		dict_data_buffer = (unsigned char *)(pointer_list_size + ((int)dict_index_buffer)); //start 	  	  
+		dict_data_buffer = (unsigned char *)(pointer_list_size + ((long)dict_index_buffer)); //start 	  	  
 	}
 	else
 	{ 
@@ -497,7 +497,7 @@ restart:if ( *dict_siz > 0 )
 		{	TextToSpeechErrorHandler( phTTS, ERROR_READING_DICTIONARY, MMSYSERR_NOMEM );
 		}
 #else
-		fprintf(stderr,"Failed to allocated required %d bytes of memory to load dictionary\n",size + sizeof(long));
+		fprintf(stderr,"Failed to allocated required %zd bytes of memory to load dictionary\n",size + sizeof(long));
 
 #endif
 
@@ -525,7 +525,7 @@ restart:if ( *dict_siz > 0 )
 
 #else
 		free(dict_index_buffer);
-		fprintf(stderr,"Failed to allocated required %d bytes of memory to load dictionary\n",size + sizeof(long));
+		fprintf(stderr,"Failed to allocated required %zd bytes of memory to load dictionary\n",size + sizeof(long));
 #endif
 
 		fclose(dict_file);

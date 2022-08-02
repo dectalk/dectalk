@@ -2722,12 +2722,17 @@ void SendVisualNotification(LPTTS_HANDLE_T phTTS, DWORD dwPhoneme, DWORD dwDurat
 		DWORD dwSyncParams[4];
 		dwSyncParams[0]=SPC_type_visual;
 		dwSyncParams[1]=0;
+#if 0
 #ifdef __osf__
 		dwSyncParams[2]=(DWORD)((((long)(pvdPacket)) & 0xFFFFFFFF00000000) >> 32);
 		dwSyncParams[3]=(DWORD)(((long)(pvdPacket)) & 0x00000000FFFFFFFF);
 #else
 		dwSyncParams[2]=0;
 		dwSyncParams[3]=(DWORD)pvdPacket;
+#endif
+#else
+		dwSyncParams[2]=(DWORD)((((long)(pvdPacket)) & 0xFFFFFFFF00000000) >> 32);
+		dwSyncParams[3]=(DWORD)(((long)(pvdPacket)) & 0x00000000FFFFFFFF);
 #endif
 		write_pipe(pKsd_t->sync_pipe, dwSyncParams,4);
 		

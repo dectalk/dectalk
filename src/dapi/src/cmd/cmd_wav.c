@@ -206,7 +206,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
   MMRESULT mmStatus;
   LPWAVEFORMATEX pWaveFormat;
   LPWAVEFORMATEX pOldWaveFormat;
-  HMMIO hMmio = (int)NULL;
+  HMMIO hMmio = (long)NULL;
   int is_au=0;
   int au_fd=0;
   AU_FILE_HDR_T AuFileHdr;
@@ -392,7 +392,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	hMmio = wave_file_open( pCmd_t->pString[0], &pWaveFormat, &iError, phTTS );
 
 #ifndef ERRORCHECK
-	if ( hMmio == NULL )
+	if ( hMmio == (long)NULL )
 	{
 	  free( pOldWaveFormat );
 	  free( pWaveFormat );
@@ -830,7 +830,7 @@ static HMMIO wave_file_open( char * file_name,
 #endif
 
 #ifndef ERRORCHECK
-  if ( hmmioIn == NULL )
+  if ( hmmioIn == (long)NULL )
   {
 	TextToSpeechErrorHandler( phTTS,
 							  ERROR_OPENING_WAVE_FILE,
@@ -861,7 +861,7 @@ static HMMIO wave_file_open( char * file_name,
 							  ERROR_BAD_WAVE_FILE_FORMAT,
 							  MMSYSERR_ERROR );
 	*piError = CMD_bad_wave_file_format;
-	return( (int)NULL );
+	return( (long)NULL );
   }
   
   /********************************************************************/
@@ -886,7 +886,7 @@ static HMMIO wave_file_open( char * file_name,
 							  ERROR_BAD_WAVE_FILE_FORMAT,
 							  MMSYSERR_ERROR );
 	*piError = CMD_bad_wave_file_format;
-	return( (int)NULL );
+	return( (long)NULL );
   }
 
   /********************************************************************/
@@ -909,7 +909,7 @@ static HMMIO wave_file_open( char * file_name,
 							  ERROR_BAD_WAVE_FILE_FORMAT,
 							  MMSYSERR_ERROR );
 	*piError = CMD_bad_wave_file_format;
-	return( (int)NULL );
+	return( (long)NULL );
   }
 
   
@@ -944,7 +944,7 @@ static HMMIO wave_file_open( char * file_name,
 							  0,
 							  MMSYSERR_NOMEM );
 	*piError = CMD_out_of_memory;
-	return( (int)NULL );
+	return( (long)NULL );
   }
 
   *ppWaveFormat = pWaveFormat;
@@ -973,7 +973,7 @@ static HMMIO wave_file_open( char * file_name,
 							  ERROR_BAD_WAVE_FILE_FORMAT,
 							  MMSYSERR_ERROR );
 	*piError = CMD_bad_wave_file_format;
-	return( (int)NULL );
+	return( (long)NULL );
   }
 
 
@@ -996,7 +996,7 @@ static HMMIO wave_file_open( char * file_name,
 							  ERROR_BAD_WAVE_FILE_FORMAT,
 							  MMSYSERR_ERROR );
 	*piError = CMD_bad_wave_file_format;
-	return( (int)NULL );
+	return( (long)NULL );
   }
 
 
@@ -1023,7 +1023,7 @@ static HMMIO wave_file_open( char * file_name,
 							  ERROR_BAD_WAVE_FILE_FORMAT,
 							  MMSYSERR_ERROR );
 	*piError = CMD_bad_wave_file_format;
-	return( (int)NULL );
+	return( (long)NULL );
   }
 
   *piError = 0;

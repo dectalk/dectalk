@@ -51,6 +51,8 @@
  *                                                                    *
  **********************************************************************
 
+*/
+
 /*
  * @DEC_COPYRIGHT@
  */
@@ -1511,7 +1513,7 @@ int AddLicenseRef(int *a32_lic)
 		}
 		allocated=1;
 		MemLicense=(license_struct_t *)shmat(shared_mem_id,0,0);
-		if ((int)MemLicense==-1)
+		if (MemLicense==(license_struct_t *)-1)
 		{
 			perror("cannot map shared memory");
 			if (file_exists==0)
@@ -1980,7 +1982,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	if ( IsBadWritePtr( pphTTS, sizeof(pphTTS)) || (pphTTS==NULL))
 		return( MMSYSERR_INVALHANDLE );
 
-	if ( uiDeviceNumber == NULL )
+	if ( uiDeviceNumber == 0 )
 		return( MMSYSERR_INVALPARAM );	
 
 #ifdef LICENSES
@@ -3241,7 +3243,7 @@ phTTS->uiID_Start_Message =
 		/********************************************************************/
 		/*  Start the Text Queueing thread.                                 */
 		/********************************************************************/
-		phTTS->hTextToSpeechWnd = (int)NULL;
+		phTTS->hTextToSpeechWnd = (HWND)NULL;
 		
 		nReturnCode = StartDecTalkSystemThread(phTTS, &(phTTS->hThread_TXT),
 #ifdef WIN32
@@ -3622,7 +3624,7 @@ BOOL bMalloc, OP_THREAD_ROUTINE(ThreadFunction, LPTTS_HANDLE_T phTTS))
 #endif
 #if defined __osf__ || defined __linux__  || defined _SPARC_SOLARIS_
 	*ppDecTalkThread = OP_CreateThread(0,
-					   ThreadFunction,             
+					   (void *(*)(void *))ThreadFunction,             
 					   (void *)phTTS);
 #endif
 #if defined VXWORKS
@@ -4731,7 +4733,7 @@ MMRESULT TextToSpeechSpeakEx( LPTTS_HANDLE_T phTTS,
 	// a typing-mode fast reset (which will leave this sneak
 	// message inside the synthesizer)
 	phTTS->bInTypingMode = FALSE;
-#endif TYPING_MODE
+#endif //TYPING_MODE
 	
 	/********************************************************************/
 	/*  Allocate the Text Message structure.                            */
@@ -8048,7 +8050,7 @@ MMRESULT TextToSpeechOpenLogFile( LPTTS_HANDLE_T phTTS,
 		return( MMSYSERR_INVALHANDLE );
 	
 
-	if (dwFlags == NULL)
+	if (dwFlags == 0)
 		return( MMSYSERR_INVALPARAM );
 
 	/********************************************************************/
@@ -12062,6 +12064,7 @@ MMRESULT TextToSpeechVisualMarks( LPTTS_HANDLE_T phTTS,int value)
 
 int TextToSpeechReserved5(LPTTS_HANDLE_T phTTS,char *string)
 {
+	return 0;
 }
 
 

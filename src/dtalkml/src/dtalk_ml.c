@@ -100,6 +100,7 @@ _CRTIMP wchar_t __cdecl towupper(wchar_t);
 #include <ctype.h>
 #if defined __linux__
 #include <linux/limits.h>
+#include <libgen.h>
 #endif
 #endif // linux
 #endif // osf || linux

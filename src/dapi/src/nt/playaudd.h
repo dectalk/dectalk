@@ -74,7 +74,7 @@ typedef PLAY_RING_T * LPPLAY_RING_T;
 
 
 #if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
-typedef UINT HWAVEOUT;
+typedef void* HWAVEOUT;
 
 struct wavehdr_tag {
     LPSTR                 lpData;          /* pointer to locked data buffer */
@@ -84,7 +84,7 @@ struct wavehdr_tag {
     DWORD                 dwFlags;         /* assorted flags (see defines) */
     DWORD                 dwLoops;         /* loop control counter */
     struct wavehdr_tag  * lpNext;          /* reserved for driver */
-    DWORD                 reserved;        /* reserved for driver */
+    unsigned long         reserved;        /* reserved for driver */
 };
 typedef struct wavehdr_tag WAVEHDR;
 typedef WAVEHDR       *PWAVEHDR;
@@ -138,7 +138,7 @@ struct PLAY_AUDIO_TAG
   unsigned int uiHandleListIndex;
 #endif
 
-  unsigned int uiSelectedDeviceID;
+  unsigned long uiSelectedDeviceID;
   unsigned int uiMaximumWriteLength;
   unsigned int uiStartupWriteLength;
   unsigned int uiMinimumStartupBytes;
