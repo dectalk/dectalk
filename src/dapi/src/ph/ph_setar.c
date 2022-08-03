@@ -152,7 +152,7 @@ extern const short sp_maldip[];
 extern const short sp_maltar[];
 //extern const short sp_malamp[];
 
-//extern const short fr_maleloc[];
+extern const short fr_maleloc[];
 //extern const short fr_maldip[];
 //extern const short fr_maltar[];
 //extern const short fr_malamp[];

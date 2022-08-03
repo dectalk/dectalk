@@ -219,7 +219,7 @@ static short setloc (LPTTS_HANDLE_T phTTS,
 		ploc = plocu( (fonobst + (40 * (sontyx - 1) ) ) );
 		//printf ("setloc  fonobst : %x, sontyx %d, ploc %d\n", 
     	  //       fonobst, sontyx, ploc);
-/*		if(pDph_t->malfem == MALE)
+		if(pDph_t->malfem == MALE)
 		{
 			pDph_t->p_locus = (short *)fr_maleloc;
 		}
@@ -227,7 +227,6 @@ static short setloc (LPTTS_HANDLE_T phTTS,
 		{
 			pDph_t->p_locus = (short *)fr_femloc;	   	
 		} 
-*/
 	}
 		
 	if (ploc == 0)					   /* Pointer to locus, zero means */

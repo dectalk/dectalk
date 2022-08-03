@@ -216,6 +216,7 @@ short la_gettar (LPTTS_HANDLE_T phTTS, int nphone_temp)
 
 	/* PARALLEL FORMANT AMPLITUDES */
 
+#ifndef HLSYN
 	else if (pDphsettar->par_type IS_PARALLEL_FORM_AMP)
 	{
 		/* Source spectral tilt: highly tilted for obstruents */
@@ -309,6 +310,7 @@ short la_gettar (LPTTS_HANDLE_T phTTS, int nphone_temp)
 
 		}
 	}
+#endif
 
 	/* NASAL ZERO */
 
