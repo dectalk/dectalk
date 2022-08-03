@@ -486,9 +486,11 @@ GERLETTER vowel_lts_rule(GERLETTER *word, SHORT from, SHORT wordlen, SHORT *expl
 	case 'ö':  cout='Q'; break;
 	case 'ü':  cout='Y'; break;
 #if !defined ARM7 && !defined __ipaq__
+#if UML_a != 'ä'
 	case UML_a:  cout='V'; break;     // gnu cc does not get the umlaut, 
 	case UML_o:  cout='Q'; break;     // so the above are doubled here 
 	case UML_u:  cout='Y'; break;     // with different code
+#endif
 #endif
 	}
     }
@@ -505,9 +507,11 @@ GERLETTER vowel_lts_rule(GERLETTER *word, SHORT from, SHORT wordlen, SHORT *expl
 	case 'ö':  cout='q'; break;
 	case 'ü':  cout='6'; break;
 #if !defined ARM7 && !defined __ipaq__
+#if UML_a != 'ä'
 	case UML_a:  cout='7'; break;
 	case UML_o:  cout='q'; break;
 	case UML_u:  cout='y'; break;
+#endif
 #endif
 	}
     }
