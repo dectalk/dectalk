@@ -1509,7 +1509,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #endif
 		strcpy(main_dict_name,DEF_LINUX_MAIN_DICT);
 #ifdef __linux__
-		if ((access(main_dict_name, R_OK) == -1) && (main_dict_name[0] != '/')) {
+		if (exe_path && (main_dict_name[0] != '/')) {
 			char p[PATH_MAX] = {};
 			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 			if (count != -1) {
@@ -1536,9 +1536,9 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 			if (strncmp(line,LINUX_FDICT_TAG,9)==0)
 			{
 				line[strlen(line)-1]='\0';
-				strcpy(foreign_dict_name,line+8);
+				strcpy(foreign_dict_name,line+9);
 #ifdef __linux__
-				if ((access(foreign_dict_name, R_OK) == -1) && (foreign_dict_name[0] != '/')) {
+				if (exe_path && (foreign_dict_name[0] != '/')) {
 					char p[PATH_MAX] = {};
 					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 					if (count != -1) {
@@ -1563,7 +1563,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #endif
 		strcpy(foreign_dict_name,DEF_LINUX_FOREIGN_DICT);
 #ifdef __linux__
-		if ((access(foreign_dict_name, R_OK) == -1) && (foreign_dict_name[0] != '/')) {
+		if (exe_path && (foreign_dict_name[0] != '/')) {
 			char p[PATH_MAX] = {};
 			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 			if (count != -1) {
