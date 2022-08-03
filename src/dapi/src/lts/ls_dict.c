@@ -1744,7 +1744,7 @@ MMRESULT AddUserEntry(LPTTS_HANDLE_T phTTS, struct dic_entry *entry)
 #if (defined WIN32) && (!defined UNDER_CE)
 		if (!(UDICT_INDEX = (S32 *) mallocLock(4)))
 #else
-		if (!(UDICT_INDEX = (S32 *) malloc(4)))
+		if (!(UDICT_INDEX_ASSIGN = (S32 *) malloc(4)))
 #endif
 			return MMSYSERR_NOMEM;
 #if (defined WIN32) && (!defined UNDER_CE)
@@ -1829,7 +1829,7 @@ MMRESULT AddUserEntry(LPTTS_HANDLE_T phTTS, struct dic_entry *entry)
 	}
 
 #else
-	if ((UDICT_INDEX = realloc(UDICT_INDEX, (UDICT_ENTRY+1) * sizeof(S32))) == NULL)
+	if ((UDICT_INDEX_ASSIGN = realloc(UDICT_INDEX, (UDICT_ENTRY+1) * sizeof(S32))) == NULL)
 	{
 		return MMSYSERR_NOMEM;
 	}
@@ -1938,7 +1938,7 @@ MMRESULT DeleteUserEntry(LPTTS_HANDLE_T phTTS, struct dic_entry *entry)
 		free(UDICT_INDEX);
 		free((unsigned char *)UDICT_DATA);
 #endif
-		UDICT_INDEX = NULL;
+		UDICT_INDEX_ASSIGN = NULL;
 		UDICT_DATA=NULL;
 		UDICT_ENTRY = 0;
 		UDICT_BYTES=0;
@@ -1967,7 +1967,7 @@ MMRESULT DeleteUserEntry(LPTTS_HANDLE_T phTTS, struct dic_entry *entry)
 	UDICT_INDEX = reallocLock(UDICT_INDEX, (UDICT_ENTRY-1) * sizeof(S32));
 	UDICT_DATA = reallocLock(UDICT_DATA, new_size);
 #else
-	UDICT_INDEX = realloc(UDICT_INDEX, (UDICT_ENTRY-1) * sizeof(S32));
+	UDICT_INDEX_ASSIGN = realloc(UDICT_INDEX, (UDICT_ENTRY-1) * sizeof(S32));
 	UDICT_DATA = realloc((unsigned char *)UDICT_DATA, new_size);
 #endif
 
