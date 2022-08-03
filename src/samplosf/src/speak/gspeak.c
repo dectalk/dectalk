@@ -97,6 +97,7 @@ void EditUndoCallback(GtkWidget *, gpointer);
 void EditCutCallback(GtkWidget *, gpointer);
 void EditCopyCallback(GtkWidget *, gpointer);
 void EditPasteCallback(GtkWidget *, gpointer);
+void EditSelectAllCallback(GtkWidget *, gpointer);
 void HelpHelpCallback(GtkWidget *, gpointer);
 void HelpOpenNetscape();
 void HelpAboutCallback(GtkWidget *, gpointer);
@@ -277,7 +278,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/_File", NULL, NULL, 0, "<Branch>"},
   {"/File/_New", "<control>N", FileNewCallback, 0, NULL},
   {"/File/_Open...", "<control>O", FileOpenCallback, 0, NULL},
-  {"/File/S_ave", "<control>A", FileSaveCallback, 0, NULL},
+  {"/File/S_ave", "<control>S", FileSaveCallback, 0, NULL},
   {"/File/Save as", NULL, FileSaveAsCallback, 0, NULL},
   {"/File/_Close", NULL, FileNewCallback, 0, NULL},
   {"/File/sep", NULL, NULL, 0, "<Separator>"},
@@ -312,7 +313,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/_File/", NULL, NULL, 0, "<Branch>"},
   {"/File/_New", "<control>N", FileNewCallback, 0, NULL},
   {"/File/_Open...", "<control>O", FileOpenCallback, 0, NULL},
-  {"/File/S_ave", "<control>A", FileSaveCallback, 0, NULL},
+  {"/File/S_ave", "<control>S", FileSaveCallback, 0, NULL},
   {"/File/Save as", NULL, FileSaveAsCallback, 0, NULL},
   {"/File/_Close", NULL, FileNewCallback, 0, NULL},
   {"/File/sep", NULL, NULL, 0, "<Separator>"},
@@ -948,6 +949,7 @@ int main (int argc, char *argv[])
   gtk_box_pack_start(GTK_BOX(text_box), scrollbox, TRUE, TRUE, 0);
   gtk_widget_show(text_entry);
   gtk_widget_show(scrollbox);
+  gtk_widget_grab_focus(GTK_WIDGET(text_entry));
 
   text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_entry));
   modified_id = g_signal_connect(G_OBJECT(text_buffer),"changed", 
@@ -977,7 +979,8 @@ int main (int argc, char *argv[])
 		     GTK_SIGNAL_FUNC(RateScaleModified),NULL);
   
   /* Create a button to which to attach menu as a popup */
-  button = gtk_button_new_with_label("Play");
+  button = gtk_button_new_with_label("_Play");
+  gtk_button_set_use_underline(GTK_BUTTON(button), TRUE);
   //  gtk_misc_set_alignment (GTK_MISC(button), 0, 0);
   gtk_signal_connect_object(GTK_OBJECT(button), "clicked",
 			    GTK_SIGNAL_FUNC (StartPlay), 
@@ -996,7 +999,8 @@ int main (int argc, char *argv[])
 #endif
 #endif
 
-  button = gtk_button_new_with_label("Stop");
+  button = gtk_button_new_with_label("_Stop");
+  gtk_button_set_use_underline(GTK_BUTTON(button), TRUE);
   gtk_signal_connect_object(GTK_OBJECT(button), "clicked",
 			    GTK_SIGNAL_FUNC (StopPlay), 
 			    GTK_OBJECT(button));
