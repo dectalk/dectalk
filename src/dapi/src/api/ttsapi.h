@@ -791,7 +791,7 @@ struct dic_entry
 #ifdef CHEESY_DICT_COMPRESSION
    unsigned  char fc[1];
 #else
-#ifdef __osf__
+#ifndef MSDOS
    unsigned  int fc[1];
 #else
    unsigned long  fc[1];
