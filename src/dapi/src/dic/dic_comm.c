@@ -51,7 +51,7 @@
 #ifdef __arm__
 #include <asm/io.h>
 #else
-#include <sys/io.h>
+//#include <sys/io.h>
 #endif
 #endif
 
