@@ -940,6 +940,7 @@ int main (int argc, char *argv[])
   gtk_widget_set_size_request(text_entry, 400, 400);
   scrollbox = gtk_scrolled_window_new(NULL, NULL);
   gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbox), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrollbox), GTK_SHADOW_IN);
 
   gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text_entry), GTK_WRAP_WORD);
