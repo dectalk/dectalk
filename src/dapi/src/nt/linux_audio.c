@@ -54,8 +54,6 @@
 #ifndef LINUX_AUDIO_C
 #define LINUX_AUDIO_C
 
-#define USE_PULSEAUDIO
-
 //#define _DEBUG
 
 #include <unistd.h>

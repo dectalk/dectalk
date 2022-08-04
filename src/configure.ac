@@ -408,7 +408,7 @@ DAPI_LD_SHARED="\$(LD) -shared -update_registry \
 	-soname libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)"
 case "$target" in
 	*-*-linux-*) DAPI_LD_SHARED="\$(LD) -shared -Bsymbolic -soname \
-		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -lm -lpulse-simple" ;;
+		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -lm" ;;
 	powerpc-apple-*) DAPI_LD_SHARED="\$(CC) -dynamic -dynamiclib -dylib \
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 	sparc-sun-*) DAPI_LD_SHARED="\$(LD) -G -Bsymbolic \
@@ -553,6 +553,17 @@ case "$target" in
 	powerpc-apple-*) SAMPLE_DTLIB=" -ltts" ;;
 esac
 AC_SUBST(SAMPLE_DTLIB)dnl
+
+PKG_CHECK_MODULES(GTK, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
+
+AUDIO_DEFINES=""
+AUDIO_LIBS=""
+if test "${have_libpulsesimple}" = "yes"; then
+	AUDIO_DEFINES="-DUSE_PULSEAUDIO"
+	AUDIO_LIBS="-lpulse-simple"
+fi
+AC_SUBST(AUDIO_DEFINES)dnl
+AC_SUBST(AUDIO_LIBS)dnl
 
 AC_OUTPUT(Makefile Makefile.sub dapi/src/Makefile dapi/src/Makefile.sub dapi/src/api/Makefile dapi/src/cmd/Makefile dapi/src/dic/Makefile dapi/src/kernel/Makefile dapi/src/lts/Makefile dapi/src/nt/Makefile dapi/src/osf/Makefile dapi/src/ph/Makefile dapi/src/vtm/Makefile dapi/src/hlsyn/Makefile dtalkml/src/Makefile samplosf/src/speak/Makefile samplosf/src/windict/Makefile samplosf/src/dtsamples/Makefile licunix/src/Makefile udicunix/src/Makefile)
 dnl AC_OUTPUT always has to be last
