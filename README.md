@@ -10,3 +10,6 @@ apt-get install build-essential libpulse-dev libgtk2.0-dev unzip
 (libgtk2.0-dev is only needed if you want the graphical frontend)
 
 The result will be in the folder `dist` in the root.
+
+## Docker Fun
+To build DECtalk in docker, run `sudo docker-compose up` (and make sure you have Docker and docker-compose installed!)
