@@ -699,6 +699,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_audio
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1331,6 +1332,12 @@ fi
 if test -n "$ac_init_help"; then
 
   cat <<\_ACEOF
+
+Optional Features:
+  --disable-option-checking  ignore unrecognized --enable/--with options
+  --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
+  --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --disable-audio	Disable system audio output (/dev/dsp or pulseaudio)
 
 Some influential environment variables:
   CC          C compiler command
@@ -3574,6 +3581,17 @@ case "$target" in
 	powerpc-apple-*) SAMPLE_DTLIB=" -ltts" ;;
 esac
 
+AUDIO_DEFINES=""
+AUDIO_LIBS=""
+
+# Check whether --enable-audio was given.
+if test "${enable_audio+set}" = set; then :
+  enableval=$enable_audio; with_audio="${enableval}"
+else
+  with_audio="yes"
+fi
+
+if test "${with_audio}" = "yes"; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpulse-simple" >&5
@@ -3645,12 +3663,13 @@ else
 $as_echo "yes" >&6; }
 	have_libpulsesimple=yes
 fi
+	if test "${have_libpulsesimple}" = "yes"; then
+		AUDIO_DEFINES="-DUSE_PULSEAUDIO"
+		AUDIO_LIBS="-lpulse-simple"
+	fi
 
-AUDIO_DEFINES=""
-AUDIO_LIBS=""
-if test "${have_libpulsesimple}" = "yes"; then
-	AUDIO_DEFINES="-DUSE_PULSEAUDIO"
-	AUDIO_LIBS="-lpulse-simple"
+else
+	AUDIO_DEFINES="-DDISABLE_AUDIO"
 fi
 
 ac_config_files="$ac_config_files Makefile Makefile.sub dapi/src/Makefile dapi/src/Makefile.sub dapi/src/api/Makefile dapi/src/cmd/Makefile dapi/src/dic/Makefile dapi/src/kernel/Makefile dapi/src/lts/Makefile dapi/src/nt/Makefile dapi/src/osf/Makefile dapi/src/ph/Makefile dapi/src/vtm/Makefile dapi/src/hlsyn/Makefile dtalkml/src/Makefile samplosf/src/speak/Makefile samplosf/src/windict/Makefile samplosf/src/dtsamples/Makefile licunix/src/Makefile udicunix/src/Makefile"

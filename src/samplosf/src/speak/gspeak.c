@@ -375,7 +375,11 @@ int main (int argc, char *argv[])
 {
   MMRESULT mmstatus;
   //long devOptions = OWN_AUDIO_DEVICE | REPORT_OPEN_ERROR ;
+#if defined DISABLE_AUDIO
+  long devOptions = DO_NOT_USE_AUDIO_DEVICE;
+#else
   long devOptions = REPORT_OPEN_ERROR ;
+#endif
   //  long devEncoding[3] = {
   //  WAVE_FORMAT_1M16, 
   //  WAVE_FORMAT_1M08, 

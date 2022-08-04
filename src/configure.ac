@@ -554,13 +554,20 @@ case "$target" in
 esac
 AC_SUBST(SAMPLE_DTLIB)dnl
 
-PKG_CHECK_MODULES(GTK, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
-
 AUDIO_DEFINES=""
 AUDIO_LIBS=""
-if test "${have_libpulsesimple}" = "yes"; then
-	AUDIO_DEFINES="-DUSE_PULSEAUDIO"
-	AUDIO_LIBS="-lpulse-simple"
+
+AC_ARG_ENABLE(audio, [  --disable-audio	Disable system audio output (/dev/dsp or pulseaudio)],
+              with_audio="${enableval}", with_audio="yes")
+if test "${with_audio}" = "yes"; then
+	PKG_CHECK_MODULES(GTK, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
+	if test "${have_libpulsesimple}" = "yes"; then
+		AUDIO_DEFINES="-DUSE_PULSEAUDIO"
+		AUDIO_LIBS="-lpulse-simple"
+	fi
+
+else
+	AUDIO_DEFINES="-DDISABLE_AUDIO"
 fi
 AC_SUBST(AUDIO_DEFINES)dnl
 AC_SUBST(AUDIO_LIBS)dnl

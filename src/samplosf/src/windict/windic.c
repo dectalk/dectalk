@@ -214,7 +214,11 @@ int main(int argc, char *argv[])
 {
   
   MMRESULT mmstatus;
+#if defined DISABLE_AUDIO
+  long devOptions = DO_NOT_USE_AUDIO_DEVICE;
+#else
   long devOptions = REPORT_OPEN_ERROR ;
+#endif
   int devNo = WAVE_MAPPER;
   FILE *config_file;
   LANG_ENUM *dt_langs;

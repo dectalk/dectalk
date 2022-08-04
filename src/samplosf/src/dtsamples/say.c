@@ -419,7 +419,7 @@ int main( int argc, char *argv[] )
     }
 
 
-#if defined VXWORKS 
+#if defined VXWORKS  || defined DISABLE_AUDIO
     devOptions |= DO_NOT_USE_AUDIO_DEVICE;
 #else
      devOptions |= WAVE_OPEN_SHAREABLE;
