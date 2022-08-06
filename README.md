@@ -7,7 +7,7 @@ This needs the following dependencies to be installed:
 ```shell
 apt-get install build-essential libpulse-dev libgtk2.0-dev unzip
 ```
-(libgtk2.0-dev is only needed if you want the graphical frontend)
+(libgtk2.0-dev is only needed if you want the graphical frontend, libpulse-dev if you want pulseaudio audio-output)
 
 The result will be in the folder `dist` in the root.
 
