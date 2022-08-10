@@ -34,7 +34,14 @@ AUDIO_DEFINES=@AUDIO_DEFINES@
 
 RM=rm -f
 
-INCLUDES= -I$(STD_INCLUDE) -I$(STD_INCLUDE)/dtk
+INLCUDE_DIR=../../../dapi/src/include
+API_DIR=    ../../../dapi/src/api
+PH_DIR=     ../../../dapi/src/ph
+NT_DIR=     ../../../dapi/src/nt
+VTM_DIR=    ../../../dapi/src/vtm
+DECTALKF_DIR = ../../../
+
+INCLUDES= -I$(STD_INCLUDE) -I$(STD_INCLUDE)/dtk -I$(DECTALKF_DIR) -I$(API_DIR) -I$(INLCUDE_DIR) -I$(NT_DIR) -I$(VTM_DIR) -I$(PH_DIR)
 
 #DEBUGFLAGS= -G3
 #OTHER_FLAGS=-threads 
@@ -49,7 +56,7 @@ MMELIBS= -lm
 
 #DT_LIB=-lttsmme_$(LANG_CODE)
 
-SAMPLES_SRC=say.c dtmemory.c aclock.c xmsay.c
+SAMPLES_SRC=say.c dtmemory.c aclock.c xmsay.c tunecheck.c
 
 SAMPLES_OBJ=$(SAMPLES_SRC:.c=.o)
 
@@ -59,6 +66,12 @@ all: $(DTSAMPLE_ALL)
 
 $(OUTPUT_DIR)/say:say.o
 	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
+
+$(OUTPUT_DIR)/link/tunecheck.o: tunecheck.c
+	$(CC) -c $(CFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
+
+$(OUTPUT_DIR)/tunecheck: $(OUTPUT_DIR)/link/tunecheck.o
+	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS) -ltts_$(LANG_CODE)
 
 $(OUTPUT_DIR)/say_demo_$(LANG_CODE):say.o
 	$(CC) $(LINKFLAGS) -o $@ $? -ltts_demo_$(LANG_CODE) $(LIBS) $(MMELIBS) $(AUDIO_LIBS)
@@ -82,5 +95,6 @@ $(OUTPUT_DIR)/xmsay:xmsay.o
 	$(CC) -c $(CFLAGS) -o $@ $?
 
 clean:
+	$(RM) -r $(OUTPUT_DIR)/link
 	$(RM) $(OUTPUT_DIR)/* 
 	$(RM) $(SAMPLES_OBJ) *~ core

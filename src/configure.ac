@@ -526,7 +526,7 @@ DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \$(OUTPUT_DIR)/aclock \
 case "$target" in
 	*-*-linux-*) DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \
 	\$(OUTPUT_DIR)/say_demo_\$(LANG_CODE) \
-	\$(OUTPUT_DIR)/dtmemory_demo_\$(LANG_CODE) \$(OUTPUT_DIR)/aclock" ;;
+	\$(OUTPUT_DIR)/dtmemory_demo_\$(LANG_CODE) \$(OUTPUT_DIR)/aclock \$(OUTPUT_DIR)/tunecheck" ;;
 	sparc-sun-*) DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \
 	\$(OUTPUT_DIR)/say_demo_\$(LANG_CODE) \
 	\$(OUTPUT_DIR)/dtmemory_demo_\$(LANG_CODE) \$(OUTPUT_DIR)/aclock" ;;

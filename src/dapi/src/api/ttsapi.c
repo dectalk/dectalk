@@ -11490,6 +11490,7 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 #endif
 	return (sizeof(LANG_ENUM));
 }
+#endif
 
 short  *GetPhVdefParams(LPTTS_HANDLE_T phTTS, UINT index);
 
@@ -11510,6 +11511,7 @@ short  *TextToSpeechGetPhVdefParams(LPTTS_HANDLE_T phTTS, UINT index)
 }
 
 
+#ifdef WIN32
 MMRESULT GetSpeakerParams(LPTTS_HANDLE_T phTTS, UINT uiIndex, SPDEFS **ppspCur,
 						  SPDEFS **ppspLoLimit, SPDEFS **ppspHiLimit, SPDEFS **ppspDefault);
 
@@ -11703,6 +11705,10 @@ MMRESULT TextToSpeechConvertToPhonemes(LPTTS_HANDLE_T phTTS,
 	return MMSYSERR_NOERROR;
 }
 
+// MGS Moved endif so PumpModeMessage doesn't break UNIX
+#endif /* WIN32 */
+
+
 // tek 28oct98
 // this function is used to enable/disable tuning data trapping, and to retrieve
 // the data from a tuning pass.
@@ -11784,9 +11790,6 @@ MMRESULT TextToSpeechTuning(LPTTS_HANDLE_T phTTS,
 
 } // TextToSpeechTuning
 
-
-// MGS Moved endif so PumpModeMessage doesn't break UNIX
-#endif /* WIN32 */
 
 // tek 07jan99 BATS850: implement the message-pump function.
 // Function: PumpModeMessage
