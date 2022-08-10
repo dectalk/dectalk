@@ -511,6 +511,7 @@ int main( int argc, char *argv[] )
                                      text_len);
 		break;
 	    }
+	    memset(buf, 0, sizeof(buf));
 	}
     }
     }
@@ -596,7 +597,8 @@ int play_file( char *file_name, int isAPipe )
     /******************************************************/
     if ( isAPipe == TRUE )
     {
-       while( fgets( buf, 4096, stdin )  )
+       bzero( buf, sizeof(buf));
+       while( fgets( buf, sizeof(buf)-1, stdin )  )
        {
           text_len = strlen( buf );
 
@@ -605,7 +607,8 @@ int play_file( char *file_name, int isAPipe )
              fprintf(stderr,"Error writing %d bytes to TextToSpeech 1 with code %d.\n",text_len,value);
              break;
           }
-          total_bytes += nbytes;
+          total_bytes += text_len;
+          bzero( buf, sizeof(buf));
        }
        /******************************************************/
        /* Let's make sure that all the text has been spoken. */
@@ -628,8 +631,8 @@ int play_file( char *file_name, int isAPipe )
     /***********************************************/
     /* Read 4096 bytes and playback until EOF	   */
     /***********************************************/
-    bzero( buf, 4096 );
-    while( ( nbytes = fread( buf, 1, 4096, fileHandle ) ) > 0 )
+    bzero( buf, sizeof(buf));
+    while( fgets( buf, sizeof(buf)-1, fileHandle ) != NULL )
     {
         text_len = strlen( buf );
         if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
@@ -637,7 +640,8 @@ int play_file( char *file_name, int isAPipe )
           fprintf(stderr,"Error writing %d bytes to TextToSpeech 2 with code %d.\n",text_len,value);
           break;
         }
-        total_bytes += nbytes;
+        total_bytes += text_len;
+	bzero( buf, sizeof(buf));
     }
 
     /******************************************************/
