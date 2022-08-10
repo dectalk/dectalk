@@ -102,7 +102,7 @@
 
 /* Perfect Paul */
 
-short                   paul_8[SPDEF] =
+const short                   paul_8[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	3,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -150,7 +150,7 @@ short                   paul_8[SPDEF] =
 
 /* Crusty Chris */
 
-short                   chris_8[SPDEF] =
+const short                   chris_8[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	3,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -198,7 +198,7 @@ short                   chris_8[SPDEF] =
 
 /* Beautiful Betty */
 
-short                   betty_8[SPDEF] =
+const short                   betty_8[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	4,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -246,7 +246,7 @@ short                   betty_8[SPDEF] =
 
 /* Huge Harry */
 
-short                   harry_8[SPDEF] =
+const short                   harry_8[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	12,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -288,7 +288,7 @@ short                   harry_8[SPDEF] =
 
 /* Frail Frank */
 
-short                   frank_8[SPDEF] =
+const short                   frank_8[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	46,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -336,7 +336,7 @@ short                   frank_8[SPDEF] =
 
 /* Kit the Kid */
 
-short                   kit_8[SPDEF] =
+const short                   kit_8[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	5,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -386,7 +386,7 @@ short                   kit_8[SPDEF] =
 
 /* Uppity Ursula */
 
-short                   ursula_8[SPDEF] =
+const short                   ursula_8[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	60,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -434,7 +434,7 @@ short                   ursula_8[SPDEF] =
 
 /* Rough Rita ROBY ROBOT */
 #if   1//  0
-short                   rita_8[SPDEF] =
+const short                   rita_8[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	8,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -476,7 +476,7 @@ short                   rita_8[SPDEF] =
 
 #else
 /* Old Rita, removed 25-apr-1988                    */
-short                   rita_8[SPDEF] =
+const short                   rita_8[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	24,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -525,7 +525,7 @@ short                   rita_8[SPDEF] =
 #endif
 
 /* Whispery Wendy */
-short                   wendy_8[SPDEF] =
+const short                   wendy_8[SPDEF] =
 {
 	FEMALE,							   /* SEX = m */
 	100,							   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -567,7 +567,7 @@ short                   wendy_8[SPDEF] =
 
 /* Doctor Dennis */
 
-short                   dennis_8[] =
+const short                   dennis_8[] =
 {
 	MALE,							   /* SEX = m */
 	100,							   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -616,7 +616,7 @@ short                   dennis_8[] =
 
 /* Perfect Paul */
 
-short                   paul[SPDEF] =
+const short                   paul[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	3,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -658,7 +658,7 @@ short                   paul[SPDEF] =
 
 /* Crusty Chris */
 
-short                   chris[SPDEF] =
+const short                   chris[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	3,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -701,7 +701,7 @@ short                   chris[SPDEF] =
 
 /* Beautiful Betty */
 
-short                   betty[SPDEF] =
+const short                   betty[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	4,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -743,7 +743,7 @@ short                   betty[SPDEF] =
 
 /* Huge Harry */
 
-short                   harry[SPDEF] =
+const short                   harry[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	12,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -785,7 +785,7 @@ short                   harry[SPDEF] =
 
 /* Frail Frank */
 
-short                   frank[SPDEF] =
+const short                   frank[SPDEF] =
 {
 	MALE,							   /* SEX = m */
 	46,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -828,7 +828,7 @@ short                   frank[SPDEF] =
 
 /* Kit the Kid */
 
-short                   kit[SPDEF] =
+const short                   kit[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	5,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -870,7 +870,7 @@ short                   kit[SPDEF] =
 
 /* Uppity Ursula */
 
-short                   ursula[SPDEF] =
+const short                   ursula[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	60,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -912,7 +912,7 @@ short                   ursula[SPDEF] =
 
 /* Rough Rita */
 
-short                   rita[SPDEF] =
+const short                   rita[SPDEF] =
 {
 	FEMALE,							   /* SEX = f */
 	24,								   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -954,7 +954,7 @@ short                   rita[SPDEF] =
 
 /* Whispery Wendy */
 
-short                   wendy[SPDEF] =
+const short                   wendy[SPDEF] =
 {
 	FEMALE,							   /* SEX = m */
 	100,							   /* SM (smoothness in %, actually spectral tilt offset) */
@@ -997,7 +997,7 @@ short                   wendy[SPDEF] =
 
 /* Doctor Dennis */
 
-short                   dennis[] =
+const short                   dennis[] =
 {
 	MALE,							   /* SEX = m */
 	100,							   /* SM (smoothness in %, actually spectral tilt offset) */

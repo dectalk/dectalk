@@ -56,10 +56,18 @@
 #include "ph_def.h"
 
 
+#ifdef HLSYN
 #ifdef FRENCH
 #include "p_us_vdf1.c"
 #else
 #include "p_us_vdf1.c"
+#endif
+#else
+#ifdef FRENCH
+#include "p_us_vdf.c"
+#else
+#include "p_us_vdf.c"
+#endif
 #endif
 
 

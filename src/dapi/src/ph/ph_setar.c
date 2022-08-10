@@ -130,32 +130,44 @@
 extern const short us_maleloc[];
 extern const short us_maldip[];
 extern const short us_maltar[];
-//extern const short us_malamp[];
+#ifndef HLSYN
+extern const short us_malamp[];
+#endif
 
 extern const short uk_maleloc[];
 extern const short uk_maldip[];
 extern const short uk_maltar[];
-//extern const short uk_malamp[];
+#ifndef HLSYN
+extern const short uk_malamp[];
+#endif
 
 extern const short gr_maleloc[];
 extern const short gr_maldip[];
 extern const short gr_maltar[];
-//extern const short gr_malamp[];
+#ifndef HLSYN
+extern const short gr_malamp[];
+#endif
 
 extern const short la_maleloc[];
 extern const short la_maldip[];
 extern const short la_maltar[];
-//extern const short la_malamp[];
+#ifndef HLSYN
+extern const short la_malamp[];
+#endif
 
 extern const short sp_maleloc[];
 extern const short sp_maldip[];
 extern const short sp_maltar[];
-//extern const short sp_malamp[];
+#ifndef HLSYN
+extern const short sp_malamp[];
+#endif
 
 extern const short fr_maleloc[];
 //extern const short fr_maldip[];
 //extern const short fr_maltar[];
-//extern const short fr_malamp[];
+#ifndef HLSYN
+extern const short fr_malamp[];
+#endif
 
 extern const short us_femloc[];
 extern const short us_femdip[];
@@ -1890,14 +1902,18 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 //						pDph_t->p_locus = (short *)us_maleloc;	   			/* Use MALE tables */
 						pDph_t->p_diph = (short *)us_maldip;
 						pDph_t->p_tar = (short *)us_maltar;
-//						pDph_t->p_amp = (short *)us_malamp;
+#ifndef HLSYN
+						pDph_t->p_amp = (short *)us_malamp;
+#endif
 					}
 					else
 					{	// CAB Removed warnings by typecast
 //						pDph_t->p_locus = (short *)us_femloc;	   			/* Use FEMALE tables */
 						pDph_t->p_diph = (short *)us_femdip;
 						pDph_t->p_tar = (short *)us_femtar;
-//						pDph_t->p_amp = (short *)us_malamp;
+#ifndef HLSYN
+						pDph_t->p_amp = (short *)us_malamp;
+#endif
 					}
 
 					
@@ -1909,14 +1925,18 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 //						pDph_t->p_locus = (short *)uk_maleloc;	   			/* Use MALE tables */
 						pDph_t->p_diph = (short *)uk_maldip;
 						pDph_t->p_tar = (short *)uk_maltar;
+#ifndef HLSYN
 //						pDph_t->p_amp = (short *)uk_malamp;
+#endif
 					}
 					else
 					{	// CAB Removed warnings by typecast
 //						pDph_t->p_locus = (short *)uk_femloc;	   			/* Use FEMALE tables */
 						pDph_t->p_diph = (short *)uk_femdip;
 						pDph_t->p_tar = (short *)uk_femtar;
+#ifndef HLSYN
 //						pDph_t->p_amp = (short *)uk_malamp;
+#endif
 					}
 
 				}
@@ -1927,14 +1947,18 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 //						pDph_t->p_locus = (short *)gr_maleloc;	   			/* Use MALE tables */
 						pDph_t->p_diph = (short *)gr_maldip;
 						pDph_t->p_tar = (short *)gr_maltar;
+#ifndef HLSYN
 //						pDph_t->p_amp = (short *)gr_malamp;
+#endif
 					}
 					else
 					{	// CAB Removed warnings by typecast
 //						pDph_t->p_locus = (short *)gr_femloc;	   			/* Use FEMALE tables */
 						pDph_t->p_diph = (short *)gr_femdip;
 						pDph_t->p_tar = (short *)gr_femtar;
+#ifndef HLSYN
 //						pDph_t->p_amp = (short *)gr_malamp;
+#endif
 					}
 
 				}
@@ -1945,14 +1969,18 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 //						pDph_t->p_locus = (short *)la_maleloc;	   			/* Use MALE tables */
 						pDph_t->p_diph = (short *)la_maldip;
 						pDph_t->p_tar = (short *)la_maltar;
+#ifndef HLSYN
 //						pDph_t->p_amp = (short *)la_malamp;
+#endif
 					}
 					else
 					{	// CAB Removed warnings by typecast
 //						pDph_t->p_locus = (short *)la_femloc;	   			/* Use FEMALE tables */
 						pDph_t->p_diph = (short *)la_femdip;
 						pDph_t->p_tar = (short *)la_femtar;
-						//pDph_t->p_amp = (short *)la_malamp;
+#ifndef HLSYN
+//						pDph_t->p_amp = (short *)la_malamp;
+#endif
 					}
 		
 				}
@@ -1963,14 +1991,18 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 //						pDph_t->p_locus = (short *)sp_maleloc;	   			/* Use MALE tables */
 						pDph_t->p_diph = (short *)sp_maldip;
 						pDph_t->p_tar = (short *)sp_maltar;
-				//		pDph_t->p_amp = (short *)sp_malamp;
+#ifndef HLSYN
+//						pDph_t->p_amp = (short *)sp_malamp;
+#endif
 					}
 					else
 					{	// CAB Removed warnings by typecast
 //						pDph_t->p_locus = (short *)sp_femloc;	   			/* Use FEMALE tables */
 						pDph_t->p_diph = (short *)sp_femdip;
 						pDph_t->p_tar = (short *)sp_femtar;
+#ifndef HLSYN
 //						pDph_t->p_amp = (short *)sp_malamp;
+#endif
 					}
 
 				}
@@ -1983,7 +2015,9 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 //						pDph_t->p_locus = (short *)fr_maleloc;	   		
 						pDph_t->p_diph = (short *)us_maldip;
 						pDph_t->p_tar = (short *)us_maltar;
+#ifndef HLSYN
 //						pDph_t->p_amp = (short *)fr_malamp;
+#endif
 					}
 					else
 					{
@@ -1992,6 +2026,9 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 //						pDph_t->p_locus = (short *)fr_femloc;	   	
 						pDph_t->p_diph = (short *)us_femdip;
 //						pDph_t->p_tar = (short *)us_femtar;
+#ifndef HLSYN
+//						pDph_t->p_amp = (short *)fr_malamp;
+#endif
 					}
 	
 					
