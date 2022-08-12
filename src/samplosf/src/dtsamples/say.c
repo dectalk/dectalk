@@ -582,23 +582,31 @@ int main( int argc, char *argv[] )
 **   int - Total number of bytes of text played back.
 **
 *****************************************************************************/
+#define REALLOC_SIZE 4096
 int play_file( char *file_name, int isAPipe )
 {
     FILE *fileHandle;
     int  nbytes;
     int  total_bytes = 0;
-    char buf[4096];
+    char *buf;
+    int buf_len = 0;
     int  text_len;
 	int value;
     DWORD dwFlags = TTS_FORCE;
 
+    buf = malloc(REALLOC_SIZE*sizeof(char));
+    if (buf == NULL) {
+	    fprintf(stderr, "Can't allocate memory!\n");
+	    return(0);
+    }
+    buf_len = REALLOC_SIZE;
+    memset(buf, 0, buf_len);
     /******************************************************/
     /* See if text is in redirected UNIX pipes            */
     /******************************************************/
     if ( isAPipe == TRUE )
     {
-       bzero( buf, sizeof(buf));
-       while( fgets( buf, sizeof(buf)-1, stdin )  )
+       while( fgets( buf, buf_len-1, stdin )  )
        {
           text_len = strlen( buf );
 
@@ -608,13 +616,14 @@ int play_file( char *file_name, int isAPipe )
              break;
           }
           total_bytes += text_len;
-          bzero( buf, sizeof(buf));
+          memset(buf, 0, buf_len);
        }
        /******************************************************/
        /* Let's make sure that all the text has been spoken. */
        /******************************************************/
        TextToSpeechSync( ttsHandle );
 
+       free(buf);
        return( total_bytes );
     }
 
@@ -625,24 +634,38 @@ int play_file( char *file_name, int isAPipe )
     if ( fileHandle == (FILE *)NULL )
     {
         fprintf(stderr,"play_file: Cannot open %s for reading.\n",file_name);
+        free(buf);
         return( 0 );
     }
 
     /***********************************************/
     /* Read 4096 bytes and playback until EOF	   */
     /***********************************************/
-    bzero( buf, sizeof(buf));
-    while( fgets( buf, sizeof(buf)-1, fileHandle ) != NULL )
+    while( ( nbytes = fread( buf + total_bytes, 1, buf_len-total_bytes-1, fileHandle ) ) > 0 )
     {
-        text_len = strlen( buf );
-        if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
-        {
-          fprintf(stderr,"Error writing %d bytes to TextToSpeech 2 with code %d.\n",text_len,value);
-          break;
-        }
-        total_bytes += text_len;
-	bzero( buf, sizeof(buf));
+        char *tmpbuf;
+
+	buf_len += REALLOC_SIZE;
+	tmpbuf = realloc(buf, buf_len*sizeof(char));
+	if (tmpbuf == NULL) {
+	    fprintf(stderr, "Can't allocate memory!\n");
+	    free(buf);
+	    fclose( fileHandle );
+	    return(0);
+	}
+	buf = tmpbuf;
+
+        total_bytes += nbytes;
+
+	memset(buf + total_bytes, 0, buf_len-total_bytes);
     }
+    printf("Read: %d\n", total_bytes);
+    text_len = strlen( buf );
+    if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
+    {
+      fprintf(stderr,"Error writing %d bytes to TextToSpeech 2 with code %d.\n",text_len,value);
+    }
+    free(buf);
 
     /******************************************************/
     /* Let's make sure that all the text has been spoken. */
