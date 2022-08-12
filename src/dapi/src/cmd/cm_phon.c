@@ -201,6 +201,26 @@ int cm_phon_lookup_arpa(LPTTS_HANDLE_T phTTS, unsigned int ph1, unsigned int ph2
 			}
 			return(1);
 		}
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+		/* If we land here the phoneme wasn't matched in full.
+		 * If the first char (ph1) is 'l' use the phoneme for 'll'
+		 * This should fix compatibility with old dectalk songs */
+		if (ph1 == 'l' && arpa[i] == 'l' && arpa[i+1] == 'l') {
+#ifndef MSDOS
+			if (pCmd_t->international_phon_lang>=0)
+			{
+				PUSH_PHONE = i/2 | ((arpabet_lang_fonts[pCmd_t->international_phon_lang]) <<PSFONT);
+				pCmd_t->international_phon_lang=-1;
+				pCmd_t->international_flag=-1;
+			}
+			else
+#endif
+			{
+				PUSH_PHONE = i/2;
+			}
+			return(1);
+		}
+#endif
 	}
 	return(0);
 }

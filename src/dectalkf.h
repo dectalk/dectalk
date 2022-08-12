@@ -234,6 +234,9 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 #define NWS_LA
 #endif
 
+/* Try to make the parser compatible with older songs,
+ * prevents 'command error in phoneme' when encountering 'l' instead of 'll' */
+#define PARSER_HACK_FOR_OLD_SONGS
 
 #endif // _DECTALK_H_
 
