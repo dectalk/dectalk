@@ -9,20 +9,33 @@ These files were shared by their original developer [late Edward Bruckert](https
 
 ## Building
 
-To build DECtalk, run `./configure` and `make` in `src`.
-This needs the following dependencies to be installed:
+```sh
+# Run all these commands in the /src directory...
+# Generates configure files
+autoreconf -si
 
-```shell
+# Executes configure files
+./configure
+
+# Builds DECtalk with ALL cores (remove -j for single core)
+make -j
+```
+
+The built files will be found in the `/dist` folder.
+
+### Ubuntu
+
+If you're building on Ubuntu, obtain the following dependencies:
+
+```sh
 apt-get install build-essential libpulse-dev libgtk2.0-dev unzip
 ```
 
 (libgtk2.0-dev is only needed if you want the graphical frontend, libpulse-dev if you want pulseaudio audio-output)
 
-The result will be in the folder `dist` in the root.
+## Dockerised Builds
 
-## Docker Fun
-
-To build DECtalk in docker, run `sudo docker-compose up` (and make sure you have Docker and docker-compose installed!)
+To build DECtalk without setting up a local build environment, run `sudo docker-compose up` (and make sure you have Docker and docker-compose installed!)
 
 ## The Team
 
