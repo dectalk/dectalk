@@ -3,10 +3,10 @@
  *                                                                      
  *                           Copyright (c)
  *
- *	  Copyright © 2002, 2001 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    © SMART Modular Technologies 1999. All rights reserved.    
- *    © Digital Equipment Corporation 1997, 1998. All rights reserved.
+ *	  Copyright ï¿½ 2002, 2001 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    ï¿½ SMART Modular Technologies 1999. All rights reserved.    
+ *    ï¿½ Digital Equipment Corporation 1997, 1998. All rights reserved.
  *                                                                      
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.    
  *    Government is subject to restrictions as set forth in subparagraph
@@ -74,8 +74,12 @@
  * cab	14jun2002	Fixed TextToSpeechGetPhVdefParams() and TextToSpeechReserved()'s fns
  * cab	24jun2002	Added missing #ifdef UNDER_CE for api calls and changed return of TextToSpeechGetPhVdefParams()
  *					Removed warnings
+ * cab	26jun2002	Reduced code
+ * cab	31jul2002	Added TextToSpeechStartupExFonix
+ * MGS	15jul2003	Fixed StartLang(NULL);
  **********************************************************************/
 
+#include "port.h"
 #ifdef WIN32
 #include <windows.h>
 #endif
@@ -89,30 +93,28 @@ _CRTIMP wchar_t __cdecl towupper(wchar_t);
 #endif
 
 #if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#define _UNIX_LIKE_
+#endif
+
+#if defined _UNIX_LIKE_
 #include <dlfcn.h>		
 #include <unistd.h>
 #include <sys/types.h>
 #include <pthread.h>
 #include "dtmmedefs.h"
-#if defined __linux__ || defined _SPARC_SOLARIS_
-#include "port.h"
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_
 #include "tts.h"
 #include <ctype.h>
-#if defined __linux__
 #include <linux/limits.h>
 #include <libgen.h>
-#endif
 #endif // linux
-#endif // osf || linux
+#endif // defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
 
-#ifdef WIN32
-#include "port.h"
-#endif
 
 #include "ttsapi.h"
 #include "ttsfeat.h"
 
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined _UNIX_LIKE_
 typedef void* HMODULE;
 #define ULONG unsigned int
 #define UCHAR unsigned char
@@ -127,11 +129,11 @@ typedef void* HMODULE;
 #endif
 
 // MGS 19nov98 BATS #746 fixed version number to be the same as the rest of the code
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+// #if defined _UNIX_LIKE_
 #include "coop.h"
-#else
-#include "..\..\dapi\src\api\coop.h"
-#endif
+// #else
+// #include "..\..\dapi\src\api\coop.h"
+// #endif
 
 #ifdef WIN32
 HANDLE hGreatLoadMutex = NULL;
@@ -146,7 +148,7 @@ extern pthread_mutex_t *hGreatestInitMutex;
 #define ReleaseMutex(x) pthread_mutex_unlock(x)
 #endif
 
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_
 pthread_mutex_t GreatLoadMutex=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t GreaterPIDMutex=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t GreatestInitMutex=PTHREAD_MUTEX_INITIALIZER;
@@ -167,18 +169,24 @@ typedef struct lang_func_struct {
 #error "Supported only for Win32 or OSF"
 #endif
 	MMRESULT (*TextToSpeechShutdown)( LPTTS_HANDLE_T );
+
 #ifdef UNDER_CE
+	MMRESULT (*TextToSpeechLoadUserDictionary)( LPTTS_HANDLE_T, LPTSTR );
+	MMRESULT (*TextToSpeechOpenLogFile)( LPTTS_HANDLE_T, LPTSTR, DWORD );
+	MMRESULT (*TextToSpeechOpenWaveOutFile)( LPTTS_HANDLE_T, wchar_t *, DWORD );
 	MMRESULT (*TextToSpeechSpeak)( LPTTS_HANDLE_T, LPTSTR, DWORD );
+	void	 (*TextToSpeechTyping)(LPTTS_HANDLE_T phTTS, wchar_t key);
+	ULONG	 (*TextToSpeechVersion)(LPTSTR* VersionStr);
 #else
+	MMRESULT (*TextToSpeechLoadUserDictionary)( LPTTS_HANDLE_T, LPSTR );
+	MMRESULT (*TextToSpeechOpenLogFile)( LPTTS_HANDLE_T, LPSTR, DWORD );
+	MMRESULT (*TextToSpeechOpenWaveOutFile)( LPTTS_HANDLE_T, char *, DWORD );
 	MMRESULT (*TextToSpeechSpeak)( LPTTS_HANDLE_T, LPSTR, DWORD );
+	void	 (*TextToSpeechTyping)(LPTTS_HANDLE_T phTTS, unsigned char key);	// CAB 5/30/01 Warning
+	ULONG	 (*TextToSpeechVersion)(LPSTR* VersionStr);
 #endif
 	MMRESULT (*TextToSpeechPause)( LPTTS_HANDLE_T );
 	MMRESULT (*TextToSpeechResume)( LPTTS_HANDLE_T );
-#ifdef UNDER_CE
-	MMRESULT (*TextToSpeechOpenWaveOutFile)( LPTTS_HANDLE_T, wchar_t *, DWORD );
-#else
-	MMRESULT (*TextToSpeechOpenWaveOutFile)( LPTTS_HANDLE_T, char *, DWORD );
-#endif
 	MMRESULT (*TextToSpeechCloseWaveOutFile)( LPTTS_HANDLE_T );
 	MMRESULT (*TextToSpeechGetStatus)( LPTTS_HANDLE_T, LPDWORD, LPDWORD, DWORD );
 	MMRESULT (*TextToSpeechReset)( LPTTS_HANDLE_T, BOOL );
@@ -190,39 +198,25 @@ typedef struct lang_func_struct {
 	MMRESULT (*TextToSpeechGetLanguage)( LPTTS_HANDLE_T, LPLANGUAGE_T );
 	MMRESULT (*TextToSpeechSetLanguage)( LPTTS_HANDLE_T, LANGUAGE_T );
 	MMRESULT (*TextToSpeechGetCaps)( LPTTS_CAPS_T );
-
-#ifdef UNDER_CE	
-	MMRESULT (*TextToSpeechLoadUserDictionary)( LPTTS_HANDLE_T, LPTSTR );
-#else
-	MMRESULT (*TextToSpeechLoadUserDictionary)( LPTTS_HANDLE_T, LPSTR );
-#endif
-
 	MMRESULT (*TextToSpeechUnloadUserDictionary)( LPTTS_HANDLE_T );
 	MMRESULT (*TextToSpeechOpenInMemory)( LPTTS_HANDLE_T, DWORD );
 	MMRESULT (*TextToSpeechCloseInMemory)( LPTTS_HANDLE_T );
 	MMRESULT (*TextToSpeechAddBuffer)( LPTTS_HANDLE_T, LPTTS_BUFFER_T );
 	MMRESULT (*TextToSpeechReturnBuffer)( LPTTS_HANDLE_T, LPTTS_BUFFER_T * );
-#ifdef UNDER_CE
-	MMRESULT (*TextToSpeechOpenLogFile)( LPTTS_HANDLE_T, LPTSTR, DWORD );
-#else
-	MMRESULT (*TextToSpeechOpenLogFile)( LPTTS_HANDLE_T, LPSTR, DWORD );
-#endif
 	MMRESULT (*TextToSpeechCloseLogFile)( LPTTS_HANDLE_T );
 	MMRESULT (*TextToSpeechStartupEx)(LPTTS_HANDLE_T*, UINT, DWORD, VOID (*)(LONG, LONG, DWORD, UINT), LONG);
-	VOID	 (*TextToSpeechControlPanel)( LPTTS_HANDLE_T );
-#ifdef UNDER_CE
-	ULONG	 (*TextToSpeechVersion)(LPTSTR* VersionStr);
-	void	 (*TextToSpeechTyping)(LPTTS_HANDLE_T phTTS, wchar_t key);
+	MMRESULT (*TextToSpeechStartupExFonix)(LPTTS_HANDLE_T*, UINT, DWORD, VOID (*)(LONG, LONG, DWORD, UINT), LONG,
+#ifdef WIN32
+				TCHAR *);
 #else
-	ULONG	 (*TextToSpeechVersion)(LPSTR* VersionStr);
-	void	 (*TextToSpeechTyping)(LPTTS_HANDLE_T phTTS, unsigned char key);	// CAB 5/30/01 Warning
-#endif
+				char *);
+#endif		
+
+	VOID	 (*TextToSpeechControlPanel)( LPTTS_HANDLE_T );
 	ULONG	 (*TextToSpeechGetLastError)(LPTTS_HANDLE_T phTTS);
 	
 	ULONG	(*TextToSpeechReserved1)(UCHAR *voices, U8 voice, BOOL bEightk, BOOL bReadData);
 	ULONG	(*TextToSpeechReserved2)(LPTTS_HANDLE_T phTTS, ULONG *gains);
-
-
 	U32		(*TextToSpeechReserved3)(LPTTS_HANDLE_T phTTS, int type, char *data, int max_size);
 
 	// CAB Added TextToSpeechReserved4 03/19/2002
@@ -269,6 +263,7 @@ typedef struct lang_func_struct {
 	MMRESULT (*TextToSpeechGetVolume)( LPTTS_HANDLE_T, int ,int * );
 	MMRESULT (*TextToSpeechVisualMarks)( LPTTS_HANDLE_T, int );
 
+	MMRESULT (*TextToSpeechReserved5)( LPTTS_HANDLE_T phTTS, LPSTR szFileName);
 	HMODULE mod;
 	unsigned int inst_count;		// Instance Counter
 	struct lang_func_struct *next;
@@ -297,8 +292,8 @@ typedef struct PID_LIST_STRUCT {
 
 typedef PID_LIST* LPPID_LIST;
 
-LPLANG_LIST langs, def_lang;
-LPPID_LIST pids;
+static LPLANG_LIST langs, def_lang;
+static LPPID_LIST pids;
 
 
 BOOL TextToSpeechSelectLang(LPTTS_HANDLE_T tts, unsigned int id);
@@ -314,57 +309,75 @@ BOOL alloc_pid(int pid, LANG_LIST *lang);
 LANG_LIST* find_pid(int pid);
 BOOL free_pid(int pid);
 
-#ifdef UNDER_CE
-unsigned int load_dectalk(char *lang) {
+unsigned int load_dectalk(char *lang)
+{
 	LANG_LIST *next = langs;
 	LANG_FUNCS *funcs;
+
+#ifdef UNDER_CE
 	TCHAR filename[20];
+#else
+	char filename[20];
+#endif
 	int id = 0;
 
-	if (next == NULL) {
-		langs = malloc(sizeof(LANG_LIST));
+	if (next == NULL)
+	{	langs = malloc(sizeof(LANG_LIST));
+#ifdef UNDER_CE
 		/* changed '0' to 0 MGS 08/22/1999 */
 		memset(langs,0,(sizeof(LANG_LIST))); //mfgce
-
+#endif
 		if (langs == NULL)	return TTS_NOT_SUPPORTED;
 		next = langs;
 		next->next = NULL;
-	} else {
-		while (strcmp(next->lang,lang) != 0 && next->next != NULL) {
-			next = next->next;
+	}
+	else
+	{	while (strcmp(next->lang,lang) != 0 && next->next != NULL)
+		{	next = next->next;
 			id++;
 		}
 		if (strcmp(next->lang,lang) != 0)	id++;			// We need to slide an extra to a blank space
-		if (strcmp(next->lang, lang) != 0) {
-			next->next = malloc(sizeof(LANG_LIST));
+		if (strcmp(next->lang, lang) != 0)
+		{	next->next = malloc(sizeof(LANG_LIST));
 			if (next->next == NULL)		return TTS_NOT_SUPPORTED;
 			next = next->next;
 			next->next = NULL;
-		} else {
-			if (next->funcs.mod != NULL)	return id;
+		}
+		else
+		{	if (next->funcs.mod != NULL)	return id;
 		}
 	}
 	strcpy(next->lang, lang);
-#ifdef WIN32
+#if defined UNDER_CE && defined WIN32
 	wsprintf(filename,TEXT("dtalk_%c%c.dll"),(lang[0] & 0x00FF),(lang[1] & 0x00FF));
+#elif defined WIN32
+	sprintf(filename,"dtalk_%s.dll",lang);
 #else
 	lang[0] = tolower(lang[0]);
 	lang[1] = tolower(lang[1]);
 #ifdef MME_SERVER
 	sprintf(filename,"libttsmme_%s.so",lang);
 #else
-	if (strlen(lang) > 5) {
-		lang[2] = tolower(lang[2]);
+	if (strlen(lang) > 5)
+	{	lang[2] = tolower(lang[2]);
 		lang[3] = tolower(lang[3]);
 		lang[4] = tolower(lang[4]);
 		lang[5] = tolower(lang[5]);
 	}
 	sprintf(filename,"libtts_%s.so",lang);
 #endif // MME_SERVER
-#endif // WIN32
+#endif // UNDER_CE
 	funcs = &next->funcs;
 	funcs->mod = (HMODULE) LoadLibrary(filename);
+
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS
+	if (funcs->mod==NULL)
+	{	fprintf(stderr,"dlopen error:%s\n",dlerror());
+	}
+#endif
+
 	if (funcs->mod == NULL)			return TTS_NOT_AVAILABLE;
+#ifdef UNDER_CE
 	(unsigned int (_cdecl*)())funcs->TextToSpeechStartup = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechStartup"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechShutdown = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechShutdown"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechSpeak = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechSpeak"));
@@ -391,6 +404,7 @@ unsigned int load_dectalk(char *lang) {
 	(unsigned int (_cdecl*)())funcs->TextToSpeechOpenLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechOpenLogFile"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechCloseLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechCloseLogFile"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechStartupEx = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechStartupEx"));
+	(unsigned int (_cdecl*)())funcs->TextToSpeechStartupExFonix = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechStartupExFonix"));
 	(VOID (_cdecl*)())funcs->TextToSpeechControlPanel = (VOID ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechControlPanel"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechVersion = (ULONG ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechVersion"));
 	(VOID (_cdecl*)())funcs->TextToSpeechTyping = (VOID ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechTyping"));
@@ -422,64 +436,8 @@ unsigned int load_dectalk(char *lang) {
 	(unsigned int (_cdecl*)())funcs->TextToSpeechSetVolume = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechSetVolume"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechGetVolume = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechGetVolume"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechVisualMarks = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechVisualMarks"));
-	return id;
-}
-
-#else //if not UNDER_CE
-
-unsigned int load_dectalk(char *lang) {
-	LANG_LIST *next = langs;
-	LANG_FUNCS *funcs;
-	char filename[20];
-	int id = 0;
-
-	if (next == NULL) {
-		langs = malloc(sizeof(LANG_LIST));
-		if (langs == NULL)	return TTS_NOT_SUPPORTED;
-		next = langs;
-		next->next = NULL;
-	} else {
-		while (strcmp(next->lang,lang) != 0 && next->next != NULL) {
-			next = next->next;
-			id++;
-		}
-		if (strcmp(next->lang,lang) != 0)	id++;			// We need to slide an extra to a blank space
-		if (strcmp(next->lang, lang) != 0) {
-			next->next = malloc(sizeof(LANG_LIST));
-			if (next->next == NULL)		return TTS_NOT_SUPPORTED;
-			next = next->next;
-			next->next = NULL;
-		} else {
-			if (next->funcs.mod != NULL)	return id;
-		}
-	}
-	strcpy(next->lang, lang);
-#ifdef WIN32
-	sprintf(filename,"dtalk_%s.dll",lang);
+	(unsigned int (_cdecl*)())funcs->TextToSpeechReserved5 = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechReserved5"));
 #else
-	lang[0] = tolower(lang[0]);
-	lang[1] = tolower(lang[1]);
-#ifdef MME_SERVER
-	sprintf(filename,"libttsmme_%s.so",lang);
-#else
-	if (strlen(lang) > 5) {
-		lang[2] = tolower(lang[2]);
-		lang[3] = tolower(lang[3]);
-		lang[4] = tolower(lang[4]);
-		lang[5] = tolower(lang[5]);
-	}
-	sprintf(filename,"libtts_%s.so",lang);
-#endif // MME_SERVER
-#endif // WIN32
-	funcs = &next->funcs;
-	funcs->mod = (HMODULE) LoadLibrary(filename);
-
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS
-	if (funcs->mod==NULL) {
-		fprintf(stderr,"dlopen error:%s\n",dlerror());
-	}
-#endif
-	if (funcs->mod == NULL)			return TTS_NOT_AVAILABLE;
 	funcs->TextToSpeechStartup = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechStartup");
 	funcs->TextToSpeechShutdown = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechShutdown");
 	funcs->TextToSpeechSpeak = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechSpeak");
@@ -506,6 +464,8 @@ unsigned int load_dectalk(char *lang) {
 	funcs->TextToSpeechOpenLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechOpenLogFile");
 	funcs->TextToSpeechCloseLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechCloseLogFile");
 	funcs->TextToSpeechStartupEx = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechStartupEx");
+	funcs->TextToSpeechStartupExFonix = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechStartupExFonix");
+
 	// CAB	Removed warnings 6/24/02
 	funcs->TextToSpeechControlPanel = (VOID ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechControlPanel");
 
@@ -544,52 +504,113 @@ unsigned int load_dectalk(char *lang) {
 	funcs->TextToSpeechSetVolume = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechSetVolume");
 	funcs->TextToSpeechGetVolume = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechGetVolume");
 	funcs->TextToSpeechVisualMarks = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechVisualMarks");
+	funcs->TextToSpeechReserved5 = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechReserved5");
+
+	
+#endif // UNDER_CE
+
+#ifndef UNDER_CE
 	funcs->inst_count = 1;
+#endif
 	return id;
 }
-#endif //UNDER_CE
 
-
-BOOL init(void) {
+BOOL init(void)
+{
 #ifdef UNDER_CE
 	TCHAR lang[3];
+	TCHAR szLicenseKey[] = TEXT("Software\\DECtalk Software\\DECtalk\\LANGS");
 #else
 	char lang[3];
+	char szLicenseKey[] = "Software\\DECtalk Software\\DECtalk\\LANGS";
 #endif
 	unsigned int id;
 	LANG_LIST *next;
-#ifdef UNDER_CE
-	TCHAR szLicenseKey[] = TEXT("Software\\DECtalk Software\\DECtalk\\LANGS");
-#else
-	char szLicenseKey[] = "Software\\DECtalk Software\\DECtalk\\LANGS";
-#endif
 	DWORD dwType,cbData;
+	FILE *config_file;
+
 #ifdef WIN32
 	HKEY hKeyLicense = NULL;
 
-	if (RegOpenKeyEx( HKEY_LOCAL_MACHINE, szLicenseKey, 0, KEY_QUERY_VALUE, &hKeyLicense ) != ERROR_SUCCESS) {
+	if (RegOpenKeyEx( HKEY_LOCAL_MACHINE, szLicenseKey, 0, KEY_QUERY_VALUE, &hKeyLicense ) != ERROR_SUCCESS)
+	{
 #ifdef UNDER_CE
-	wsprintf(lang,TEXT("US"));
+		wsprintf(lang,TEXT("US"));
 #else
-	sprintf(lang,"US");
-#endif
-	} else {
-
+		sprintf(lang,"US");
+#endif // UNDER_CE
+	}
+	else
+	{
 #ifdef UNDER_CE
-	cbData = (3*2);
-	if (RegQueryValueEx( hKeyLicense,TEXT("DefaultLang"), NULL, &dwType, (LPBYTE)lang, &cbData ) != ERROR_SUCCESS) {
-	wsprintf(lang,TEXT("US"));
+		cbData = (3*2);
+		if (RegQueryValueEx( hKeyLicense,TEXT("DefaultLang"), NULL, &dwType, (LPBYTE)lang, &cbData ) != ERROR_SUCCESS) 
+		{	wsprintf(lang,TEXT("US"));
 #else
-	cbData = 3;		
-	if (RegQueryValueEx( hKeyLicense, "DefaultLang", NULL, &dwType, (LPBYTE)lang, &cbData ) != ERROR_SUCCESS) {
-	sprintf(lang,"US");
-#endif
+		cbData = 3;		
+		if (RegQueryValueEx( hKeyLicense, "DefaultLang", NULL, &dwType, (LPBYTE)lang, &cbData ) != ERROR_SUCCESS)
+		{	sprintf(lang,"US");
+#endif // UNDER_CE
 		}
 		RegCloseKey( hKeyLicense );
 	}
-#else
+#else // WIN32
 #ifdef UNDER_CE
 	wsprintf(lang,TEXT("US"));
+#elif defined _UNIX_LIKE_
+	config_file=fopen("/etc/DECtalk.conf","r");	
+	if (config_file==NULL)
+	{
+		config_file=fopen("DECtalk.conf","r");
+	}
+
+#ifdef __linux__
+	if (config_file==NULL)
+	{
+		char p[PATH_MAX] = {};
+		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+		if (count != -1) {
+			char *cfg;
+			cfg = dirname(p);
+			strcat(cfg,"/");
+			strcat(cfg,"DECtalk.conf");
+			config_file=fopen(cfg,"r");
+		}
+
+	}
+
+	if (config_file==NULL)
+	{
+		char p[PATH_MAX] = {};
+		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+		if (count != -1) {
+			char *cfg;
+			cfg = dirname(p);
+			strcat(cfg,"/../");
+			strcat(cfg,"DECtalk.conf");
+			config_file=fopen(cfg,"r");
+		}
+	}
+#endif
+	if (config_file==NULL)
+	{
+		sprintf(lang,"US");
+	}
+	else
+	{
+		char line[1000] = { 0 };
+
+		while (fgets(line,999,config_file)!=NULL)
+		{
+			if (strncmp("Default_lang:",line,13)==0)
+			{
+				strncpy(lang,line+13,2);
+				lang[2]='\0';
+				break;
+			}
+		}
+	}
+	fclose(config_file);
 #else
 	sprintf(lang,"US");
 #endif
@@ -636,12 +657,12 @@ MMRESULT TextToSpeechStartupEx(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LON
 	lang = find_pid(_getpid());
 #endif
 
-	if (lang != NULL) {
 #ifdef WIN32	// UNDER_CE
-		free_pid(GetCurrentProcessId());
+	free_pid(GetCurrentProcessId());
 #else
-		free_pid(_getpid());
+	free_pid(_getpid());
 #endif
+	if (lang != NULL) {
 		handle->cur_lang = lang;
 		if (lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
 		return lang->funcs.TextToSpeechStartupEx(&(handle->phTTS),b,c,d,e);
@@ -681,7 +702,11 @@ MMRESULT TextToSpeechStartupEx(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LON
 }
 
 #ifdef WIN32
-MMRESULT TextToSpeechStartup(HWND a, LPTTS_HANDLE_T *b, UINT c, DWORD d) {
+MMRESULT TextToSpeechStartup(HWND a, LPTTS_HANDLE_T *b, UINT c, DWORD d)
+#else
+MMRESULT TextToSpeechStartup(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LONG, LONG, DWORD, UINT), LONG e)
+#endif
+{
 	LPLANG_HANDLE handle;
 	LANG_LIST *lang;
 
@@ -689,64 +714,108 @@ MMRESULT TextToSpeechStartup(HWND a, LPTTS_HANDLE_T *b, UINT c, DWORD d) {
 	handle = malloc(sizeof(LANG_HANDLE));
 	if (handle == NULL)	return MMSYSERR_ERROR;
 	
+#ifdef WIN32	
 	// CAB 6/24/02 Removed warning
 	*b = (LPTTS_HANDLE_T)handle;
-#ifdef WIN32	// UNDER_CE
-		lang = find_pid(GetCurrentProcessId());
-#else
-		lang = find_pid(_getpid());
-#endif
-	if (lang != NULL) {
-
-#ifdef WIN32	// UNDER_CE
-		free_pid(GetCurrentProcessId());
-#else
-		free_pid(_getpid());
-#endif
-
-		handle->cur_lang = lang;
-		/* MGS 12/23/1997 fixed typo of MMSYSER_ERROR */
-		if (lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
-		return lang->funcs.TextToSpeechStartup(a,&(handle->phTTS),c,d);
-	}
-	if (def_lang == NULL)	init();
-	if (def_lang == NULL)	return MMSYSERR_ERROR;
-	handle->cur_lang = def_lang;
-	if (def_lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
-	return def_lang->funcs.TextToSpeechStartup(a,&(handle->phTTS),c,d);
-}
-#else
-MMRESULT TextToSpeechStartup(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LONG, LONG, DWORD, UINT), LONG e) {
-	LPLANG_HANDLE handle;
-	LANG_LIST *lang;
-int temp;
-	handle = malloc(sizeof(LANG_HANDLE));
-	if (handle == NULL)	return MMSYSERR_ERROR;
-	*a = handle;
-
-#ifdef UNDER_CE
 	lang = find_pid(GetCurrentProcessId());
 #else
+	*a = handle;
 	lang = find_pid(_getpid());
 #endif
 
-	if (lang != NULL) {
-#ifdef UNDER_CE
-		free_pid(GetCurrentProcessId());
+#ifdef WIN32	// UNDER_CE
+	free_pid(GetCurrentProcessId());
 #else
-		free_pid(_getpid());
+	free_pid(_getpid());
 #endif
+	if (lang != NULL)
+	{	
 		handle->cur_lang = lang;
+		/* MGS 12/23/1997 fixed typo of MMSYSER_ERROR */
 		if (lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
+#ifdef WIN32
+		return lang->funcs.TextToSpeechStartup(a,&(handle->phTTS),c,d);
+#else
 		return lang->funcs.TextToSpeechStartupEx(&(handle->phTTS),b,c,d,e);
+#endif
 	}
 	if (def_lang == NULL)	init();
 	if (def_lang == NULL)	return MMSYSERR_ERROR;
 	handle->cur_lang = def_lang;
 	if (def_lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
+#ifdef WIN32
+	return def_lang->funcs.TextToSpeechStartup(a,&(handle->phTTS),c,d);
+#else
 	return def_lang->funcs.TextToSpeechStartupEx(&(handle->phTTS),b,c,d,e);
-}
 #endif
+}
+
+/* Startup and shutdown calls */
+MMRESULT TextToSpeechStartupExFonix(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LONG, LONG, DWORD, UINT), LONG e,
+#ifdef WIN32
+	TCHAR *f)
+#else
+	char *f)
+#endif
+{	LPLANG_HANDLE handle;
+	LANG_LIST *lang;
+
+	handle = malloc(sizeof(LANG_HANDLE));
+	if (handle == NULL)	return MMSYSERR_ERROR;
+	
+	// CAB Removed 6/24/02 Warning
+	*a = (LPTTS_HANDLE_T)handle;
+
+#ifdef	WIN32	// UNDER_CE
+	lang = find_pid(GetCurrentProcessId());
+#else 
+	lang = find_pid(_getpid());
+#endif
+
+#ifdef WIN32	// UNDER_CE
+	free_pid(GetCurrentProcessId());
+#else
+	free_pid(_getpid());
+#endif
+	if (lang != NULL)
+	{	
+		handle->cur_lang = lang;
+		if (lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
+		return lang->funcs.TextToSpeechStartupExFonix(&(handle->phTTS),b,c,d,e,f);
+	}
+
+	/* Lock the great loading mutex - Use the load mutex to block init() calls as well */
+#ifdef WIN32
+	if (hGreatestInitMutex == NULL) {
+		hGreatestInitMutex = CreateMutex(NULL, TRUE, NULL);
+		if (hGreatestInitMutex == NULL)	return FALSE;
+	} else {
+		WaitForSingleObject(hGreatestInitMutex, INFINITE);
+	}
+	if (def_lang == NULL) {
+		if (init() == FALSE) {
+			ReleaseMutex(hGreatestInitMutex);
+			return MMSYSERR_ERROR;
+		}
+	}
+	ReleaseMutex(hGreatestInitMutex);
+#endif
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS
+	pthread_mutex_lock(hGreatestInitMutex);
+
+        if (def_lang == NULL) {
+                if (init() == FALSE) {
+                        pthread_mutex_unlock(hGreatestInitMutex);
+                        return MMSYSERR_ERROR;
+                }
+        }
+        pthread_mutex_unlock(hGreatestInitMutex);
+#endif
+
+	handle->cur_lang = def_lang;
+	if (def_lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
+	return def_lang->funcs.TextToSpeechStartupExFonix(&(handle->phTTS),b,c,d,e,f);
+}
 
 MMRESULT TextToSpeechShutdown(LPTTS_HANDLE_T a) {
 	LPLANG_HANDLE handle;
@@ -763,8 +832,8 @@ MMRESULT TextToSpeechShutdown(LPTTS_HANDLE_T a) {
 
 
 /* No phTTS thread passed, use default language */
-MMRESULT TextToSpeechGetCaps(LPTTS_CAPS_T a) {
-	LANG_LIST *lang;
+MMRESULT TextToSpeechGetCaps(LPTTS_CAPS_T a)
+{	LANG_LIST *lang;
 
 #ifdef WIN32	// UNDER_CE
 	lang = find_pid(GetCurrentProcessId());
@@ -772,12 +841,13 @@ MMRESULT TextToSpeechGetCaps(LPTTS_CAPS_T a) {
 	lang = find_pid(_getpid());
 #endif
 
-	if (lang != NULL) {
 #ifdef WIN32	// UNDER_CE
-		free_pid(GetCurrentProcessId());
+	free_pid(GetCurrentProcessId());
 #else
-		free_pid(_getpid());
+	free_pid(_getpid());
 #endif
+	if (lang != NULL)
+	{	
 		if (lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
 		return lang->funcs.TextToSpeechGetCaps(a);
 	}
@@ -788,8 +858,8 @@ MMRESULT TextToSpeechGetCaps(LPTTS_CAPS_T a) {
 	return def_lang->funcs.TextToSpeechGetCaps(a);
 }
 
-DWORD TextToSpeechGetFeatures(void) {
-        DWORD feats;
+DWORD TextToSpeechGetFeatures(void)
+{   DWORD feats;
 	LANG_LIST *lang;
 
 #ifdef WIN32	//  UNDER_CE
@@ -798,12 +868,13 @@ DWORD TextToSpeechGetFeatures(void) {
 	lang = find_pid(_getpid());
 #endif
 
-	if (lang != NULL) {
 #ifdef WIN32	// UNDER_CE
-		free_pid(GetCurrentProcessId());
+	free_pid(GetCurrentProcessId());
 #else
-		free_pid(_getpid());
+	free_pid(_getpid());
 #endif
+	if (lang != NULL)
+	{	
 		if (lang->funcs.mod == NULL)	return 0;
 		return (lang->funcs.TextToSpeechGetFeatures() | TTS_FEATS_MULTILANG);
 	}
@@ -811,8 +882,8 @@ DWORD TextToSpeechGetFeatures(void) {
 	if (def_lang == NULL)	return 0;
 	if (def_lang->funcs.mod == NULL)	return 0;
 
-	if (def_lang->funcs.TextToSpeechGetFeatures == NULL) {
-		return TTS_FEATS_MULTILANG;	/* Multi-language only */
+	if (def_lang->funcs.TextToSpeechGetFeatures == NULL)
+	{	return TTS_FEATS_MULTILANG;	/* Multi-language only */
 	}
 	feats = def_lang->funcs.TextToSpeechGetFeatures();
 	feats |= TTS_FEATS_MULTILANG;
@@ -820,11 +891,11 @@ DWORD TextToSpeechGetFeatures(void) {
 }
 
 #ifdef UNDER_CE
-ULONG TextToSpeechVersion(LPTSTR *a) {
+ULONG TextToSpeechVersion(LPTSTR *a)
 #else
-ULONG TextToSpeechVersion(LPSTR *a) {
+ULONG TextToSpeechVersion(LPSTR *a)
 #endif
-
+{
 #ifdef UNDER_CE
 	static wchar_t ver[1024];
 #else
@@ -838,12 +909,13 @@ ULONG TextToSpeechVersion(LPSTR *a) {
 	lang = find_pid(_getpid());
 #endif
 
-	if (lang != NULL) {
-#ifdef WIN32 // UNDER_CE
-		free_pid(GetCurrentProcessId());
+#ifdef WIN32	// UNDER_CE
+	free_pid(GetCurrentProcessId());
 #else
-		free_pid(_getpid());
+	free_pid(_getpid());
 #endif
+	if (lang != NULL)
+	{	
 		if (lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
 		return lang->funcs.TextToSpeechVersion(a);
 	}
@@ -860,11 +932,11 @@ ULONG TextToSpeechVersion(LPSTR *a) {
 
 
 #ifdef UNDER_CE
-MMRESULT TextToSpeechSpeak(LPTTS_HANDLE_T a, LPTSTR b, DWORD c) {
+MMRESULT TextToSpeechSpeak(LPTTS_HANDLE_T a, LPTSTR b, DWORD c)
 #else
-MMRESULT TextToSpeechSpeak(LPTTS_HANDLE_T a, LPSTR b, DWORD c) {
+MMRESULT TextToSpeechSpeak(LPTTS_HANDLE_T a, LPSTR b, DWORD c)
 #endif
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -873,8 +945,8 @@ MMRESULT TextToSpeechSpeak(LPTTS_HANDLE_T a, LPSTR b, DWORD c) {
 	return handle->cur_lang->funcs.TextToSpeechSpeak(handle->phTTS,b,c);
 }
 
-MMRESULT TextToSpeechPause(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechPause(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -883,8 +955,8 @@ MMRESULT TextToSpeechPause(LPTTS_HANDLE_T a) {
 	return handle->cur_lang->funcs.TextToSpeechPause(handle->phTTS);
 }
 
-MMRESULT TextToSpeechResume(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechResume(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -894,11 +966,11 @@ MMRESULT TextToSpeechResume(LPTTS_HANDLE_T a) {
 }
 
 #ifdef UNDER_CE
-MMRESULT TextToSpeechOpenWaveOutFile(LPTTS_HANDLE_T a, wchar_t *b, DWORD c) {
+MMRESULT TextToSpeechOpenWaveOutFile(LPTTS_HANDLE_T a, wchar_t *b, DWORD c)
 #else
-MMRESULT TextToSpeechOpenWaveOutFile(LPTTS_HANDLE_T a, char *b, DWORD c) {
+MMRESULT TextToSpeechOpenWaveOutFile(LPTTS_HANDLE_T a, char *b, DWORD c)
 #endif	
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -907,8 +979,8 @@ MMRESULT TextToSpeechOpenWaveOutFile(LPTTS_HANDLE_T a, char *b, DWORD c) {
 	return handle->cur_lang->funcs.TextToSpeechOpenWaveOutFile(handle->phTTS,b,c);
 }
 
-MMRESULT TextToSpeechCloseWaveOutFile(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechCloseWaveOutFile(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -917,8 +989,8 @@ MMRESULT TextToSpeechCloseWaveOutFile(LPTTS_HANDLE_T a) {
 	return handle->cur_lang->funcs.TextToSpeechCloseWaveOutFile(handle->phTTS);
 }
 
-MMRESULT TextToSpeechGetStatus(LPTTS_HANDLE_T a, LPDWORD b, LPDWORD c, DWORD d) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechGetStatus(LPTTS_HANDLE_T a, LPDWORD b, LPDWORD c, DWORD d)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -927,8 +999,8 @@ MMRESULT TextToSpeechGetStatus(LPTTS_HANDLE_T a, LPDWORD b, LPDWORD c, DWORD d) 
 	return handle->cur_lang->funcs.TextToSpeechGetStatus(handle->phTTS,b,c,d);
 }
 
-MMRESULT TextToSpeechReset(LPTTS_HANDLE_T a, BOOL b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechReset(LPTTS_HANDLE_T a, BOOL b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -937,8 +1009,8 @@ MMRESULT TextToSpeechReset(LPTTS_HANDLE_T a, BOOL b) {
 	return handle->cur_lang->funcs.TextToSpeechReset(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechSync(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechSync(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -947,8 +1019,8 @@ MMRESULT TextToSpeechSync(LPTTS_HANDLE_T a) {
 	return handle->cur_lang->funcs.TextToSpeechSync(handle->phTTS);
 }
 
-MMRESULT TextToSpeechGetRate(LPTTS_HANDLE_T a, LPDWORD b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechGetRate(LPTTS_HANDLE_T a, LPDWORD b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -957,8 +1029,8 @@ MMRESULT TextToSpeechGetRate(LPTTS_HANDLE_T a, LPDWORD b) {
 	return handle->cur_lang->funcs.TextToSpeechGetRate(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechSetRate(LPTTS_HANDLE_T a, DWORD b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechSetRate(LPTTS_HANDLE_T a, DWORD b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -967,8 +1039,8 @@ MMRESULT TextToSpeechSetRate(LPTTS_HANDLE_T a, DWORD b) {
 	return handle->cur_lang->funcs.TextToSpeechSetRate(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechGetSpeaker(LPTTS_HANDLE_T a, LPSPEAKER_T b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechGetSpeaker(LPTTS_HANDLE_T a, LPSPEAKER_T b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -977,8 +1049,8 @@ MMRESULT TextToSpeechGetSpeaker(LPTTS_HANDLE_T a, LPSPEAKER_T b) {
 	return handle->cur_lang->funcs.TextToSpeechGetSpeaker(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechSetSpeaker(LPTTS_HANDLE_T a, SPEAKER_T b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechSetSpeaker(LPTTS_HANDLE_T a, SPEAKER_T b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -987,8 +1059,8 @@ MMRESULT TextToSpeechSetSpeaker(LPTTS_HANDLE_T a, SPEAKER_T b) {
 	return handle->cur_lang->funcs.TextToSpeechSetSpeaker(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechGetLanguage(LPTTS_HANDLE_T a, LPLANGUAGE_T b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechGetLanguage(LPTTS_HANDLE_T a, LPLANGUAGE_T b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -997,8 +1069,8 @@ MMRESULT TextToSpeechGetLanguage(LPTTS_HANDLE_T a, LPLANGUAGE_T b) {
 	return handle->cur_lang->funcs.TextToSpeechGetLanguage(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechSetLanguage(LPTTS_HANDLE_T a, LANGUAGE_T b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechSetLanguage(LPTTS_HANDLE_T a, LANGUAGE_T b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1012,8 +1084,7 @@ MMRESULT TextToSpeechLoadUserDictionary(LPTTS_HANDLE_T a, LPTSTR b)
 #else
 MMRESULT TextToSpeechLoadUserDictionary(LPTTS_HANDLE_T a, LPSTR b)
 #endif
-{
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1022,8 +1093,8 @@ MMRESULT TextToSpeechLoadUserDictionary(LPTTS_HANDLE_T a, LPSTR b)
 	return handle->cur_lang->funcs.TextToSpeechLoadUserDictionary(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechUnloadUserDictionary(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechUnloadUserDictionary(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1032,8 +1103,8 @@ MMRESULT TextToSpeechUnloadUserDictionary(LPTTS_HANDLE_T a) {
 	return handle->cur_lang->funcs.TextToSpeechUnloadUserDictionary(handle->phTTS);
 }
 
-MMRESULT TextToSpeechOpenInMemory(LPTTS_HANDLE_T a, DWORD b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechOpenInMemory(LPTTS_HANDLE_T a, DWORD b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1042,8 +1113,8 @@ MMRESULT TextToSpeechOpenInMemory(LPTTS_HANDLE_T a, DWORD b) {
 	return handle->cur_lang->funcs.TextToSpeechOpenInMemory(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechCloseInMemory(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechCloseInMemory(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1052,8 +1123,8 @@ MMRESULT TextToSpeechCloseInMemory(LPTTS_HANDLE_T a) {
 	return handle->cur_lang->funcs.TextToSpeechCloseInMemory(handle->phTTS);
 }
 
-MMRESULT TextToSpeechAddBuffer(LPTTS_HANDLE_T a, LPTTS_BUFFER_T b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechAddBuffer(LPTTS_HANDLE_T a, LPTTS_BUFFER_T b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1062,8 +1133,8 @@ MMRESULT TextToSpeechAddBuffer(LPTTS_HANDLE_T a, LPTTS_BUFFER_T b) {
 	return handle->cur_lang->funcs.TextToSpeechAddBuffer(handle->phTTS,b);
 }
 
-MMRESULT TextToSpeechReturnBuffer(LPTTS_HANDLE_T a, LPTTS_BUFFER_T *b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechReturnBuffer(LPTTS_HANDLE_T a, LPTTS_BUFFER_T *b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1073,11 +1144,11 @@ MMRESULT TextToSpeechReturnBuffer(LPTTS_HANDLE_T a, LPTTS_BUFFER_T *b) {
 }
 
 #ifdef UNDER_CE
-MMRESULT TextToSpeechOpenLogFile(LPTTS_HANDLE_T a, LPTSTR b, DWORD c) {
+MMRESULT TextToSpeechOpenLogFile(LPTTS_HANDLE_T a, LPTSTR b, DWORD c)
 #else
-MMRESULT TextToSpeechOpenLogFile(LPTTS_HANDLE_T a, LPSTR b, DWORD c) {
+MMRESULT TextToSpeechOpenLogFile(LPTTS_HANDLE_T a, LPSTR b, DWORD c)
 #endif
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1086,8 +1157,8 @@ MMRESULT TextToSpeechOpenLogFile(LPTTS_HANDLE_T a, LPSTR b, DWORD c) {
 	return handle->cur_lang->funcs.TextToSpeechOpenLogFile(handle->phTTS,b,c);
 }
 
-MMRESULT TextToSpeechCloseLogFile(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechCloseLogFile(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1096,8 +1167,8 @@ MMRESULT TextToSpeechCloseLogFile(LPTTS_HANDLE_T a) {
 	return handle->cur_lang->funcs.TextToSpeechCloseLogFile(handle->phTTS);
 }
 
-VOID TextToSpeechControlPanel(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+VOID TextToSpeechControlPanel(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return;
@@ -1108,11 +1179,11 @@ VOID TextToSpeechControlPanel(LPTTS_HANDLE_T a) {
 }
 
 #ifdef UNDER_CE
-void TextToSpeechTyping(LPTTS_HANDLE_T a, wchar_t b) {
+void TextToSpeechTyping(LPTTS_HANDLE_T a, wchar_t b)
 #else
-void TextToSpeechTyping(LPTTS_HANDLE_T a, unsigned char b) {	// CAB 5/30/01 Warning
+void TextToSpeechTyping(LPTTS_HANDLE_T a, unsigned char b)	// CAB 5/30/01 Warning
 #endif
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return;
@@ -1122,8 +1193,8 @@ void TextToSpeechTyping(LPTTS_HANDLE_T a, unsigned char b) {	// CAB 5/30/01 Warn
 	return;
 }
 
-ULONG TextToSpeechGetLastError(LPTTS_HANDLE_T a) {
-	LPLANG_HANDLE handle;
+ULONG TextToSpeechGetLastError(LPTTS_HANDLE_T a)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1132,15 +1203,15 @@ ULONG TextToSpeechGetLastError(LPTTS_HANDLE_T a) {
 	return handle->cur_lang->funcs.TextToSpeechGetLastError(handle->phTTS);
 }
 
-ULONG TextToSpeechReserved1(UCHAR *voices, U8 voice, BOOL bEightk, BOOL bReadData) {
-	if (def_lang == NULL)	init();
+ULONG TextToSpeechReserved1(UCHAR *voices, U8 voice, BOOL bEightk, BOOL bReadData)
+{	if (def_lang == NULL)	init();
 	if (def_lang == NULL)	return MMSYSERR_ERROR;
 	if (def_lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
 	return def_lang->funcs.TextToSpeechReserved1(voices, voice, bEightk, bReadData);
 }
 
-ULONG TextToSpeechReserved2(LPTTS_HANDLE_T a, ULONG *gains) {
-	LPLANG_HANDLE handle;
+ULONG TextToSpeechReserved2(LPTTS_HANDLE_T a, ULONG *gains)
+{	LPLANG_HANDLE handle;
 	
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1149,8 +1220,8 @@ ULONG TextToSpeechReserved2(LPTTS_HANDLE_T a, ULONG *gains) {
 	return handle->cur_lang->funcs.TextToSpeechReserved2(handle->phTTS, gains);
 }
 
-U32 TextToSpeechReserved3(LPTTS_HANDLE_T a, int type, char *data, int max_size) {
-	LPLANG_HANDLE handle;
+U32 TextToSpeechReserved3(LPTTS_HANDLE_T a, int type, char *data, int max_size)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1265,8 +1336,7 @@ MMRESULT TextToSpeechDeleteUserEntry(LPTTS_HANDLE_T phTTS, struct dic_entry *ent
 
 MMRESULT TextToSpeechChangeUserPhoneme(LPTTS_HANDLE_T phTTS, struct dic_entry *entry, 
 			 						   unsigned char *new_phoneme)
-{
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) phTTS;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1318,8 +1388,7 @@ MMRESULT TextToSpeechConvertToPhonemes(LPTTS_HANDLE_T phTTS,
 MMRESULT TextToSpeechTuning(LPTTS_HANDLE_T phTTS,
 							int iFunction, 
 							VOID *pvtdArg)
-{
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) phTTS;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1331,8 +1400,7 @@ MMRESULT TextToSpeechTuning(LPTTS_HANDLE_T phTTS,
 }
 
 short  *TextToSpeechGetPhVdefParams(LPTTS_HANDLE_T a, UINT index)
-{
-	LPLANG_HANDLE handle;
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return NULL;
@@ -1341,8 +1409,8 @@ short  *TextToSpeechGetPhVdefParams(LPTTS_HANDLE_T a, UINT index)
 	return handle->cur_lang->funcs.TextToSpeechGetPhVdefParams(handle->phTTS, index);
 }
 
-MMRESULT TextToSpeechSetVolume(LPTTS_HANDLE_T a, int b, int c) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechSetVolume(LPTTS_HANDLE_T a, int b, int c)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1351,8 +1419,8 @@ MMRESULT TextToSpeechSetVolume(LPTTS_HANDLE_T a, int b, int c) {
 	return handle->cur_lang->funcs.TextToSpeechSetVolume(handle->phTTS,b,c);
 }
 
-MMRESULT TextToSpeechGetVolume(LPTTS_HANDLE_T a, int b, int *c) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechGetVolume(LPTTS_HANDLE_T a, int b, int *c)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1361,8 +1429,8 @@ MMRESULT TextToSpeechGetVolume(LPTTS_HANDLE_T a, int b, int *c) {
 	return handle->cur_lang->funcs.TextToSpeechGetVolume(handle->phTTS,b,c);
 }
 
-MMRESULT TextToSpeechVisualMarks(LPTTS_HANDLE_T a, int b) {
-	LPLANG_HANDLE handle;
+MMRESULT TextToSpeechVisualMarks(LPTTS_HANDLE_T a, int b)
+{	LPLANG_HANDLE handle;
 
 	handle = (LPLANG_HANDLE) a;
 	if (handle == NULL)				return MMSYSERR_ERROR;
@@ -1371,7 +1439,23 @@ MMRESULT TextToSpeechVisualMarks(LPTTS_HANDLE_T a, int b) {
 	return handle->cur_lang->funcs.TextToSpeechVisualMarks(handle->phTTS,b);
 }
 
-ULONG TextToSpeechVersionEx(LPVERSION_INFO *ver) {
+#ifdef UNDER_CE
+	MMRESULT TextToSpeechReserved5( LPTTS_HANDLE_T a, LPTSTR b )
+#else
+	MMRESULT TextToSpeechReserved5( LPTTS_HANDLE_T a, LPSTR b)
+#endif
+{	LPLANG_HANDLE handle;
+
+	handle = (LPLANG_HANDLE) a;
+	if (handle == NULL)				return MMSYSERR_ERROR;
+	if (handle->cur_lang == NULL)	return MMSYSERR_ERROR;
+	if (handle->cur_lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
+	return handle->cur_lang->funcs.TextToSpeechReserved5(handle->phTTS, b);
+}
+
+
+ULONG TextToSpeechVersionEx(LPVERSION_INFO *ver)
+{
 #ifdef UNDER_CE
 	static wchar_t DECtalk_Language_String[50];
 	static wchar_t DECtalk_Version_String[50];
@@ -1386,12 +1470,13 @@ ULONG TextToSpeechVersionEx(LPVERSION_INFO *ver) {
 #else
 	lang = find_pid(_getpid());
 #endif
-	if (lang != NULL) {
 #ifdef WIN32	// UNDER_CE
-		free_pid(GetCurrentProcessId());
+	free_pid(GetCurrentProcessId());
 #else
-		free_pid(_getpid());
+	free_pid(_getpid());
 #endif
+	if (lang != NULL)
+	{	
 		if (lang->funcs.mod == NULL)	return 0;
 		return lang->funcs.TextToSpeechVersionEx(ver);
 	}
@@ -1413,17 +1498,11 @@ ULONG TextToSpeechVersionEx(LPVERSION_INFO *ver) {
 	(*ver)->StructVersion = VERSION_STRUCT_VER;
 	(*ver)->DLLVersion = (1 << 8) + 6;
 	(*ver)->DTalkVersion = (1 << 8) + 1;
-#ifdef UNDER_CE
 	(*ver)->VerString = DECtalk_Version_String;
 	(*ver)->Language = DECtalk_Language_String;
-#else
-	(*ver)->VerString = DECtalk_Version_String;
-	(*ver)->Language = DECtalk_Language_String;
-#endif
 	(*ver)->Features = TextToSpeechGetFeatures();
 	return (sizeof(VERSION_INFO));
 }
-
 
 #if defined __linux__ || defined _SPARC_SOLARIS
 DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs) 
@@ -1438,10 +1517,10 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 
 	FILE *config_file;
 
-	config_file=fopen("/etc/DECtalk.conf","r");	
+	config_file=fopen("/etc/DECtalk.conf","r");
 	if (config_file==NULL)
 	{
-		config_file=fopen("DECtalk.conf","r");	
+		config_file=fopen("DECtalk.conf","r");
 	}
 
 #ifdef __linux__
@@ -1549,8 +1628,8 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 #define LANG_REG_LOC	"Software\\DECtalk Software\\DECtalk\\Langs"
 #endif
 
-DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs) {
-	unsigned long int result, keys, value_type, name_size, value_size, maxkeys, lastkey;
+DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
+{	unsigned long int result, keys, value_type, name_size, value_size, maxkeys, lastkey;
 #ifdef UNDER_CE
 	LPTSTR name;
 	LPTSTR value;
@@ -1571,27 +1650,25 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs) {
 	DWORD dwType,cbData;
 	LANG_ENTRY fetch;
 
-
-
-
 #ifdef UNDER_CE
-if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_QUERY_VALUE, &hKeyDefault) != ERROR_SUCCESS) {
-	 wsprintf(lang,TEXT("US"));
-	} else {
-		cbData = (3*2); // 3 char times 2 bytes = (6) total of bytes   mfg 02-apr-1999	
-		if (RegQueryValueEx(hKeyDefault, TEXT("DefaultLang"), 0, &dwType, (LPBYTE)lang, &cbData) != ERROR_SUCCESS) {
-			wsprintf(lang,TEXT("US"));
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_QUERY_VALUE, &hKeyDefault) != ERROR_SUCCESS)
+	{	wsprintf(lang,TEXT("US"));
+	}
+	else
+	{	cbData = (3*2); // 3 char times 2 bytes = (6) total of bytes   mfg 02-apr-1999	
+		if (RegQueryValueEx(hKeyDefault, TEXT("DefaultLang"), 0, &dwType, (LPBYTE)lang, &cbData) != ERROR_SUCCESS)
+		{	wsprintf(lang,TEXT("US"));
 		}
 		RegCloseKey(hKeyDefault);
 	}
-
 #else
-if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_QUERY_VALUE, &hKeyDefault) != ERROR_SUCCESS) {
-	sprintf(lang,"US");
-	} else {
-		cbData = 3;     // 3 char times 1 byte = (3) total of bytes	   mfg 02-apr-1999
-		if (RegQueryValueEx(hKeyDefault, "DefaultLang", NULL, &dwType, (LPBYTE)lang, &cbData) != ERROR_SUCCESS) {
-			sprintf(lang,"US");
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_QUERY_VALUE, &hKeyDefault) != ERROR_SUCCESS)
+	{	sprintf(lang,"US");
+	}
+	else
+	{	cbData = 3;     // 3 char times 1 byte = (3) total of bytes	   mfg 02-apr-1999
+		if (RegQueryValueEx(hKeyDefault, "DefaultLang", NULL, &dwType, (LPBYTE)lang, &cbData) != ERROR_SUCCESS)
+		{	sprintf(lang,"US");
 		}
 		RegCloseKey(hKeyDefault);
 	}
@@ -1607,22 +1684,22 @@ if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_QUERY_VALUE, &hKeyDefa
 	(*langs)->Languages = 0;
 	(*langs)->MultiLang = TRUE;
 #ifdef UNDER_CE
-	if (((*langs)->Entries = malloc(keys*sizeof(LANG_ENTRY))) == NULL) {
-		free(*langs);
+	if (((*langs)->Entries = malloc(keys*sizeof(LANG_ENTRY))) == NULL) 
+	{	free(*langs);
 		(*langs) = NULL;
 		return 0;
 	}
 #else
-	if (((*langs)->Entries = calloc(keys,sizeof(LANG_ENTRY))) == NULL) {
-		free(*langs);
+	if (((*langs)->Entries = calloc(keys,sizeof(LANG_ENTRY))) == NULL)
+	{	free(*langs);
 		(*langs) = NULL;
 		return 0;
 	}
 #endif
 	lastkey = maxkeys - 1;
 	nextentry = 1;
-	for (keys = 0; keys < maxkeys; keys++) {
-		name = fetch.lang_code;
+	for (keys = 0; keys < maxkeys; keys++)
+	{	name = fetch.lang_code;
 		name_size = 3;
 		value = fetch.lang_name;
 #ifdef UNDER_CE
@@ -1633,21 +1710,22 @@ if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_QUERY_VALUE, &hKeyDefa
 
 		result = RegEnumValue(key, keys, name, &name_size, NULL, &value_type, (unsigned char*) value, &value_size);
 #ifdef UNDER_CE
-		if ((name[0] == 'D') && (name[1] == 'e')){
+		if ((name[0] == 'D') && (name[1] == 'e'))
 #else
-		if ((result != ERROR_SUCCESS))  {
+		if ((result != ERROR_SUCCESS))
 #endif
-			lastkey--;
+		{	lastkey--;
 			continue;		/* This would be DefaultLang */
 		}
 #ifdef UNDER_CE
-		if (wcsicmp(fetch.lang_code, lang) == 0) {
+		if (wcsicmp(fetch.lang_code, lang) == 0)
 #else
-		if (stricmp(fetch.lang_code, lang) == 0) {
+		if (stricmp(fetch.lang_code, lang) == 0)
 #endif
-			curentry = 0;
-		} else {
-			curentry = nextentry;
+		{	curentry = 0;
+		}
+		else
+		{	curentry = nextentry;
 			nextentry++;
 		}
 		if (curentry > (int) lastkey)	curentry = 0;	// CAB 5/30/01 Warning
@@ -1657,7 +1735,7 @@ if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_QUERY_VALUE, &hKeyDefa
 	RegCloseKey(key);
 	return (sizeof(LANG_ENUM));
 }
-#endif
+#endif // WIN32
 
 BOOL TextToSpeechSelectLang(LPTTS_HANDLE_T tts, unsigned int id) {
 	LANG_LIST *next = langs;
@@ -1682,16 +1760,19 @@ BOOL TextToSpeechSelectLang(LPTTS_HANDLE_T tts, unsigned int id) {
 }
 
 #ifdef UNDER_CE
-unsigned int TextToSpeechStartLang(wchar_t *inlang) {
+unsigned int TextToSpeechStartLang(wchar_t *inlang)
 #else
-unsigned int TextToSpeechStartLang(char *inlang) {
+unsigned int TextToSpeechStartLang(char *inlang)
 #endif
-	LPLANG_LIST next;
+{	LPLANG_LIST next;
 	unsigned int id = 0;
-
 	char lang[5];
 
 
+	if (inlang==NULL)
+	{
+		return (TTS_NOT_SUPPORTED);
+	}
 #ifdef UNDER_CE
 	lang[0] =(char)(inlang[0] & 0x00FF);													
 	lang[1] =(char)(inlang[1] & 0x00FF);
@@ -1704,22 +1785,24 @@ unsigned int TextToSpeechStartLang(char *inlang) {
 
 	/* Lock the great loading mutex */
 #ifdef WIN32
-	if (hGreatLoadMutex == NULL) {
-		hGreatLoadMutex = CreateMutex(NULL, TRUE, NULL);
+	if (hGreatLoadMutex == NULL)
+	{	hGreatLoadMutex = CreateMutex(NULL, TRUE, NULL);
 		if (hGreatLoadMutex == NULL)	return FALSE;
-	} else {
-		WaitForSingleObject(hGreatLoadMutex, INFINITE);
+	}
+	else
+	{	WaitForSingleObject(hGreatLoadMutex, INFINITE);
 	}
 #endif
+
 #if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_
 	pthread_mutex_lock(hGreatLoadMutex);
 #endif
 
 	next = langs;
-	while (next != NULL) {
-		if (strcmp(next->lang, lang) == 0) {
-			if (next->funcs.mod == NULL) {
-				id = load_dectalk(lang);
+	while (next != NULL)
+	{	if (strcmp(next->lang, lang) == 0)
+		{	if (next->funcs.mod == NULL)
+			{	id = load_dectalk(lang);
 				ReleaseMutex(hGreatLoadMutex);
 				return id;
 			}
@@ -1737,12 +1820,17 @@ unsigned int TextToSpeechStartLang(char *inlang) {
 }
 
 #ifdef UNDER_CE
-BOOL TextToSpeechCloseLang(wchar_t *inlang) {
+BOOL TextToSpeechCloseLang(wchar_t *inlang)
 #else
-BOOL TextToSpeechCloseLang(char *inlang) {
+BOOL TextToSpeechCloseLang(char *inlang)
 #endif
-	LPLANG_LIST next;
+{	LPLANG_LIST next;
 	char lang[5];
+
+	if (inlang==NULL)
+	{
+		return (TTS_NOT_SUPPORTED);
+	}
 
 #ifdef UNDER_CE
 	lang[0] = (char)(towupper(inlang[0]));
@@ -1755,12 +1843,12 @@ BOOL TextToSpeechCloseLang(char *inlang) {
 #endif
 
 	next = langs;
-	while (next != NULL && strcmp(next->lang, lang) != 0) {
-		next = next->next;
+	while (next != NULL && strcmp(next->lang, lang) != 0)
+	{	next = next->next;
 	}
 	if (next == NULL)	return FALSE;
-	if (def_lang == next) {
-		next->funcs.inst_count--;
+	if (def_lang == next)
+	{	next->funcs.inst_count--;
 		def_lang = NULL;
 	}
 	next->funcs.inst_count--;
@@ -1773,37 +1861,40 @@ BOOL TextToSpeechCloseLang(char *inlang) {
 	return TRUE;
 }
 
-BOOL alloc_pid(int pid, LANG_LIST *lang) {
-	/* MGS fixed error with mutexing of pids */
+BOOL alloc_pid(int pid, LANG_LIST *lang)
+{	/* MGS fixed error with mutexing of pids */
 	LPPID_LIST next = NULL;
 
 	/* Lock the greater PID mutex */
 #ifdef WIN32
-	if (hGreaterPIDMutex == NULL) {
-		hGreaterPIDMutex = CreateMutex(NULL, TRUE, NULL);
+	if (hGreaterPIDMutex == NULL)
+	{	hGreaterPIDMutex = CreateMutex(NULL, TRUE, NULL);
 		if (hGreaterPIDMutex == NULL)	return FALSE;
-	} else {
-		WaitForSingleObject(hGreaterPIDMutex, INFINITE);
+	}
+	else
+	{	WaitForSingleObject(hGreaterPIDMutex, INFINITE);
 	}
 #endif
+
 #if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
 	pthread_mutex_lock(hGreaterPIDMutex);
 #endif
 
 	/* MGS fixed error with mutexing of pids */
 	next = pids;
-	if (pids == NULL) {
-		pids = malloc(sizeof(PID_LIST));
-		if (pids == NULL) {
-			ReleaseMutex(hGreaterPIDMutex);
+	if (pids == NULL)
+	{	pids = malloc(sizeof(PID_LIST));
+		if (pids == NULL)
+		{	ReleaseMutex(hGreaterPIDMutex);
 			return FALSE;
 		}
 		next = pids;
-	} else {
-		while (next->next != NULL)	next = next->next;
+	}
+	else 
+	{	while (next->next != NULL)	next = next->next;
 		next->next = malloc(sizeof(PID_LIST));
-		if (next->next == NULL) {
-			ReleaseMutex(hGreaterPIDMutex);
+		if (next->next == NULL)
+		{	ReleaseMutex(hGreaterPIDMutex);
 			return FALSE;
 		}
 		next = next->next;
@@ -1815,27 +1906,30 @@ BOOL alloc_pid(int pid, LANG_LIST *lang) {
 	return TRUE;
 }
 
-LANG_LIST* find_pid(int pid) {
-	/* MGS fixed error with mutexing of pids */
+LANG_LIST* find_pid(int pid)
+{	/* MGS fixed error with mutexing of pids */
 	LPPID_LIST next = NULL;
 
 	/* Lock the greater PID mutex */
 #ifdef WIN32
-	if (hGreaterPIDMutex == NULL) {
-		hGreaterPIDMutex = CreateMutex(NULL, TRUE, NULL);
+	if (hGreaterPIDMutex == NULL)
+	{	hGreaterPIDMutex = CreateMutex(NULL, TRUE, NULL);
 		if (hGreaterPIDMutex == NULL)	return FALSE;
-	} else {
-		WaitForSingleObject(hGreaterPIDMutex, INFINITE);
+	}
+	else
+	{	WaitForSingleObject(hGreaterPIDMutex, INFINITE);
 	}
 #endif
+
 #if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
 	pthread_mutex_lock(hGreaterPIDMutex);
 #endif
+
 	/* MGS fixed error with mutexing of pids */
 	next = pids;
-	while (next != NULL) {
-		if (next->pid == pid) {
-			ReleaseMutex(hGreaterPIDMutex);
+	while (next != NULL)
+	{	if (next->pid == pid)
+		{	ReleaseMutex(hGreaterPIDMutex);
 			return next->lang;
 		}
 		next = next->next;
@@ -1844,28 +1938,32 @@ LANG_LIST* find_pid(int pid) {
 	return NULL;
 }
 
-BOOL free_pid(int pid) {
-	/* MGS fixed error with mutexing of pids */
+BOOL free_pid(int pid)
+{	/* MGS fixed error with mutexing of pids */
 	LPPID_LIST next = NULL, last = NULL;
 
 	/* Lock the greater PID mutex */
 #ifdef WIN32
-	if (hGreaterPIDMutex == NULL) {
-		hGreaterPIDMutex = CreateMutex(NULL, TRUE, NULL);
+	if (hGreaterPIDMutex == NULL)
+	{	hGreaterPIDMutex = CreateMutex(NULL, TRUE, NULL);
 		if (hGreaterPIDMutex == NULL)	return FALSE;
-	} else {
-		WaitForSingleObject(hGreaterPIDMutex, INFINITE);
+	}
+	else
+	{	WaitForSingleObject(hGreaterPIDMutex, INFINITE);
 	}
 #endif
+
 #if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
 	pthread_mutex_lock(hGreaterPIDMutex);
 #endif
+
 	/* MGS fixed error with mutexing of pids */
 	next = pids;
-	while (next != NULL) {
-		if (next->pid == pid) {
-			if (next == pids) {
-				pids = next->next;
+	while (next != NULL)
+	{	if (next->pid == pid)
+		{
+			if (next == pids)
+			{	pids = next->next;
 				free(next);
 				ReleaseMutex(hGreaterPIDMutex);
 				return TRUE;
