@@ -194,7 +194,7 @@ case "$target" in
 	arm-ipaq-linux-*) STD_INCLUDE="/skiff/local/arm-linux/include" ;;
 dnl the itsy cross compiler knows where to get the std includes.
 esac
-STD_INCLUDE="${PWD}/build/include/"
+STD_INCLUDE="${PWD}/build/\$(LANG_CODE)/include/"
 AC_SUBST(STD_INCLUDE)dnl
 
 MME_DIR="."
@@ -273,7 +273,7 @@ case "$target" in
 	arm-ipaq-linux-*)LIB_LN_S_A_DIR="/skiff/local/arm-linux/lib" ;;
 	*-*-linux-*)LIB_LN_S_A_DIR="/usr/local/lib" ;;
 esac
-LIB_LN_S_A_DIR="${PWD}/build/lib"
+LIB_LN_S_A_DIR="${PWD}/build/\$(LANG_CODE)/lib"
 AC_SUBST(LIB_LN_S_A_DIR)dnl
 
 LIB_LN_S_SO_DIR="/usr/lib"
@@ -281,14 +281,14 @@ case "$target" in
 	arm-ipaq-linux-*)LIB_LN_S_SO_DIR="/skiff/local/arm-linux/lib" ;;
 	*-*-linux-*)LIB_LN_S_SO_DIR="/usr/local/lib" ;;
 esac
-LIB_LN_S_SO_DIR="${PWD}/build/lib"
+LIB_LN_S_SO_DIR="${PWD}/build/\$(LANG_CODE)/lib"
 AC_SUBST(LIB_LN_S_SO_DIR)dnl
 
 INC_LN_S_DIR="/usr/include/dtk"
 case "$target" in
 	arm-ipaq-linux-*)INC_LN_S_DIR="/skiff/local/arm-linux/include/dtk" ;;
 esac
-INC_LN_S_DIR="${PWD}/build/include/dtk"
+INC_LN_S_DIR="${PWD}/build/\$(LANG_CODE)/include/dtk"
 AC_SUBST(INC_LN_S_DIR)dnl
 
 MME_COMPILE_FLAGS=""
@@ -392,7 +392,7 @@ case "$target" in
 	sparc-sun-*) SHLIB="/usr/lib" ;;
 	powerpc-apple-*) SHLIB="/usr/lib" ;;
 esac
-SHLIB="${PWD}/build/lib"
+SHLIB="${PWD}/build/\$(LANG_CODE)/lib"
 AC_SUBST(SHLIB)dnl
 
 SO_LOCATIONS=" \$(CP) /usr/shlib/so_locations ."
@@ -429,39 +429,39 @@ AC_SUBST(ML_ALL)dnl
 
 dnl: see how simple this is for linux?
 ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
-	-o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
-	../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-	../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm"
+	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm"
 case "$target" in
 	alpha-dec-osf4.0) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
-		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a -lc -lots -lpthread" ;;
+		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a -lc -lots -lpthread" ;;
 	alpha-dec-osf3.2) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
-		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a -lc -lots -lpthreads" ;;
+		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a -lc -lots -lpthreads" ;;
 	powerpc-apple-*) ML_TTS_SO="\$(CC) -dynamic -dynamiclib -dylib \
-	-o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
-	../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-	../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc" ;;
+	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc" ;;
 	sparc-sun-*) ML_TTS_SO="\$(LD) -G -Bsymbolic \
-	-o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
-	../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-	../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc" ;;
+	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc" ;;
 esac
 AC_SUBST(ML_TTS_SO)dnl
 
 ML_TTS_MME_SO=""
 case "$target" in
 	alpha-dec-osf4.0) ML_TTS_MME_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
-		-soname libttsmme.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml_mme.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/libttsmme.a -lc -lots -lpthread" ;; 
+		-soname libttsmme.so -o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml_mme.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libttsmme.a -lc -lots -lpthread" ;; 
 	alpha-dec-osf3.2) ML_TTS_MME_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
-		-soname libttsmme.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml_mme.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
-		../build/\$(OS_VERSION)/\$(ML_OUT)/libttsmme.a -lc -lots -lpthreads" ;;
+		-soname libttsmme.so -o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml_mme.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libttsmme.a -lc -lots -lpthreads" ;;
 esac
 
 AC_SUBST(ML_TTS_MME_SO)dnl
@@ -503,7 +503,7 @@ esac
 PKG_CHECK_MODULES(GTK, [gtk+-2.0], have_gtk2=yes, have_gtk2=no)
 
 if test "${have_gtk2}" = "yes"; then
-	SPEAK_ALL="\$(OUTPUT_DIR)/gspeak \$(OUTPUT_DIR_2)/gspeak_\$(LANG_CODE) \
+	SPEAK_ALL="\$(OUTPUT_DIR_2)/gspeak \$(OUTPUT_DIR_2)/gspeak_\$(LANG_CODE) \
 		\$(OUTPUT_DIR_2)/gspeakdem_\$(LANG_CODE)"
 	
 fi
@@ -543,7 +543,7 @@ case "$target" in
 	*-*-linux-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 	powerpc-apple-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 esac
-SAMPLE_LINKFLAGS=" -ldl -L${PWD}/build/lib -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
+SAMPLE_LINKFLAGS=" -ldl -L${PWD}/build/\$(LANG_CODE)/lib -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
 AC_SUBST(SAMPLE_LINKFLAGS)dnl
 
 SAMPLE_DTLIB=" -lttsmme"
@@ -560,7 +560,7 @@ AUDIO_LIBS=""
 AC_ARG_ENABLE(audio, [  --disable-audio	Disable system audio output (/dev/dsp or pulseaudio)],
               with_audio="${enableval}", with_audio="yes")
 if test "${with_audio}" = "yes"; then
-	PKG_CHECK_MODULES(GTK, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
+	PKG_CHECK_MODULES(PULSE, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
 	if test "${have_libpulsesimple}" = "yes"; then
 		AUDIO_DEFINES="-DUSE_PULSEAUDIO"
 		AUDIO_LIBS="-lpulse-simple"

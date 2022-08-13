@@ -143,7 +143,20 @@ unsigned char case_upper[] = {
 #include "ls_upper.tab"
 };
 
-       
+#ifdef GERMAN
+#define TMPFILE "dic_gr.tmp"
+#elif (defined SPANISH_SP)
+#define TMPFILE "dic_sp.tmp"
+#elif (defined SPANISH_LA)
+#define TMPFILE "dic_la.tmp"
+#elif (defined ENGLISH_UK)
+#define TMPFILE "dic_uk.tmp"
+#elif (defined FRENCH)
+#define TMPFILE "dic_fr.tmp"
+#else
+#define TMPFILE "dic_us.tmp"
+#endif
+ 
 struct d_ent input_entry;
 struct d_ent comp_entry;
 
@@ -347,7 +360,7 @@ int main(int argc, char ** argv)
    }
 	
 /*   if ((tfp = tmpfile()) == NULL) mfg_debug*/
-   if ((tfp = fopen("dic.tmp","w+b")) == NULL)
+   if ((tfp = fopen(TMPFILE,"w+b")) == NULL)
    {
       printf("DIC_COMM; main; Failure on temp file open\n");
       exit(0);
@@ -850,9 +863,9 @@ int main(int argc, char ** argv)
  
    fclose(tfp);
 #if defined (__osf__) || defined (__linux__)  || defined VXWORKS || defined _SPARC_SOLARIS_
-   unlink("dic.tmp");
+   unlink(TMPFILE);
 #else
-   _unlink("dic.tmp");
+   _unlink(TMPFILE);
 #endif
 
    return(0);

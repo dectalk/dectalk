@@ -58,13 +58,22 @@ MMELIBS= -lm
 
 SAMPLES_SRC=say.c dtmemory.c aclock.c xmsay.c tunecheck.c
 
-SAMPLES_OBJ=$(SAMPLES_SRC:.c=.o)
+SAMPLES_OBJ=$(OUTPUT_DIR)/link/say.o $(OUTPUT_DIR)/link/dtmemory.o $(OUTPUT_DIR)/link/aclock.o $(OUTPUT_DIR)/link/xmsay.o $(OUTPUT_DIR)/link/tunecheck.o
 
 all: $(DTSAMPLE_ALL)
 #$(OUTPUT_DIR)/say $(OUTPUT_DIR)/dtmemory \
 #     $(OUTPUT_DIR)/aclock $(OUTPUT_DIR)/xmsay $(OUTPUT_DIR)/xmsay.uid 
 
-$(OUTPUT_DIR)/say:say.o
+$(OUTPUT_DIR)/link/say.o:say.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/link/dtmemory.o:dtmemory.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/link/aclock.o:aclock.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/say:$(OUTPUT_DIR)/link/say.o
 	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
 
 $(OUTPUT_DIR)/link/tunecheck.o: tunecheck.c
@@ -73,28 +82,29 @@ $(OUTPUT_DIR)/link/tunecheck.o: tunecheck.c
 $(OUTPUT_DIR)/tunecheck: $(OUTPUT_DIR)/link/tunecheck.o
 	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS) -ltts_$(LANG_CODE)
 
-$(OUTPUT_DIR)/say_demo_$(LANG_CODE):say.o
+$(OUTPUT_DIR)/say_demo_$(LANG_CODE):$(OUTPUT_DIR)/link/say.o
 	$(CC) $(LINKFLAGS) -o $@ $? -ltts_demo_$(LANG_CODE) $(LIBS) $(MMELIBS) $(AUDIO_LIBS)
 
-$(OUTPUT_DIR)/dtmemory:dtmemory.o
+$(OUTPUT_DIR)/dtmemory:$(OUTPUT_DIR)/link/dtmemory.o
 	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
 
-$(OUTPUT_DIR)/dtmemory_demo_$(LANG_CODE):dtmemory.o
+$(OUTPUT_DIR)/dtmemory_demo_$(LANG_CODE):$(OUTPUT_DIR)/link/dtmemory.o
 	$(CC) $(LINKFLAGS) -o $@ $? -ltts_demo_$(LANG_CODE) $(LIBS) $(MMELIBS) $(AUDIO_LIBS)
 
-$(OUTPUT_DIR)/aclock:aclock.o
+$(OUTPUT_DIR)/aclock:$(OUTPUT_DIR)/link/aclock.o
 	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
 
 $(OUTPUT_DIR)/xmsay.uid:xmsay.uil 
 	/usr/bin/X11/uil -o $@ $?
 
-$(OUTPUT_DIR)/xmsay:xmsay.o
+$(OUTPUT_DIR)/xmsay:$(OUTPUT_DIR)/link/xmsay.o
 	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(XLIBS) $(MMELIBS)
 
 .c.o:
 	$(CC) -c $(CFLAGS) -o $@ $?
 
 clean:
+	$(RM) $(SAMPLES_OBJ)
 	$(RM) -r $(OUTPUT_DIR)/link
 	$(RM) $(OUTPUT_DIR)/* 
-	$(RM) $(SAMPLES_OBJ) *~ core
+	$(RM) *~ core
