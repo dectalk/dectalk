@@ -659,7 +659,6 @@ int play_file( char *file_name, int isAPipe )
 
 	memset(buf + total_bytes, 0, buf_len-total_bytes);
     }
-    printf("Read: %d\n", total_bytes);
     text_len = strlen( buf );
     if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
     {
