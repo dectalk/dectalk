@@ -610,7 +610,10 @@ BOOL init(void)
 			}
 		}
 	}
-	fclose(config_file);
+	
+	if (config_file!=NULL) {
+		fclose(config_file);
+	}
 #else
 	sprintf(lang,"US");
 #endif
