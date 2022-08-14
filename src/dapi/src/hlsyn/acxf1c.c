@@ -53,7 +53,11 @@ void Tongue_acx_f1c(HLFrame *frame,HLSpeaker *speaker, HLState *state)
   float temp;
 #endif
 
+#ifdef TONGUE_BODY_AREA
   if(frame->ab < 30.0f || frame->al < 30.0f || frame->atb <30.0f) 
+#else
+  if(frame->ab < 30.0f || frame->al < 30.0f)
+#endif
 	// EAB Ken agreed this should only apply when
 	//there is a constriction 
 	//saves computes too!
@@ -73,12 +77,16 @@ void Tongue_acx_f1c(HLFrame *frame,HLSpeaker *speaker, HLState *state)
     alveopalatal or dental.  It is discussed in the chapter
     on page 34.
   *****/
+#ifdef TONGUE_BODY_AREA
   if( frame->ab <= frame->atb)
+#endif
   R1ab = HelmholtzFrequency(MMSQ_TO_CMSQ(frame->ab),speaker->Vab,
     speaker->Lc_ab,speaker->HelmholtzZeroAreaFrequency);
+#ifdef TONGUE_BODY_AREA
   else
 	R1ab = HelmholtzFrequency(MMSQ_TO_CMSQ(frame->atb),speaker->Vab,
     speaker->Lc_ab,speaker->HelmholtzZeroAreaFrequency);
+#endif
 	//Bug if ab and al are both closed then r1ab==raal
   //and we revert to further back
 

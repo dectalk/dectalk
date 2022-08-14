@@ -138,6 +138,7 @@ void phinit (LPTTS_HANDLE_T phTTS, BOOL bResetAll)
 		pDph_t->param[AB].outp = &(pDph_t->parstochip[OUT_AB]);
 		pDph_t->param[TILT].outp = &(pDph_t->parstochip[OUT_TLT]);
 
+#ifdef NEW_VTM
 		pDph_t->param[AREAB			].outp = &(pDph_t->parstochip[OUT_ABLADE]);
 		pDph_t->param[AREAL			].outp = &(pDph_t->parstochip[OUT_AL]);
 		pDph_t->param[AREAG			].outp = &(pDph_t->parstochip[OUT_AG]);
@@ -149,6 +150,7 @@ void phinit (LPTTS_HANDLE_T phTTS, BOOL bResetAll)
 		pDph_t->param[DC			].outp = &(pDph_t->parstochip[OUT_DC]);
 		pDph_t->param[OQU			].outp = &(pDph_t->parstochip[OUT_OQ]);
 		pDph_t->param[BRST			].outp = &(pDph_t->parstochip[OUT_BRST]);
+#endif
 
 
 

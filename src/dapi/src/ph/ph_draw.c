@@ -308,6 +308,7 @@ area_rel[0]=pVtm_t->NOM_Fricative_Opening;
 					pDph_t->param[A6].outp = &(pDph_t->parstochip[OUT_A6]);
 					pDph_t->param[AB].outp = &(pDph_t->parstochip[OUT_AB]);
 					pDph_t->param[TILT].outp = &(pDph_t->parstochip[OUT_TLT]);
+#ifdef NEW_VTM
 					pDph_t->param[AREAG].outp = &(pDph_t->parstochip[OUT_AG]);
 					pDph_t->param[AREAL].outp = &(pDph_t->parstochip[OUT_AL]);
 					pDph_t->param[AREAB].outp = &(pDph_t->parstochip[OUT_ABLADE]);
@@ -319,6 +320,7 @@ area_rel[0]=pVtm_t->NOM_Fricative_Opening;
 					pDph_t->param[DC].outp = &(pDph_t->parstochip[OUT_DC]);
 					pDph_t->param[OQU].outp = &(pDph_t->parstochip[OUT_OQ]);
 					pDph_t->param[BRST].outp = &(pDph_t->parstochip[OUT_BRST]);
+#endif
 
 					
 				}
@@ -4302,6 +4304,7 @@ abort_til_later:
 		// close tongue body and then modulate my zero mass tongue body because hlsyn
 		// had it's uvula removed
 			pDph_t->target_ag = 700;
+#ifdef NEW_VTM
 			pDph_t->parstochip[OUT_ATB] = 200;
 			pDph_t->agspeed = 1;
 			if (pDph_t->allophons[ pDph_t->nphone] == GRP_RR)
@@ -4325,6 +4328,7 @@ abort_til_later:
 				gr_modulation (phTTS,&pDph_t->parstochip[OUT_ATB], N90PRCNT, TRUE);
 				pDph_t->modulcount++; //increase modulation speed
 			}
+#endif
 
 	
 

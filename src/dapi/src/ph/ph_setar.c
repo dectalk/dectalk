@@ -1912,7 +1912,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)us_femdip;
 						pDph_t->p_tar = (short *)us_femtar;
 #ifndef HLSYN
-						pDph_t->p_amp = (short *)us_malamp;
+						pDph_t->p_amp = (short *)us_femamp;
 #endif
 					}
 

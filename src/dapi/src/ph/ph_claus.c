@@ -751,10 +751,12 @@ static void send_pars (LPTTS_HANDLE_T phTTS)
 
     }  // (pDph_t->initpardelay == 0)
 
+#ifdef NEW_VTM
 	pDph_t->delaypars[OUT_ABLADE] = pDph_t->parstochip[OUT_ABLADE];
 	pDph_t->delaypars[OUT_AL] = pDph_t->parstochip[OUT_AL];
 	pDph_t->delaypars[OUT_AN] = pDph_t->parstochip[OUT_AN];
 	pDph_t->delaypars[OUT_BRST] = pDph_t->parstochip[OUT_BRST];
+#endif
 	pDph_t->delaypars[OUT_F1] = pDph_t->parstochip[OUT_F1];
 	pDph_t->delaypars[OUT_B1] = pDph_t->parstochip[OUT_B1];
 	pDph_t->delaypars[OUT_F2] = pDph_t->parstochip[OUT_F2];
@@ -791,6 +793,7 @@ static void send_pars (LPTTS_HANDLE_T phTTS)
 #endif
 
 
+#ifdef NEW_VTM
 		pDph_t->delaypars[OUT_FNP] = pDph_t->parstochip[OUT_FNP];
 		pDph_t->delaypars[OUT_GF] = pDph_t->parstochip[OUT_GF];
 		pDph_t->delaypars[OUT_F4] = pDph_t->parstochip[OUT_F4];
@@ -810,6 +813,7 @@ static void send_pars (LPTTS_HANDLE_T phTTS)
 		pDph_t->delaypars[OUT_ATB] = pDph_t->parstochip[OUT_ATB];
 #endif
 		pDph_t->delaypars[OUT_PLACE] = pDph_t->parstochip[OUT_PLACE];
+#endif
 	
 
 

@@ -336,6 +336,7 @@ void far kltask (LPTTS_HANDLE_T phTTS)
 	pDph_t->param[A6].outp = &(pDph_t->parstochip[OUT_A6]);
 	pDph_t->param[AB].outp = &(pDph_t->parstochip[OUT_AB]);
 	pDph_t->param[TILT].outp = &(pDph_t->parstochip[OUT_TLT]);
+#ifdef NEW_VTM
 	pDph_t->param[AREAG].outp = &(pDph_t->parstochip[OUT_AG]);
 	pDph_t->param[AREAL].outp = &(pDph_t->parstochip[OUT_AL]);
 	pDph_t->param[AREAN].outp = &(pDph_t->parstochip[OUT_AN]);
@@ -344,6 +345,7 @@ void far kltask (LPTTS_HANDLE_T phTTS)
 	pDph_t->param[OUT_CNK].outp = &(pDph_t->parstochip[OUT_CNK]);
 	pDph_t->param[OUT_UE].outp = &(pDph_t->parstochip[OUT_UE]);
 	pDph_t->param[OUT_DC].outp = &(pDph_t->parstochip[OUT_DC]);
+#endif
 	init_phclause (pDph_t);
 #if defined SPANISH && !defined EPSON_ARM7
 

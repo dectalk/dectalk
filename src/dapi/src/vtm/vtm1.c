@@ -1,4 +1,4 @@
-/**********************************************************************/
+/**********************************************************************
 *                                                                    
 *                DECtalk Vocal Tract Model                           
 *                                                                    
@@ -20,8 +20,8 @@
 *
 * ************************************************************************ */
 /* ****************************************************************/
-/* Edit history:                                                  */
-* 001 1-Sep-84 	DK  Initial creation                                                                                                 */
+/* Edit history:                                                  *
+* 001 1-Sep-84 	DK  Initial creation                                                                                                 *
 * 002 17-Jan-85		DK  Add "multi-pulse" excitation                    
 *                    		(currently disabled).                           
 * 003 19-Feb-85		DK  New Code: Change meaning of TILT to             
@@ -111,7 +111,7 @@
 * 039 /30/99 		EAB 	Fixed setabc declaration -ifdef ou until and if we use the function
 * 040 4/7/99 		eab		Modified SP_ for universal phonemes
 * 041 10/16/00		CAB		Changed copyright info
-*/
+*
 
       Klatt synthesizer as implimented on the TI SPC                  
       Modified version of synthesizer described in                    

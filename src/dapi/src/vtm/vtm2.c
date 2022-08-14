@@ -700,12 +700,14 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
   r6pa = amptable[A6inDB + 5];  /*  Convert dB to linear        */
   ABlin= amptable[ABinDB + 5];  /*  Convert dB to linear        */
 
+#if defined UPGRADES1999 || defined NEW_VTM
   ampsum = A2inDB + A3inDB + A4inDB + A5inDB + A6inDB + ABinDB;
   if(ampsum)
 	  pVtm_t->par_count=5;
   else
 	  if(pVtm_t->par_count)
 		  pVtm_t->par_count--;
+#endif
  
 
 #ifdef UPGRADES1999_OUT //EAB Cause's a re-init during breathiness which has ampsum=0
@@ -725,7 +727,9 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
   /********************************************************************/
 
   FZinHZ = variabpars[OUT_FZ];
+#ifdef NEW_VTM
 	FNPinHZ= variabpars[OUT_FNP];
+#endif
 	
 
 
