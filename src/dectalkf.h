@@ -1,2 +1,2 @@
 //#include "dectalkf_hlsyn.h"
-#include "dectalkf_oldsynth.h"
+#include "dectalkf_klsynth.h"
