@@ -225,7 +225,7 @@ const short                   betty_8[SPDEF] =
 	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
 	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4100,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	0,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 #ifndef FP_VTM
 	73,								   /* GF (gain of frication source in dB) */
 	70,								   /* GH (gain of aspiration source in dB) */
@@ -375,12 +375,12 @@ const short                   kit_8[SPDEF] =
 	0,								   /* NF (additional fixed number of samples in nopen) */
 	0,								   /* LA (laryngealization, in percent) */
 	80 + 8,							   /* HS (head size, in percent relative to normal for SEX) */
-	4200,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
-	500,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	4700,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	600,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	ZAPF,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
+	ZAPB,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
+	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4450 + 3000,					   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	4800,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 #ifndef FP_VTM
 	63,								   /* GF (gain of frication source in dB) */
 	70,								   /* GH (gain of aspiration source in dB) */
@@ -433,7 +433,7 @@ const short                   ursula_8[SPDEF] =
 	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
 	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4300,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	4900,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 #ifndef FP_VTM
 	77,								   /* GF (gain of frication source in dB) */
 	70,								   /* GH (gain of aspiration source in dB) */
@@ -579,10 +579,10 @@ const short                   wendy_8[SPDEF] =
 	100,							   /* HS (head size, in percent relative to normal for SEX) */
 	4500,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
 	400,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	4800,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	600,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4100,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	4900,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 	72,								   /* GF (gain of frication source in dB) */
 	70,								   /* GH (gain of aspiration source in dB) */
 	68,								   /* GV (gain of voicing source in dB ) */
@@ -775,10 +775,10 @@ const short                   betty[SPDEF] =
 	100,							   /* HS (head size, in percent relative to normal for SEX) */
 	4450,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
 	260,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	2500,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	2048,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4100,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	0,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
     69,                                                                /* GF (gain of frication source in dB) */
     67,                                                                /* GH (gain of aspiration source in dB) */
 	68,								   /* GV (gain of voicing source in dB ) */
@@ -915,12 +915,12 @@ const short                   kit[SPDEF] =
 	0,								   /* NF (additional fixed number of samples in nopen) */
 	0,								   /* LA (laryngealization, in percent) */
 	80 - 3,							   /* HS (head size, in percent relative to normal for SEX) */
-	2500,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
-	2048,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	2500,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	2048,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	ZAPF,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
+	ZAPB,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
+	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4450,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	4800,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 	58/*72*/,								   /* GF (gain of frication source in dB) */
 	70,								   /* GH (gain of aspiration source in dB) */
 	68,								   /* GV (gain of voicing source in dB ) */
@@ -962,12 +962,12 @@ const short                   ursula[SPDEF] =
 	10,								   /* NF (additional fixed number of samples in nopen) */
 	0,								   /* LA (laryngealization, in percent) */
 	95,								   /* HS (head size, in percent relative to normal for SEX) */
-	4450,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
-	260,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	4850,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	1200,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	4500,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
+	230,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
+	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4300,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	4900,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
         68,                                                              /* GF (gain of frication source in dB) */
         67,                                                                /* GH (gain of aspiration source in dB) */
 	68,								   /* GV (gain of voicing source in dB ) */
@@ -1011,10 +1011,10 @@ const short                   rita[SPDEF] =
 	95,								   /* HS (head size, in percent relative to normal for SEX) */
 	4000,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
 	250,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	4800,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	700,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4100,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	4700,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
         67,                                                              /* GF (gain of frication source in dB) */
         66,                                                                /* GH (gain of aspiration source in dB) */
 	68,								   /* GV (gain of voicing source in dB ) */
@@ -1058,10 +1058,10 @@ const short                   wendy[SPDEF] =
 	100,							   /* HS (head size, in percent relative to normal for SEX) */
 	4500,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
 	400,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	2500,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	2048,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4100,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
-	0,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
+	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 	/* complaints that whisper voice sometimes overload-dropped source  2db for Wendy doctor and frank */
 	70,								   /* GF (gain of frication source in dB) */
 	68,								   /* GH (gain of aspiration source in dB) */
