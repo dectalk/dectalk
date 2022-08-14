@@ -63,10 +63,10 @@
 #include "p_us_vdf1.c"
 #endif
 #else
-#ifdef FRENCH
+#ifdef OLD_VDF
 #include "p_us_vdf.c"
 #else
-#include "p_us_vdf.c"
+#include "p_us_vdf_adapted.c"
 #endif
 #endif
 

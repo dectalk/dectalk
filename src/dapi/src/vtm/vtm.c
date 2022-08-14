@@ -28,6 +28,10 @@
 /* removed leading spaces */
 
 
+#if defined(VTM1)
+#include "vtm1.c"
+#elif defined(VTM2)
+#include "vtm2.c"
+#else
 #include "vtm3.c"
-
-
+#endif
