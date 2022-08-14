@@ -516,7 +516,69 @@ const short fr_femloc[] = {
 #endif
 };
 
+const short fr_malamp[] = {
+  0,
 
+ 30, 30,  0,  0,  0, 40,  // F front; indice 1
+ 30, 30,  0,  0,  0, 40,  // F back
+ 30, 30,  0,  0,  0, 40,  // F round
+ 30, 30,  0,  0,  0, 40,  // F nonsonor
+
+  0,  0,  0,  0,  0, 45,  // V front; indice 25
+  0,  0,  0,  0,  0, 45,  // V back
+  0,  0,  0,  0,  0, 43,  // V round
+  0,  0,  0,  0,  0, 43,  // V nonsonor
+
+  0,  0,  0,  0, 48,  0,  // S front; indice 49
+  0,  0,  0,  0, 48,  0,  // S back
+  0,  0,  0,  0, 48,  0,  // S round
+  0,  0,  0,  0, 48,  0,  // S nonsonor
+
+  0,  0, 30, 40, 42,  0,  // Z front; indice 73
+  0,  0, 30, 40, 42,  0,  // Z back
+  0,  0, 30, 40, 42,  0,  // Z round
+  0,  0, 30, 40, 42,  0,  // Z nonsonor
+
+ 30, 30, 30, 30,  0,  0,  // P front; indice 97
+ 25, 25, 25, 25,  0,  0,  // P back  [P] (A)
+ 30, 30, 30, 30,  0,  0,  // P round [P] (Au)
+  0,  0,  0,  0, 44, 61,  // P nonsonor
+
+  0,  0,  0,  0, 0, 56,   // B front; indice 121
+  0,  0,  0,  0, 0, 56,   // B back  was 0,  0,  0,  0, 40, 56, for all
+  0,  0,  0,  0, 0, 56,   // B round
+  0,  0,  0,  0, 0, 56,   // B nonsonor
+
+ 40, 40, 40, 40, 30,  0,  // T front; indice 145  [T] (I)
+ 40, 40, 40, 30,  0,  0,  // T back    // was 0,  0, 40,  0, 45,  0, for all
+ 40, 40, 40,  0,  0,  0,  // T round  [T] (Au)
+  0,  0, 40,  0, 45,  0,  // T nonsonor
+
+ 20,  0, 44,  0,  0,  0,  // D front; indice 169  // Michel 1/6/2002
+ 20,  0, 46,  0,  0,  0,  // D back
+ 30, 40, 44,  0,  0,  0,  // D round
+ 20,  0, 50, 20,  0,  0,  // D nonsonor
+
+ 38,  0,  0, 20, 30,  0,  // K front; indice 193
+ 45,  0,  0, 40,  0,  0,  // K back  Michel le 7/5/2002; was  38, 0, 0, 20, 30, 0,
+ 38,  0,  0, 20,  0,  0,  // K round 38,  0,  0, 20, 30,  0,
+ 38,  0,  0, 20, 30,  0,  // K nonsonor
+
+  0, 38,  0, 33,  0,  0,  // G front; indice 217
+ 39,  0,  0, 42,  0,  0,  // G back
+ 38,  0, 23, 33,  0,  0,  // G round
+ 38,  0, 23, 33,  0,  0,  // G nonsonor
+
+  0, 41, 44,  0, 30,  0,  // Ch front; indice 241
+  0, 41, 44,  0, 30,  0,  // Ch back    was 0, 41, 44,  0, 30,  0 for all
+ 40, 41, 0,   0, 30,  0,  // Ch round   [Ch]Au
+  0, 41, 44,  0, 30,  0,  // Ch nonsonor
+
+ 30, 35, 45, 40, 35,  0,  // J front; indice 265
+ 30, 35, 45, 40, 35,  0,  // J back
+ 30, 35, 40, 40, 35,  0,  // J round
+ 30, 35, 40, 40, 35,  0,  // J nonsonor
+};
 
 // Pointers to parallel formant amplitudes for obstruents : ph_setar.c
 // index in fr_malamp[] or fr_femamp[] for a phoneme.

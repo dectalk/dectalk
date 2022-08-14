@@ -1926,7 +1926,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)uk_maldip;
 						pDph_t->p_tar = (short *)uk_maltar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)uk_malamp;
+						pDph_t->p_amp = (short *)uk_malamp;
 #endif
 					}
 					else
@@ -1935,7 +1935,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)uk_femdip;
 						pDph_t->p_tar = (short *)uk_femtar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)uk_malamp;
+						pDph_t->p_amp = (short *)uk_femamp;
 #endif
 					}
 
@@ -1948,7 +1948,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)gr_maldip;
 						pDph_t->p_tar = (short *)gr_maltar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)gr_malamp;
+						pDph_t->p_amp = (short *)gr_malamp;
 #endif
 					}
 					else
@@ -1957,7 +1957,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)gr_femdip;
 						pDph_t->p_tar = (short *)gr_femtar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)gr_malamp;
+						pDph_t->p_amp = (short *)gr_femamp;
 #endif
 					}
 
@@ -1970,7 +1970,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)la_maldip;
 						pDph_t->p_tar = (short *)la_maltar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)la_malamp;
+						pDph_t->p_amp = (short *)la_malamp;
 #endif
 					}
 					else
@@ -1979,7 +1979,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)la_femdip;
 						pDph_t->p_tar = (short *)la_femtar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)la_malamp;
+						pDph_t->p_amp = (short *)la_femamp;
 #endif
 					}
 		
@@ -1992,7 +1992,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)sp_maldip;
 						pDph_t->p_tar = (short *)sp_maltar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)sp_malamp;
+						pDph_t->p_amp = (short *)sp_malamp;
 #endif
 					}
 					else
@@ -2001,7 +2001,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)sp_femdip;
 						pDph_t->p_tar = (short *)sp_femtar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)sp_malamp;
+						pDph_t->p_amp = (short *)sp_femamp;
 #endif
 					}
 
@@ -2016,7 +2016,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)us_maldip;
 						pDph_t->p_tar = (short *)us_maltar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)fr_malamp;
+						pDph_t->p_amp = (short *)fr_malamp;
 #endif
 					}
 					else
@@ -2027,7 +2027,7 @@ int gettar (LPTTS_HANDLE_T phTTS, int phone) {
 						pDph_t->p_diph = (short *)us_femdip;
 //						pDph_t->p_tar = (short *)us_femtar;
 #ifndef HLSYN
-//						pDph_t->p_amp = (short *)fr_malamp;
+						pDph_t->p_amp = (short *)fr_malamp;
 #endif
 					}
 	
