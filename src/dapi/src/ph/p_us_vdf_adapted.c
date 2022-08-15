@@ -375,10 +375,10 @@ const short                   kit_8[SPDEF] =
 	0,								   /* NF (additional fixed number of samples in nopen) */
 	0,								   /* LA (laryngealization, in percent) */
 	80 + 8,							   /* HS (head size, in percent relative to normal for SEX) */
-	ZAPF,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
-	ZAPB,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	2500,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
+	2048,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
+	2500,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	2048,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4450 + 3000,					   /* F7 (frequency in Hz of parallel 4th formant = F7) */
 	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 #ifndef FP_VTM
@@ -915,10 +915,10 @@ const short                   kit[SPDEF] =
 	0,								   /* NF (additional fixed number of samples in nopen) */
 	0,								   /* LA (laryngealization, in percent) */
 	80 - 3,							   /* HS (head size, in percent relative to normal for SEX) */
-	ZAPF,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
-	ZAPB,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
-	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
-	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
+	2500,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
+	2048,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
+	2500,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
+	2048,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4450,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
 	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 	58/*72*/,								   /* GF (gain of frication source in dB) */
