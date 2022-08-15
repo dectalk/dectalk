@@ -1366,6 +1366,8 @@ void CreateOffsetFile()
 	char *speaker=NULL;
 	char offsets[256] = "\0";
 	time_t timestamp;
+	struct tm *gmt;
+	char timebuf[128] = { 0 };
 	MMRESULT mmStatus=0;
 
 	if (ttsHandlePtr == NULL) {
@@ -1378,6 +1380,8 @@ void CreateOffsetFile()
 	}
 	
 	time(&timestamp);
+	gmt = gmtime(&timestamp);
+	strftime(timebuf, sizeof(timebuf), "%c", gmt);
 	
 	strcpy(offsets, offsetPath);
 	strcat(offsets, OFFSETFILE);
@@ -1413,7 +1417,7 @@ void CreateOffsetFile()
 	fprintf(fpOffsetFile, "***********************************************************************\r\n");
 	fprintf(fpOffsetFile, "*    File Name:    %s\r\n", OFFSETFILE);
 	fprintf(fpOffsetFile, "******************\r\n");
-	fprintf(fpOffsetFile, "*    FILE CREATED ON: %s", ctime(&timestamp) );
+	fprintf(fpOffsetFile, "*    FILE CREATED ON: %s (UTC)\r\n", timebuf);
 	fprintf(fpOffsetFile, "*    TUNED WITH FILE: %s (size: %ld)\r\n", szInFileName, ulInputCount);
 	fprintf(fpOffsetFile, "******************\r\n");
 	fprintf(fpOffsetFile, "*    Functionality:\r\n");
