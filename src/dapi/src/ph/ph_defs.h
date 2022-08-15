@@ -503,6 +503,7 @@
 #define AREAL	18	
 #define AREAG	19
 #define AREAN	20
+#ifdef NEW_VTM
 #define PRESS	21
 #define TONGUEBODY 22
 #define CHINK	23
@@ -510,6 +511,7 @@
 #define DC		35
 #define	OQU		36
 #define BRST	37
+#endif
 
 /* 
  * These definitions describe the

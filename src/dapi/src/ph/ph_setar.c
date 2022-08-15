@@ -579,7 +579,9 @@ void phsettar ( LPTTS_HANDLE_T phTTS)
     // Initialize program at beginning of each clause
 	PAREAL.tspesh=0;
 	PAREAB.tspesh =0;
+#ifdef NEW_VTM
 	PTONGUEBODY.tspesh=0;
+#endif
 
 	init_variables (phTTS, &inhdr_frames, &pDph_t->shrink,
 					&pDph_t->shrif, &pDph_t->shrib,

@@ -1377,19 +1377,25 @@ groupings"
 			{
 				PAREAL.tspesh=closure_dur;
 				PAREAB.tspesh =0;
+#ifdef NEW_VTM
 				PTONGUEBODY.tspesh=0;
+#endif
 			}
 			else if(us_place[pDphsettar->phcur & PVALUE] & BLADEAFFECTED )
 			{
 				PAREAL.tspesh=0;
 				PAREAB.tspesh=closure_dur;
+#ifdef NEW_VTM
 				PTONGUEBODY.tspesh=0;
+#endif
 			}
 				else if(us_place[pDphsettar->phcur & PVALUE] & FVELAR )
 			{
 				PAREAL.tspesh=0;
 				PAREAB.tspesh=0;
+#ifdef NEW_VTM
 				PTONGUEBODY.tspesh=closure_dur;
+#endif
 			}
 		}
 		} // if np == &pab

@@ -1796,19 +1796,25 @@ groupings"
 			{
 				PAREAL.tspesh=closure_dur;
 				PAREAB.tspesh =0;
+#ifdef NEW_VTM
 				PTONGUEBODY.tspesh=0;
+#endif
 			}
 			else if(sp_place[pDphsettar->phcur & PVALUE] & BLADEAFFECTED )
 			{
 				PAREAL.tspesh=0;
 				PAREAB.tspesh=closure_dur;
+#ifdef NEW_VTM
 				PTONGUEBODY.tspesh=0;
+#endif
 			}
 				else if(sp_place[pDphsettar->phcur & PVALUE] & FVELAR )
 			{
 				PAREAL.tspesh=0;
 				PAREAB.tspesh=0;
+#ifdef NEW_VTM
 				PTONGUEBODY.tspesh=closure_dur;
+#endif
 			}
 			pDphsettar->np->tspesh = closure_dur;	/* zero during closur */
 			pDphsettar->np->pspesh = 0;
