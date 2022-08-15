@@ -116,6 +116,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
   /********************************************************************/
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
+#ifndef HLSYN
   if ( frequency > 4950 ) {
     frequency = 10000 >> 1;
     zap = 1;
@@ -124,6 +125,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
     bandwidth = 10000 >> 2;
     zap = 1;
   }
+#endif
 
   /********************************************************************/
   /*  Scale the frequency and bandwidth if the sample rate is not     */
@@ -143,6 +145,18 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
       bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth );
     }
   }
+
+  /********************************************************************/
+  /*  Zap resonator if center frequency above maximum frequency.      */ 
+  /********************************************************************/
+#ifndef HLSYN
+  if ( frequency > 4950 ) {
+    frequency = 10000 >> 1;
+  }
+  if ( bandwidth > 4950 ) {
+    bandwidth = 10000 >> 2;
+  }
+#endif
 
   {
     /******************************************************************/
@@ -239,6 +253,16 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   }
 
   /********************************************************************/
+  /*  Zap resonator if center frequency above maximum frequency.      */ 
+  /********************************************************************/
+  if ( frequency > 4950 ) {
+    frequency = 10000 >> 1;
+  }
+  if ( bandwidth > 4950 ) {
+    bandwidth = 10000 >> 2;
+  }
+
+  /********************************************************************/
   /*  calculate radius = exp( -pi * T * bandwidth ).                  */
   /********************************************************************/
 
@@ -300,6 +324,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
   /********************************************************************/
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
+#ifndef HLSYN
   if ( frequency > 4950 ) {
     frequency = 10000 >> 1;
     zap = 1;
@@ -308,6 +333,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
     bandwidth = 10000 >> 2;
     zap = 1;
   }
+#endif
 
   /********************************************************************/
   /*  Scale the frequency and bandwidth if the sample rate is not     */
@@ -327,6 +353,18 @@ S16 d2pole_pf( PVTM_T pVtm_t,
       bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth );
     }
   }
+
+  /********************************************************************/
+  /*  Zap resonator if center frequency above maximum frequency.      */ 
+  /********************************************************************/
+#ifndef HLSYN
+  if ( frequency > 4950 ) {
+    frequency = 10000 >> 1;
+  }
+  if ( bandwidth > 4950 ) {
+    bandwidth = 10000 >> 2;
+  }
+#endif
 
 
   {
