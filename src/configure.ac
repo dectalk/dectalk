@@ -91,6 +91,9 @@ case "$target" in
 esac
 AC_SUBST(BUILD_DIR)dnl
 
+dnl Looks like some people need the "PREFIX" to build packages
+AC_PREFIX_DEFAULT(["/opt/dectalk"])
+
 DEFINES=" -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE" 
 case "$target" in
 	sparc-sun-*) DEFINES=" -DLTSSIM -D_SPARC_SOLARIS_ -D_BIGENDIAN_ -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE" ;;

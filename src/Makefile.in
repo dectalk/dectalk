@@ -13,87 +13,102 @@
 OS_VERSION=@OS_VERSION@
 BUILD_DIR=@BUILD_DIR@
 
+# Where the output files will be placed
+# Not where they're actually going to be installed
+# Prefixes the prefix (get it?)
+# https://stackoverflow.com/a/11307770
+DESTDIR?=
+
+# Where the output files will be installed.
+PREFIX?=@prefix@
+
 #### End of system configuration section. #### 
 
-all:: release
-#debug
-#release
+# When we're doing a regular build, still do an INSTALL but to the "../dist" folder.
+# Otherwise, a regular install will go to the "/opt/dectalk" directory.
+all:: DESTDIR=../dist
+all:: release install
 
 debug::	english_debug uk_debug spanish_debug german_debug latin_american_debug french_debug
 
 release:: english_release uk_release spanish_release german_release latin_american_release french_release
-	mkdir -p ../dist/lib ../dist/tools ../dist/dic ../dist/bitmaps
-	install -m 0755 dapi/build/dectalk/$(OS_VERSION)/*/release/*.so ../dist/lib/
-	install -m 0755 dapi/build/dic/$(OS_VERSION)/*/release/dic* ../dist/tools/
-	install -m 0644 dapi/build/dic/$(OS_VERSION)/*/release/*.dic ../dist/dic/
-	install -m 0755 dtalkml/build/$(OS_VERSION)/us/release/*.so ../dist/lib/
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/say ../dist/
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/aclock ../dist/
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/dtmemory ../dist/
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/tunecheck ../dist/tools/tunecheck_us
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/sp/release/tunecheck ../dist/tools/tunecheck_sp
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/uk/release/tunecheck ../dist/tools/tunecheck_uk
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/fr/release/tunecheck ../dist/tools/tunecheck_fr
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/gr/release/tunecheck ../dist/tools/tunecheck_gr
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/la/release/tunecheck ../dist/tools/tunecheck_la
-	install -m 0755 udicunix/build/$(OS_VERSION)/*/release/udic* ../dist/tools/
-	install -m 0644 dapi/src/dic/dtalk_fl_gr.dic ../dist/dic/
-	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/*/release/say_demo_* ../dist/tools/
-	install -m 0755 licunix/build/$(OS_VERSION)/release/licenin* ../dist/tools/
-	install -m 0755 licunix/build/$(OS_VERSION)/release/installer ../dist/tools/
-	-install -m 0755 samplosf/build/speak/$(OS_VERSION)/us/release/gspeak ../dist/
-	install -m 0644 samplosf/src/speak/bitmaps/* ../dist/bitmaps/
-	-install -m 0755 samplosf/build/windict/$(OS_VERSION)/us/release/windic ../dist/
-	install -m 0644 kitosf/kitbld/README ../dist/
-	mkdir -p ../dist/src/DECtalk/dtsamples ../dist/src/DECtalk/gspeak
-	install -m 0644 samplosf/src/dtsamples/aclock.c ../dist/src/DECtalk/dtsamples/
-	install -m 0644 samplosf/src/dtsamples/say.c ../dist/src/DECtalk/dtsamples/
-	install -m 0644 samplosf/src/dtsamples/dtmemory.c ../dist/src/DECtalk/dtsamples/
-	install -m 0644 samplosf/src/speak/gspeak.c ../dist/src/DECtalk/gspeak/
-	install -m 0644 dapi/src/dic/user.tab ../dist/src/DECtalk/dtsamples/
-	grep -v '^#' samplosf/src/data/birthday.txt >../dist/src/DECtalk/dtsamples/birthday.txt
-	grep -v '^#' samplosf/src/data/demo.txt >../dist/src/DECtalk/dtsamples/demo.txt
-	grep -v '^#' samplosf/src/data/startup.txt >../dist/src/DECtalk/dtsamples/startup.txt
-	grep -v '^#' samplosf/src/data/noglass.txt >../dist/src/DECtalk/dtsamples/noglass.txt
-	mkdir -p ../dist/include/dtk
-	install -m 0644 dapi/src/api/ttsapi.h ../dist/include/dtk/
-	install -m 0644 dapi/src/osf/dtmmedefs.h ../dist/include/dtk/
-	install -m 0644 dapi/src/include/l_*_ph.h ../dist/include/dtk/
-	mkdir -p ../dist/doc/DECtalk/ps ../dist/doc/DECtalk/pdf ../dist/doc/DECtalk/man/man1 ../dist/doc/DECtalk/man/man3
-	install -m 0644 docsosf/ps/dtk_install_guide.ps ../dist/doc/DECtalk/ps/
-	install -m 0644 docsosf/ps/dtk_prog_guide.ps ../dist/doc/DECtalk/ps/
-	install -m 0644 docsosf/ps/dtk_reference_guide.ps ../dist/doc/DECtalk/ps/
-	install -m 0644 docsosf/pdf/dtk_install_guide.pdf ../dist/doc/DECtalk/pdf/
-	install -m 0644 docsosf/pdf/dtk_prog_guide.pdf ../dist/doc/DECtalk/pdf/
-	install -m 0644 docsosf/pdf/dtk_reference_guide.pdf ../dist/doc/DECtalk/pdf/
-	install -m 0644 docsosf/man/man1/*.1 ../dist/doc/DECtalk/man/man1/
-	install -m 0644 docsosf/man/man3/*.3 ../dist/doc/DECtalk/man/man3/
-	mkdir -p ../dist/doc/DECtalk/html
-	install -m 0644 docsosf/html/dectalk.htm ../dist/doc/DECtalk/html/index.html
-	install -m 0644 docsosf/html/* ../dist/doc/DECtalk/html/
-	echo "licenses:YV808w008IQ0" > ../dist/DECtalk.conf
-	echo "licensepassword:kw60P7Y0bGRNB1@W3L@" >> ../dist/DECtalk.conf
-	echo "US_dict:dic/dtalk_us.dic" >> ../dist/DECtalk.conf
-	echo "UK_dict:dic/dtalk_uk.dic" >> ../dist/DECtalk.conf
-	echo "SP_dict:dic/dtalk_sp.dic" >> ../dist/DECtalk.conf
-	echo "GR_dict:dic/dtalk_gr.dic" >> ../dist/DECtalk.conf
-	echo "LA_dict:dic/dtalk_la.dic" >> ../dist/DECtalk.conf
-	echo "FR_dict:dic/dtalk_fr.dic" >> ../dist/DECtalk.conf
-	echo "US_udict:udict_us.dic" >> ../dist/DECtalk.conf
-	echo "UK_udict:udict_uk.dic" >> ../dist/DECtalk.conf
-	echo "SP_udict:udict_sp.dic" >> ../dist/DECtalk.conf
-	echo "GR_udict:udict_gr.dic" >> ../dist/DECtalk.conf
-	echo "LA_udict:udict_la.dic" >> ../dist/DECtalk.conf
-	echo "FR_udict:udict_fr.dic" >> ../dist/DECtalk.conf
-	echo "GR_fdict:dic/dtalk_fl_gr.dic" >> ../dist/DECtalk.conf
-	echo "Speak_xpm_dir:bitmaps/" >> ../dist/DECtalk.conf
-	echo "Default_lang:us" >> ../dist/DECtalk.conf
-	echo "LANG:us,US English" >> ../dist/DECtalk.conf
-	echo "LANG:uk,UK English" >> ../dist/DECtalk.conf
-	echo "LANG:sp,Spanish" >> ../dist/DECtalk.conf
-	echo "LANG:gr,German" >> ../dist/DECtalk.conf
-	echo "LANG:la,Latin American" >> ../dist/DECtalk.conf
-	echo "LANG:fr,French" >> ../dist/DECtalk.conf
+
+install::
+	mkdir -p $(DESTDIR)$(PREFIX)/lib $(DESTDIR)$(PREFIX)/tools $(DESTDIR)$(PREFIX)/dic $(DESTDIR)$(PREFIX)/bitmaps
+	install -m 0755 dapi/build/dectalk/$(OS_VERSION)/*/release/*.so $(DESTDIR)$(PREFIX)/lib/
+	install -m 0755 dapi/build/dic/$(OS_VERSION)/*/release/dic* $(DESTDIR)$(PREFIX)/tools/
+	install -m 0644 dapi/build/dic/$(OS_VERSION)/*/release/*.dic $(DESTDIR)$(PREFIX)/dic/
+	install -m 0755 dtalkml/build/$(OS_VERSION)/us/release/*.so $(DESTDIR)$(PREFIX)/lib/
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/say $(DESTDIR)$(PREFIX)/
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/aclock $(DESTDIR)$(PREFIX)/
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/dtmemory $(DESTDIR)$(PREFIX)/
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/us/release/tunecheck $(DESTDIR)$(PREFIX)/tools/tunecheck_us
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/sp/release/tunecheck $(DESTDIR)$(PREFIX)/tools/tunecheck_sp
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/uk/release/tunecheck $(DESTDIR)$(PREFIX)/tools/tunecheck_uk
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/fr/release/tunecheck $(DESTDIR)$(PREFIX)/tools/tunecheck_fr
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/gr/release/tunecheck $(DESTDIR)$(PREFIX)/tools/tunecheck_gr
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/la/release/tunecheck $(DESTDIR)$(PREFIX)/tools/tunecheck_la
+	install -m 0755 udicunix/build/$(OS_VERSION)/*/release/udic* $(DESTDIR)$(PREFIX)/tools/
+	install -m 0644 dapi/src/dic/dtalk_fl_gr.dic $(DESTDIR)$(PREFIX)/dic/
+	install -m 0755 samplosf/build/dtsamples/$(OS_VERSION)/*/release/say_demo_* $(DESTDIR)$(PREFIX)/tools/
+	install -m 0755 licunix/build/$(OS_VERSION)/release/licenin* $(DESTDIR)$(PREFIX)/tools/
+	install -m 0755 licunix/build/$(OS_VERSION)/release/installer $(DESTDIR)$(PREFIX)/tools/
+	-install -m 0755 samplosf/build/speak/$(OS_VERSION)/us/release/gspeak $(DESTDIR)$(PREFIX)/
+	install -m 0644 samplosf/src/speak/bitmaps/* $(DESTDIR)$(PREFIX)/bitmaps/
+	-install -m 0755 samplosf/build/windict/$(OS_VERSION)/us/release/windic $(DESTDIR)$(PREFIX)/
+	install -m 0644 kitosf/kitbld/README $(DESTDIR)$(PREFIX)/
+	mkdir -p $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples $(DESTDIR)$(PREFIX)/src/DECtalk/gspeak
+	install -m 0644 samplosf/src/dtsamples/aclock.c $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/
+	install -m 0644 samplosf/src/dtsamples/say.c $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/
+	install -m 0644 samplosf/src/dtsamples/dtmemory.c $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/
+	install -m 0644 samplosf/src/speak/gspeak.c $(DESTDIR)$(PREFIX)/src/DECtalk/gspeak/
+	install -m 0644 dapi/src/dic/user.tab $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/
+	grep -v '^#' samplosf/src/data/birthday.txt > $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/birthday.txt
+	grep -v '^#' samplosf/src/data/demo.txt > $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/demo.txt
+	grep -v '^#' samplosf/src/data/startup.txt > $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/startup.txt
+	grep -v '^#' samplosf/src/data/noglass.txt > $(DESTDIR)$(PREFIX)/src/DECtalk/dtsamples/noglass.txt
+	mkdir -p $(DESTDIR)$(PREFIX)/include/dtk
+	install -m 0644 dapi/src/api/ttsapi.h $(DESTDIR)$(PREFIX)/include/dtk/
+	install -m 0644 dapi/src/osf/dtmmedefs.h $(DESTDIR)$(PREFIX)/include/dtk/
+	install -m 0644 dapi/src/include/l_*_ph.h $(DESTDIR)$(PREFIX)/include/dtk/
+	mkdir -p $(DESTDIR)$(PREFIX)/doc/DECtalk/ps $(DESTDIR)$(PREFIX)/doc/DECtalk/pdf $(DESTDIR)$(PREFIX)/doc/DECtalk/man/man1 $(DESTDIR)$(PREFIX)/doc/DECtalk/man/man3
+	install -m 0644 docsosf/ps/dtk_install_guide.ps $(DESTDIR)$(PREFIX)/doc/DECtalk/ps/
+	install -m 0644 docsosf/ps/dtk_prog_guide.ps $(DESTDIR)$(PREFIX)/doc/DECtalk/ps/
+	install -m 0644 docsosf/ps/dtk_reference_guide.ps $(DESTDIR)$(PREFIX)/doc/DECtalk/ps/
+	install -m 0644 docsosf/pdf/dtk_install_guide.pdf $(DESTDIR)$(PREFIX)/doc/DECtalk/pdf/
+	install -m 0644 docsosf/pdf/dtk_prog_guide.pdf $(DESTDIR)$(PREFIX)/doc/DECtalk/pdf/
+	install -m 0644 docsosf/pdf/dtk_reference_guide.pdf $(DESTDIR)$(PREFIX)/doc/DECtalk/pdf/
+	install -m 0644 docsosf/man/man1/*.1 $(DESTDIR)$(PREFIX)/doc/DECtalk/man/man1/
+	install -m 0644 docsosf/man/man3/*.3 $(DESTDIR)$(PREFIX)/doc/DECtalk/man/man3/
+	mkdir -p $(DESTDIR)$(PREFIX)/doc/DECtalk/html
+	install -m 0644 docsosf/html/dectalk.htm $(DESTDIR)$(PREFIX)/doc/DECtalk/html/index.html
+	install -m 0644 docsosf/html/* $(DESTDIR)$(PREFIX)/doc/DECtalk/html/
+	echo "licenses:YV808w008IQ0" > $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "licensepassword:kw60P7Y0bGRNB1@W3L@" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "US_dict:dic/dtalk_us.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "UK_dict:dic/dtalk_uk.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "SP_dict:dic/dtalk_sp.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "GR_dict:dic/dtalk_gr.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LA_dict:dic/dtalk_la.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "FR_dict:dic/dtalk_fr.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "US_udict:udict_us.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "UK_udict:udict_uk.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "SP_udict:udict_sp.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "GR_udict:udict_gr.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LA_udict:udict_la.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "FR_udict:udict_fr.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "GR_fdict:dic/dtalk_fl_gr.dic" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "Speak_xpm_dir:bitmaps/" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "Default_lang:us" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LANG:us,US English" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LANG:uk,UK English" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LANG:sp,Spanish" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LANG:gr,German" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LANG:la,Latin American" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+	echo "LANG:fr,French" >> $(DESTDIR)$(PREFIX)/DECtalk.conf
+
+	-ln -sf $(DESTDIR)$(PREFIX)/gspeak /usr/bin/gspeak
+	-ln -sf $(DESTDIR)$(PREFIX)/say /usr/bin/say
 
 english_release:
 	$(MAKE) -f Makefile.sub "LANGUAGE=ENGLISH -DENGLISH_US -DACNA" \
