@@ -1063,8 +1063,10 @@ void DoAutotune()
 			}
 			else		// NAL keep from infinitely looping here
 			{
-				printf("Cannot tune; Check speaker definition.\n");
+				printf("\nCannot tune; Check speaker definition.\n");
 				TUNEERROR = TRUE;
+				unlink(szBackup);
+				exit(1);
 				break;
 			}
 		}
