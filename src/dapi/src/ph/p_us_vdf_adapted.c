@@ -428,14 +428,14 @@ const short                   ursula_8[SPDEF] =
 	10,								   /* NF (additional fixed number of samples in nopen) */
 	0,								   /* LA (laryngealization, in percent) */
 	95,								   /* HS (head size, in percent relative to normal for SEX) */
-	4450,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
-	260,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
+	4500,							   /* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */
+	230,							   /* B4 (bandwidth in Hz of cascade 4th formant) */
 	ZAPF,							   /* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */
 	ZAPB,							   /* B5 (bandwidth in Hz of cascaded 5th formant) */
 	4300,							   /* F7 (frequency in Hz of parallel 4th formant = F7) */
 	ZAPF,							   /* F8 (frequency in Hz of parallel 5th formant = F8) */
 #ifndef FP_VTM
-	77,								   /* GF (gain of frication source in dB) */
+	72,								   /* GF (gain of frication source in dB) */
 	70,								   /* GH (gain of aspiration source in dB) */
 	65,								   /* GV (gain of voicing source in dB ) */
 #else
@@ -443,11 +443,11 @@ const short                   ursula_8[SPDEF] =
 	67,								   /* GH (gain of aspiration source in dB) */
 	68,								   /* GV (gain of voicing source in dB ) */
 #endif
-	79,								   /* GN (gain of input to cascade nasal pole pair in dB) */
-	76,								   /* G1 (gain of input to cascade 5th formant in dB) */
-	69,								   /* G2 (gain of input to cascade 4th formant in dB) */
-	56,								   /* G3 (gain of input to cascade 3rd formant in dB) */
-	54,								   /* G4 (gain of input to cascade 2nd formant in dB) */
+	73,								   /* GN (gain of input to cascade nasal pole pair in dB) */
+	69,								   /* G1 (gain of input to cascade 5th formant in dB) */
+	66,								   /* G2 (gain of input to cascade 4th formant in dB) */
+	51,								   /* G3 (gain of input to cascade 3rd formant in dB) */
+	59,								   /* G4 (gain of input to cascade 2nd formant in dB) */
 	67,								   /* LO (Loudness, gain input to cascade 1st formant in dB) */
 	100,							   /* FT (f0-dependent spectral tilt in % of max) */
 	8,								   /* BF (baseline f0 fall in Hz) */
