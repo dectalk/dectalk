@@ -37,11 +37,6 @@ int main(void)
 
 	if (config_file==NULL)
 	{
-		config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf", "r+");
-	}
-
-	if (config_file==NULL)
-	{
 		fprintf(stderr,"Cannot open the config file DECtalk.conf\n");
 		exit(-1);
 	}
