@@ -391,7 +391,7 @@ AC_SUBST(LIBS)dnl
 DT_SO_LIBS=" -llmf -lpthreads -lmach -lexc -lc -lrt -lots"
 case "$target" in 
 	arm-ipaq-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -L/skiff/local/lib/gcc-lib/arm-linux/2.95.2/ -lgcc -lfloat -lm" ;;
-	*-*-linux-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc" ;;
+	*-*-linux-*) DT_SO_LIBS=" -lpthread -lc" ;;
 	powerpc-apple-*) DT_SO_LIBS="-lpthread -Lportaudio/lib -lportaudio -framework CoreAudio -framework AudioToolbox" ;;
 	sparc-sun-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -lrt -lm" ;;
 esac
