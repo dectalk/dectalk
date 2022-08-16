@@ -405,7 +405,7 @@ int main (int argc, char *argv[])
   GtkWidget *wpm_label;
   char bitmap_path[500] = {0};
   char bitmap_name[500];
-  FILE *config_file;
+  FILE *config_file = NULL;
   LANG_ENUM *dt_langs;
   int parent = 0;
   int exe_path = 0;
@@ -1831,7 +1831,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   GtkStyle *style;
   char bitmap_name[500];
   char bitmap_path[500] = {0};
-  FILE *config_file;
+  FILE *config_file = NULL;
   
   long version;
   char *DECtalk_version;
