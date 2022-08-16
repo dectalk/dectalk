@@ -1,7 +1,7 @@
 //#define DEBUG_ME
 /**********************************************************************/
 /*                                                                    */
-/*	Copyright © 2000 Force Computers, Inc., a Solectron Company. All rights reserved. */
+/*	Copyright ï¿½ 2000 Force Computers, Inc., a Solectron Company. All rights reserved. */
 /*  Copyright Digital Equipment Corporation, 1994,                    */
 /*  All rights reserved.                                              */
 /*                                                                    */
@@ -54,6 +54,10 @@
 *************************************************************************/
 //#include <sys/limits.h>
 //#include <mme/mmsystem.h>
+
+// Only for the DECTALK_INSTALL_PREFIX, which is usually "/opt/dectalk"
+#include "config.h"
+
 #include <fcntl.h>
 
 #include <stdio.h>
@@ -1197,7 +1201,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   
   style = gtk_widget_get_style(window);
 
-  config_file=fopen("/etc/DECtalk.conf","r");
+  config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
 
   if (config_file==NULL)
   {

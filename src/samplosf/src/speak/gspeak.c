@@ -1,8 +1,8 @@
 //#define S_DEBUG
 /*
- *									Copyright ©
+ *									Copyright ï¿½
  *    @DEC_COPYRIGHT@
- *    Copyright © 2000 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    Copyright ï¿½ 2000 Force Computers, Inc., a Solectron Company. All rights reserved.
  *
  *    This software is proprietary to and embodies the confidential
  *    technology of Force Computers Incorporated and other parties.
@@ -31,6 +31,9 @@ TODO:
    build this with: 
    gcc -Wall -g gspeak.c -o gspeak `gtk-config --cflags` `gtk-config --libs` -L/lib -ltts 
 */
+
+// Only for the DECTALK_INSTALL_PREFIX, which is usually "/opt/dectalk"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -717,7 +720,7 @@ int main (int argc, char *argv[])
   //gtk_widget_show(window);
 
 #ifndef DEMO
-  config_file=fopen("/etc/DECtalk.conf","r");
+  config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
 
   if (config_file==NULL)
   {
@@ -1851,7 +1854,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   
   style = gtk_widget_get_style(window);
 
-  config_file=fopen("/etc/DECtalk.conf","r");
+  config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
 
   if (config_file==NULL)
   {

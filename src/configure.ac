@@ -36,7 +36,13 @@ dnl AC_REVISION([configure.in 0.01])
 dnl AC_INIT always has to be first. except AC_REVISION
 dnl the filename specified here is just so that autoconf
 dnl is sure that this is _actually_ the src dir
-AC_INIT(dectalkf.h)
+AC_INIT(
+	DECtalk,
+	m4_esyscmd_s(echo $(git describe --always)$(git status --porcelain | awk '{if ($1 == "M") {print "-dirty";exit}}')),
+	https://github.com/dectalk/dectalk/issues,
+	,
+	https://github.com/dectalk/dectalk
+)
 
 dnl Determine the system type and set output variables to the names 
 dnl of the canonical system types.
@@ -91,8 +97,13 @@ case "$target" in
 esac
 AC_SUBST(BUILD_DIR)dnl
 
+dnl Set a configuration headers file
+AC_CONFIG_HEADERS([config.h])
+
 dnl Looks like some people need the "PREFIX" to build packages
+dnl TODO: Define "/opt/dectalk" only once as a variable
 AC_PREFIX_DEFAULT(["/opt/dectalk"])
+AC_DEFINE([DECTALK_INSTALL_PREFIX],["/opt/dectalk"],[The location that DECtalk is installed])
 
 DEFINES=" -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DACCESS32 -DTYPING_MODE" 
 case "$target" in

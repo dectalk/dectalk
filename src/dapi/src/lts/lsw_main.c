@@ -1,11 +1,11 @@
 /*
  ***********************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000-2001 Force Computers, a Solectron Company. All rights reserved.
- *    © SMART Modular Technologies 1999. All rights reserved.     
- *    © Digital Equipment Corporation 1996-1998. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000-2001 Force Computers, a Solectron Company. All rights reserved.
+ *    ï¿½ SMART Modular Technologies 1999. All rights reserved.     
+ *    ï¿½ Digital Equipment Corporation 1996-1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -95,6 +95,9 @@
  *	050	RDK		01/22/2003		Change to use FORCE_WINDICTDIRS for forced windows dictionaries
  *  051	MFG		02/30/2003		Fixed the wide- string convertion for the WinCe dictionary 
  ***************************************************************************/
+
+// Only for the DECTALK_INSTALL_PREFIX, which is usually "/opt/dectalk"
+#include "config.h"
 
 #include "dectalkf.h"
 #include "ls_def.h"
@@ -1427,7 +1430,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 	main_dict_name[0]='\0';
 	foreign_dict_name[0]='\0';
 	user_dict_name[0]='\0';
-	config_file=fopen("/etc/DECtalk.conf","r");
+	config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
 //#ifdef TESTING
 	if (config_file==NULL)
 	{

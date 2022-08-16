@@ -79,6 +79,9 @@
  * MGS	15jul2003	Fixed StartLang(NULL);
  **********************************************************************/
 
+// Only for the DECTALK_INSTALL_PREFIX, which is usually "/opt/dectalk"
+#include "config.h"
+
 #include "port.h"
 #ifdef WIN32
 #include <windows.h>
@@ -558,7 +561,7 @@ BOOL init(void)
 #ifdef UNDER_CE
 	wsprintf(lang,TEXT("US"));
 #elif defined _UNIX_LIKE_
-	config_file=fopen("/etc/DECtalk.conf","r");	
+	config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");	
 	if (config_file==NULL)
 	{
 		config_file=fopen("DECtalk.conf","r");
@@ -1520,7 +1523,7 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 
 	FILE *config_file;
 
-	config_file=fopen("/etc/DECtalk.conf","r");
+	config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
 	if (config_file==NULL)
 	{
 		config_file=fopen("DECtalk.conf","r");

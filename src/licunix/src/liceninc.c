@@ -4,6 +4,7 @@
 #include "dtmmedefs.h"
 #include "port.h"
 #include "coop.h"
+#include "config.h"
 
 extern  void encryptString(const unsigned char *string,unsigned long key,unsigned char *output);
 extern  unsigned int decryptString(const unsigned char *input,unsigned long key,unsigned char *string);
@@ -33,6 +34,11 @@ int main(void)
 	char temp_name[100];
 
 	config_file=fopen("DECtalk.conf","r+");
+
+	if (config_file==NULL)
+	{
+		config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf", "r+");
+	}
 
 	if (config_file==NULL)
 	{
