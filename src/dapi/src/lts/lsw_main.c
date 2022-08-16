@@ -1,11 +1,11 @@
 /*
  ***********************************************************************
  *
- *                           Copyright �
- *	  Copyright � 2002 Fonix Corporation. All rights reserved.
- *	  Copyright � 2000-2001 Force Computers, a Solectron Company. All rights reserved.
- *    � SMART Modular Technologies 1999. All rights reserved.     
- *    � Digital Equipment Corporation 1996-1998. All rights reserved.
+ *                           Copyright ©
+ *	  Copyright © 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright © 2000-2001 Force Computers, a Solectron Company. All rights reserved.
+ *    © SMART Modular Technologies 1999. All rights reserved.     
+ *    © Digital Equipment Corporation 1996-1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph

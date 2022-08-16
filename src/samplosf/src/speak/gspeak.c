@@ -1,8 +1,8 @@
 //#define S_DEBUG
 /*
- *									Copyright �
+ *									Copyright ©
  *    @DEC_COPYRIGHT@
- *    Copyright � 2000 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    Copyright © 2000 Force Computers, Inc., a Solectron Company. All rights reserved.
  *
  *    This software is proprietary to and embodies the confidential
  *    technology of Force Computers Incorporated and other parties.
@@ -405,7 +405,7 @@ int main (int argc, char *argv[])
   GtkWidget *wpm_label;
   char bitmap_path[500] = {0};
   char bitmap_name[500];
-  FILE *config_file = NULL;
+  FILE *config_file;
   LANG_ENUM *dt_langs;
   int parent = 0;
   int exe_path = 0;
@@ -1831,7 +1831,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   GtkStyle *style;
   char bitmap_name[500];
   char bitmap_path[500] = {0};
-  FILE *config_file = NULL;
+  FILE *config_file;
   
   long version;
   char *DECtalk_version;

@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
   long devOptions = REPORT_OPEN_ERROR ;
 #endif
   int devNo = WAVE_MAPPER;
-  FILE *config_file = NULL;
+  FILE *config_file;
   LANG_ENUM *dt_langs;
   
 #define index_callback NULL
@@ -1179,7 +1179,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   GtkStyle *style;
   char bitmap_name[500];
   char bitmap_path[500];
-  FILE *config_file = NULL;
+  FILE *config_file;
   
   long version;
   char *DECtalk_version;
