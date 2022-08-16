@@ -561,11 +561,6 @@ BOOL init(void)
 #ifdef UNDER_CE
 	wsprintf(lang,TEXT("US"));
 #elif defined _UNIX_LIKE_
-	config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");	
-	if (config_file==NULL)
-	{
-		config_file=fopen("DECtalk.conf","r");
-	}
 
 #ifdef __linux__
 	if (config_file==NULL)
@@ -595,6 +590,17 @@ BOOL init(void)
 		}
 	}
 #endif
+
+	if (config_file==NULL)
+	{
+		config_file=fopen("DECtalk.conf","r");
+	}
+
+	if (config_file==NULL)
+	{
+		config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
+	}
+
 	if (config_file==NULL)
 	{
 		sprintf(lang,"US");
@@ -1523,12 +1529,6 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 
 	FILE *config_file;
 
-	config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
-	if (config_file==NULL)
-	{
-		config_file=fopen("DECtalk.conf","r");
-	}
-
 #ifdef __linux__
 	if (config_file==NULL)
 	{
@@ -1557,6 +1557,16 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 		}
 	}
 #endif
+
+	if (config_file==NULL)
+	{
+		config_file=fopen("DECtalk.conf","r");
+	}
+
+	if (config_file==NULL)
+	{
+		config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
+	}
 
 	if (config_file==NULL)
 	{

@@ -1201,14 +1201,6 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   
   style = gtk_widget_get_style(window);
 
-  config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
-
-  if (config_file==NULL)
-  {
-	  config_file=fopen("DECtalk.conf","r");
-  }
-
-
 #ifdef __linux__
   if (config_file==NULL)
   {
@@ -1244,6 +1236,17 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
 	  }
   }
 #endif
+
+  if (config_file==NULL)
+  {
+		config_file=fopen("DECtalk.conf","r");
+	}
+
+	if (config_file==NULL)
+	{
+		config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
+	}
+
   if (config_file==NULL)
   {
     fprintf(stderr,"cannot open config file DECtalk.conf\n");

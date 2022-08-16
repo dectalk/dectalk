@@ -1430,13 +1430,7 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 	main_dict_name[0]='\0';
 	foreign_dict_name[0]='\0';
 	user_dict_name[0]='\0';
-	config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
-//#ifdef TESTING
-	if (config_file==NULL)
-	{
-		config_file=fopen("DECtalk.conf","r");
-	}
-//#endif
+
 #ifdef __linux__
 	if (config_file==NULL)
 	{
@@ -1471,6 +1465,16 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 		}
 	}
 #endif
+
+	if (config_file==NULL)
+	{
+		config_file=fopen("DECtalk.conf","r");
+	}
+
+	if (config_file==NULL)
+	{
+		config_file=fopen(DECTALK_INSTALL_PREFIX "/DECtalk.conf","r");
+	}
 	
 //#ifdef DEMO
 #if 0
