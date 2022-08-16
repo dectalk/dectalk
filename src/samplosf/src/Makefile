@@ -15,26 +15,36 @@ all: speak
 #windict xmsay
 
 decface:
-	cd decface; $(MAKE)
+	cd decface; $(MAKE) \
+		"DECTALK_INSTALL_PREFIX=$(DECTALK_INSTALL_PREFIX)"
 
 dtsamples:
-	cd dtsamples; $(MAKE)
+	cd dtsamples; $(MAKE) \
+		"DECTALK_INSTALL_PREFIX=$(DECTALK_INSTALL_PREFIX)"
 
 emacspeak:
-	cd emacspeak; $(MAKE)
+	cd emacspeak; $(MAKE) \
+		"DECTALK_INSTALL_PREFIX=$(DECTALK_INSTALL_PREFIX)"
 
 speak: $(SPEAK_SRCS) $(SPEAK_OBJS) $(DT_LIB)
-	cd speak; $(MAKE) "OUTPUT_DIR=../../build/speak/$(OUTPUT_DIR)" \
-        "LANG_CODE=$(LANG_CODE)" "LANGUAGE=$(LANGUAGE)" \
-        "DT_LIB_DIR=../../../dapi/build/dectalk/$(OUTPUT_DIR)"
+	cd speak; $(MAKE) \
+		"OUTPUT_DIR=../../build/speak/$(OUTPUT_DIR)" \
+		"LANG_CODE=$(LANG_CODE)" \
+		"LANGUAGE=$(LANGUAGE)" \
+		"DT_LIB_DIR=../../../dapi/build/dectalk/$(OUTPUT_DIR)" \
+		"DECTALK_INSTALL_PREFIX=$(DECTALK_INSTALL_PREFIX)"
 
 windict: $(DT_LIB)
 	-mkdir -p ../build/windict/$(OUTPUT_DIR)/link
-	cd windict; $(MAKE) "OUTPUT_DIR=../../build/windict/$(OUTPUT_DIR)" \
-        "LANG_CODE=$(LANG_CODE)" "LANGUAGE=$(LANGUAGE)"
+	cd windict; $(MAKE) \
+		"OUTPUT_DIR=../../build/windict/$(OUTPUT_DIR)" \
+		"LANG_CODE=$(LANG_CODE)" \
+		"LANGUAGE=$(LANGUAGE)" \
+		"DECTALK_INSTALL_PREFIX=$(DECTALK_INSTALL_PREFIX)"
 
 xmsay:
-	cd xmsay; $(MAKE)
+	cd xmsay; $(MAKE) \
+		"DECTALK_INSTALL_PREFIX=$(DECTALK_INSTALL_PREFIX)"
 
 
 
