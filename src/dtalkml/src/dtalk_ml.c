@@ -530,7 +530,7 @@ BOOL init(void)
 	unsigned int id;
 	LANG_LIST *next;
 	DWORD dwType,cbData;
-	FILE *config_file;
+	FILE *config_file = NULL;
 
 #ifdef WIN32
 	HKEY hKeyLicense = NULL;
@@ -1527,7 +1527,7 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 	int cur_entry=0;
 	int next_entry=0;
 
-	FILE *config_file;
+	FILE *config_file = NULL;
 
 #ifdef __linux__
 	if (config_file==NULL)

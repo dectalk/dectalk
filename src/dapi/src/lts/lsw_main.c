@@ -1419,7 +1419,7 @@ int LTSLibMain( DT_HANDLE hInst,
 	
 int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreign_dict_name)
 {
-	FILE *config_file;
+	FILE *config_file = NULL;
 	char line[1000];
 	char *home_dir;
 	char temp_dict_name[1000];

@@ -22,7 +22,7 @@ int all_digits(char *input)
 
 int main(void)
 {
-	FILE *config_file;
+	FILE *config_file = NULL;
 	FILE *temp_file;
 
 	char line[1000];
