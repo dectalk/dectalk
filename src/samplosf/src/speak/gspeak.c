@@ -1850,9 +1850,29 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   dll_min = (version & 0x000000FF);
   
 #ifndef DEMO
-  sprintf(about_string, "GSpeak\nVersion 1.0\nSpeaking Text Editor\nCopyright(c) Force Computing Inc.\nAll Rights Reserved\nDECtalk version %d.%02d (build %d%02d)\nDECtalk %s\n", dt_maj, dt_min, dll_maj, dll_min, DECtalk_version);
+  sprintf(about_string,
+    "GSpeak\n"
+    "Version 1.0\n"
+    "Speaking Text Editor\n"
+    "Copyright(c) Force Computing Inc.\n"
+    "All Rights Reserved\n"
+    "\n"
+    "DECtalk version %d.%02d (build %d%02d)\n"
+    "DECtalk %s\n"
+    PACKAGE_URL " (build " PACKAGE_VERSION ")"
+    , dt_maj, dt_min, dll_maj, dll_min, DECtalk_version);
 #else
-  sprintf(about_string, "GSpeak Demo\nVersion 1.0\nSpeaking Text Editor\nCopyright(c) Force Computing Inc.\nAll Rights Reserved\nDECtalk version %d.%02d (build %d%02d)\nDECtalk %s\n", dt_maj, dt_min, dll_maj, dll_min, DECtalk_version);
+  sprintf(about_string,
+    "GSpeak Demo\n"
+    "Version 1.0\n"
+    "Speaking Text Editor\n"
+    "Copyright(c) Force Computing Inc.\n"
+    "All Rights Reserved\n"
+    "\n"
+    "DECtalk version %d.%02d (build %d%02d)\n"
+    "DECtalk %s\n"
+    PACKAGE_URL " (build " PACKAGE_VERSION ")"
+    , dt_maj, dt_min, dll_maj, dll_min, DECtalk_version);
 #endif
   
   style = gtk_widget_get_style(window);
@@ -1941,7 +1961,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   pixmapwid = (GtkWidget *)gtk_pixmap_new( pixmap, mask );
 
   about_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_widget_set_usize(about_window, 285, 255);
+  gtk_widget_set_usize(about_window, 500, 255);
 #ifndef DEMO
   gtk_window_set_title(GTK_WINDOW (about_window), "About GSpeak");
 #else
@@ -1999,14 +2019,19 @@ void HelpHelpCallback(GtkWidget *w, gpointer data)
   help_vbox = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(help_window), help_vbox);
 
-  help_label = gtk_label_new("\nGSpeak help\n\n  Point your web browser to:\n\n   file:///usr/local/doc/DECtalk/html/DECtalk.html\n\n  Or if you use Netscape, click below.\n");
+  help_label = gtk_label_new(
+    "\n"
+    "GSpeak help\n\n"
+    "  Point your web browser to:\n\n"
+    "  - file://" DECTALK_INSTALL_PREFIX "/doc/DECtalk/html/dectalk.htm\n\n"
+    "  Or if you have xdg-open installed, click below.\n");
   gtk_box_pack_start(GTK_BOX(help_vbox), help_label, FALSE, FALSE, 0);
   gtk_label_set_justify(GTK_LABEL(help_label), GTK_JUSTIFY_LEFT);
 
   help_button_box = gtk_vbutton_box_new();
   gtk_box_pack_end(GTK_BOX(help_vbox), help_button_box, FALSE, FALSE, 20);
  
-  help_button = gtk_button_new_with_label("Netscape users click here.");
+  help_button = gtk_button_new_with_label("Open in web browser");
   gtk_signal_connect_object(GTK_OBJECT(help_button), "clicked",
 			    GTK_SIGNAL_FUNC(HelpOpenNetscape), 
 			    GTK_OBJECT(help_window) );
@@ -2023,7 +2048,7 @@ void HelpHelpCallback(GtkWidget *w, gpointer data)
 
 void HelpOpenNetscape()
 {
-  system("netscape file:///usr/local/doc/DECtalk/html/DECtalk.html &");
+  system("xdg-open file://" DECTALK_INSTALL_PREFIX "/doc/DECtalk/html/dectalk.htm &");
 }
 
 void NotAvailableCallback(GtkWidget *w, gpointer data)
