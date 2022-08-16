@@ -1082,8 +1082,10 @@ int PlaySome()
 	  g_free(sfile);
 	  sfile = NULL;
 	}
-      if ( playBuffer != NULL )
+      if ( playBuffer != NULL ) {
 	free( playBuffer );
+	playBuffer = NULL;
+      }
       gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
     }      
   return(FALSE);
@@ -1270,8 +1272,10 @@ void StopPlay(GtkWidget *widget, gpointer data)
 	g_free( sfile );
 	sfile = NULL;
       }
-      if ( playBuffer != NULL )
+      if ( playBuffer != NULL ) {
 	free( playBuffer );
+	playBuffer = NULL;
+      }
       
       /* enable the user interface  */
       gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
