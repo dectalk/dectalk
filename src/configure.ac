@@ -41,8 +41,7 @@ AC_INIT(
 	m4_esyscmd_s(echo $(git describe --always)$(git status --porcelain | awk '{if ($1 == "M") {print "-dirty";exit}}')),
 	https://github.com/dectalk/dectalk/issues,
 	,
-	https://github.com/dectalk/dectalk
-)
+	https://github.com/dectalk/dectalk)
 
 dnl Determine the system type and set output variables to the names 
 dnl of the canonical system types.
