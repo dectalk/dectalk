@@ -65,7 +65,6 @@
 
 #include <dtk/ttsapi.h>
 #include <libgen.h>
-#define GTK_ENABLE_BROKEN
 #include <gtk/gtk.h>
 #include <strings.h>
 #include <sys/types.h>
@@ -185,7 +184,7 @@ void get_main_menu(GtkWidget *win, GtkWidget ** menubar)
 
 GtkWidget *window =           NULL;
 GtkWidget *main_vbox =        NULL;
-GtkWidget *vscrollbar =       NULL;
+GtkWidget *scrollbox =        NULL;
 GtkWidget *text_entry =       NULL;
 GtkWidget *scrolled_win =     NULL;
 GtkWidget *text_box =         NULL;
@@ -193,6 +192,7 @@ GtkWidget *menubar =          NULL;
 GtkWidget *main_hbuttonbox =  NULL;
 GtkWidget *button =           NULL;
 GtkObject *adj =              NULL;
+GtkTextBuffer *text_buffer =  NULL;
 
 
 char CurrFileName[PATH_MAX] = "\0";
@@ -535,14 +535,17 @@ void MakeGUI(void)
   text_box = gtk_hbox_new(FALSE, 0);
   gtk_box_pack_start(GTK_BOX(main_vbox), text_box, TRUE, TRUE, 0);
 
-  text_entry = gtk_text_new(NULL, NULL);
-  gtk_text_set_editable(GTK_TEXT(text_entry), TRUE);
-  gtk_text_set_word_wrap(GTK_TEXT(text_entry), TRUE);
- 
-  gtk_box_pack_start(GTK_BOX(text_box), text_entry, TRUE, TRUE, 0);
+  text_entry = gtk_text_view_new();
+  scrollbox = gtk_scrolled_window_new(NULL, NULL);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrollbox), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrollbox), GTK_SHADOW_IN);
 
-  vscrollbar = gtk_vscrollbar_new(GTK_TEXT(text_entry)->vadj);
-  gtk_box_pack_start(GTK_BOX(text_box), vscrollbar, FALSE, FALSE, 0);
+  gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
+  gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(text_entry), GTK_WRAP_WORD);
+  gtk_container_add(GTK_CONTAINER(scrollbox), text_entry);
+  gtk_box_pack_start(GTK_BOX(text_box), scrollbox, TRUE, TRUE, 0);
+
+  text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(text_entry));
 
 #ifdef DEBUG_ME
   button = gtk_button_new_with_label("KILL IT");
@@ -631,13 +634,11 @@ void LangMenuSelect(GtkWidget *widget, gpointer data)
 ********************************************************************************/
 void TranslateCallback(GtkWidget *w, gpointer data)
 {
-  int start = 0;
-  int end = 0;
-  int temp = 0;
   char *sel_text;
   char newText[256];
   char phString[256];
   char text_buf[256];  
+  GtkTextIter start, end;
   int i;
   
   MMRESULT mmstatus;
@@ -646,24 +647,15 @@ void TranslateCallback(GtkWidget *w, gpointer data)
   char *logfile = "log.txt";  /* Default DECtalk logfile */
   
   /* Get the selected text */
-  start = GTK_OLD_EDITABLE(text_entry)->selection_start_pos;
-  end = GTK_OLD_EDITABLE(text_entry)->selection_end_pos;
 
-  if(start == end)
-    {
+  if(gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(text_buffer), &start, &end) == FALSE) {
       TextToSpeechSpeak(ttsHandle[current_language], "Nothing is highlighted!", TTS_FORCE);
       return;
-    }
-  if(start > end)
-    {
-      temp = start;
-      start = end;
-      end = temp;
     }
 
   /* Reads the selected text in phonemic form to the dectalk log file.
      File contents are read and placed back into widget. */
-  sel_text = gtk_editable_get_chars(GTK_EDITABLE(text_entry), start, end);
+  sel_text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
   sprintf(text_buf, "[:log phon on]%s[:log phon off]", sel_text);
   
   TextToSpeechSpeak(ttsHandle[current_language], text_buf, TTS_FORCE);
@@ -693,11 +685,9 @@ void TranslateCallback(GtkWidget *w, gpointer data)
   unlink(logfile); /* Remove the log file */
   sprintf( newText, "[%s]", phString );
 
-  gtk_text_freeze(GTK_TEXT(text_entry));
-  gtk_text_set_point(GTK_TEXT(text_entry), start);
-  gtk_text_forward_delete(GTK_TEXT(text_entry), end-start);
-  gtk_text_insert(GTK_TEXT(text_entry), NULL, NULL, NULL, newText, -1);
-  gtk_text_thaw(GTK_TEXT(text_entry));
+  gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &start);
+  gtk_text_buffer_delete(GTK_TEXT_BUFFER(text_buffer), &start, &end);
+  gtk_text_buffer_insert(GTK_TEXT_BUFFER(text_buffer), &start, newText, -1);
   return;
 }
 
@@ -715,22 +705,29 @@ void TranslateCallback(GtkWidget *w, gpointer data)
 ********************************************************************************/
 void PreviousCallback()
 {
+  GtkTextMark *cur;
+  GtkTextIter cur_iter, back_iter;
   int cur_pos;
   int back_pos;
   char *wordToPronounce;
 
-  cur_pos = gtk_editable_get_position(GTK_EDITABLE(text_entry));
+  cur = gtk_text_buffer_get_insert(GTK_TEXT_BUFFER(text_buffer));
+  gtk_text_buffer_get_iter_at_mark(GTK_TEXT_BUFFER(text_buffer), &cur_iter, cur);
+  gtk_text_buffer_get_iter_at_mark(GTK_TEXT_BUFFER(text_buffer), &back_iter, cur);
+  cur_pos = gtk_text_iter_get_offset(&cur_iter);
   while(1)
     {
       if(cur_pos > 0)
 	{
 	  back_pos = cur_pos - 1;
-	  if(!strcmp("\n", gtk_editable_get_chars(GTK_EDITABLE(text_entry), back_pos, cur_pos)) )
+	  gtk_text_iter_set_offset(&back_iter, back_pos);
+	  if(!strcmp("\n", gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &back_iter, &cur_iter, FALSE)))
 	    {
-	      gtk_editable_set_position(GTK_EDITABLE(text_entry), back_pos);
+	      gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &back_iter);
 	      break;
 	    }    
 	  cur_pos--;
+	  gtk_text_iter_set_offset(&cur_iter, cur_pos);
 	}
       else
 	{
@@ -756,25 +753,32 @@ void PreviousCallback()
 ********************************************************************************/
 void NextCallback()
 {
+  GtkTextMark *cur;
+  GtkTextIter cur_iter, next_iter;
   int cur_pos;
   int next_pos;
   int length;
   char *wordToPronounce;
     
-  cur_pos = gtk_editable_get_position(GTK_EDITABLE(text_entry));
-  length = gtk_text_get_length(GTK_TEXT(text_entry));
+  cur = gtk_text_buffer_get_insert(GTK_TEXT_BUFFER(text_buffer));
+  gtk_text_buffer_get_iter_at_mark(GTK_TEXT_BUFFER(text_buffer), &cur_iter, cur);
+  gtk_text_buffer_get_iter_at_mark(GTK_TEXT_BUFFER(text_buffer), &next_iter, cur);
+  cur_pos = gtk_text_iter_get_offset(&cur_iter);
+  length = gtk_text_buffer_get_char_count(GTK_TEXT_BUFFER(text_buffer));
 
   while(1)
     {
       if(cur_pos < length)
 	{
 	  next_pos = cur_pos + 1;
-	  if(!strcmp("\n", gtk_editable_get_chars(GTK_EDITABLE(text_entry), cur_pos, next_pos)) )
+	  gtk_text_iter_set_offset(&next_iter, next_pos);
+	  if(!strcmp("\n", gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &cur_iter, &next_iter, FALSE)))
 	    {
-	      gtk_editable_set_position(GTK_EDITABLE(text_entry), next_pos);
+	      gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &next_iter);
 	      break;
 	    }
 	  cur_pos++;
+	  gtk_text_iter_set_offset(&cur_iter, cur_pos);
 	}  
 
      else
@@ -802,26 +806,17 @@ void NextCallback()
 void PronounceCallback()
 {
   char *wordToPronounce;
-  int start, end, temp;
+  GtkTextIter start, end;
   char text_buf[256];
   
-  start = GTK_OLD_EDITABLE(text_entry)->selection_start_pos;
-  end = GTK_OLD_EDITABLE(text_entry)->selection_end_pos; 
-
-  if(start==end)
+  if(gtk_text_buffer_get_selection_bounds(GTK_TEXT_BUFFER(text_buffer), &start, &end) == FALSE) {
     SpeakCurrentLine();
+  }
   else
     {
       
-      if(start > end)
-	{
-	  temp = start;
-	  start = end;
-	  end = temp;
-	}
-
       sprintf(text_buf, "[:phon arpa on]%s[:phone arpa off]", 
-	      gtk_editable_get_chars(GTK_EDITABLE(text_entry), start, end) );
+	      gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE));
       
       TextToSpeechSpeak(ttsHandle[current_language], text_buf, TTS_FORCE);
     }
@@ -841,6 +836,8 @@ void PronounceCallback()
 ********************************************************************************/
 void SpeakCurrentLine(void)
 {
+  GtkTextMark *cur;
+  GtkTextIter cur_iter, iter, start_iter, end_iter;
   int cur_pos;
   int back_pos;
   int next_pos;
@@ -852,17 +849,21 @@ void SpeakCurrentLine(void)
   char text_buf[256];
   char *phonStr;
   
-  
-  
-  cur_pos = gtk_editable_get_position(GTK_EDITABLE(text_entry));
-  length = gtk_text_get_length(GTK_TEXT(text_entry));
+
+  cur = gtk_text_buffer_get_insert(GTK_TEXT_BUFFER(text_buffer));
+  gtk_text_buffer_get_iter_at_mark(GTK_TEXT_BUFFER(text_buffer), &cur_iter, cur);
+  cur_pos = gtk_text_iter_get_offset(&cur_iter);
+  gtk_text_buffer_get_iter_at_mark(GTK_TEXT_BUFFER(text_buffer), &iter, cur);
+  length = gtk_text_buffer_get_char_count(GTK_TEXT_BUFFER(text_buffer));
   
   while(start == -1)
     { 
       if(cur_pos > 0)
 	{
 	  back_pos = cur_pos - 1;	  
-	  if(!strcmp("\n", gtk_editable_get_chars(GTK_EDITABLE(text_entry), back_pos, cur_pos)))
+	  gtk_text_iter_set_offset(&cur_iter, cur_pos);
+	  gtk_text_iter_set_offset(&iter, back_pos);
+	  if(!strcmp("\n", gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &iter, &cur_iter, FALSE)))
 	    {
 	      start = cur_pos;
 	    }
@@ -879,7 +880,9 @@ void SpeakCurrentLine(void)
       if(cur_pos < length)
 	{
 	  next_pos = cur_pos + 1;
-	  if(!strcmp("\n", gtk_editable_get_chars(GTK_EDITABLE(text_entry), cur_pos, next_pos)))
+	  gtk_text_iter_set_offset(&cur_iter, cur_pos);
+	  gtk_text_iter_set_offset(&iter, next_pos);
+	  if(!strcmp("\n", gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &cur_iter, &iter, FALSE)))
 	    {
 	      end = next_pos;
 	    }
@@ -891,7 +894,9 @@ void SpeakCurrentLine(void)
       else
 	end = length;
     }
-  line_text =  gtk_editable_get_chars(GTK_EDITABLE(text_entry), start, end);
+  gtk_text_buffer_get_iter_at_offset(GTK_TEXT_BUFFER(text_buffer), &start_iter, start);
+  gtk_text_buffer_get_iter_at_offset(GTK_TEXT_BUFFER(text_buffer), &end_iter, end);
+  line_text =  gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start_iter, &end_iter, FALSE);
   ParseLine(line_text);
   sprintf(text_buf, "[:phon arpa on]%s[:phone arpa off]", line_text);
   
@@ -1419,7 +1424,6 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
   if ( fread( text, 1, FileLen, fp ) != FileLen )
     {
       fprintf(stderr,"Could not read file.\n");
-      free( text );
       fclose( fp );
       return;
     }
@@ -1431,18 +1435,18 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
   /*********************************/
   if ( text_entry != NULL ) 
     {
-      gtk_text_freeze (GTK_TEXT (text_entry));
-      gtk_text_set_point(GTK_TEXT (text_entry), 0);
-      gtk_text_insert(GTK_TEXT(text_entry), NULL, NULL, NULL, text, -1);
-      gtk_text_thaw (GTK_TEXT (text_entry));
+      GtkTextIter iter;
+      gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &iter);
+      gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &iter);
+      gtk_text_buffer_insert(GTK_TEXT_BUFFER(text_buffer), &iter, text, -1);
     }
 
   /* change name of window here... */
   sprintf(text,"Windic %s", strip_filename((char *)CurrFileName));
   gtk_window_set_title(GTK_WINDOW (window), text);
 
-  modified_id = gtk_signal_connect(GTK_OBJECT(text_entry),"changed", 
-				   GTK_SIGNAL_FUNC(TextWidgetModified),text_entry);
+  modified_id = g_signal_connect(G_OBJECT(text_buffer),"changed", 
+				   GTK_SIGNAL_FUNC(TextWidgetModified),text_buffer);
   
   /*********************************/
   /* clean up                      */
@@ -1475,17 +1479,17 @@ void FileNewCallback(GtkWidget *w, gpointer data)
     }
 
   textModified = FALSE;
-  modified_id = gtk_signal_connect(GTK_OBJECT(text_entry),"changed", 
-				   GTK_SIGNAL_FUNC(TextWidgetModified),text_entry);
+  modified_id = g_signal_connect(G_OBJECT(text_buffer),"changed", 
+				   GTK_SIGNAL_FUNC(TextWidgetModified),text_buffer);
  
   /* delete what's in the text_entry */
   if ( text_entry != NULL ) 
     {
-      gtk_text_freeze (GTK_TEXT (text_entry));
-      gtk_text_set_point(GTK_TEXT (text_entry), 0);
-      length = gtk_text_get_length(GTK_TEXT(text_entry));
-      gtk_text_forward_delete(GTK_TEXT(text_entry), length);
-      gtk_text_thaw (GTK_TEXT (text_entry));
+      GtkTextIter start, end;
+      gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &start);
+      gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(text_buffer), &end);
+      gtk_text_buffer_place_cursor(GTK_TEXT_BUFFER(text_buffer), &start);
+      gtk_text_buffer_delete(GTK_TEXT_BUFFER(text_buffer), &start, &end);
     }
   
   /* change name of window here... */
@@ -1535,6 +1539,7 @@ void FileSaveCallback(GtkWidget *w, gpointer data)
   FILE *fp = NULL;
   char *text = NULL;
   guint length;
+  GtkTextIter start, end;
 
   if(!strcmp(CurrFileName, "\0"))
     {
@@ -1542,7 +1547,9 @@ void FileSaveCallback(GtkWidget *w, gpointer data)
       return;
     }
   
-  text = gtk_editable_get_chars(GTK_EDITABLE(text_entry),0,-1);
+  gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &start);
+  gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(text_buffer), &end);
+  text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
   length = (guint)strlen( text );
   
   if(( fp = fopen(CurrFileName, "w")) == NULL )
@@ -1554,8 +1561,8 @@ void FileSaveCallback(GtkWidget *w, gpointer data)
       fwrite( text, sizeof( char ), length, fp );
     }
 
-  modified_id = gtk_signal_connect(GTK_OBJECT(text_entry),"changed", 
-				   GTK_SIGNAL_FUNC(TextWidgetModified),text_entry);
+  modified_id = g_signal_connect(G_OBJECT(text_buffer),"changed", 
+				   GTK_SIGNAL_FUNC(TextWidgetModified),text_buffer);
 
 
   textModified = FALSE;
@@ -1644,9 +1651,13 @@ void FileSaveAsOkCallback(GtkWidget *w, gpointer fs)
 ******************************************************************************/
 void TextWidgetModified(GtkWidget *widget, GdkEvent *event, gpointer callback_data)
 {
-  gtk_signal_disconnect_by_func (GTK_OBJECT(text_entry),
-				 GTK_SIGNAL_FUNC(TextWidgetModified),
-				 text_entry);
+  gulong handler;
+
+  handler = g_signal_handler_find(G_OBJECT(text_buffer), G_SIGNAL_MATCH_FUNC, 0, 0, NULL, G_CALLBACK(TextWidgetModified), text_buffer);
+  if (handler) {
+    g_signal_handler_disconnect(G_OBJECT(text_buffer), handler);
+  }
+
   textModified = TRUE;
 }
 
@@ -1706,6 +1717,7 @@ void FileCompileDictionaryCallback(GtkWidget *w, gpointer data)
 {
   char errorString[512];
   char *text;
+  GtkTextIter start, end;
  
   if(!strcmp(CurrFileName, "\0"))
     {
@@ -1717,7 +1729,9 @@ void FileCompileDictionaryCallback(GtkWidget *w, gpointer data)
   strcpy(DicFileName, CurrFileName);
   CheckFileExtension(compile_dic, DicFileName);
   
-  text = gtk_editable_get_chars(GTK_EDITABLE(text_entry), 0, -1);
+  gtk_text_buffer_get_start_iter(GTK_TEXT_BUFFER(text_buffer), &start);
+  gtk_text_buffer_get_end_iter(GTK_TEXT_BUFFER(text_buffer), &end);
+  text = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
   errorString[0] = '\0';
   compile_dictonary(DicFileName, text, errorString);
   if(strlen(errorString) )
@@ -1793,17 +1807,17 @@ void CheckFileExtension(int option, char *filename)
 ******************************************************************************/
 void EditCopyCallback(GtkWidget *w, gpointer data)
 {
-  gtk_editable_copy_clipboard(GTK_EDITABLE(text_entry));
+  gtk_text_buffer_copy_clipboard(GTK_TEXT_BUFFER(text_buffer), gtk_clipboard_get(GDK_NONE));
 }
 
 void EditPasteCallback(GtkWidget *w, gpointer data)
 {
-  gtk_editable_paste_clipboard(GTK_EDITABLE(text_entry));
+  gtk_text_buffer_paste_clipboard(GTK_TEXT_BUFFER(text_buffer), gtk_clipboard_get(GDK_NONE), NULL, TRUE);
 }
 
 void EditCutCallback(GtkWidget *w, gpointer data)
 {
-  gtk_editable_cut_clipboard(GTK_EDITABLE(text_entry));
+  gtk_text_buffer_cut_clipboard(GTK_TEXT_BUFFER(text_buffer), gtk_clipboard_get(GDK_NONE), TRUE);
 }
 
 
