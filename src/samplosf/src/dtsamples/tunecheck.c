@@ -174,8 +174,11 @@ typedef struct TUNERPARAMS_T {
 } TUNERPARAMS;
 #endif //NEW_VOCAL_TRACT from dectalkf.h
 
-//#define MAX_TRIGGER 20000
-#define MAX_TRIGGER 32000 //FIXME: 2022-08-10: Probably wrong...
+#if defined(VTM1) || defined(VTM2)
+#define MAX_TRIGGER 16000 // VTM1, VTM2
+#else
+#define MAX_TRIGGER 20000 // VTM3
+#endif
 
 #define NUMTUNERPARAMS (9)
 typedef union TUNERUNION_T {
@@ -250,85 +253,85 @@ void LookForBackup();
 #ifdef ENGLISH_US
 char OFFSETFILE[] = "p_us_vdf_tunehl.c";
 char *message = "\n\nNow tuning ENGLISH_US HL\n";
-char lang_tag[100]="us_";
+#define LANG_TAG "us_"
 #endif // ENGLISH
 
 #ifdef ENGLISH_UK
 char OFFSETFILE[] = "p_uk_vdf_tunehl.c";
 char *message = "ENGLISH_UK HL";
-char lang_tag[100]="uk_";
+#define LANG_TAG "uk_"
 #endif // ENGLISH_UK
 
 #ifdef SPANISH_SP
 char OFFSETFILE[] = "p_sp_vdf_tunehl.c";
 char *message = "SPANISH_SP HL";
-char lang_tag[100]="sp_";
+#define LANG_TAG "sp_"
 #endif // SPANISH
 
 #ifdef ITALIAN
 char OFFSETFILE[] = "p_it_vdf_tunehl.c";
 char *message = "ITALIAN HL";
-char lang_tag[100]="it_";
+#define LANG_TAG "it_"
 #endif // SPANISH
 
 #ifdef SPANISH_LA
 char OFFSETFILE[] = "p_la_vdf_tunehl.c";
 char *message = "SPANISH_LA HL";
-char lang_tag[100]="la_";
+#define LANG_TAG "la_"
 #endif // SPANISH_LA
 
 #ifdef GERMAN
 char OFFSETFILE[] = "p_gr_vdf_tunehl.c";
 char *message = "GERMAN HL";
-char lang_tag[100]="gr_";
+#define LANG_TAG "gr_"
 #endif // GERMAN
 
 #ifdef FRENCH
 char OFFSETFILE[] = "p_fr_vdf_tunehl.c";
 char *message = "FRENCH HL";
-char lang_tag[100]="fr_";
+#define LANG_TAG "fr_"
 #endif // FRENCH
 #else  // HLSYN
 #ifdef ENGLISH_US
 char OFFSETFILE[] = "p_us_vdf_tuneint.c";
 char *message = "\n\nNow tuning ENGLISH_US Int\n";
-char lang_tag[100]="us_";
+#define LANG_TAG "us_"
 #endif // ENGLISH
 
 #ifdef ENGLISH_UK
 char OFFSETFILE[] = "p_uk_vdf_tuneint.c";
 char *message = "ENGLISH_UK Int";
-char lang_tag[100]="uk_";
+#define LANG_TAG "uk_"
 #endif // ENGLISH_UK
 
 #ifdef SPANISH_SP
 char OFFSETFILE[] = "p_sp_vdf_tuneint.c";
 char *message = "SPANISH_SP Int";
-char lang_tag[100]="sp_";
+#define LANG_TAG "sp_"
 #endif // SPANISH
 
 #ifdef ITALIAN
 char OFFSETFILE[] = "p_it_vdf_tuneint.c";
 char *message = "Italian Int";
-char lang_tag[100]="it_";
+#define LANG_TAG "it_"
 #endif // SPANISH
 
 #ifdef SPANISH_LA
 char OFFSETFILE[] = "p_la_vdf_tuneint.c";
 char *message = "SPANISH_LA Int";
-char lang_tag[100]="la_";
+#define LANG_TAG "la_"
 #endif // SPANISH_LA
 
 #ifdef GERMAN
 char OFFSETFILE[] = "p_gr_vdf_tuneint.c";
 char *message = "GERMAN Int";
-char lang_tag[100]="gr_";
+#define LANG_TAG "gr_"
 #endif // GERMAN
 
 #ifdef FRENCH
 char OFFSETFILE[] = "p_fr_vdf_tuneint.c";
 char *message = "FRENCH Int";
-char lang_tag[100]="fr_";
+#define LANG_TAG "fr_"
 #endif // FRENCH
 #endif // HLSYN
 
@@ -341,8 +344,9 @@ FILE *fpBackup		= NULL;			// backup file
 FILE *fpOffsetFile	= NULL;			// offsets file
 
 char szInFileName[MAXFILENAME+1]		= "";
-char szResultFileName[MAXFILENAME+1]	= "res.txt";
-char szBackup[]							= "backup.txt";
+char szResultFileName[MAXFILENAME+1]	= LANG_TAG "res.txt";
+char szBackup[]							= LANG_TAG "backup.txt";
+char lang_tag[100]=LANG_TAG;
 char offsetPath[]  = "./";
 
 #define COMMENTLEN (255)
