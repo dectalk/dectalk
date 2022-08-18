@@ -1029,6 +1029,18 @@ int main (int argc, char *argv[])
   StartPlay(NULL, NULL);
   
   // FileOpenCallback();
+#else
+  {
+    int i;
+    for (i = 1; i < argc; i++) {
+      if (argv[i][0] != '-') {
+        strncpy(OpenFileName,argv[i],PATH_MAX);
+        strncpy(SaveFileName,argv[i],PATH_MAX);
+        FileOpenOkCallback(NULL, NULL);
+        break;
+      }
+    }
+  }
 #endif
   gtk_main ();
   
@@ -1608,7 +1620,7 @@ void FileNewCallback(GtkWidget *w, gpointer data)
   guint length = 0;
   gulong handler;
   
-  if(textModified)
+  if(w && textModified)
       FileSaveAsCallback(w,NULL);
   
   /*
@@ -1649,13 +1661,16 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
   gchar *temp;
 
   FileNewCallback(w,NULL);
-  
-  temp = gtk_file_selection_get_filename(GTK_FILE_SELECTION (fs));
-  strncpy(OpenFileName,temp,PATH_MAX);
+  if (fs) {
+    temp = gtk_file_selection_get_filename(GTK_FILE_SELECTION (fs));
+    strncpy(OpenFileName,temp,PATH_MAX);
+  }
 #ifdef S_DEBUG
   fprintf(stderr,"OpenFileName = %s\n",OpenFileName);
 #endif
-  gtk_widget_destroy((GtkWidget *)fs);
+  if (fs) {
+    gtk_widget_destroy((GtkWidget *)fs);
+  }
   
   if ( (fp = fopen(OpenFileName, "r")) == NULL )
     {
