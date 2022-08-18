@@ -82,6 +82,7 @@ static LPTTS_HANDLE_T ttsHandle[NUM_LANGS]; /* DECtalk handle */
 void DemoFileOpen();
 #endif
 int PlaySome();
+void index_callback();
 static int StartPlay(GtkWidget *, gpointer);
 static int PausePlay(GtkWidget *, gpointer);
 void StopPlay(GtkWidget *, gpointer);
@@ -423,7 +424,6 @@ int main (int argc, char *argv[])
     gtk_widget_show(window);
   style = gtk_widget_get_style(window);
   
-#define index_callback NULL
 #define indexParams 0
 
   TextToSpeechEnumLangs(&dt_langs);
@@ -1068,7 +1068,6 @@ int PlaySome()
       /* play the text                */
       dwFlags = TTS_FORCE;
       TextToSpeechSpeak( ttsHandle[current_language], playBuffer, dwFlags );
-      playStatus = STOP;
       
       gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
     }
@@ -1127,10 +1126,11 @@ static int StartPlay(GtkWidget *widget, gpointer data)
 
   switch( playStatus )
     {
-    case PLAY:
     case PAUSE:
       break;
       
+    case PLAY:
+      StopPlay(NULL, NULL);
     case STOP:
       /* get buffer contents       */
       sfile = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
@@ -2233,4 +2233,50 @@ void ERROR(char *error_message)
   gtk_container_add(GTK_CONTAINER(GTK_DIALOG(err_dialog)->vbox), err_label);
   
   gtk_widget_show_all(err_dialog);
+}
+
+/***************************************************************************
+**
+**
+**  index_callback 
+**
+**  FUNCTIONAL DESCRIPTION:
+**
+**   This is the callback routine for in line index marks.
+**   The format of the in-line index mark is [:index mark #]
+**   where # is a number denoting the index mark number.
+**
+**  FORMAL PARAMETERS:
+**
+**    param1: switch which indicates if the callback is due
+**            to an index mark or if it is returning a memory
+**            buffer. 
+**    param2: is the digit that follows the in line index
+**            mark command. 
+**    user_defined: is a pointer to a user defined structure.
+**                  This is used a mechanism to pass user
+**                  defined parameters in and out of this 
+**                  callback routine. 
+**    uiMsg: defines the message type
+**              TTS_MSG_BUFFER
+**              TTS_MSG_INDEX_MARK
+**              TTS_MSG_STATUS
+**
+**  RETURN VALUE
+**
+**     None.
+**
+****************************************************************************/
+void index_callback(long param1, long param2, long user_defined, UINT uiMsg)
+{
+  if (uiMsg == TTS_MSG_STATUS) {
+    switch(param1) {
+      case TTS_AUDIO_PLAY_START:
+        playStatus = PLAY;
+        break;
+      case TTS_AUDIO_PLAY_STOP:
+        playStatus = STOP;
+        break;
+    }
+  }
 }
