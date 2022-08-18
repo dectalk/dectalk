@@ -1400,7 +1400,7 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
 {
   FILE *fp;
   struct stat buf;
-  char text[256];
+  char *text = NULL;
   gchar *temp;
 
   FileNewCallback(w,NULL);
@@ -1421,6 +1421,8 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
   (void)stat(CurrFileName,&buf);
   FileLen = buf.st_size;
  
+  text = malloc(FileLen+1);
+  if (text == NULL)
   if ( fread( text, 1, FileLen, fp ) != FileLen )
     {
       fprintf(stderr,"Could not read file.\n");
@@ -1452,7 +1454,7 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
   /* clean up                      */
   /*********************************/
   fclose( fp );
-  text[0] = '\0';
+  free(text);
 }
 
 /*******************************************************************************
