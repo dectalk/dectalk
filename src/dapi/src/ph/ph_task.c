@@ -243,7 +243,7 @@ void far kltask (LPTTS_HANDLE_T phTTS)
 	pDph_t->tunedef[7] = (short*)default_tune;
 	pDph_t->tunedef[8] = (short*)default_tune;
 	pDph_t->tunedef[9] = (short*)default_tune;
-#else
+#elif defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	if(pKsd_t->lang_curr == LANG_english)
 	{
 	pDph_t->tunedef_8[0] = (short*)us_paul_8_tune;
@@ -307,7 +307,25 @@ void far kltask (LPTTS_HANDLE_T phTTS)
 	pDph_t->tunedef_8[7] = (short*)gr_rita_8_tune;
 	pDph_t->tunedef_8[8] = (short*)gr_wendy_8_tune;
 	}
-
+#else
+	pDph_t->tunedef_8[0] = (short*)paul_8_tune;
+	pDph_t->tunedef_8[1] = (short*)betty_8_tune;
+	pDph_t->tunedef_8[2] = (short*)harry_8_tune;
+	pDph_t->tunedef_8[3] = (short*)frank_8_tune;
+	pDph_t->tunedef_8[4] = (short*)dennis_8_tune;
+	pDph_t->tunedef_8[5] = (short*)kit_8_tune;
+	pDph_t->tunedef_8[6] = (short*)ursula_8_tune;
+	pDph_t->tunedef_8[7] = (short*)rita_8_tune;
+	pDph_t->tunedef_8[8] = (short*)wendy_8_tune;
+	pDph_t->tunedef[0] = (short*)paul_tune;
+	pDph_t->tunedef[1] = (short*)betty_tune;
+	pDph_t->tunedef[2] = (short*)harry_tune;
+	pDph_t->tunedef[3] = (short*)frank_tune;
+	pDph_t->tunedef[4] = (short*)dennis_tune;
+	pDph_t->tunedef[5] = (short*)kit_tune;
+	pDph_t->tunedef[6] = (short*)ursula_tune;
+	pDph_t->tunedef[7] = (short*)rita_tune;
+	pDph_t->tunedef[8] = (short*)wendy_tune;
 #endif
 
 	pKsd_t->sprate = 180;

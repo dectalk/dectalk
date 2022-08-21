@@ -372,6 +372,11 @@ int	main(int argc, char *argv[])
 	int			argp = 0;
 	int			level = 0;
 
+#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
+	printf("Can't tune with current configuration, need either HLSYN or CHANGES_AFTER_V43!\n");
+	exit(EXIT_FAILURE);
+#endif
+
 	startTime = time(NULL);
 	// parse the args and fill in the blanks..
 	for (argp=1; argp<argc; argp++)

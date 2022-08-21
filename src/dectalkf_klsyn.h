@@ -239,5 +239,7 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 #define PARSER_HACK_FOR_OLD_SONGS
 //#define OLD_VDF
 #define VTM1
+//try to find/revert various code changes after v4.3, breaks different functionality but fixes other :-/
+//#define CHANGES_AFTER_V43
 
 #endif // _DECTALK_H_

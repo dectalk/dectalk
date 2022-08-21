@@ -238,5 +238,8 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
  * prevents 'command error in phoneme' when encountering 'l' instead of 'll' */
 #define PARSER_HACK_FOR_OLD_SONGS
 
+/* Changes to PH and VTM modules after 4.2/4.3 */
+#define CHANGES_AFTER_V43
+
 #endif // _DECTALK_H_
 

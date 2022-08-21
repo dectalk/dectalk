@@ -66,7 +66,12 @@
 #ifdef OLD_VDF
 #include "p_us_vdf.c"
 #else
+#ifdef CHANGES_AFTER_V43
 #include "p_us_vdf_adapted.c"
+#else
+//#include "p_us_vdf_dectalkexpress_42.c"
+#include "p_us_vdf_dectalk43.c"
+#endif
 #endif
 #endif
 
@@ -81,17 +86,20 @@
 #include "p_gr_vdf_tunehl.c"
 #endif
 #else
+#ifdef CHANGES_AFTER_V43
 #include "p_us_vdf_tuneint.c"
 #include "p_fr_vdf_tuneint.c"
 #include "p_uk_vdf_tuneint.c"
 #include "p_sp_vdf_tuneint.c"
 #include "p_la_vdf_tuneint.c"
 #include "p_gr_vdf_tuneint.c"
+#else
+#include "p_us_vdf_oldtune.c"
+#endif
 
 
 #endif
 
-#ifdef EPSON_ARM7
 const short			default_tune[SPDEF] =
 {
 	0,
@@ -137,6 +145,7 @@ const short			default_tune[SPDEF] =
 };
 
 
+#ifdef EPSON_ARM7
 const short			fr_default_tune[SPDEF] =
 {
 	0,		

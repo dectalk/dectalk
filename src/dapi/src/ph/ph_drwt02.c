@@ -1255,11 +1255,13 @@ if (pKsd_t->lang_curr == LANG_british)
 				filter_seg_commands(pDph_t,pDphsettar->tarseg);	/* Input is pDphsettar->tarseg, output is pDphsettar->f0s */
 				
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				f0in += pDphsettar->glide_tot;
+				/* Add in glide value to F0 eab 1/21/98 */
+#endif
 				// CAB 05/24/2002 Removed warnings by typecast
 				filter_commands(pDph_t, (short)(f0in));		/* Input is f0in, output is f0  */
 				
-				/* Add in glide value to F0 eab 1/21/98 */
 				//Olivertest 
 
 				pDph_t->f0prime = pDph_t->f0 + pDph_t->f0s ;	/* This will be spdef-scaled output value */
@@ -1908,7 +1910,10 @@ if (pKsd_t->lang_curr == LANG_british)
 				//WINprintf("tarseg = %d f0in %d \n,",(pDphsettar->tarseg +pDphsettar->tarseg1),f0in);
 				//f0in=f0in>>1; //eab 7/21/98 scale to avoid overload
 				filter_seg_commands(pDph_t,pDphsettar->tarseg);	/* Input is pDphsettar->tarseg, output is pDphsettar->f0s */
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				f0in += pDphsettar->glide_tot;
+				/* Add in glide value to F0 eab 1/21/98*/
+#endif
 
 				// CAB 05/24/2002 Removed warnings by typecast
 			
@@ -1916,7 +1921,6 @@ if (pKsd_t->lang_curr == LANG_british)
 				//filter_commands(pDph_t,f0in);		/* Input is f0in,   output is f0  */
 
 				//pDph_t->f0 = pDph_t->f0<<1;
-				/* Add in glide value to F0 eab 1/21/98*/
 				/* reduce segmental influence per Oliver*/
 
 				pDph_t->f0prime = pDph_t->f0 + pDph_t->f0s ;	/* This will be spdef-scaled output value */

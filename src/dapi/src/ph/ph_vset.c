@@ -270,7 +270,7 @@ void usevoice (LPTTS_HANDLE_T phTTS, int voice)
 #endif
 
 #ifdef EPSON_ARM7
-#else
+#elif defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	if(pKsd_t->lang_curr == LANG_english)
 	{
 	pDph_t->tunedef_8[0] = (short*)us_paul_8_tune;
@@ -420,7 +420,25 @@ void usevoice (LPTTS_HANDLE_T phTTS, int voice)
 	pDph_t->tunedef[7] = (short*)gr_rita_tune;
 	pDph_t->tunedef[8] = (short*)gr_wendy_tune;
 	}
-
+#else
+	pDph_t->tunedef_8[0] = (short*)paul_8_tune;
+	pDph_t->tunedef_8[1] = (short*)betty_8_tune;
+	pDph_t->tunedef_8[2] = (short*)harry_8_tune;
+	pDph_t->tunedef_8[3] = (short*)frank_8_tune;
+	pDph_t->tunedef_8[4] = (short*)dennis_8_tune;
+	pDph_t->tunedef_8[5] = (short*)kit_8_tune;
+	pDph_t->tunedef_8[6] = (short*)ursula_8_tune;
+	pDph_t->tunedef_8[7] = (short*)rita_8_tune;
+	pDph_t->tunedef_8[8] = (short*)wendy_8_tune;
+	pDph_t->tunedef[0] = (short*)paul_tune;
+	pDph_t->tunedef[1] = (short*)betty_tune;
+	pDph_t->tunedef[2] = (short*)harry_tune;
+	pDph_t->tunedef[3] = (short*)frank_tune;
+	pDph_t->tunedef[4] = (short*)dennis_tune;
+	pDph_t->tunedef[5] = (short*)kit_tune;
+	pDph_t->tunedef[6] = (short*)ursula_tune;
+	pDph_t->tunedef[7] = (short*)rita_tune;
+	pDph_t->tunedef[8] = (short*)wendy_tune;
 #endif
 
 
@@ -591,8 +609,13 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 	pDph_t->f0_lp_filter = (1500 + 15 * pDph_t->curspdef[SPD_QU]);	/* QU in % -> lp cuttoff */
 	pDph_t->size_hat_rise = pDph_t->curspdef[SPD_HR] * 10;	/* HR in Hz -> Hz*10    */
 	pDph_t->scale_str_rise = pDph_t->curspdef[SPD_SR];		/* SR in Hz -> mult. sc. fac */
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	// the -12 is a fudge factor to keep it similiar to 260
 	pDph_t->f0minimum = (pDph_t->curspdef[SPD_AP]-12) * 10;		/* AP -> f0min          */
+#else
+	/* the -12 should actually be removed to be back to the 4.3 state... */
+	pDph_t->f0minimum = (pDph_t->curspdef[SPD_AP]-12)* 10;		/* AP -> f0min          */
+#endif
 	pDph_t->f0scalefac = pDph_t->curspdef[SPD_PR] * 41;		/* PR -> f0scale        */
 	pDph_t->f0basefall = pDph_t->curspdef[SPD_BF] * 10;		/* baseline fall        */
 	pDph_t->spdeflaxprcnt = pDph_t->curspdef[SPD_LX] * 41;	/* degree of lax breathiness */
@@ -656,14 +679,22 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 
 
 	spdef->r5cc = pDph_t->curspdef[SPD_B5];
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	if (spdef->r5cb > (phTTS->pKernelShareData->uiSampleRate>>1))
+#else
+	if (spdef->r5cb > 4095)
+#endif
 	{
 		spdef->r5cb = ZAPF;			   		/* F5 too big, zap it   */
 		spdef->r5cc = ZAPB;			   		/* and bw   			*/
 	}
 	spdef->r4pb = pDph_t->curspdef[SPD_P4];	/* F7 -> F4p            */
 	spdef->r5pb = pDph_t->curspdef[SPD_P5];	/* F8 -> F5p            */
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	spdef->t0jit = pDph_t->curspdef[SPD_LA]<<3;
+#else
+	spdef->t0jit = pDph_t->curspdef[SPD_LA];
+#endif
 	//3/15/01 Changed to left shift rather than mult.  */
 	spdef->r5ca = pDph_t->curspdef[SPD_G1];	/* G1 -> G1 in dB       */
 	spdef->r4ca = pDph_t->curspdef[SPD_G2];	/* G2 -> G2 in dB       */
@@ -681,7 +712,11 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 	for nopen1 as a percentage and not	0 to 100 */
 	spdef->nopen1 = 4000 + (160 * (100 - pDph_t->curspdef[SPD_RI]));	/* RI -> K1  */
 	spdef->nopen2 = pDph_t->curspdef[SPD_NF] * 4;/* NF -> K2     */
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	spdef->aturb = pDph_t->curspdef[SPD_BR] ;	/* BR -> BR     */
+#else
+	spdef->aturb = pDph_t->curspdef[SPD_BR] + 9;	/* BR -> BR     */
+#endif
 
 #ifdef SW_VOLUME
 

@@ -634,6 +634,7 @@ if(pKsd_t->lang_curr == LANG_french)
 	parp = &(pDph_t->parstochip[OUT_TLT]);	/* Where it goes.       */
 
 /* Spdef par FT -> 0 < f0_dep_tilt < 100, temptilt = 1/40 (max) of 1400-f0 */
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	/* This code is not good put in a temp improvement til tom's stuff done
 	EAB		7/13/98			BATS 711 */
 	if (pDph_t->malfem == MALE)
@@ -642,11 +643,18 @@ if(pKsd_t->lang_curr == LANG_french)
 	}
 	else
 	{
+#endif
 		temptilt = frac4mul ((1400- pDph_t->f0 ), pDph_t->f0_dep_tilt);
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	}
+#endif
 		
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	//EAB		7/13/98			BATS 711 
 	temptilt = 8 - temptilt;
+#else
+	temptilt = 12 - temptilt;
+#endif
 	if (temptilt < 0)
 		temptilt = 0;
 	
@@ -662,7 +670,11 @@ if(pKsd_t->lang_curr == LANG_french)
 	*parp += temptilt;
 	//EAB		7/13/98			BATS 711 
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	*parp += (pDph_t->spdeftltoff - 3); /*from fphdraw.c*/
+#else
+	*parp += (pDph_t->spdeftltoff - 6); /*from fphdraw.c*/
+#endif
 
 
 	

@@ -129,6 +129,7 @@ extern const short            gr_rita[SPDEF];
 extern const short            gr_wendy[SPDEF];
 extern const short            gr_dennis[SPDEF];
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 extern const short            uk_paul_8_tune[];
 extern const short            uk_betty_8_tune[];
 extern const short            uk_harry_8_tune[];
@@ -265,6 +266,27 @@ extern const short            uk_rita_tune[];
 extern const short            uk_wendy_tune[];
 extern const short            uk_dennis_tune[];
 extern const short			  uk_val_tune[];
+#else
+extern const short            paul_8_tune[];
+extern const short            betty_8_tune[];
+extern const short            harry_8_tune[];
+extern const short            frank_8_tune[];
+extern const short            kit_8_tune[];
+extern const short            ursula_8_tune[];
+extern const short            rita_8_tune[];
+extern const short            wendy_8_tune[];
+extern const short            dennis_8_tune[];
+
+extern const short            paul_tune[];
+extern const short            betty_tune[];
+extern const short            harry_tune[];
+extern const short            frank_tune[];
+extern const short            kit_tune[];
+extern const short            ursula_tune[];
+extern const short            rita_tune[];
+extern const short            wendy_tune[];
+extern const short            dennis_tune[];
+#endif
 
 #endif
 

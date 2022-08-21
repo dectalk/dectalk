@@ -239,7 +239,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS);
 void SetSampleRate( LPTTS_HANDLE_T phTTS, unsigned int uiSampRate );
 void InitializeVTM(LPTTS_HANDLE_T phTTS);
 
-void getmax(S16 value,S16 *maxval);		// KSB - Added for testing of max value
+void getmax(S32 value,S32 *maxval);		// KSB - Added for testing of max value
 
 void setzeroabc(int f, int bw, int rnpg, short *sacoef,short *sbcoef,short *sccoef);//EAB 3/298 new coef for rnz
 #ifdef POSS_FUTURE_FUNCTION
@@ -435,9 +435,9 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
   /********************************************************************/
 
   F1inHZ = variabpars[OUT_F1];
-  F1inHZ = frac4mul( F1inHZ, pVtm_t->fnscal ) + ((4096 - (S32)pVtm_t->fnscal ) >> 4);
+  F1inHZ = frac4mul( F1inHZ, pVtm_t->fnscal ) + (S16) ((4096 - (S32)pVtm_t->fnscal ) >> 4);
   F2inHZ = variabpars[OUT_F2];
-  F2inHZ = frac4mul( F2inHZ, pVtm_t->fnscal ) + ((4096 - (S32)pVtm_t->fnscal ) >> 3);
+  F2inHZ = frac4mul( F2inHZ, pVtm_t->fnscal ) + (S16) ((4096 - (S32)pVtm_t->fnscal ) >> 3);
   F3inHZ = variabpars[OUT_F3];
   F3inHZ = frac4mul( F3inHZ, pVtm_t->fnscal );
 
@@ -767,9 +767,13 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	  average level of the phrom base is not properly normalized while tuning
 	  and tuning it later causes overload problems. */
 
+#ifdef CHANGES_AFTER_V43
 	  voice = frac4mul( pVtm_t->avlind, pVtm_t->voice0 );
 
       voice = frac4mul( voice, pVtm_t->avgain );
+#else
+      voice = frac4mul( pVtm_t->voice0, pVtm_t->avgain );
+#endif
 	  //voice += (frac4mul( pVtm_t->voice0, pVtm_t->avgain )>>4);
 	  
 	  
@@ -800,7 +804,9 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 #else
 	pVtm_t->T0 = T0inS4;
 	      /*  more than 1 period in cur frame.    */
-	//pVtm_t->T0 += frac4mul( pVtm_t->t0jitr, pVtm_t->T0 ); /*  Add jitter, if any.        */
+#ifndef CHANGES_AFTER_V43
+	pVtm_t->T0 += frac4mul( pVtm_t->t0jitr, pVtm_t->T0 ); /*  Add jitter, if any.        */
+#endif
 	
 #endif
 			
@@ -810,7 +816,11 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	/*  aturb1 is the Speaker definition breathiness coeficient   */
 	/**************************************************************/
 
-	pVtm_t->aturb1 = pVtm_t->Aturb ;
+#ifdef CHANGES_AFTER_V43
+	pVtm_t->aturb1 = pVtm_t->Aturb;
+#else
+	pVtm_t->aturb1 = pVtm_t->Aturb << 2;
+#endif
 
 	if ( F1inHZ < 250 )
 	  F1inHZ = 250;
@@ -1003,7 +1013,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	/*  Set coeficients of nasal zero antiresonator by table      */
 	/*  lookup.                                                   */
 	/**************************************************************/
-	pVtm_t->temp =FZinHZ;
+	//pVtm_t->temp =FZinHZ;
 
 	pVtm_t->temp = ( FZinHZ >> 3 ) - 31;
 
@@ -1085,6 +1095,8 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 		voice += frac1mul( pVtm_t->aturb1, noise );
 	}
 
+#elif !defined(CHANGES_AFTER_V43)
+    voice += frac1mul( pVtm_t->aturb1, noise );
 #endif	
 
     /******************************************************************/
@@ -1092,7 +1104,9 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
     /*  24-Jul-85  "avlin" moved to "avlind" after half a period.     */
     /******************************************************************/
 	
-//    voice = frac4mul( pVtm_t->avlind, voice );
+#ifndef CHANGES_AFTER_V43
+    voice = frac4mul( pVtm_t->avlind, voice );
+#endif
 //	pVtm_t->purev = voice; //eab This captures the true voice level 
 	  //but may have other problems see edit trail this may reuire further modification
 	  //pVtm_t->iwave[ns] = voice;
@@ -1505,10 +1519,10 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   /********************************************************************/
   /*  Constants used in random number generation.                     */
   /********************************************************************/
-  /*
+#ifndef CHANGES_AFTER_V43
   ranmul = 20077;
   ranadd = 12345;
-  */
+#endif
   /********************************************************************/
   /*  Constants used to filter the noise.                             */
   /********************************************************************/
@@ -1518,19 +1532,25 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   case SAMPLE_RATE_INCREASE:
 
     pVtm_t->noiseb = -2913;
-    /*noisec = 1499; */
+#ifndef CHANGES_AFTER_V43
+    noisec = 1499;
+#endif
     break;
 
   case SAMPLE_RATE_DECREASE:
 
     pVtm_t->noiseb = -1873;
-    /*noisec = 1499;*/
+#ifndef CHANGES_AFTER_V43
+    noisec = 1499;
+#endif
     break;
 
   case NO_SAMPLE_RATE_CHANGE:
 
     pVtm_t->noiseb = -2913;
-    /*noisec = 1499;*/
+#ifndef CHANGES_AFTER_V43
+    noisec = 1499;
+#endif
     break;
 
   default:
@@ -1559,6 +1579,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   
   
 
+#ifdef CHANGES_AFTER_V43
   switch( pVtm_t->uiSampleRateChange )
   {
   case SAMPLE_RATE_INCREASE:
@@ -1579,6 +1600,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 
     break;
   }
+#endif
   d2pole_pf( pVtm_t,&pVtm_t->rnpb, &pVtm_t->rnpc, fnp, bnp, 0 );
 
   /********************************************************************/
@@ -1727,7 +1749,11 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 
   pVtm_t->Aturb = ((SPD_CHIP *)spdeftochip)->aturb;    /*  16                  */
 #ifndef UPGRADES1999
+#ifdef CHANGES_AFTER_V43
   pVtm_t->Aturb = amptable[pVtm_t->Aturb+12];
+#else
+  pVtm_t->Aturb = amptable[pVtm_t->Aturb];
+#endif
 #endif
 
  /********************************************************************/
@@ -1921,7 +1947,7 @@ void SetSampleRate( LPTTS_HANDLE_T phTTS, unsigned int uiSampRate )
   return;
 }
 
-void getmax(S16 value,S16 *maxval)	// KSB - Added for testing of max value
+void getmax(S32 value,S32 *maxval)	// KSB - Added for testing of max value
 	{
 	if (value <0)
 		value = -value;
