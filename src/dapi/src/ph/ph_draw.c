@@ -653,6 +653,9 @@ if(pKsd_t->lang_curr == LANG_french)
 	//EAB		7/13/98			BATS 711 
 	temptilt = 8 - temptilt;
 #else
+	if (temptilt < 0)
+		temptilt = 0;
+
 	temptilt = 12 - temptilt;
 #endif
 	if (temptilt < 0)
