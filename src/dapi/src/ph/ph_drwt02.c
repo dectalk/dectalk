@@ -1269,10 +1269,10 @@ if (pKsd_t->lang_curr == LANG_british)
 				
 
 				pDphsettar->tarseg = mlsh1(pDphsettar->tarseg,16064);
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				filter_seg_commands(pDph_t,pDphsettar->tarseg);	/* Input is pDphsettar->tarseg, output is pDphsettar->f0s */
 				
 
-#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				f0in += pDphsettar->glide_tot;
 				/* Add in glide value to F0 eab 1/21/98 */
 #endif
@@ -1281,7 +1281,9 @@ if (pKsd_t->lang_curr == LANG_british)
 				
 				//Olivertest 
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				pDph_t->f0prime = pDph_t->f0 + pDph_t->f0s ;	/* This will be spdef-scaled output value */
+#endif
 
 				//		WINprintf("maleseg f0s %d tarseg %d tarseg1 %d \n", pDph_t->f0s,pDphsettar->tarseg,pDphsettar->tarseg1); 
 				
@@ -1926,8 +1928,8 @@ if (pKsd_t->lang_curr == LANG_british)
 				
 				//WINprintf("tarseg = %d f0in %d \n,",(pDphsettar->tarseg +pDphsettar->tarseg1),f0in);
 				//f0in=f0in>>1; //eab 7/21/98 scale to avoid overload
-				filter_seg_commands(pDph_t,pDphsettar->tarseg);	/* Input is pDphsettar->tarseg, output is pDphsettar->f0s */
 #if defined(HLSYN) || defined(CHANGES_AFTER_V43)
+				filter_seg_commands(pDph_t,pDphsettar->tarseg);	/* Input is pDphsettar->tarseg, output is pDphsettar->f0s */
 				f0in += pDphsettar->glide_tot;
 				/* Add in glide value to F0 eab 1/21/98*/
 #endif
@@ -1940,7 +1942,9 @@ if (pKsd_t->lang_curr == LANG_british)
 				//pDph_t->f0 = pDph_t->f0<<1;
 				/* reduce segmental influence per Oliver*/
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				pDph_t->f0prime = pDph_t->f0 + pDph_t->f0s ;	/* This will be spdef-scaled output value */
+#endif
 
 
 				
@@ -2370,6 +2374,7 @@ static void set_tglst(PDPH_T pDph_t)
  *
  ******************************************************************/
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 static void filter_commands(PDPH_T pDph_t,short f0in) 
 {	/* Convert 'f0in' command to smoothed 'f0' */
 	//short f0outa, f0outb, f0outc, f0outd, f0out1, f0out2;
@@ -2408,7 +2413,51 @@ static void filter_commands(PDPH_T pDph_t,short f0in)
 #endif // 0
 /* *****************************************************************/
 }
+#else
+static void filter_commands(PDPH_T pDph_t,short f0in) 
+{	/* Convert 'f0in' command to smoothed 'f0' */
+	short f0outa, f0outb, f0outc, f0outd, f0out1, f0out2;
+	
+	PDPHSETTAR_ST pDphsettar = pDph_t->pSTphsettar;
 
+	/*    First pole (separate into 2 poles to min truncation errors) */
+	pDph_t->arg1 = pDphsettar->f0a1;
+	pDph_t->arg2 = f0in;
+	f0outa = mlsh1(pDphsettar->f0a1,f0in);
+
+	pDph_t->arg1 = pDphsettar->f0b;
+	pDph_t->arg2 = pDphsettar->f0las1;
+	f0outb = mlsh1(pDphsettar->f0b,pDphsettar->f0las1);
+
+	f0out1 = f0outa + f0outb;
+	pDphsettar->f0las1 = f0out1;
+
+	/*    Second pole */
+	pDph_t->arg1 = pDphsettar->f0a2;
+	pDph_t->arg2 = f0out1 + (pDphsettar->tarseg1 << F0SHFT);
+	f0outc = mlsh1(pDphsettar->f0a2,f0out1 + (pDphsettar->tarseg1 << F0SHFT));
+	pDph_t->arg1 = pDphsettar->f0b;
+	pDph_t->arg2 = pDphsettar->f0las2;
+	f0outd = mlsh1(pDphsettar->f0b,pDphsettar->f0las2);
+	f0out2 = f0outc + f0outd;
+	pDphsettar->f0las2 = f0out2;
+	pDph_t->f0 = f0out2 >> F0SHFT;	/* Unscaled fundamental frequency	   */
+	pDph_t->f0prime = f0out2 >> F0SHFT;	/* Unscaled fundamental frequency	   */
+/* ****************** NOT USED *************************************/
+#if 0
+	//	printf(
+	//"[%s] pDphsettar->tarbas=%4d pDphsettar->tarhat=%3d pDphsettar->tarimp=%3d tarsum=%4d\n",
+	//        phprint(pDph_t->allophons[pDphsettar->npg]), pDphsettar->tarbas, pDphsettar->tarhat, pDphsettar->tarimp, f0in);
+	
+	/*    (Check for overloads if change filter tc or size of impulses) */
+	WINprintf("f0in=%6d   a=%6d b=%6d 1=%6d c=%6d d=%6d 2=%6d\n",
+		f0in, f0outa, f0outb, f0out1, f0outc, f0outd, f0out2);
+#endif // 0
+/* *****************************************************************/
+}
+#endif
+
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 /* ******************************************************************
  *      Function Name: filter_seg_commands()
  *
@@ -2460,6 +2509,7 @@ static void filter_seg_commands(PDPH_T pDph_t, short f0in)
 #endif // 0
 /* *****************************************************************/
 }
+#endif
 
 /* ******************************************************************
  *
