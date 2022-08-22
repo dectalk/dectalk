@@ -1188,6 +1188,10 @@ if (pKsd_t->lang_curr == LANG_british)
 				f0seg = us_f0msegtars[pDphsettar->phocur & 0xff];	
 #endif
 			}
+			if(tmp == PFUK<<PSFONT)
+			{
+				f0seg = uk_f0msegtars[pDphsettar->phocur & 0xff];	
+			}
 			else if(tmp == PFGR<<PSFONT)
 			{
 				f0seg = gr_f0msegtars[pDphsettar->phocur & PVALUE];	
@@ -1831,6 +1835,10 @@ if (pKsd_t->lang_curr == LANG_british)
 				//f0seg = 2*old_f0segtars[pDphsettar->phocur & PVALUE];	
 				f0seg = us_f0fsegtars[pDphsettar->phocur & PVALUE];	
 #endif
+			}
+			if(tmp == PFUK<<PSFONT)
+			{
+				f0seg = uk_f0fsegtars[pDphsettar->phocur & PVALUE];	
 			}
 			else if(tmp == PFGR<<PSFONT)
 			{
