@@ -591,15 +591,15 @@ const short kit_tune[SPDEF] =
 	0,				/* B5 (bandwidth in Hz of cascaded 5th formant) */
 	0,				/* F7 (frequency in Hz of parallel 4th formant = F7) */
 	0,				/* F8 (frequency in Hz of parallel 5th formant = F8) */
-	-14,				/* GF (gain of frication source in dB) */
+	0,				/* GF (gain of frication source in dB) */
 	0,				/* GH (gain of aspiration source in dB) */
-	3,				/* GV (gain of voicing source in dB ) */
-	1,				/* GN (gain of input to cascade nasal pole pair in dB) */
+	0,				/* GV (gain of voicing source in dB ) */
+	0,				/* GN (gain of input to cascade nasal pole pair in dB) */
 	0,				/* G1 (gain of input to cascade 5th formant in dB) */
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
 	3,				/* G4 (gain of input to cascade 2nd formant in dB) */
-	3,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
+	6,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
 	0,				/* LX (lax folds adjacent to voiceless sound -> breathiness) */

@@ -661,10 +661,12 @@ if(pKsd_t->lang_curr == LANG_french)
 	//temptilt = temptilt>>1; /* reduce effect until we do the new tilt stuff*/
 
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 		if(pDph_t->allophons[ pDph_t->nphone] == GRP_IH)
 	{
 	temptilt +=3;	
 	}
+#endif
 
 
 	*parp += temptilt;
@@ -690,7 +692,15 @@ if(pKsd_t->lang_curr == LANG_french)
 			}
 
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 			value = frac4mul (pDph_t->spdeflaxprcnt, (pDphsettar->breathyah ));
+#else
+			value = frac4mul ((pDphsettar->breathyah + 30), pDph_t->spdeflaxprcnt);
+
+			if (pDph_t->parstochip[OUT_AP] < value) {
+				pDph_t->parstochip[OUT_AP] = value;
+			}
+#endif
 
 	
 
@@ -734,12 +744,14 @@ if(pKsd_t->lang_curr == LANG_french)
 	
 
 
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	/* add in formant scaling */
 //Note scaling breaks f1==180 stuff
  if( pDph_t->parstochip[OUT_F1] > 250)
 	pDph_t->parstochip[OUT_F1] = frac4mul( pDph_t->parstochip[OUT_F1], pDph_t->fnscale ) + ((4096 - (S32)pDph_t->fnscale ) >> 4);
   pDph_t->parstochip[OUT_F2] = frac4mul( pDph_t->parstochip[OUT_F2], pDph_t->fnscale ) + ((4096 - (S32)pDph_t->fnscale ) >> 3);
   pDph_t->parstochip[OUT_F3] = frac4mul( pDph_t->parstochip[OUT_F3], pDph_t->fnscale );
+#endif
 			
 
 
@@ -4288,6 +4300,9 @@ abort_til_later:
 
 		
 	}
+#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
+	return;
+#endif
 
 
 
