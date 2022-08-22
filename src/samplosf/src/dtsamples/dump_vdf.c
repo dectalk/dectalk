@@ -18,7 +18,16 @@ unsigned char paul[] = { 0x00, 0x64, 0x00, 0x00, 0x00, 0x46, 0x00, 0x00, 0x00, 0
 unsigned char betty[] = { 0x28, 0x00, 0x00, 0x00, 0x00, 0x00, 0x64, 0x00 };
 #define BETTY_OFFSET 12
 
-void print_voice(char *name, unsigned short *voice, FILE *out)
+void zap_or_value(FILE *out, char *zapname, int zapval, char *desc, int value)
+{
+	if (value == zapval) {
+		fprintf(out, "\t%s%s", zapname, desc);
+	} else {
+		fprintf(out, "\t%d%s", value, desc);
+	}
+}
+
+void print_voice(char *name, unsigned short *voice, int zapf, int zapb, FILE *out)
 {
 	unsigned short *param = voice;
 	char n[128] = { 0 };
@@ -36,12 +45,12 @@ void print_voice(char *name, unsigned short *voice, FILE *out)
 	fprintf(out, "\t%d,\t\t\t\t/* NF (additional fixed number of samples in nopen) */\n", *param); param++;
 	fprintf(out, "\t%d,\t\t\t\t/* LA (laryngealization, in percent) */\n", *param); param++;
 	fprintf(out, "\t%d,\t\t\t\t/* HS (head size, in percent relative to normal for SEX) */\n", *param); param++;
-	fprintf(out, "\t%d,\t\t\t\t/* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */\n", *param); param++;
-	fprintf(out, "\t%d,\t\t\t\t/* B4 (bandwidth in Hz of cascade 4th formant) */\n", *param); param++;
-	fprintf(out, "\t%d,\t\t\t\t/* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */\n", *param); param++;
-	fprintf(out, "\t%d,\t\t\t\t/* B5 (bandwidth in Hz of cascaded 5th formant) */\n", *param); param++;
-	fprintf(out, "\t%d,\t\t\t\t/* F7 (frequency in Hz of parallel 4th formant = F7) */\n", *param); param++;
-	fprintf(out, "\t%d,\t\t\t\t/* F8 (frequency in Hz of parallel 5th formant = F8) */\n", *param); param++;
+	zap_or_value(out, "ZAPF", zapf, ",\t\t\t\t/* F4 (frequency in Hz of cascade 4th formant = F4*100/HS) */\n", *param); param++;
+	zap_or_value(out, "ZAPB", zapb, ",\t\t\t\t/* B4 (bandwidth in Hz of cascade 4th formant) */\n", *param); param++;
+	zap_or_value(out, "ZAPF", zapf, ",\t\t\t\t/* F5 (frequency in Hz of cascade 5th formant = F5*100/HS) */\n", *param); param++;
+	zap_or_value(out, "ZAPB", zapb, ",\t\t\t\t/* B5 (bandwidth in Hz of cascaded 5th formant) */\n", *param); param++;
+	zap_or_value(out, "ZAPF", zapf, ",\t\t\t\t/* F7 (frequency in Hz of parallel 4th formant = F7) */\n", *param); param++;
+	zap_or_value(out, "ZAPF", zapf, ",\t\t\t\t/* F8 (frequency in Hz of parallel 5th formant = F8) */\n", *param); param++;
 	fprintf(out, "\t%d,\t\t\t\t/* GF (gain of frication source in dB) */\n", *param); param++;
 	fprintf(out, "\t%d,\t\t\t\t/* GH (gain of aspiration source in dB) */\n", *param); param++;
 	fprintf(out, "\t%d,\t\t\t\t/* GV (gain of voicing source in dB ) */\n", *param); param++;
@@ -90,6 +99,8 @@ int main(int argc, char **argv)
 	unsigned short *voices = NULL;
 	int voice_length;
 	int voice_num = 18;
+	int zapf = -1;
+	int zapb = -1;
 	int i,j;
 
 	if (argc != 2) {
@@ -121,13 +132,13 @@ int main(int argc, char **argv)
 	needle = dt;
 	while (needle < dt + statbuf.st_size - VOICE_SIZE + PAUL_OFFSET) {
 		if (!memcmp(needle, paul, sizeof(paul))) {
-			fprintf(stderr,"Found paul at: 0x%08x\n", needle-dt);
+			fprintf(stderr,"Found paul at: 0x%08lx\n", needle-dt);
 			if (paul1 == NULL) {
 				paul1 = needle;
 			} else if (paul2 == NULL) {
 				paul2 = needle;
 
-				fprintf(stderr,"Difference: %d\n", paul2-paul1);
+				fprintf(stderr,"Difference: %ld\n", paul2-paul1);
 				if ((paul2-paul1) < VOICE_SIZE * 9) {
 					fprintf(stderr,"Does not fit all voices!\n");
 				} else if ((paul2-paul1) > VOICE_SIZE * 16) {
@@ -175,36 +186,48 @@ int main(int argc, char **argv)
 	
 	for (j = 0; j < voice_num; j++) {
 		for (i = 0; i < VOICE_SIZE/2; i++) {
+			if ((zapf < 2500) &&
+			    ((voices[(j*(voice_length/2))+i] == 2500) ||
+			     (voices[(j*(voice_length/2))+i] == 2048))) {
+				zapf = 2500;
+				zapb = 2048;
+			} else if ((zapf < 6000) && (voices[(j*(voice_length/2))+i] == 6000)) {
+				zapf = 6000;
+				zapb = 6000;
+			}
 			fprintf(stderr,"%u, ", voices[(j*(voice_length/2))+i]);
 		}
-		fprintf(stderr,"\n");
+		fprintf(stderr,"\n\n");
 	}
+
+	fprintf(stderr, "ZAPF: %d\n", zapf);
+	fprintf(stderr, "ZAPB: %d\n", zapb);
 
 	fprintf(out, "/*\n * Extracted from: %s\n */\n", argv[1]);
 
-	print_voice("paul_8", voices, out); voices += (voice_length/2);
-	print_voice("betty_8", voices, out); voices += (voice_length/2);
-	print_voice("harry_8", voices, out); voices += (voice_length/2);
-	print_voice("frank_8", voices, out); voices += (voice_length/2);
-	print_voice("kit_8", voices, out); voices += (voice_length/2);
-	print_voice("ursula_8", voices, out); voices += (voice_length/2);
-	print_voice("rita_8", voices, out); voices += (voice_length/2);
-	print_voice("wendy_8", voices, out); voices += (voice_length/2);
-	print_voice("dennis_8", voices, out); voices += (voice_length/2);
+	print_voice("paul_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("betty_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("harry_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("frank_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("kit_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("ursula_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("rita_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("wendy_8", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("dennis_8", voices, zapf, zapb, out); voices += (voice_length/2);
 
 	if (voice_num == 9) {
 		voices = (unsigned short*)(paul1 - PAUL_OFFSET);
 	}
 
-	print_voice("paul", voices, out); voices += (voice_length/2);
-	print_voice("betty", voices, out); voices += (voice_length/2);
-	print_voice("harry", voices, out); voices += (voice_length/2);
-	print_voice("frank", voices, out); voices += (voice_length/2);
-	print_voice("kit", voices, out); voices += (voice_length/2);
-	print_voice("ursula", voices, out); voices += (voice_length/2);
-	print_voice("rita", voices, out); voices += (voice_length/2);
-	print_voice("wendy", voices, out); voices += (voice_length/2);
-	print_voice("dennis", voices, out); voices += (voice_length/2);
+	print_voice("paul", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("betty", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("harry", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("frank", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("kit", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("ursula", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("rita", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("wendy", voices, zapf, zapb, out); voices += (voice_length/2);
+	print_voice("dennis", voices, zapf, zapb, out); voices += (voice_length/2);
 
 	exit(EXIT_SUCCESS);
 }
