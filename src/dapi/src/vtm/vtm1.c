@@ -1281,6 +1281,22 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 
     out = about - out;
 
+#ifndef NO_LIMIT_CYCLE_RAMPDOWN
+		 //6/22/99 With the hotter tuning of the vocal tract the limit sycles are becoming very annoying
+	 //since we now pass phoneme information we can build a decayer to choke out he limit cycle
+	 //when we reach silence with av off we ramp down the gain....This also solves the problem of continues
+	 //noise with a breathy voice. 
+	 if (pVtm_t->avlind == 0 && (variabpars[OUT_PH] & PVALUE) == 0 )
+	 {
+		 pVtm_t->rampdown += 200;
+		  if (pVtm_t->rampdown >= 4096)
+			 pVtm_t->rampdown = 4096;
+		  out = frac4mul( out,(4096 - pVtm_t->rampdown));
+	 }
+	 else
+		 pVtm_t->rampdown=0;
+#endif
+
     /******************************************************************/
     /*  Bring the signal level up near +/-32767.                      */
     /*  If the sample rate is 8000 Hz. then the peak signal level is  */

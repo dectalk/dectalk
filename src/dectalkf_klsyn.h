@@ -249,4 +249,10 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 //#define VDF_DECTALKEXPRESS_42
 //#define VDF_DECTALK_44
 
+// Disable limit cycle rampdown code.
+// This squelches filter-output in passages without speech (originally
+// added after 4.4), fixes artefacts in pauses. Should be left undefined
+// except if diagnosing cut-off problems.
+// #define NO_LIMIT_CYCLE_RAMPDOWN
+
 #endif // _DECTALK_H_
