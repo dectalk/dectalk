@@ -69,8 +69,14 @@
 #ifdef CHANGES_AFTER_V43
 #include "p_us_vdf_adapted.c"
 #else
-//#include "p_us_vdf_dectalkexpress_42.c"
+#if defined(VDF_DECTALKEXPRESS_42)
+#include "p_us_vdf_dectalkexpress_42.c"
+#elif defined (VDF_DECTALK_44)
+#include "p_us_vdf_dectalk44.c"
+#else
+// voice definitions from 4.3 (identical to 4.2) are the default
 #include "p_us_vdf_dectalk43.c"
+#endif
 #endif
 #endif
 #endif

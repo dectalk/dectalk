@@ -242,4 +242,11 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 //try to find/revert various code changes after v4.3, breaks different functionality but fixes other :-/
 //#define CHANGES_AFTER_V43
 
+// Which voice to use (default when not defined is 4.3)
+// VDF_DECTALKEXPRESS_42 -> DECtalk Express 4.2a
+// VDF_DECTALK_44 -> DECtalk speak window 4.4
+// nothing -> DECtalk speak window 4.3 (exactly the same as DEC ALPHA 4.2)
+//#define VDF_DECTALKEXPRESS_42
+//#define VDF_DECTALK_44
+
 #endif // _DECTALK_H_
