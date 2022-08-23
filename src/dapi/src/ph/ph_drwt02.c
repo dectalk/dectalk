@@ -1171,7 +1171,7 @@ if (pKsd_t->lang_curr == LANG_british)
 				f0seg = us_f0msegtars[pDphsettar->phocur & 0xff];	
 #endif
 			}
-			if(tmp == PFUK<<PSFONT)
+			else if(tmp == PFUK<<PSFONT)
 			{
 				f0seg = uk_f0msegtars[pDphsettar->phocur & 0xff];	
 			}
@@ -1819,7 +1819,7 @@ if (pKsd_t->lang_curr == LANG_british)
 				f0seg = us_f0fsegtars[pDphsettar->phocur & PVALUE];	
 #endif
 			}
-			if(tmp == PFUK<<PSFONT)
+			else if(tmp == PFUK<<PSFONT)
 			{
 				f0seg = uk_f0fsegtars[pDphsettar->phocur & PVALUE];	
 			}
