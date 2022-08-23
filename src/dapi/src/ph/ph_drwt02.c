@@ -272,23 +272,6 @@ const short gst_delta[9] = {  90, 80,70, 60,50, 43, 20, 0};
 //int oarcnt=0;
 
 #ifndef HLSYN
-#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
-const short	old_f0segtars[] = {
-	/* SI    IY	 IH    EY	 EH    AE	 AA    AY	 AW    AH	*/
-	 50,    100,     60,     40,     20,      0,      0,      0,      0,     20,
-	/* AO    OW	 OY    UH	 UW    RR	 YU    AX	 IX    IR	*/
-	  0,     30,     50,     60,    100,     50,    100,     30,     60,    100,
-	/* ER    AR	 OR    UR	  W 	Y	  R 	L	 HX    OH	*/
-	 60,      0,     30,     80,     60,     60,      0,      0,    200,      0,
-	/* LX 	M	  N    NG	 EL    D$	 EN 	F	  V    TH	*/
-	 0,    -50,     -50,    -50,      0,    -50,    -50,    300,    -50,    300,
-	/* DH 	S	  Z    SH	 ZH 	P	  B 	T	  D 	K	*/
-	-50,    300,    -50,    300,    -50,    300,    -50,    300,    -50,    300,
-	/* G	  YR	TQ	   Q	CH	  JH  DF						 */
-	-50,    -10,      0,      0,    300,    -50,    -10
-};
-#endif
-
 const short	uk_f0msegtars[] =
 {	
 	/* SI    IY	 IH    EY	 EH    AE	 AA    AY	 AW    AH	*/
