@@ -613,8 +613,7 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 	// the -12 is a fudge factor to keep it similiar to 260
 	pDph_t->f0minimum = (pDph_t->curspdef[SPD_AP]-12) * 10;		/* AP -> f0min          */
 #else
-	/* the -12 should actually be removed to be back to the 4.3 state... */
-	pDph_t->f0minimum = (pDph_t->curspdef[SPD_AP]-12)* 10;		/* AP -> f0min          */
+	pDph_t->f0minimum = (pDph_t->curspdef[SPD_AP])* 10;		/* AP -> f0min          */
 #endif
 	pDph_t->f0scalefac = pDph_t->curspdef[SPD_PR] * 41;		/* PR -> f0scale        */
 	pDph_t->f0basefall = pDph_t->curspdef[SPD_BF] * 10;		/* baseline fall        */
