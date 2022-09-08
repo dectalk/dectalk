@@ -21,6 +21,10 @@
 #include <sapi.h>
 #endif
 
+#ifndef __sapiddk_h__
+#include <sapiddk.h>
+#endif
+
 #ifndef SPError_h
 #include <SPError.h>
 #endif
@@ -58,26 +62,27 @@
 class CSpDynamicString 
 {
 public:
-	WCHAR *     m_psz;
-	CSpDynamicString()
-	{
-		m_psz = NULL;
-	}
+
+    WCHAR *     m_psz;
+    CSpDynamicString()
+    {
+        m_psz = NULL;
+    }
     CSpDynamicString(ULONG cchReserve)
     {
         m_psz = (WCHAR *)::CoTaskMemAlloc(cchReserve * sizeof(WCHAR));
     }
-	WCHAR * operator=(const CSpDynamicString& src)
-	{
-		if (m_psz != src.m_psz)
-		{
-    		::CoTaskMemFree(m_psz);
-			m_psz = src.Copy();
-		}
-		return m_psz;
-	}
-	WCHAR * operator=(const WCHAR * pSrc)
-	{
+    WCHAR * operator=(const CSpDynamicString& src)
+    {
+        if (m_psz != src.m_psz)
+        {
+            ::CoTaskMemFree(m_psz);
+            m_psz = src.Copy();
+        }
+        return m_psz;
+    }
+    WCHAR * operator=(const WCHAR * pSrc)
+    {
         Clear();
         if (pSrc)
         {
@@ -90,10 +95,10 @@ public:
             }
         }
         return m_psz;
-	}
+    }
 
-	WCHAR * operator=(const char * pSrc)
-	{
+    WCHAR * operator=(const char * pSrc)
+    {
         Clear();
         if (pSrc)
         {
@@ -116,46 +121,46 @@ public:
     }
 
 
-	/*explicit*/ CSpDynamicString(const WCHAR * pSrc)
-	{
-		m_psz = NULL;
+    /*explicit*/ CSpDynamicString(const WCHAR * pSrc)
+    {
+        m_psz = NULL;
         operator=(pSrc);
-	}
+    }
     /*explicit*/ CSpDynamicString(const char * pSrc)
     {
         m_psz = NULL;
         operator=(pSrc);
     }
     /*explicit*/ CSpDynamicString(const CSpDynamicString& src)
-	{
-		m_psz = src.Copy();
+    {
+        m_psz = src.Copy();
     }
     /*explicit*/ CSpDynamicString(REFGUID rguid)
-	{
+    {
         ::StringFromCLSID(rguid, &m_psz);
     }
 
 
-	~CSpDynamicString()
-	{
-		::CoTaskMemFree(m_psz);
-	}
-	unsigned int Length() const
-	{
-		return (m_psz == NULL)? 0 : wcslen(m_psz);
-	}
+    ~CSpDynamicString()
+    {
+        ::CoTaskMemFree(m_psz);
+    }
+    unsigned int Length() const
+    {
+        return (m_psz == NULL)? 0 : wcslen(m_psz);
+    }
 
-	operator WCHAR * () const
-	{
-		return m_psz;
-	}
-	//The assert on operator& usually indicates a bug.  If this is really
-	//what is needed, however, take the address of the m_psz member explicitly.
-	WCHAR ** operator&()
-	{
+    operator WCHAR * () const
+    {
+        return m_psz;
+    }
+    //The assert on operator& usually indicates a bug.  If this is really
+    //what is needed, however, take the address of the m_psz member explicitly.
+    WCHAR ** operator&()
+    {
         SPDBG_ASSERT(m_psz == NULL);
-		return &m_psz;
-	}
+        return &m_psz;
+    }
 
     WCHAR * Append(const WCHAR * pszSrc)
     {
@@ -220,7 +225,7 @@ public:
     {
         ULONG lenSrc1 = pszSrc1 ? wcslen(pszSrc1) : 0;
         ULONG lenSrc2 = pszSrc2 ? wcslen(pszSrc2) : 0;
-        
+
         if (lenSrc1 || lenSrc2)
         {
             ULONG lenMe = Length();
@@ -254,8 +259,8 @@ public:
         }
         return m_psz;
     }
-	WCHAR * Copy() const
-	{
+    WCHAR * Copy() const
+    {
         if (m_psz)
         {
             CSpDynamicString szNew(m_psz);
@@ -263,26 +268,42 @@ public:
         }
         return NULL;
     }
-	void Attach(WCHAR * pszSrc)
-	{
-		SPDBG_ASSERT(m_psz == NULL);
-		m_psz = pszSrc;
-	}
-	WCHAR * Detach()
-	{
-		WCHAR * s = m_psz;
-		m_psz = NULL;
-		return s;
-	}
-	void Clear()
-	{
-		::CoTaskMemFree(m_psz);
-		m_psz = NULL;
-	}
-	bool operator!() const
-	{
-		return (m_psz == NULL);
-	}
+    CHAR * CopyToChar() const
+    {
+        if (m_psz)
+        {
+            CHAR* psz;
+            ULONG cbNeeded = ::WideCharToMultiByte(CP_ACP, 0, m_psz, -1, NULL, NULL, NULL, NULL);
+            psz = (CHAR *)::CoTaskMemAlloc(cbNeeded);
+            SPDBG_ASSERT(psz);
+            if (psz)
+            {
+                ::WideCharToMultiByte(CP_ACP, 0, m_psz, -1, psz, cbNeeded/sizeof(CHAR), NULL, NULL);
+            }
+            return psz;
+        }
+        return NULL;
+    }
+    void Attach(WCHAR * pszSrc)
+    {
+        SPDBG_ASSERT(m_psz == NULL);
+        m_psz = pszSrc;
+    }
+    WCHAR * Detach()
+    {
+        WCHAR * s = m_psz;
+        m_psz = NULL;
+        return s;
+    }
+    void Clear()
+    {
+        ::CoTaskMemFree(m_psz);
+        m_psz = NULL;
+    }
+    bool operator!() const
+    {
+        return (m_psz == NULL);
+    }
     HRESULT CopyToBSTR(BSTR * pbstr)
     {
         if (m_psz)
@@ -301,9 +322,10 @@ public:
     }
     void TrimToSize(ULONG ulNumChars)
     {
-        SPDBG_ASSERT(m_psz);
-        SPDBG_ASSERT(Length() >= ulNumChars);
-        m_psz[ulNumChars] = 0;
+        if (m_psz && ulNumChars < Length())
+        {
+            m_psz[ulNumChars] = 0;
+        }
     }
     WCHAR * Compact()
     {
@@ -1196,7 +1218,7 @@ inline HRESULT SpConvertStreamFormatEnum(SPSTREAMFORMAT eFormat, GUID * pFormatI
                 pwfex->wBitsPerSample *= 2;
                 pwfex->nBlockAlign *= 2;
             }
-	        pwfex->nAvgBytesPerSec = pwfex->nSamplesPerSec * pwfex->nBlockAlign;
+                pwfex->nAvgBytesPerSec = pwfex->nSamplesPerSec * pwfex->nBlockAlign;
             pwfex->cbSize = 0;
             pFmtGuid = &SPDFID_WaveFormatEx;
         }
@@ -1246,7 +1268,7 @@ inline HRESULT SpConvertStreamFormatEnum(SPSTREAMFORMAT eFormat, GUID * pFormatI
             pwfex->nChannels  = pwfex->nBlockAlign = (WORD)(bIsStereo ? 2 : 1);
             pwfex->nSamplesPerSec  = adwKHZ[dwKHZ];
             pwfex->wBitsPerSample  = 8;
-	        pwfex->nAvgBytesPerSec = pwfex->nSamplesPerSec * pwfex->nBlockAlign;
+                pwfex->nAvgBytesPerSec = pwfex->nSamplesPerSec * pwfex->nBlockAlign;
             pwfex->cbSize          = 0;
             pFmtGuid = &SPDFID_WaveFormatEx;
         }
@@ -1271,7 +1293,7 @@ inline HRESULT SpConvertStreamFormatEnum(SPSTREAMFORMAT eFormat, GUID * pFormatI
             pwfex->nChannels  = pwfex->nBlockAlign = (WORD)(bIsStereo ? 2 : 1);
             pwfex->nSamplesPerSec  = adwKHZ[dwKHZ];
             pwfex->wBitsPerSample  = 8;
-	        pwfex->nAvgBytesPerSec = pwfex->nSamplesPerSec * pwfex->nBlockAlign;
+                pwfex->nAvgBytesPerSec = pwfex->nSamplesPerSec * pwfex->nBlockAlign;
             pwfex->cbSize          = 0;
             pFmtGuid = &SPDFID_WaveFormatEx;
         }
@@ -1624,14 +1646,18 @@ public:
                 return SPSF_ExtendedAudioFormat;
             }
 
-            switch (m_pCoMemWaveFormatEx->wBitsPerSample)
+            if(m_pCoMemWaveFormatEx->wFormatTag == WAVE_FORMAT_ADPCM)
             {
-              case 8:
-                break;
-              default:
+                if(m_pCoMemWaveFormatEx->wBitsPerSample != 4)
+                {
+                    return SPSF_ExtendedAudioFormat;
+                }
+            }
+            else if(m_pCoMemWaveFormatEx->wBitsPerSample != 8)
+            {
                 return SPSF_ExtendedAudioFormat;
             }
-            
+
             switch (m_pCoMemWaveFormatEx->nSamplesPerSec)
             {
               case 44100:
@@ -1664,11 +1690,6 @@ public:
                 return SPSF_ExtendedAudioFormat;
             }
 
-            if( m_pCoMemWaveFormatEx->wBitsPerSample != 8 )
-            {
-                return SPSF_ExtendedAudioFormat;
-            }
-            
             switch (m_pCoMemWaveFormatEx->nSamplesPerSec)
             {
               case 44100:
@@ -1795,7 +1816,13 @@ public:
         m_pCoMemWaveFormatEx = NULL;
         *pcbUsed = *((UNALIGNED ULONG *)pBuffer);
         pBuffer += sizeof(ULONG);
+        // Misaligment exception is generated for SHx platform.
+        // Marking pointer as UNALIGNED does not help.
+#ifndef _WIN32_WCE
         m_guidFormatId = *((UNALIGNED GUID *)pBuffer);
+#else
+        memcpy(&m_guidFormatId, pBuffer, sizeof(GUID));
+#endif
         if (*pcbUsed > sizeof(GUID) + sizeof(ULONG))
         {
             pBuffer += sizeof(m_guidFormatId);
@@ -1907,10 +1934,20 @@ inline void SpInitEvent(SPEVENT * pe)
 *
 ****************************************************************************/
 
+// WCE compiler does not work propertly with template
+#ifndef _WIN32_WCE
 template <class T>
 inline ULONG SpEventSerializeSize(const SPEVENT * pEvent)
+
 {
     ULONG ulSize = sizeof(T);
+
+#else
+
+inline ULONG SpEventSerializeSize(const SPEVENT * pEvent, ULONG ulSize)
+{
+#endif //_WIN32_WCE
+
     if( ( pEvent->elParamType == SPET_LPARAM_IS_POINTER ) && pEvent->lParam )
     {
         ulSize += ULONG(pEvent->wParam);
@@ -1945,10 +1982,13 @@ inline ULONG SpEventSerializeSize(const SPEVENT * pEvent)
 *
 ********************************************************************* RAL ***/
 
+// WCE compiler does not work propertly with template
+#ifndef _WIN32_WCE
 template <class T>
 inline ULONG SpSerializedEventSize(const T * pSerEvent)
 {
     ULONG ulSize = sizeof(T);
+
     if( ( pSerEvent->elParamType == SPET_LPARAM_IS_POINTER ) && pSerEvent->SerializedlParam )
     {
         ulSize += ULONG(pSerEvent->SerializedwParam);
@@ -1964,6 +2004,43 @@ inline ULONG SpSerializedEventSize(const T * pSerEvent)
     return ulSize;
 }
 
+#else //_WIN32_WCE
+
+inline ULONG SpSerializedEventSize(const SPSERIALIZEDEVENT * pSerEvent, ULONG ulSize)
+{
+    if( ( pSerEvent->elParamType == SPET_LPARAM_IS_POINTER ) && pSerEvent->SerializedlParam )
+    {
+        ulSize += ULONG(pSerEvent->SerializedwParam);
+    }
+    else if ((pSerEvent->elParamType == SPET_LPARAM_IS_STRING || pSerEvent->elParamType == SPET_LPARAM_IS_TOKEN) &&
+             pSerEvent->SerializedlParam != NULL)
+    {
+        ulSize += (wcslen((WCHAR*)(pSerEvent + 1)) + 1) * sizeof( WCHAR );
+    }
+    // Round up to nearest DWORD
+    ulSize += 3;
+    ulSize -= ulSize % 4;
+    return ulSize;
+}
+
+inline ULONG SpSerializedEventSize(const SPSERIALIZEDEVENT64 * pSerEvent, ULONG ulSize)
+{
+    if( ( pSerEvent->elParamType == SPET_LPARAM_IS_POINTER ) && pSerEvent->SerializedlParam )
+    {
+        ulSize += ULONG(pSerEvent->SerializedwParam);
+    }
+    else if ((pSerEvent->elParamType == SPET_LPARAM_IS_STRING || pSerEvent->elParamType == SPET_LPARAM_IS_TOKEN) &&
+             pSerEvent->SerializedlParam != NULL)
+    {
+        ulSize += (wcslen((WCHAR*)(pSerEvent + 1)) + 1) * sizeof( WCHAR );
+    }
+    // Round up to nearest DWORD
+    ulSize += 3;
+    ulSize -= ulSize % 4;
+    return ulSize;
+}
+
+#endif //_WIN32_WCE
 
 /*** CSpEvent helper class
 *
@@ -1983,9 +2060,9 @@ public:
     // which will do debug checking of parameters.  If you encounter this problem when calling
     // GetEvents from an event source, you may want to use the GetFrom() method of this class.
     const SPEVENT * operator&()
-	{
-		return this;
-	}
+        {
+                return this;
+        }
     CSpEvent * AddrOf()
     {
         // Note:  This method does not ASSERT since we assume the caller knows what they are doing.
@@ -2104,7 +2181,12 @@ public:
     template <class T>
     HRESULT Serialize(T ** ppCoMemSerEvent, ULONG * pcbSerEvent) const 
     {
-        *pcbSerEvent = SerializeSize<T>();
+// WCE compiler does not work propertly with template
+#ifndef _WIN32_WCE
+        *pcbSerEvent = SpEventSerializeSize<T>(this);
+#else
+        *pcbSerEvent = SpEventSerializeSize(this, sizeof(** ppCoMemSerEvent));
+#endif
         *ppCoMemSerEvent = (T *)::CoTaskMemAlloc(*pcbSerEvent);
         if (*ppCoMemSerEvent)
         {
@@ -2125,29 +2207,30 @@ public:
     {
         Clear();
         HRESULT hr = S_OK;
-        this->eEventId = pSerEvent->eEventId;
-        this->elParamType = pSerEvent->elParamType;
-        this->ulStreamNum = pSerEvent->ulStreamNum;
-        this->ullAudioStreamOffset = pSerEvent->ullAudioStreamOffset;
-        this->wParam = static_cast<WPARAM>(pSerEvent->SerializedwParam);
-        this->lParam = static_cast<LPARAM>(pSerEvent->SerializedlParam);
-        if (pSerEvent->SerializedlParam)
+        const UNALIGNED T * pTemp = pSerEvent;
+        this->eEventId = pTemp->eEventId;
+        this->elParamType = pTemp->elParamType;
+        this->ulStreamNum = pTemp->ulStreamNum;
+        this->ullAudioStreamOffset = pTemp->ullAudioStreamOffset;
+        this->wParam = static_cast<WPARAM>(pTemp->SerializedwParam);
+        this->lParam = static_cast<LPARAM>(pTemp->SerializedlParam);
+        if (pTemp->SerializedlParam)
         {
             ULONG cbAlloc = 0;
-            switch (pSerEvent->elParamType)
+            switch (pTemp->elParamType)
             {
             case SPET_LPARAM_IS_POINTER:
                 cbAlloc = static_cast<ULONG>(wParam);
                 break;
 
             case SPET_LPARAM_IS_STRING:
-                cbAlloc = sizeof(WCHAR) * (1 + wcslen((const WCHAR *)(pSerEvent + 1)));
+                cbAlloc = sizeof(WCHAR) * (1 + wcslen((const WCHAR *)(pTemp + 1)));
                 break;
 
             case SPET_LPARAM_IS_TOKEN:
                 {
                     ULONG ulDataOffset = ULONG(lParam);
-                    hr = SpGetTokenFromId( (const WCHAR*)(pSerEvent + 1),
+                    hr = SpGetTokenFromId( (const WCHAR*)(pTemp + 1),
                                                   (ISpObjectToken **)&lParam );
                     wParam = 0;
                 }
@@ -2159,7 +2242,7 @@ public:
                 this->lParam = (LPARAM)pvBuff;
                 if (pvBuff)
                 {
-                    memcpy(pvBuff, pSerEvent + 1, cbAlloc);
+                    memcpy(pvBuff, pTemp + 1, cbAlloc);
                 }
                 else
                 {
@@ -2170,7 +2253,12 @@ public:
 
         if( SUCCEEDED( hr ) && pcbUsed )
         {
-            *pcbUsed = SerializeSize<T>();
+// WCE compiler does not work propertly with template
+#ifndef _WIN32_WCE
+            *pcbUsed = SpEventSerializeSize<T>(this);
+#else
+            *pcbUsed = SpEventSerializeSize(this, sizeof(*pTemp));
+#endif
         }
         return hr;
     }
@@ -2237,12 +2325,12 @@ public:
     BOOL IsPaused()
     {
         SPDBG_ASSERT(eEventId == SPEI_RECOGNITION || eEventId == SPEI_SR_BOOKMARK);
-        return (wParam & SPREF_AutoPause);
+        return (BOOL)(wParam & SPREF_AutoPause);
     }
     BOOL IsEmulated()
     {
         SPDBG_ASSERT(eEventId == SPEI_RECOGNITION);
-        return (wParam & SPREF_Emulated);
+        return (BOOL)(wParam & SPREF_Emulated);
     }
     const WCHAR * String() const
     {
@@ -2301,7 +2389,6 @@ public:
     }
 };
 
-
 class CSpPhrasePtr
 {
 public:
@@ -2315,30 +2402,30 @@ public:
     {
         ::CoTaskMemFree(m_pPhrase);
     }
-	//The assert on operator& usually indicates a bug.  If this is really
-	//what is needed, however, take the address of the m_pPhrase member explicitly.
-	SPPHRASE ** operator&()
-	{
-        SPDBG_ASSERT(m_pPhrase == NULL);
-		return &m_pPhrase;
-	}
+        //The assert on operator& usually indicates a bug.  If this is really
+        //what is needed, however, take the address of the m_pPhrase member explicitly.
+        SPPHRASE ** operator&()
+        {
+            SPDBG_ASSERT(m_pPhrase == NULL);
+            return &m_pPhrase;
+        }
     operator SPPHRASE *() const
     {
         return m_pPhrase;
     }
-	SPPHRASE & operator*() const
-	{
-		SPDBG_ASSERT(m_pPhrase);
-		return *m_pPhrase;
-	}
+        SPPHRASE & operator*() const
+        {
+                SPDBG_ASSERT(m_pPhrase);
+                return *m_pPhrase;
+        }
     SPPHRASE * operator->() const
     {
         return m_pPhrase;
     }
-	bool operator!() const
-	{
-		return (m_pPhrase == NULL);
-	}
+        bool operator!() const
+        {
+                return (m_pPhrase == NULL);
+        }
     void Clear()
     {
         if (m_pPhrase)
@@ -2396,13 +2483,13 @@ public:
         m_pT = NULL;
         return pT;
     }
-	//The assert on operator& usually indicates a bug.  If this is really
-	//what is needed, however, take the address of the m_pT member explicitly.
-	T ** operator&()
-	{
+        //The assert on operator& usually indicates a bug.  If this is really
+        //what is needed, however, take the address of the m_pT member explicitly.
+        T ** operator&()
+        {
         SPDBG_ASSERT(m_pT == NULL);
-		return &m_pT;
-	}
+                return &m_pT;
+        }
     T * operator->()
     {
         SPDBG_ASSERT(m_pT != NULL);
@@ -2412,10 +2499,255 @@ public:
     {
         return m_pT;
     }
-	bool operator!() const
-	{
-		return (m_pT == NULL);
-	}
+        bool operator!() const
+        {
+                return (m_pT == NULL);
+        }
 };
+
+/**** Helper function used to create a new phrase object from an array of
+    test words. Each word in the string is converted to a phrase element.
+    This is useful to create a phrase to pass to the EmulateRecognition method.
+    The method can convert standard words as well as words with the
+    "/display_text/lexical_form/pronounciation;" word format.
+    You can also specify the DisplayAttributes for each element if desired. 
+    If prgDispAttribs is NULL then the DisplayAttribs for each element default to 
+    SPAF_ONE_TRAILING_SPACE. ****/
+inline HRESULT CreatePhraseFromWordArray(const WCHAR ** ppWords, ULONG cWords,
+                             SPDISPLYATTRIBUTES * prgDispAttribs,
+                             ISpPhraseBuilder **ppResultPhrase,
+                             LANGID LangId = 0,
+                             CComPtr<ISpPhoneConverter> cpPhoneConv = NULL)
+{
+    SPDBG_FUNC("CreatePhraseFromWordArray");
+    HRESULT hr = S_OK;
+
+    if ( cWords == 0 || ppWords == NULL || ::IsBadReadPtr(ppWords, sizeof(*ppWords) * cWords ) )
+    {
+        return E_INVALIDARG;
+    }
+
+    if ( prgDispAttribs != NULL && ::IsBadReadPtr(prgDispAttribs, sizeof(*prgDispAttribs) * cWords ) )
+    {
+        return E_INVALIDARG;
+    }
+
+    ULONG    cTotalChars = 0;
+    ULONG    i;
+    WCHAR** pStringPtrArray = (WCHAR**)::CoTaskMemAlloc( cWords * sizeof(WCHAR *));
+    if ( !pStringPtrArray )
+    {
+        return E_OUTOFMEMORY;
+    }
+    for (i = 0; i < cWords; i++)
+    {
+        cTotalChars += wcslen(ppWords[i])+1;
+    }
+
+    CSpDynamicString dsText(cTotalChars);
+    if(dsText.m_psz == NULL)
+    {
+        ::CoTaskMemFree(pStringPtrArray);
+        return E_OUTOFMEMORY;
+    }
+    CSpDynamicString dsPhoneId(cTotalChars);
+    if(dsPhoneId.m_psz == NULL)
+    {
+        ::CoTaskMemFree(pStringPtrArray);
+        return E_OUTOFMEMORY;
+    }
+    SPPHONEID* pphoneId = dsPhoneId;
+
+    SPPHRASE Phrase;
+    memset(&Phrase, 0, sizeof(Phrase));
+    Phrase.cbSize = sizeof(Phrase);
+
+    if(LangId == 0)
+    {
+        LangId = SpGetUserDefaultUILanguage();
+    }
+
+    if(cpPhoneConv == NULL)
+    {
+        hr = SpCreatePhoneConverter(LangId, NULL, NULL, &cpPhoneConv);
+        if(FAILED(hr))
+        {
+            ::CoTaskMemFree(pStringPtrArray);
+            return hr;
+        }
+    }
+
+    SPPHRASEELEMENT *pPhraseElement = new SPPHRASEELEMENT[cWords];
+    if(pPhraseElement == NULL)
+    {
+        ::CoTaskMemFree(pStringPtrArray);
+        return E_OUTOFMEMORY;
+    }
+    memset(pPhraseElement, 0, sizeof(SPPHRASEELEMENT) * cWords); // !!!
+    
+    WCHAR * pText = dsText;
+    for (i = 0; SUCCEEDED(hr) && i < cWords; i++)
+    {
+        WCHAR *p = pText;
+        pStringPtrArray[i] = pText;
+        wcscpy( pText, ppWords[i] );
+        pText += wcslen( p ) + 1;
+
+        if (*p == L'/')
+        {
+            //This is a compound word
+            WCHAR* pszFirstPart = ++p;
+            WCHAR* pszSecondPart = NULL;
+            WCHAR* pszThirdPart = NULL;
+
+            while (*p && *p != L'/')
+            {
+                p++;
+            }
+            if (*p == L'/')
+            {
+                //It means we stop at the second '/'
+                *p = L'\0';
+                pszSecondPart = ++p;
+                while (*p && *p != L'/')
+                {
+                    p++;
+                }
+                if (*p == L'/')
+                {
+                    //It means we stop at the third '/'
+                    *p = L'\0';
+                    pszThirdPart = ++p;
+                }
+            }
+
+            pPhraseElement[i].pszDisplayText = pszFirstPart;
+            pPhraseElement[i].pszLexicalForm = pszSecondPart ? pszSecondPart : pszFirstPart;
+
+            if ( pszThirdPart)
+            {
+                hr = cpPhoneConv->PhoneToId(pszThirdPart, pphoneId);
+                if (SUCCEEDED(hr))
+                {
+                    pPhraseElement[i].pszPronunciation = pphoneId;
+                    pphoneId += wcslen(pphoneId) + 1;
+                }
+            }
+        }
+        else
+        {
+            //It is the simple format, only have one form, use it for everything.
+            pPhraseElement[i].pszDisplayText = NULL;
+            pPhraseElement[i].pszLexicalForm = p;
+            pPhraseElement[i].pszPronunciation = NULL;
+        }
+
+        pPhraseElement[i].bDisplayAttributes = (BYTE)(prgDispAttribs ? prgDispAttribs[i] : SPAF_ONE_TRAILING_SPACE);
+        pPhraseElement[i].RequiredConfidence = SP_NORMAL_CONFIDENCE;
+        pPhraseElement[i].ActualConfidence =  SP_NORMAL_CONFIDENCE;
+    }
+
+    Phrase.Rule.ulCountOfElements = cWords;
+    Phrase.pElements = pPhraseElement;
+    Phrase.LangID = LangId;
+
+    CComPtr<ISpPhraseBuilder> cpPhrase;
+    if (SUCCEEDED(hr))
+    {
+        hr = cpPhrase.CoCreateInstance(CLSID_SpPhraseBuilder);
+    }
+
+    if (SUCCEEDED(hr))
+    {
+        hr = cpPhrase->InitFromPhrase(&Phrase);
+    }
+    if (SUCCEEDED(hr))
+    {
+        *ppResultPhrase = cpPhrase.Detach();
+    }
+
+    delete pPhraseElement;
+    ::CoTaskMemFree(pStringPtrArray);
+
+    return hr;
+}
+
+/**** Helper function used to create a new phrase object from a 
+    test string. Each word in the string is converted to a phrase element.
+    This is useful to create a phrase to pass to the EmulateRecognition method.
+    The method can convert standard words as well as words with the
+    "/display_text/lexical_form/pronounciation;" word format ****/
+inline HRESULT CreatePhraseFromText(const WCHAR *pszOriginalText,
+                             ISpPhraseBuilder **ppResultPhrase,
+                             LANGID LangId = 0,
+                             CComPtr<ISpPhoneConverter> cpPhoneConv = NULL)
+{
+    SPDBG_FUNC("CreatePhraseFromText");
+    HRESULT hr = S_OK;
+
+    //We first trim the input text
+    CSpDynamicString dsText(pszOriginalText);
+    if(dsText.m_psz == NULL)
+    {
+        return E_OUTOFMEMORY;
+    }
+    dsText.TrimBoth();
+
+    ULONG cWords = 0;
+    BOOL fInCompoundword = FALSE;
+
+    // Set first array pointer (if *p).
+    WCHAR *p = dsText;
+    while (*p)
+    {
+        if( iswspace(*p) && !fInCompoundword)
+        {
+            cWords++;
+            *p++ = L'\0';
+            while (*p && iswspace(*p))
+            {
+                *p++ = L'\0';
+            }
+            // Add new array pointer.  Use vector.
+        }
+        else if (*p == L'/' && !fInCompoundword)
+        {
+            fInCompoundword = TRUE;
+        }
+        else if (*p == L';' && fInCompoundword)
+        {
+            fInCompoundword = FALSE;
+            *p++ = L'\0';
+            // Add new array element.
+        }
+        else
+        {
+            p++;
+        }
+    }
+
+    cWords++;
+
+    WCHAR** pStringPtrArray = (WCHAR**)::CoTaskMemAlloc( cWords * sizeof(WCHAR *));
+    if ( !pStringPtrArray )
+    {
+        hr = E_OUTOFMEMORY;
+    }
+
+    if ( SUCCEEDED( hr ) )
+    {
+        p = dsText;
+        for (ULONG i=0; i<cWords; i++)
+        {
+            pStringPtrArray[i] = p;
+            p += wcslen(p)+1;
+        }
+
+        hr = CreatePhraseFromWordArray((const WCHAR **)pStringPtrArray, cWords, NULL, ppResultPhrase, LangId, cpPhoneConv);
+
+        ::CoTaskMemFree(pStringPtrArray);
+    }
+    return hr;
+}
 
 #endif /* This must be the last line in the file */

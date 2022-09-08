@@ -440,7 +440,12 @@ inline HRESULT CSpEventSource::
     }
     else
     {
+// WCE compiler does not work propertly with template
+#ifndef _WIN32_WCE
         *pcbUsed = SpEventSerializeSize<SPSERIALIZEDEVENT64>(pSrcEvent);
+#else
+        *pcbUsed = SpEventSerializeSize(pSrcEvent, sizeof(SPSERIALIZEDEVENT64));
+#endif
     }
     return hr;
 }

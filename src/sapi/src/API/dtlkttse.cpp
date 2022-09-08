@@ -143,20 +143,6 @@ BOOL CEngineEnum::FInit (void)
 STDMETHODIMP CEngineEnum::QueryInterface (REFIID riid, LPVOID *ppv)
 {
 	*ppv = NULL;
-#ifdef ACCESS32		//tek 19sep97
-#ifndef M_DEBUG
-	// we need to fail if we can't get a license count..
-	if (!AddLicenseRef(&m_a32_lic))
-	{
-		// this is pretty heavyhanded..
-		return ResultFromScode (E_NOINTERFACE);
-	}
-	else
-	{
-		ReleaseLicenseRef(&m_a32_lic); // we were just testing..
-	}
-#endif
-#endif //ACCESS32
 	// Interesting problem... Nobody's supposed to know about
 	// this interface. It's a shim between the class factory and
 	// the enumerator. So we should never return reference to ourselves.

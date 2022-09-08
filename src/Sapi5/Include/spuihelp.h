@@ -23,6 +23,10 @@
 #include <SPDebug.h>
 #endif
 
+#ifndef SPHelper_h
+#include <SPHelper.h>
+#endif
+
 #ifndef __ATLBASE_H__
 #include <ATLBASE.h>
 #endif
