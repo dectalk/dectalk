@@ -113,13 +113,13 @@ inline BOOL SPIsBadInterfacePtr( const IUnknown* pUnknown )
 {
 #ifdef _DEBUG
     BOOL bIsBad = ( ::IsBadReadPtr( pUnknown, sizeof( *pUnknown ) ) ||
-                    ::IsBadCodePtr( (FARPROC)((PDWORD_PTR)pUnknown)[0] ))?
+                    ::IsBadCodePtr( (FARPROC)((void**)pUnknown)[0] ))?
                    (true):(false);
     SPDBG_ASSERT(!bIsBad);
     return bIsBad;
 #else
     return ( ::IsBadReadPtr( pUnknown, sizeof( *pUnknown ) ) ||
-             ::IsBadCodePtr( (FARPROC)((PDWORD_PTR)pUnknown)[0] ))?
+             ::IsBadCodePtr( (FARPROC)((void**)pUnknown)[0] ))?
             (true):(false);
 #endif
 }

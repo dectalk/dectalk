@@ -4,7 +4,7 @@
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
- /* File created by MIDL compiler version 6.00.0340 */
+ /* File created by MIDL compiler version 6.00.0347 */
 /* Compiler settings for sapiddk.idl:
     Oicf, W1, Zp8, env=Win32 (32b run)
     protocol : dce , ms_ext, c_ext
@@ -620,7 +620,7 @@ void __RPC_STUB ISpObjectTokenEnumBuilder_Sort_Stub(
 #endif 	/* __ISpObjectTokenEnumBuilder_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0281 */
+/* interface __MIDL_itf_sapiddk_0339 */
 /* [local] */ 
 
 #if 0
@@ -649,8 +649,8 @@ DECLARE_HANDLE(SPTRANSITIONID);
 #endif
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0281_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0281_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0339_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0339_v0_0_s_ifspec;
 
 #ifndef __ISpErrorLog_INTERFACE_DEFINED__
 #define __ISpErrorLog_INTERFACE_DEFINED__
@@ -926,7 +926,7 @@ EXTERN_C const IID IID_ISpGramCompBackend;
             SPSTATEHANDLE hFromState,
             SPSTATEHANDLE hToState,
             const WCHAR *psz,
-            const WCHAR *pszSeperators,
+            const WCHAR *pszSeparators,
             SPGRAMMARWORDTYPE eWordType,
             float Weight,
             const SPPROPERTYINFO *pPropInfo);
@@ -993,8 +993,8 @@ EXTERN_C const IID IID_ISpGramCompBackend;
 #define ISpGramCompBackend_CreateNewState(This,hState,phState)	\
     (This)->lpVtbl -> CreateNewState(This,hState,phState)
 
-#define ISpGramCompBackend_AddWordTransition(This,hFromState,hToState,psz,pszSeperators,eWordType,Weight,pPropInfo)	\
-    (This)->lpVtbl -> AddWordTransition(This,hFromState,hToState,psz,pszSeperators,eWordType,Weight,pPropInfo)
+#define ISpGramCompBackend_AddWordTransition(This,hFromState,hToState,psz,pszSeparators,eWordType,Weight,pPropInfo)	\
+    (This)->lpVtbl -> AddWordTransition(This,hFromState,hToState,psz,pszSeparators,eWordType,Weight,pPropInfo)
 
 #define ISpGramCompBackend_AddRuleTransition(This,hFromState,hToState,hRule,Weight,pPropInfo)	\
     (This)->lpVtbl -> AddRuleTransition(This,hFromState,hToState,hRule,Weight,pPropInfo)
@@ -1411,7 +1411,7 @@ void __RPC_STUB ISpPhraseBuilder_AddReplacements_Stub(
 #endif 	/* __ISpPhraseBuilder_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0286 */
+/* interface __MIDL_itf_sapiddk_0344 */
 /* [local] */ 
 
 #if defined(__cplusplus)
@@ -1450,8 +1450,8 @@ typedef void *ISpThreadTask;
 #endif
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0286_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0286_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0344_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0344_v0_0_s_ifspec;
 
 #ifndef __ISpThreadControl_INTERFACE_DEFINED__
 #define __ISpThreadControl_INTERFACE_DEFINED__
@@ -1714,7 +1714,7 @@ void __RPC_STUB ISpThreadControl_ExitThreadEvent_Stub(
 #endif 	/* __ISpThreadControl_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0287 */
+/* interface __MIDL_itf_sapiddk_0345 */
 /* [local] */ 
 
 typedef /* [restricted] */ struct SPTMTHREADINFO
@@ -1727,8 +1727,8 @@ typedef /* [restricted] */ struct SPTMTHREADINFO
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0287_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0287_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0345_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0345_v0_0_s_ifspec;
 
 #ifndef __ISpTaskManager_INTERFACE_DEFINED__
 #define __ISpTaskManager_INTERFACE_DEFINED__
@@ -1988,7 +1988,7 @@ void __RPC_STUB ISpTaskManager_TerminateTaskGroup_Stub(
 #endif 	/* __ISpTaskManager_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0288 */
+/* interface __MIDL_itf_sapiddk_0346 */
 /* [local] */ 
 
 typedef 
@@ -2007,8 +2007,8 @@ enum SPVESACTIONS
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0288_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0288_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0346_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0346_v0_0_s_ifspec;
 
 #ifndef __ISpTTSEngineSite_INTERFACE_DEFINED__
 #define __ISpTTSEngineSite_INTERFACE_DEFINED__
@@ -2232,7 +2232,7 @@ void __RPC_STUB ISpTTSEngineSite_CompleteSkip_Stub(
 #endif 	/* __ISpTTSEngineSite_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0289 */
+/* interface __MIDL_itf_sapiddk_0347 */
 /* [local] */ 
 
 typedef struct SPVTEXTFRAG
@@ -2246,8 +2246,8 @@ typedef struct SPVTEXTFRAG
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0289_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0289_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0347_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0347_v0_0_s_ifspec;
 
 #ifndef __ISpTTSEngine_INTERFACE_DEFINED__
 #define __ISpTTSEngine_INTERFACE_DEFINED__
@@ -2382,7 +2382,7 @@ void __RPC_STUB ISpTTSEngine_GetOutputFormat_Stub(
 #endif 	/* __ISpTTSEngine_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0290 */
+/* interface __MIDL_itf_sapiddk_0348 */
 /* [local] */ 
 
 typedef /* [restricted] */ struct SPWORDENTRY
@@ -2471,8 +2471,8 @@ typedef /* [restricted] */ struct SPPATHENTRY
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0290_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0290_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0348_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0348_v0_0_s_ifspec;
 
 #ifndef __ISpCFGInterpreterSite_INTERFACE_DEFINED__
 #define __ISpCFGInterpreterSite_INTERFACE_DEFINED__
@@ -2735,7 +2735,7 @@ void __RPC_STUB ISpCFGInterpreter_Interpret_Stub(
 #endif 	/* __ISpCFGInterpreter_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0292 */
+/* interface __MIDL_itf_sapiddk_0350 */
 /* [local] */ 
 
 typedef 
@@ -2808,8 +2808,8 @@ typedef struct SPPARSEINFO
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0292_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0292_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0350_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0350_v0_0_s_ifspec;
 
 #ifndef __ISpSREngineSite_INTERFACE_DEFINED__
 #define __ISpSREngineSite_INTERFACE_DEFINED__
@@ -3320,7 +3320,7 @@ void __RPC_STUB ISpSREngineSite_UpdateRecoPos_Stub(
 #endif 	/* __ISpSREngineSite_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0293 */
+/* interface __MIDL_itf_sapiddk_0351 */
 /* [local] */ 
 
 typedef 
@@ -3332,8 +3332,8 @@ enum SPPROPSRC
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0293_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0293_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0351_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0351_v0_0_s_ifspec;
 
 #ifndef __ISpSREngine_INTERFACE_DEFINED__
 #define __ISpSREngine_INTERFACE_DEFINED__
@@ -4215,7 +4215,7 @@ void __RPC_STUB ISpSREngine_SetContextState_Stub(
 #endif 	/* __ISpSREngine_INTERFACE_DEFINED__ */
 
 
-/* interface __MIDL_itf_sapiddk_0294 */
+/* interface __MIDL_itf_sapiddk_0352 */
 /* [local] */ 
 
 typedef struct tagSPPHRASEALTREQUEST
@@ -4231,8 +4231,8 @@ typedef struct tagSPPHRASEALTREQUEST
 
 
 
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0294_v0_0_c_ifspec;
-extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0294_v0_0_s_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0352_v0_0_c_ifspec;
+extern RPC_IF_HANDLE __MIDL_itf_sapiddk_0352_v0_0_s_ifspec;
 
 #ifndef __ISpSRAlternates_INTERFACE_DEFINED__
 #define __ISpSRAlternates_INTERFACE_DEFINED__

@@ -7,12 +7,6 @@
 *   Copyright (c) Microsoft Corporation. All rights reserved.
 *****************************************************************************/
 
-//--- SAPI 5 requires the Platform SDK to define things like DWORD_PTR
-cpp_quote("#ifndef MAXULONG_PTR")
-cpp_quote("#error SAPI 5 requires a newer version of the Platform SDK than you have installed.")
-cpp_quote("#endif // MAXULONG_PTR")
-cpp_quote("")
-
 //--- Compiler Directive ----------------------------------------------------
 cpp_quote("#pragma warning(disable:4201) // Allow nameless structs/unions")
 
@@ -31,7 +25,7 @@ cpp_quote("#pragma comment(lib, \"sapi.lib\")")
 //--- Forward and External Declarations -------------------------------------
 
 cpp_quote("#if 0")  // Ignore our definition in the .H file
-typedef [restricted] struct WAVEFORMATEX
+typedef [restricted, hidden] struct WAVEFORMATEX
 {
     WORD    wFormatTag;        /* format type */
     WORD    nChannels;         /* number of channels (i.e. mono, stereo...) */
@@ -99,7 +93,7 @@ interface ISpPhrase;
 //
 
 //--- DataKey locations
-typedef enum SPDATAKEYLOCATION
+typedef [hidden] enum SPDATAKEYLOCATION
 {
     SPDKL_DefaultLocation = 0,
     SPDKL_CurrentUser = 1,
@@ -117,13 +111,13 @@ cpp_quote("#define SPDUI_AudioProperties    L\"AudioProperties\"")
 cpp_quote("#define SPDUI_AudioVolume        L\"AudioVolume\"")
 
 //--- Data formats - these are used by the CSpStreamFormat class in sphelper.h
-typedef enum SPSTREAMFORMAT
+typedef [hidden] enum SPSTREAMFORMAT
 {
     SPSF_Default = -1,
     SPSF_NoAssignedFormat = 0,  // Similar to GUID_NULL
     SPSF_Text,
-    SPSF_NonStandardFormat,     // Non-SAPI 5.0 standard format with no WAVEFORMATEX description
-    SPSF_ExtendedAudioFormat,   // Non-SAPI 5.0 standard format but has WAVEFORMATEX description
+    SPSF_NonStandardFormat,     // Non-SAPI 5.1 standard format with no WAVEFORMATEX description
+    SPSF_ExtendedAudioFormat,   // Non-SAPI 5.1 standard format but has WAVEFORMATEX description
     // Standard PCM wave formats
     SPSF_8kHz8BitMono,
     SPSF_8kHz8BitStereo,
@@ -221,6 +215,9 @@ cpp_quote("#define SPCURRENT_USER_LEXICON_TOKEN_ID  L\"HKEY_CURRENT_USER\\\\SOFT
 
 //--- Standard token values
 cpp_quote("#define SPTOKENVALUE_CLSID L\"CLSID\"")
+cpp_quote("#define SPTOKENKEY_FILES L\"Files\"")
+cpp_quote("#define SPTOKENKEY_UI L\"UI\"")
+cpp_quote("#define SPTOKENKEY_ATTRIBUTES L\"Attributes\"")
 
 //--- Standard voice category values
 cpp_quote("#define SPVOICECATEGORY_TTSRATE L\"DefaultTTSRate\"")
@@ -369,8 +366,8 @@ interface ISpDataKey : IUnknown
     HRESULT GetData( const WCHAR * pszValueName, ULONG * pcbData, BYTE * pData);
     HRESULT SetStringValue( const WCHAR * pszValueName, const WCHAR * pszValue );
     HRESULT GetStringValue( const WCHAR * pszValueName, WCHAR ** ppszValue);
-    HRESULT SetDWORD(const WCHAR * pszKeyName, DWORD dwValue );
-    HRESULT GetDWORD(const WCHAR * pszKeyName, DWORD *pdwValue );
+    HRESULT SetDWORD(const WCHAR * pszValueName, DWORD dwValue );
+    HRESULT GetDWORD(const WCHAR * pszValueName, DWORD *pdwValue );
     HRESULT OpenKey(const WCHAR * pszSubKeyName, ISpDataKey ** ppSubKey);
     HRESULT CreateKey(const WCHAR * pszSubKey, ISpDataKey ** ppSubKey);
     HRESULT DeleteKey(const WCHAR * pszSubKey);
@@ -546,7 +543,7 @@ interface ISpResourceManager : IServiceProvider
 };
 
 //--- ISpEventSource --------------------------------------------------------
-typedef enum SPEVENTLPARAMTYPE
+typedef [hidden] enum SPEVENTLPARAMTYPE
 {
     SPET_LPARAM_IS_UNDEFINED = 0,
     SPET_LPARAM_IS_TOKEN,
@@ -555,7 +552,7 @@ typedef enum SPEVENTLPARAMTYPE
     SPET_LPARAM_IS_STRING,
 } SPEVENTLPARAMTYPE;
 
-typedef enum SPEVENTENUM
+typedef [hidden] enum SPEVENTENUM
 {
     SPEI_UNDEFINED           = 0,
 
@@ -620,7 +617,7 @@ cpp_quote("#define SPFEI(SPEI_ord) ((1ui64 << SPEI_ord) | SPFEI_FLAGCHECK)")
 // to be used as bit fields.  So we define eEventId and elParamType as int bitfields for MIDL
 // and redefine them as their appropriate enumerations for C++
 cpp_quote("#if 0")
-typedef [restricted] struct SPEVENT
+typedef [restricted, hidden] struct SPEVENT
 {
     WORD        eEventId;      //SPEVENTENUM
     WORD        elParamType;   //SPEVENTLPARAMTYPE
@@ -630,7 +627,7 @@ typedef [restricted] struct SPEVENT
     LPARAM      lParam;
 } SPEVENT;
 
-typedef [restricted] struct SPSERIALIZEDEVENT
+typedef [restricted, hidden] struct SPSERIALIZEDEVENT
 {
     WORD        eEventId;           //SPEVENTENUM
     WORD        elParamType;        //SPEVENTLPARAMTYPE
@@ -640,7 +637,7 @@ typedef [restricted] struct SPSERIALIZEDEVENT
     LONG        SerializedlParam;
 } SPSERIALIZEDEVENT;
 
-typedef [restricted] struct SPSERIALIZEDEVENT64
+typedef [restricted, hidden] struct SPSERIALIZEDEVENT64
 {
     WORD        eEventId;           //SPEVENTENUM
     WORD        elParamType;        //SPEVENTLPARAMTYPE
@@ -681,7 +678,7 @@ cpp_quote("} SPSERIALIZEDEVENT64;")
 cpp_quote("#endif")
 
 //--- Types of interference
-typedef enum SPINTERFERENCE
+typedef [hidden] enum SPINTERFERENCE
 {
     SPINTERFERENCE_NONE     = 0,
     SPINTERFERENCE_NOISE,
@@ -693,14 +690,14 @@ typedef enum SPINTERFERENCE
 } SPINTERFERENCE;
 
 //--- Flags for END_SR_STREAM event (in WPARAM)
-typedef enum SPENDSRSTREAMFLAGS
+typedef [hidden] enum SPENDSRSTREAMFLAGS
 {
     SPESF_NONE              = 0,
     SPESF_STREAM_RELEASED   = (1 << 0)
 } SPENDSRSTREAMFLAGS;
 
 //--- Viseme features
-typedef enum SPVFEATURE
+typedef [hidden] enum SPVFEATURE
 {
     SPVFEATURE_STRESSED = (1L << 0),
     SPVFEATURE_EMPHASIS = (1L << 1)
@@ -708,7 +705,7 @@ typedef enum SPVFEATURE
 
 
 //--- Viseme event groups
-typedef enum SPVISEMES
+typedef [hidden] enum SPVISEMES
 {
                         // English examples
                         //------------------
@@ -736,7 +733,7 @@ typedef enum SPVISEMES
     SP_VISEME_21,       // p, b, m
 } SPVISEMES;
 
-typedef [restricted] struct SPEVENTSOURCEINFO
+typedef [restricted, hidden] struct SPEVENTSOURCEINFO
 {
     ULONGLONG   ullEventInterest;
     ULONGLONG   ullQueuedInterest;
@@ -796,12 +793,12 @@ interface ISpStreamFormat : IStream
     HRESULT GetFormat(GUID * pguidFormatId, WAVEFORMATEX ** ppCoMemWaveFormatEx);
 }
 
-typedef enum SPFILEMODE
+typedef [hidden] enum SPFILEMODE
 {
     SPFM_OPEN_READONLY,     // Open existing file, read-only
-    SPFM_OPEN_READWRITE,    // Open existing file, read-write    
-    SPFM_CREATE,            // Open file if exists, else create if does not exist (opens read-write)    
-    SPFM_CREATE_ALWAYS,     // Create file even if file exists.  Destroys old file.  (opens read-write)
+    SPFM_OPEN_READWRITE,    // (Not supported for wav files) Open existing file, read-write
+    SPFM_CREATE,            // (Not supported for wav files) Open file if exists, else create if does not exist (opens read-write)    
+    SPFM_CREATE_ALWAYS,     // Create file even if file exists.  Destroys old file.
     SPFM_NUM_MODES          // Used for limit checking
 } SPFILEMODE;
 
@@ -858,7 +855,7 @@ interface ISpStreamFormatConverter : ISpStreamFormat
 
 //--- ISpAudio --------------------------------------------------------------
 
-typedef enum _SPAUDIOSTATE
+typedef [hidden] enum _SPAUDIOSTATE
 {
     SPAS_CLOSED,
     SPAS_STOP,
@@ -866,7 +863,7 @@ typedef enum _SPAUDIOSTATE
     SPAS_RUN
 } SPAUDIOSTATE;
 
-typedef [restricted] struct SPAUDIOSTATUS
+typedef [restricted, hidden] struct SPAUDIOSTATUS
 {
     long            cbFreeBuffSpace;
     ULONG           cbNonBlockingIO;
@@ -877,7 +874,7 @@ typedef [restricted] struct SPAUDIOSTATUS
     DWORD           dwReserved2;
 } SPAUDIOSTATUS;
 
-typedef [restricted] struct SPAUDIOBUFFERINFO
+typedef [restricted, hidden] struct SPAUDIOBUFFERINFO
 {
     ULONG           ulMsMinNotification;
     ULONG           ulMsBufferSize;
@@ -941,7 +938,7 @@ interface ISpTranscript : IUnknown
 
 //--- Structures used by ISpPhrase interface --------------------------------
 
-typedef enum SPDISPLYATTRIBUTES
+typedef [hidden] enum SPDISPLYATTRIBUTES
 {
     SPAF_ONE_TRAILING_SPACE     = 0x02,
     SPAF_TWO_TRAILING_SPACES    = 0x04,
@@ -951,7 +948,7 @@ typedef enum SPDISPLYATTRIBUTES
 
 typedef unsigned short SPPHONEID;
 
-typedef [restricted] struct SPPHRASEELEMENT
+typedef [restricted, hidden] struct SPPHRASEELEMENT
 {
     ULONG                   ulAudioTimeOffset;
     ULONG                   ulAudioSizeTime;    // In 100ns units
@@ -969,9 +966,9 @@ typedef [restricted] struct SPPHRASEELEMENT
     float                   SREngineConfidence;
 } SPPHRASEELEMENT;
 
-typedef [restricted] struct SPPHRASERULE SPPHRASERULE;
+typedef [restricted, hidden] struct SPPHRASERULE SPPHRASERULE;
 
-struct SPPHRASERULE
+[hidden] struct SPPHRASERULE
 {
     const WCHAR *           pszName;
     ULONG                   ulId;
@@ -984,9 +981,9 @@ struct SPPHRASERULE
 };
 
 
-typedef [restricted] struct SPPHRASEPROPERTY SPPHRASEPROPERTY;
+typedef [restricted, hidden] struct SPPHRASEPROPERTY SPPHRASEPROPERTY;
 
-struct SPPHRASEPROPERTY
+[hidden] struct SPPHRASEPROPERTY
 {
     const WCHAR *           pszName;     
     ULONG                   ulId;
@@ -1000,7 +997,7 @@ struct SPPHRASEPROPERTY
     signed char             Confidence;
 };
 
-typedef [restricted] struct SPPHRASEREPLACEMENT
+typedef [restricted, hidden] struct SPPHRASEREPLACEMENT
 {
     BYTE                    bDisplayAttributes;
     const WCHAR *           pszReplacementText;
@@ -1008,7 +1005,7 @@ typedef [restricted] struct SPPHRASEREPLACEMENT
     ULONG                   ulCountOfElements;
 } SPPHRASEREPLACEMENT;
 
-typedef [restricted] struct SPPHRASE
+typedef [restricted, hidden] struct SPPHRASE
 {
     ULONG                   cbSize;     // Size of structure
     LANGID                  LangID;
@@ -1032,14 +1029,14 @@ typedef [restricted] struct SPPHRASE
 
 //--- Serialized phrase
 
-typedef [restricted] struct SPSERIALIZEDPHRASE
+typedef [restricted, hidden] struct SPSERIALIZEDPHRASE
 {
     ULONG                   ulSerializedSize;       // Size of structure in bytes
 } SPSERIALIZEDPHRASE;
 
 
 
-typedef enum SPVALUETYPE
+typedef [hidden] enum SPVALUETYPE
 {
     SPDF_PROPERTY               = 0x00000001,
     SPDF_REPLACEMENT            = 0x00000002,
@@ -1055,14 +1052,14 @@ typedef enum SPVALUETYPE
 
 // Binary grammar public declaration
 
-typedef struct SPBINARYGRAMMAR
+typedef [hidden] struct SPBINARYGRAMMAR
 {
     ULONG       ulTotalSerializedSize;
 } SPBINARYGRAMMAR;
 
 // Possible arguments for methods that take phrase element start and count
 
-typedef enum SPPHRASERNG
+typedef [hidden] enum SPPHRASERNG
 {
     SPPR_ALL_ELEMENTS = -1
 } SPPHRASERNG;
@@ -1078,16 +1075,16 @@ cpp_quote("#endif")
 
 
 
-typedef enum SPRECOEVENTFLAGS
+typedef [hidden] enum SPRECOEVENTFLAGS
 {
     SPREF_AutoPause     = (1 << 0),
     SPREF_Emulated      = (1 << 1)
-} SPRECOECOEVENTFLAGS;
+} SPRECOEVENTFLAGS;
 
 
 
 //--- ISpLexicon ------------------------------------------------------------
-typedef enum SPPARTOFSPEECH
+typedef [hidden] enum SPPARTOFSPEECH
 {
     //--- SAPI5 public POS category values (bits 28-31)
     SPPS_NotOverriden  = -1,
@@ -1099,7 +1096,7 @@ typedef enum SPPARTOFSPEECH
     SPPS_Interjection  = 0x5000
 } SPPARTOFSPEECH;
 
-typedef enum SPLEXICONTYPE
+typedef [hidden] enum SPLEXICONTYPE
 {
    eLEXTYPE_USER        = (1L << 0),
    eLEXTYPE_APP         = (1L << 1),
@@ -1135,13 +1132,13 @@ typedef enum SPLEXICONTYPE
    eLEXTYPE_PRIVATE20   = (1L << 31),
 } SPLEXICONTYPE;
 
-typedef enum SPWORDTYPE
+typedef [hidden] enum SPWORDTYPE
 {
    eWORDTYPE_ADDED   = (1L << 0),
    eWORDTYPE_DELETED = (1L << 1)
 } SPWORDTYPE;
 
-typedef [restricted] struct SPWORDPRONUNCIATION
+typedef [restricted, hidden] struct SPWORDPRONUNCIATION
 {
     struct SPWORDPRONUNCIATION  * pNextWordPronunciation;
     SPLEXICONTYPE                eLexiconType;
@@ -1151,14 +1148,14 @@ typedef [restricted] struct SPWORDPRONUNCIATION
     SPPHONEID                    szPronunciation[1];
 } SPWORDPRONUNCIATION;
 
-typedef [restricted] struct SPWORDPRONUNCIATIONLIST
+typedef [restricted, hidden] struct SPWORDPRONUNCIATIONLIST
 {
     ULONG                  ulSize;
     BYTE                   * pvBuffer;
     SPWORDPRONUNCIATION    * pFirstWordPronunciation;
 } SPWORDPRONUNCIATIONLIST;
 
-typedef [restricted] struct SPWORD
+typedef [restricted, hidden] struct SPWORD
 {
     struct SPWORD          * pNextWord;
     LANGID                 LangID;
@@ -1168,7 +1165,7 @@ typedef [restricted] struct SPWORD
     SPWORDPRONUNCIATION    * pFirstWordPronunciation;
 } SPWORD;
 
-typedef [restricted] struct SPWORDLIST
+typedef [restricted, hidden] struct SPWORDLIST
 {
     ULONG                  ulSize;
     BYTE                   * pvBuffer;
@@ -1248,13 +1245,13 @@ interface ISpPhoneConverter : ISpObjectWithToken
 //--- ISpVoice --------------------------------------------------------------
 //  These structures maintain the absolute state of the voice relative to
 //  the voice's baseline XML state.
-typedef [restricted] struct SPVPITCH
+typedef [restricted, hidden] struct SPVPITCH
 {
     long MiddleAdj;
     long RangeAdj;
 } SPVPITCH;
 
-typedef enum SPVACTIONS
+typedef [hidden] enum SPVACTIONS
 {
     SPVA_Speak = 0,
     SPVA_Silence,
@@ -1265,14 +1262,14 @@ typedef enum SPVACTIONS
     SPVA_ParseUnknownTag
 } SPVACTIONS;
 
-typedef [restricted] struct SPVCONTEXT
+typedef [restricted, hidden] struct SPVCONTEXT
 {
     LPCWSTR pCategory;
     LPCWSTR pBefore;
     LPCWSTR pAfter;
 } SPVCONTEXT;
 
-typedef [restricted] struct SPVSTATE
+typedef [restricted, hidden] struct SPVSTATE
 {
     //--- Action
     SPVACTIONS  eAction;
@@ -1290,13 +1287,13 @@ typedef [restricted] struct SPVSTATE
     SPVCONTEXT      Context;
 } SPVSTATE;
 
-typedef enum SPRUNSTATE
+typedef [hidden] enum SPRUNSTATE
 {
     SPRS_DONE        = (1L << 0),           // The voice is done rendering all queued phrases
     SPRS_IS_SPEAKING = (1L << 1)            // The SpVoice currently has the audio queue claimed
 } SPRUNSTATE;
 
-typedef enum SPVLIMITS
+typedef [hidden] enum SPVLIMITS
 {
     SPMIN_VOLUME =   0,
     SPMAX_VOLUME = 100,
@@ -1304,14 +1301,14 @@ typedef enum SPVLIMITS
     SPMAX_RATE   =  10
 } SPVLIMITS;
 
-typedef enum SPVPRIORITY
+typedef [hidden] enum SPVPRIORITY
 {
     SPVPRI_NORMAL = 0,
     SPVPRI_ALERT  = (1L << 0),
     SPVPRI_OVER   = (1L << 1)
 } SPVPRIORITY;
 
-typedef [restricted] struct SPVOICESTATUS
+typedef [restricted, hidden] struct SPVOICESTATUS
 {
     ULONG       ulCurrentStream;        // Current stream being rendered
     ULONG       ulLastStreamQueued;     // Number of the last stream queued
@@ -1328,7 +1325,7 @@ typedef [restricted] struct SPVOICESTATUS
     DWORD       dwReserved2;            // Reserved for future expansion
 } SPVOICESTATUS;
 
-typedef enum SPEAKFLAGS
+typedef [hidden] enum SPEAKFLAGS
 {
     //--- SpVoice flags
     SPF_DEFAULT            = 0,             // Synchronous, no purge, xml auto detect
@@ -1452,7 +1449,7 @@ interface ISpPhraseAlt : ISpPhrase
 
 
 //--- ISpRecoResult ---------------------------------------------------------
-typedef [restricted] struct SPRECORESULTTIMES
+typedef [restricted, hidden] struct SPRECORESULTTIMES
 {
     FILETIME        ftStreamTime;           // GetSystemTimeAsFileTime() at start of result
                                             //   UTC time as number of 100-nanosecond intervals
@@ -1465,7 +1462,7 @@ typedef [restricted] struct SPRECORESULTTIMES
 } SPRECORESULTTIMES;
 
 
-typedef struct SPSERIALIZEDRESULT
+typedef [hidden] struct SPSERIALIZEDRESULT
 {
     ULONG           ulSerializedSize;       // Count in bytes (including this ULONG) of the entire phrase
 } SPSERIALIZEDRESULT;
@@ -1509,7 +1506,7 @@ interface ISpRecoResult : ISpPhrase
 
 
 
-typedef struct tagSPTEXTSELECTIONINFO
+typedef [hidden] struct tagSPTEXTSELECTIONINFO
 {
     ULONG       ulStartActiveOffset;
     ULONG       cchActiveChars;
@@ -1518,7 +1515,7 @@ typedef struct tagSPTEXTSELECTIONINFO
 } SPTEXTSELECTIONINFO;
 
 
-typedef enum SPWORDPRONOUNCEABLE
+typedef [hidden] enum SPWORDPRONOUNCEABLE
 {
     SPWP_UNKNOWN_WORD_UNPRONOUNCEABLE   = 0,
     SPWP_UNKNOWN_WORD_PRONOUNCEABLE     = 1,
@@ -1526,7 +1523,7 @@ typedef enum SPWORDPRONOUNCEABLE
 } SPWORDPRONOUNCEABLE;
 
 
-typedef enum SPGRAMMARSTATE
+typedef [hidden] enum SPGRAMMARSTATE
 {
     SPGS_DISABLED   = 0,
     SPGS_ENABLED    = 1,
@@ -1534,14 +1531,14 @@ typedef enum SPGRAMMARSTATE
 } SPGRAMMARSTATE;
 
 
-typedef enum SPCONTEXTSTATE
+typedef [hidden] enum SPCONTEXTSTATE
 {
     SPCS_DISABLED   = 0,
     SPCS_ENABLED    = 1,
 } SPCONTEXTSTATE;
 
 
-typedef enum SPRULESTATE
+typedef [hidden] enum SPRULESTATE
 {
     SPRS_INACTIVE = 0,
     SPRS_ACTIVE = 1,
@@ -1560,14 +1557,14 @@ cpp_quote("#define SPRULETRANS_WILDCARD   (SPSTATEHANDLE)(-2)")
 cpp_quote("#define SPRULETRANS_DICTATION  (SPSTATEHANDLE)(-3)")
 
 
-typedef enum SPGRAMMARWORDTYPE
+typedef [hidden] enum SPGRAMMARWORDTYPE
 {
     SPWT_DISPLAY,
     SPWT_LEXICAL,
     SPWT_PRONUNCIATION
 } SPGRAMMARWORDTYPE;
 
-typedef struct tagSPPROPERTYINFO
+typedef [hidden] struct tagSPPROPERTYINFO
 {
     const WCHAR *           pszName;     
     ULONG                   ulId;
@@ -1575,7 +1572,7 @@ typedef struct tagSPPROPERTYINFO
     VARIANT                 vValue;     // Must be VT_BOOL, VT_I4, VT_R4, VT_R8, or VT_BYREF (only for dynamic grammars)
 } SPPROPERTYINFO;
 
-typedef enum SPCFGRULEATTRIBUTES
+typedef [hidden] enum SPCFGRULEATTRIBUTES
 {
     SPRAF_TopLevel      = (1 << 0),
     SPRAF_Active        = (1 << 1),
@@ -1616,7 +1613,7 @@ interface ISpGrammarBuilder : IUnknown
                     SPSTATEHANDLE hFromState,
                     SPSTATEHANDLE hToState,
                     const WCHAR * psz,      // If NULL then epsilon
-                    const WCHAR * pszSeperators,    // If NULL then psz points to a single word, else specifies valid seperator characters
+                    const WCHAR * pszSeparators,    // If NULL then psz points to a single word, else specifies valid separator characters
                     SPGRAMMARWORDTYPE eWordType,
                     float Weight,
                     const SPPROPERTYINFO * pPropInfo);
@@ -1637,7 +1634,7 @@ interface ISpGrammarBuilder : IUnknown
 
 
 // --- Options for Load methods on ISpRecoGrammar
-typedef enum SPLOADOPTIONS
+typedef [hidden] enum SPLOADOPTIONS
 {
     SPLO_STATIC     = 0,
     SPLO_DYNAMIC    = 1    
@@ -1702,7 +1699,7 @@ interface ISpRecoGrammar : ISpGrammarBuilder
 
 
 //--- ISpRecoContext --------------------------------------------------------
-typedef [restricted] struct SPRECOCONTEXTSTATUS
+typedef [restricted, hidden] struct SPRECOCONTEXTSTATUS
 {
     SPINTERFERENCE  eInterference;
     WCHAR           szRequestTypeOfUI[255]; // If first byte null, there is no UI request
@@ -1710,14 +1707,14 @@ typedef [restricted] struct SPRECOCONTEXTSTATUS
     DWORD           dwReserved2;
 } SPRECOCONTEXTSTATUS;
 
-typedef enum SPBOOKMARKOPTIONS
+typedef [hidden] enum SPBOOKMARKOPTIONS
 {
     SPBO_NONE  = 0,
     SPBO_PAUSE = 1
 } SPBOOKMARKOPTIONS;
 
 
-typedef enum SPAUDIOOPTIONS
+typedef [hidden] enum SPAUDIOOPTIONS
 {
     SPAO_NONE           = 0,
     SPAO_RETAIN_AUDIO   = (1 << 0)
@@ -1786,7 +1783,7 @@ interface ISpProperties : IUnknown
 const ULONG SP_MAX_LANGIDS = 20;        // Engine can support up to 20 languages at once
 
 //--- ISpRecognizer ---------------------------------------------------------
-typedef [restricted] struct SPRECOGNIZERSTATUS
+typedef [restricted, hidden] struct SPRECOGNIZERSTATUS
 {
     SPAUDIOSTATUS   AudioStatus;
     ULONGLONG       ullRecognitionStreamPos;
@@ -1799,13 +1796,13 @@ typedef [restricted] struct SPRECOGNIZERSTATUS
     DWORD           dwReserved2;
 } SPRECOGNIZERSTATUS;
 
-typedef enum SPWAVEFORMATTYPE
+typedef [hidden] enum SPWAVEFORMATTYPE
 {
     SPWF_INPUT,        // WAVEFORMATEX of audio input source
     SPWF_SRENGINE      // WAVEFORMATEX of the audio received by the SR engine
 } SPSTREAMFORMATTYPE;
 
-typedef enum SPRECOSTATE
+typedef [hidden] enum SPRECOSTATE
 {
     SPRST_INACTIVE,             // Audio deactivated
     SPRST_ACTIVE,               // Audio running only if one or more rules are active
@@ -1861,24 +1858,28 @@ interface ISpRecognizer : ISpProperties
 };
 
 
+
 //
 //=== CoClass definitions =====================================================
 //
 [
     helpstring("Microsoft Speech Object Library"),
     uuid(C866CA3A-32F7-11D2-9602-00C04F8EE628),
-    version(5.0)
+    version(5.1)
 ]
 library SpeechLib
 {
     importlib("stdole32.tlb");
     importlib("stdole2.tlb");
 
+    #include "sapiaut.idl"
+
     //--- SpNotifyTranslator ------------------------------------------------
     [
         uuid(E2AE5372-5D40-11D2-960E-00C04F8EE628),
         helpstring("SpNotify"),
-        restricted
+        restricted,
+        hidden
     ]
     coclass SpNotifyTranslator
     {
@@ -1888,28 +1889,30 @@ library SpeechLib
     //--- SpObjectTokenCategory ---------------------------------------------
     [
         uuid(A910187F-0C7A-45AC-92CC-59EDAFB77B53),
-        helpstring("SpObjectTokenCategory"),
-        restricted
+        helpstring("SpObjectTokenCategory Class"),
     ]
     coclass SpObjectTokenCategory
     {
+        [default] interface ISpeechObjectTokenCategory;
         interface ISpObjectTokenCategory;
     }
     //--- SpObjectToken ---------------------------------------------
     [
         uuid(EF411752-3736-4CB4-9C8C-8EF4CCB58EFE),
-        helpstring("SpObjectToken"),
-        restricted
+        helpstring("SpObjectToken Class")
     ]
     coclass SpObjectToken
     {
+        [default] interface ISpeechObjectToken;
         interface ISpObjectToken;
     }
 
     //--- SpResourceManager -------------------------------------------------
     [
         uuid(96749373-3391-11D2-9EE3-00C04F797396),
-        helpstring("SpResourceManger")
+        helpstring("SpResourceManger"),
+        restricted,
+        hidden
     ]
     coclass SpResourceManager
     {
@@ -1920,7 +1923,8 @@ library SpeechLib
     [
         uuid(7013943A-E2EC-11D2-A086-00C04F8EF9B5),
         helpstring("FormatConverter Class"),
-        restricted
+        restricted,
+        hidden
     ]
     coclass SpStreamFormatConverter
     {
@@ -1931,7 +1935,8 @@ library SpeechLib
     [
         uuid(AB1890A0-E91F-11D2-BB91-00C04F8EE6C0),
         helpstring("SpMMAudioEnum Class"),
-        restricted
+        restricted,
+        hidden
     ]
     coclass SpMMAudioEnum
     {
@@ -1941,10 +1946,11 @@ library SpeechLib
     //--- SpMMAudioIn -------------------------------------------------------
     [
         uuid(CF3D2E50-53F2-11D2-960C-00C04F8EE628),
-        helpstring("SpAudioIn Class")
+        helpstring("SpMMAudioIn Class")
     ]
     coclass SpMMAudioIn
     {
+        [default] interface ISpeechMMSysAudio;
         interface ISpEventSource;
         interface ISpEventSink;
         interface ISpObjectWithToken;
@@ -1954,10 +1960,11 @@ library SpeechLib
     //--- SpMMAudioOut ------------------------------------------------------
     [
         uuid(A8C680EB-3D32-11D2-9EE7-00C04F797396),
-        helpstring("SpAudioOut Class")
+        helpstring("SpMMAudioOut Class")
     ]
     coclass SpMMAudioOut
     {
+        [default] interface ISpeechMMSysAudio;
         interface ISpEventSource;
         interface ISpEventSink;
         interface ISpObjectWithToken;
@@ -1968,7 +1975,8 @@ library SpeechLib
     [
         uuid(FEE225FC-7AFD-45E9-95D0-5A318079D911),
         helpstring("SpRecPlayAudio Class"),
-        restricted
+        restricted,
+        hidden
     ]
     coclass SpRecPlayAudio
     {
@@ -1979,7 +1987,9 @@ library SpeechLib
     //--- SpStream ----------------------------------------------------------
     [
         uuid(715D9C59-4442-11D2-9605-00C04F8EE628),
-        helpstring("SpStream Class")
+        helpstring("SpStream Class"),
+        restricted,
+        hidden
     ]
     coclass SpStream
     {
@@ -1988,42 +1998,49 @@ library SpeechLib
 
     //--- SpVoice -----------------------------------------------------------
     [
-        control,
         uuid(96749377-3391-11D2-9EE3-00C04F797396),
-        helpstring("SpVoice")
+        helpstring("SpVoice Class")
     ]
     coclass SpVoice
     {
+        [default] interface ISpeechVoice;
         interface ISpVoice;
+
+        [default, source] dispinterface _ISpeechVoiceEvents;
     };
 
     //--- SpSharedRecoContext -----------------------------------------------
     [
         uuid(47206204-5ECA-11D2-960F-00C04F8EE628),
-        helpstring("Shared Recognition Context Class")
+        helpstring("SpSharedRecoContext Class")
     ]
     coclass SpSharedRecoContext
     {
+        [default] interface ISpeechRecoContext;
         interface ISpRecoContext;
+
+        [default, source] dispinterface _ISpeechRecoContextEvents;
     };
 
     //--- SpInprocRecognizer ------------------------------------------------
     [
         uuid(41B89B6B-9399-11D2-9623-00C04F8EE628),
-        helpstring("Inproc Recognizer Class")
+        helpstring("SpInprocRecognizer Class")
     ]
     coclass SpInprocRecognizer
     {
+        [default] interface ISpeechRecognizer;
         interface ISpRecognizer;
     };
 
     //--- SpSharedRecognizer ----------------------------------------------
     [
         uuid(3BEE4890-4FE9-4A37-8C1E-5E7E12791C1F),
-        helpstring("Shared Recognizer Class")
+        helpstring("SpSharedRecognizer Class")
     ]
     coclass SpSharedRecognizer
     {
+        [default] interface ISpeechRecognizer;
         interface ISpRecognizer;
     };
 
@@ -2034,24 +2051,28 @@ library SpeechLib
     ]
     coclass SpLexicon
     {
-        [default] interface ISpLexicon;
+        [default] interface ISpeechLexicon;
+        interface ISpLexicon;
     };
 
     //--- SpUnCompressedLexicon ---------------------------------------------------
     [
         uuid(C9E37C15-DF92-4727-85D6-72E5EEB6995A),
-        helpstring("SpUnCompressedLexicon Class")
+		helpstring("SpUnCompressedLexicon Class")
     ]
     coclass SpUnCompressedLexicon
     {
-        [default] interface ISpLexicon;
+        [default] interface ISpeechLexicon;
+        interface ISpLexicon;
         interface ISpObjectWithToken;
     };
     
     //--- SpCompressedLexicon ---------------------------------------------------
     [
         uuid(90903716-2F42-11D3-9C26-00C04F8EF87C),
-        helpstring("SpCompressedLexicon Class")
+        helpstring("SpCompressedLexicon Class"),
+        restricted,
+        hidden
     ]
     coclass SpCompressedLexicon
     {
@@ -2062,23 +2083,115 @@ library SpeechLib
     //--- SpPhoneConverter ------------------------------------------------
     [
         uuid(9185F743-1143-4C28-86B5-BFF14F20E5C8),
-        helpstring("SpPhoneConverter Class"),
-        restricted
+        helpstring("SpPhoneConverter Class")
     ]
     coclass SpPhoneConverter
     {
-        [default] interface ISpPhoneConverter;
+		[default] interface ISpeechPhoneConverter;
+        interface ISpPhoneConverter;
     };
 
     //--- SpNullPhoneConverter ------------------------------------------------
     [
         uuid(455F24E9-7396-4A16-9715-7C0FDBE3EFE3),
         helpstring("SpNullPhoneConverter Class"),
-        restricted
+        restricted,
+        hidden
     ]
     coclass SpNullPhoneConverter
     {
         [default] interface ISpPhoneConverter;
     };
 
+#ifdef SAPI_AUTOMATION
+
+	//--- SpTextSelectionInformation ------------------------------------------------
+	[
+        uuid(0F92030A-CBFD-4AB8-A164-FF5985547FF6),
+        helpstring("SpTextSelectionInformation Class"),
+    ]
+    coclass SpTextSelectionInformation
+    {
+        [default] interface ISpeechTextSelectionInformation;
+    };
+
+	//--- SpPhraseInfoBuilder ------------------------------------------------
+	[
+        uuid(C23FC28D-C55F-4720-8B32-91F73C2BD5D1),
+        helpstring("SpPhraseInfoBuilder Class"),
+    ]
+    coclass SpPhraseInfoBuilder
+    {
+        [default] interface ISpeechPhraseInfoBuilder;
+    };
+
+	//--- SpAudioFormat ------------------------------------------------
+	[
+        uuid(9EF96870-E160-4792-820D-48CF0649E4EC),
+        helpstring("SpAudioFormat Class"),
+    ]
+    coclass SpAudioFormat
+    {
+        [default] interface ISpeechAudioFormat;
+    };
+
+	//--- SpWaveFormatEx ------------------------------------------------
+	[
+        uuid(C79A574C-63BE-44b9-801F-283F87F898BE),
+        helpstring("SpWaveFormatEx Class"),
+    ]
+    coclass SpWaveFormatEx
+    {
+        [default] interface ISpeechWaveFormatEx;
+    };
+
+	//--- SpInProcRecoContext -----------------------------------------------
+    [
+        uuid(73AD6842-ACE0-45E8-A4DD-8795881A2C2A),
+        helpstring("SpInProcRecoContext Class")
+    ]
+    coclass SpInProcRecoContext
+    {
+        [default] interface ISpeechRecoContext;
+        interface ISpRecoContext;
+
+        [default, source] dispinterface _ISpeechRecoContextEvents;
+    };
+
+	//--- SpCustomStream ------------------------------------------------
+	[
+        uuid(8DBEF13F-1948-4aa8-8CF0-048EEBED95D8),
+        helpstring("SpCustomStream Class"),
+    ]
+    coclass SpCustomStream
+    {
+        [default] interface ISpeechCustomStream;
+        interface ISpStream;
+    };
+
+	//--- SpFileStream ------------------------------------------------
+	[
+        uuid(947812B3-2AE1-4644-BA86-9E90DED7EC91),
+        helpstring("SpFileStream Class"),
+    ]
+    coclass SpFileStream
+    {
+        [default] interface ISpeechFileStream;
+        interface ISpStream;
+    };
+
+	//--- SpMemoryStream ------------------------------------------------
+	[
+        uuid(5FB7EF7D-DFF4-468a-B6B7-2FCBD188F994),
+        helpstring("SpMemoryStream Class"),
+    ]
+    coclass SpMemoryStream
+    {
+        [default] interface ISpeechMemoryStream;
+        interface ISpStream;
+    };
+
+
+#endif // SAPI_AUTOMATION
 }
+
