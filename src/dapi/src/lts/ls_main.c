@@ -85,9 +85,6 @@ int main(unsigned int data_seg,unsigned int stack_start)
 
 /* JDB: language dependent... */                            
 #ifdef ENGLISH	
-#ifdef ACNA
-		lsa_util_init_lang();
-#endif	
 #ifdef ENGLISH_US
 	default_lang(LANG_english,LANG_lts_ready);
 #endif
@@ -103,10 +100,6 @@ int main(unsigned int data_seg,unsigned int stack_start)
 #ifdef SPANISH_LA 
    	default_lang (LANG_latin_american, LANG_lts_ready);  
 #endif
-/* GL 11/12/1998, BATS#800 need to initialize these variables for Spanish */
-	phTTS->pLTSThreadData->ord = 0;
-   	phTTS->pLTSThreadData->dic_offset = 0;
-   	phTTS->pLTSThreadData->flag =0;
 #endif
 
 
