@@ -52,7 +52,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /YX /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".\nt" /I ".\include" /I ".\dic" /I "..\.." /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I ".\api" /I ".\nt" /I ".\include" /I ".\dic" /I "..\.." /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -76,7 +76,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /YX /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -100,7 +100,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\dapi\src\include" /D "NDEBUG" /D "_CONSOLE" /D "ENGLISH_US" /YX /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "NDEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x40a /d "NDEBUG"
 BSC32=bscmake.exe
@@ -124,7 +124,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\dapi\src\include" /D "NDEBUG" /D "_CONSOLE" /D "ENGLISH_US" /YX /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "NDEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x407 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -148,7 +148,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\dapi\src\include" /D "_DEBUG" /D "_CONSOLE" /D "ENGLISH_US" /YX /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "_DEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x40a /d "_DEBUG"
 BSC32=bscmake.exe
@@ -172,7 +172,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\dapi\src\include" /D "_DEBUG" /D "_CONSOLE" /D "ENGLISH_US" /YX /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "_DEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x407 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -196,7 +196,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /I "..\..\dapi\src\include" /I "dic" /D "_DEBUG" /D "_CONSOLE" /D "SPANISH" /D "WINDIC" /YX /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "_DEBUG" /D "SPANISH" /D "LATIN_AMERICAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "SPANISH" /D "LATIN_AMERICAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x40a /d "_DEBUG"
 # ADD RSC /l 0x40a /d "_DEBUG"
 BSC32=bscmake.exe
@@ -220,7 +220,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I "..\..\dapi\src\include" /I "dic" /D "NDEBUG" /D "_CONSOLE" /D "SPANISH" /D "WINDIC" /YX /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "NDEBUG" /D "SPANISH" /D "SPANISH_LA" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "SPANISH" /D "SPANISH_LA" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x40a /d "NDEBUG"
 # ADD RSC /l 0x40a /d "NDEBUG"
 BSC32=bscmake.exe
@@ -245,7 +245,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /D "NDEBUG" /D "_CONSOLE" /D "ENGLISH_US" /D "WINDIC" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "NDEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x809 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -270,7 +270,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /I ".\include" /I ".\dic" /D "_DEBUG" /D "_CONSOLE" /D "ENGLISH_US" /D "WINDIC" /YX /FD /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "_DEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x809 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -295,7 +295,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /D "NDEBUG" /D "_CONSOLE" /D "ENGLISH_US" /D "WINDIC" /D "ENGLISH" /YX /FD /c
-# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "NDEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -320,7 +320,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /D "_DEBUG" /D "_CONSOLE" /D "ENGLISH_US" /D "WINDIC" /D "ENGLISH" /YX /FD /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\nt" /D "_DEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe

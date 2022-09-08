@@ -58,7 +58,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\api" /I ".\nt" /I ".\include" /I ".\dic" /I "..\.." /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -131,7 +131,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -201,7 +201,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "NDEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -271,7 +271,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "NDEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -344,7 +344,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "_DEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "SPANISH" /D "SPANISH_SP" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -417,7 +417,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "_DEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "GERMAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -490,7 +490,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "_DEBUG" /D "SPANISH" /D "LATIN_AMERICAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "SPANISH" /D "LATIN_AMERICAN" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -560,7 +560,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "NDEBUG" /D "SPANISH" /D "SPANISH_LA" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "SPANISH" /D "SPANISH_LA" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -630,7 +630,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "NDEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -703,7 +703,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "_DEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "ENGLISH_UK" /D "ENGLISH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -773,7 +773,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "NDEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "NDEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -846,7 +846,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I ".\nt" /I ".\api" /I "..\.." /D "_DEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /I ".\include" /I ".\dic" /I "..\.." /I ".\api" /I ".\nt" /D "_DEBUG" /D "FRENCH" /D "_CONSOLE" /D "WINDIC" /D "WIN32" /Fp"$(INTDIR)\dic.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
