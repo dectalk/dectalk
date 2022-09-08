@@ -724,22 +724,6 @@ char  gszA32Id[256]="";       // access32 identifier string
 FILE *fpODS_File=NULL;
 #endif /*_DEBUG */
 
-//#ifndef __linux__
-#ifndef DEMO
-#ifndef STATIC_BUILD
-#ifndef _DEBUG
-#ifndef CUP28PROJECT
-#define LICENSES
-#ifndef LICENSES
-This line will cause an error to signal the fact that the license symbol,
-was not defined.
-#endif	/* LICENSES */
-#endif  /*CUP28PROJECT*/
-#endif	/* _DEBUG */
-#endif	/* STATIC_BUILD */
-#endif	/* DEMO */
-//#endif // __linux__
-
 #ifdef LICENSES
 int all_digits(unsigned char *input)
 {
