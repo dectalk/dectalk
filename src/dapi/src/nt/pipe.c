@@ -107,9 +107,9 @@
 struct PIPE_TAG
 {
   USHORT usGuard1;
-  void * pStart;
-  void * pInput;
-  void * pOutput;
+  unsigned char * pStart;
+  unsigned char * pInput;
+  unsigned char * pOutput;
   UINT uiInputPosition;
   UINT uiOutputPosition;
   UINT uiLength;
@@ -391,7 +391,7 @@ LPPIPE_T create_pipe( UINT uiType, UINT uiPipeLength )
 /**********************************************************************/
 /**********************************************************************/
 
-void write_pipe( LPPIPE_T pPipe, void * pItems, UINT uiNumberToWrite )
+void write_pipe( LPPIPE_T pPipe, unsigned char * pItems, UINT uiNumberToWrite )
 {
   UINT i;
   UINT uiRemaining;
@@ -771,12 +771,12 @@ void write_pipe( LPPIPE_T pPipe, void * pItems, UINT uiNumberToWrite )
 /**********************************************************************/
 /**********************************************************************/
 
-void read_pipe( LPPIPE_T pPipe, void * pItems, UINT uiNumberToRead )
+void read_pipe( LPPIPE_T pPipe, unsigned char * pItems, UINT uiNumberToRead )
 {
 	read_pipeEx(&pPipe,pItems,uiNumberToRead);
 }
 
-void read_pipeEx( LPPIPE_T *pPipe, void * pItems, UINT uiNumberToRead )
+void read_pipeEx( LPPIPE_T *pPipe, unsigned char * pItems, UINT uiNumberToRead )
 {
 	UINT i;
 	UINT uiRemaining;

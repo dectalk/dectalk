@@ -70,11 +70,11 @@ typedef PIPE_T * LPPIPE_T;
 
 LPPIPE_T create_pipe( UINT, UINT );
 
-void write_pipe( LPPIPE_T, void *, UINT );
+void write_pipe( LPPIPE_T, unsigned char *, UINT );
 
-void read_pipe( LPPIPE_T, void *, UINT );
+void read_pipe( LPPIPE_T, unsigned char *, UINT );
 
-void read_pipeEx( LPPIPE_T *pPipe, void * pItems, UINT uiNumberToRead );
+void read_pipeEx( LPPIPE_T *pPipe, unsigned char * pItems, UINT uiNumberToRead );
 
 void pause_pipe( LPPIPE_T );
 
