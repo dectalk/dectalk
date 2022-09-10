@@ -364,7 +364,7 @@ int main(int argc, char ** argv)
 #if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
    snprintf(tmpf, sizeof(tmpf), "%s.%lu", TMPFILE, getpid());
 #else
-   snprintf(tmpf, sizeof(tmpf), "%s", TMPFILE);
+   sprintf(tmpf, "%s", TMPFILE);
 #endif
    if ((tfp = fopen(tmpf,"w+b")) == NULL)
    {
