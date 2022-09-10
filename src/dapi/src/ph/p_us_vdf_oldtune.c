@@ -422,7 +422,7 @@ const short paul_tune[SPDEF] =
 	0,				/* G1 (gain of input to cascade 5th formant in dB) */
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
-	-3,				/* G4 (gain of input to cascade 2nd formant in dB) */
+	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
 	-3,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
@@ -467,7 +467,7 @@ const short betty_tune[SPDEF] =
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
 	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
-	3,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
+	6,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
 	0,				/* LX (lax folds adjacent to voiceless sound -> breathiness) */
@@ -510,7 +510,7 @@ const short harry_tune[SPDEF] =
 	0,				/* G1 (gain of input to cascade 5th formant in dB) */
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
-	-3,				/* G4 (gain of input to cascade 2nd formant in dB) */
+	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
 	-3,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
@@ -554,7 +554,7 @@ const short frank_tune[SPDEF] =
 	0,				/* G1 (gain of input to cascade 5th formant in dB) */
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
-	-3,				/* G4 (gain of input to cascade 2nd formant in dB) */
+	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
 	-6,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
@@ -580,7 +580,7 @@ const short kit_tune[SPDEF] =
 	0,				/* AS (assertiveness, degree of final f0 fall in % */
 	0,				/* AP (Average pitch in Hz) */
 	0,				/* PR (pitch range in percent of Paul's range) */
-	-20,				/* BR (breathiness in dB) */
+	0,				/* BR (breathiness in dB) */
 	0,				/* RI (Richness in %, actually nopen is 100-RI % of T0) */
 	0,				/* NF (additional fixed number of samples in nopen) */
 	0,				/* LA (laryngealization, in percent) */
@@ -598,8 +598,8 @@ const short kit_tune[SPDEF] =
 	0,				/* G1 (gain of input to cascade 5th formant in dB) */
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
-	3,				/* G4 (gain of input to cascade 2nd formant in dB) */
-	6,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
+	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
+	9,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
 	0,				/* LX (lax folds adjacent to voiceless sound -> breathiness) */
@@ -643,7 +643,7 @@ const short ursula_tune[SPDEF] =
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
 	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
-	3,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
+	6,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
 	0,				/* LX (lax folds adjacent to voiceless sound -> breathiness) */
@@ -686,7 +686,7 @@ const short rita_tune[SPDEF] =
 	0,				/* G1 (gain of input to cascade 5th formant in dB) */
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
-	-3,				/* G4 (gain of input to cascade 2nd formant in dB) */
+	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
 	-3,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
@@ -774,7 +774,7 @@ const short dennis_tune[SPDEF] =
 	0,				/* G1 (gain of input to cascade 5th formant in dB) */
 	0,				/* G2 (gain of input to cascade 4th formant in dB) */
 	0,				/* G3 (gain of input to cascade 3rd formant in dB) */
-	-3,				/* G4 (gain of input to cascade 2nd formant in dB) */
+	0,				/* G4 (gain of input to cascade 2nd formant in dB) */
 	-6,				/* LO (Loudness, gain input to cascade 1st formant in dB) */
 	0,				/* FT (f0-dependent spectral tilt in % of max) */
 	0,				/* BF (baseline f0 fall in Hz) */
