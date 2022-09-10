@@ -37,6 +37,13 @@ apt-get install build-essential libpulse-dev libgtk2.0-dev unzip
 
 To build DECtalk without setting up a local build environment, run `sudo docker-compose up` (and make sure you have Docker and docker-compose installed!)
 
+## Building on Windows
+
+1. Download and Install Visual C++ 6.0. Newer versions might also work.
+2. Build the dapi/src/devdtk43 project to build dectalk.dll.
+3. To build the dictionaries run dapi/src/builddic.bat after building the dictionary compiler (dapi/src/dic).
+4. Build any desired sample apps, or anything else you might want compiled such as SAPI5.
+
 ## The Team
 
 ![](./src/samples/speak/TEAM03.BMP)
