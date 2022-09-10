@@ -426,15 +426,15 @@ Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRRita\Attributes";
 Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRRita\Attributes"; ValueName: "Age"; ValueType: String; ValueData: "Adult"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
 Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRRita\Attributes"; ValueName: "Vendor"; ValueType: String; ValueData: "DECtalk"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
 Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRRita\Attributes"; ValueName: "Name"; ValueType: String; ValueData: "Rita"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr"; ValueType: String; ValueData: "GR Ursugr"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr"; ValueName: "409"; ValueType: String; ValueData: "GR Ursugr"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr"; ValueName: "CLSID"; ValueType: String; ValueData: "{{99EE9586-A4A6-11d1-BEB2-0060083E8376}"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr"; ValueName: "Speaker"; ValueType: String; ValueData: "6"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr\Attributes"; ValueName: "Gender"; ValueType: String; ValueData: "Female"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr\Attributes"; ValueName: "Language"; ValueType: String; ValueData: "409"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr\Attributes"; ValueName: "Age"; ValueType: String; ValueData: "Senior; Adult"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr\Attributes"; ValueName: "Vendor"; ValueType: String; ValueData: "DECtalk"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsugr\Attributes"; ValueName: "Name"; ValueType: String; ValueData: "Ursugr"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula"; ValueType: String; ValueData: "GR Ursula"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula"; ValueName: "409"; ValueType: String; ValueData: "GR Ursula"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula"; ValueName: "CLSID"; ValueType: String; ValueData: "{{99EE9586-A4A6-11d1-BEB2-0060083E8376}"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula"; ValueName: "Speaker"; ValueType: String; ValueData: "6"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula\Attributes"; ValueName: "Gender"; ValueType: String; ValueData: "Female"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula\Attributes"; ValueName: "Language"; ValueType: String; ValueData: "409"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula\Attributes"; ValueName: "Age"; ValueType: String; ValueData: "Senior; Adult"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula\Attributes"; ValueName: "Vendor"; ValueType: String; ValueData: "DECtalk"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRUrsula\Attributes"; ValueName: "Name"; ValueType: String; ValueData: "Ursula"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
 Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRWendy"; ValueType: String; ValueData: "GR Wendy"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
 Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRWendy"; ValueName: "409"; ValueType: String; ValueData: "GR Wendy"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
 Root: HKLM; Subkey: "SOFTWARE\Microsoft\Speech\Voices\Tokens\GRWendy"; ValueName: "CLSID"; ValueType: String; ValueData: "{{99EE9586-A4A6-11d1-BEB2-0060083E8376}"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
