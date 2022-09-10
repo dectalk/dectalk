@@ -192,6 +192,7 @@ int main(int argc, char ** argv)
    int tmp, backslash_flag = 0;
    unsigned char grapheme [50] = {'\0'}, * grapheme_index; 
    char blanks[10];
+   char tmpf[256] = { 0 };
    unsigned char byte,*byte_p; // CAB 9/8/00 NOT USED IN CODE
    
    DIC_OBJ_HEADER header; /* file header */
@@ -217,7 +218,7 @@ int main(int argc, char ** argv)
    struct pc_dictionary pcd;
    unsigned long addr,addr_186;
    unsigned long max_entries_in_memory; /* Max entries allowed */
-   short target=MSDOS_FORMAT;
+   short target=WIN32_FORMAT;
 
 #ifdef COMPRESSION
    char tempc;
@@ -238,7 +239,7 @@ int main(int argc, char ** argv)
       printf("         /n         exclude names from the dictionary\n");
       printf("         /o         use the old format (/p and /n are ignored)\n");
 	  printf("         /t:msdos   build the dictionary for msdos\n");
-	  printf("         /t:win32   build the dictionary for win32\n");
+	  printf("         /t:win32   build the dictionary for win32/unix (default)\n");
 
       exit(0);
    }
@@ -254,7 +255,7 @@ int main(int argc, char ** argv)
    if((disk_entries = (U32 *)malloc(header.no_of_entries * sizeof(U32)))==NULL)
 #endif
    {
-      printf("DIC_COMM; main; halloc failure on disk_entries");
+      printf("DIC_COMM; main; halloc failure on disk_entries\n");
       exit(1);
    }
 	         
@@ -264,7 +265,7 @@ int main(int argc, char ** argv)
    if((links = (U32 *)malloc(((U32)(header.no_of_entries+(28*28)) * sizeof(U32))))==NULL)
 #endif
    {
-      printf("DIC_COMM; main; halloc failure on links");
+      printf("DIC_COMM; main; halloc failure on links\n");
       exit(1);
    }
 
@@ -360,7 +361,12 @@ int main(int argc, char ** argv)
    }
 	
 /*   if ((tfp = tmpfile()) == NULL) mfg_debug*/
-   if ((tfp = fopen(TMPFILE,"w+b")) == NULL)
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+   snprintf(tmpf, sizeof(tmpf), "%s.%lu", TMPFILE, getpid());
+#else
+   snprintf(tmpf, sizeof(tmpf), "%s", TMPFILE);
+#endif
+   if ((tfp = fopen(tmpf,"w+b")) == NULL)
    {
       printf("DIC_COMM; main; Failure on temp file open\n");
       exit(0);
@@ -724,13 +730,13 @@ int main(int argc, char ** argv)
       total_bytes += input_entry.size;
    }
    fclose(infp);
-   printf("\n                                              ");
+//   printf("\n                                              ");
 
 /*
  *  sort the entries onto 28 lists ...
  */
    sort_ents();
-   printf("\r                                              ");
+//   printf("\r                                              ");
 
 /*
  * now, write out dictionary binary file ...  this is all index based, 
@@ -859,13 +865,13 @@ int main(int argc, char ** argv)
    }
    printf("\r DIC_COMM; main;");
    printf(" Writing text for entry %d\n",count-1);
-   printf("\r                                              ");
+   //printf("\r                                              ");
  
    fclose(tfp);
 #if defined (__osf__) || defined (__linux__)  || defined VXWORKS || defined _SPARC_SOLARIS_
-   unlink(TMPFILE);
+   unlink(tmpf);
 #else
-   _unlink(TMPFILE);
+   _unlink(tmpf);
 #endif
 
    return(0);

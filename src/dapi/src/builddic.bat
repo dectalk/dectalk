@@ -6,4 +6,10 @@ sp\release\dic ..\..\src\dic\Dic_sp.txt sp\dtalk_sp.dic /t:win32
 la\release\dic ..\..\src\dic\Dic_la.txt la\dtalk_la.dic /t:win32
 gr\release\dic ..\..\src\dic\Dic_gr.txt gr\dtalk_gr.dic /t:win32
 fr\release\dic ..\..\src\dic\Dic_fr.txt fr\dtalk_fr.dic /t:win32
+us\release\dic ..\..\src\dic\Dic_us_5.txt us\dtalk_us_5.dic /t:win32
+uk\release\dic ..\..\src\dic\Dic_uk_5.txt uk\dtalk_uk_5.dic /t:win32
+sp\release\dic ..\..\src\dic\Dic_sp_5.txt sp\dtalk_sp_5.dic /t:win32
+la\release\dic ..\..\src\dic\Dic_la_5.txt la\dtalk_la_5.dic /t:win32
+gr\release\dic ..\..\src\dic\Dic_gr_5.txt gr\dtalk_gr_5.dic /t:win32
+fr\release\dic ..\..\src\dic\Dic_fr_5.txt fr\dtalk_fr_5.dic /t:win32
 cd ..\..\src
