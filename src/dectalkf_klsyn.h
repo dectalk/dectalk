@@ -244,9 +244,11 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 
 // Which voice to use (default when not defined is 4.3)
 // VDF_DECTALKEXPRESS_42 -> DECtalk Express 4.2a
+// VDF_DECTALKEXPRESS_42CD -> DECtalk Express 4.2cd
 // VDF_DECTALK_44 -> DECtalk speak window 4.4
 // nothing -> DECtalk speak window 4.3 (exactly the same as DEC ALPHA 4.2)
 //#define VDF_DECTALKEXPRESS_42
+//#define VDF_DECTALKEXPRESS_42CD
 //#define VDF_DECTALK_44
 
 // Disable limit cycle rampdown code.
