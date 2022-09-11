@@ -54,7 +54,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -78,7 +78,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\vtm" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\vtm" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -104,7 +104,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I ".\..\..\dapi\src\api" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "ADVTM" /YX /FD /c
 # SUBTRACT BASE CPP /Fr
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # SUBTRACT CPP /Fr
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -131,7 +131,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I ".\..\..\dapi\src\api" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "ADVTM" /YX /FD /c
 # SUBTRACT BASE CPP /Fr
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -157,7 +157,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I ".\..\..\dapi\src\api" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "ADVTM" /YX /FD /c
 # SUBTRACT BASE CPP /Fr
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -183,7 +183,7 @@ LINK32=link.exe
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I ".\..\..\dapi\src\api" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # SUBTRACT BASE CPP /Fr
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -208,7 +208,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\..\..\dapi\src\api" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -233,7 +233,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\..\..\dapi\src\api" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -258,7 +258,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\..\..\dapi\src\api" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -283,7 +283,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\..\..\dapi\src\api" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -308,7 +308,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /I ".\..\..\dapi\src\api" /I ".\..\.." /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "ENGLISH_US" /D "ENGLISH" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -333,7 +333,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /I ".\..\..\dapi\src\api" /I ".\..\.." /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /D "ENGLISH_US" /D "ENGLISH" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\api" /D "NDEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\api" /D "NDEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -357,8 +357,8 @@ LINK32=link.exe
 # PROP Intermediate_Dir ".\it\debug\link"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\vtm" /D "_DEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\vtm" /D "_DEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -382,8 +382,8 @@ LINK32=link.exe
 # PROP Intermediate_Dir ".\it\release\link"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD BASE CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe

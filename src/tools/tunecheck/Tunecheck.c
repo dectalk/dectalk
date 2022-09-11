@@ -73,6 +73,7 @@
 //#include "ttsapi.h"
 #include "dectalkf.h"
 #include "tts.h"
+#include "vtminst.h"
 
 //#define DEBUG_TUNER
 
@@ -119,7 +120,7 @@ DWORD				dwTotalPasses;		/* total complete runs */
 
 /****************************************************************************/
 typedef short S16;
-#include "tunecheck.h"
+//#include "tunecheck.h"
 
 // tek 02mar99 the datastruct we use to set up a tuning pass
 // this becomes part of a union, and the 'other' side of the 
@@ -170,7 +171,11 @@ typedef struct TUNERPARAMS_T {
 } TUNERPARAMS;
 #endif //NEW_VOCAL_TRACT from dectalkf.h
 
-//#define MAX_TRIGGER 20000
+#if defined(VTM1) || defined(VTM2)
+#define MAX_TRIGGER 16000 // VTM1, VTM2
+#else
+#define MAX_TRIGGER 20000 // VTM3
+#endif
 
 #define NUMTUNERPARAMS (9)
 typedef union TUNERUNION_T {
@@ -984,12 +989,14 @@ void DoAutotune()
 				gTunerUnion.tp.gf--;
 				gTunerUnion.tp.gh--;
 			} else
+#if 0
 			if (checkmax(vtdData.r6pd1,MAX_TRIGGER) && gTunerUnion.tp.gv>0 )
 			{
 				gTunerUnion.tp.gv--;
 				gTunerUnion.tp.gf--;
 				gTunerUnion.tp.gh--;
 			} else
+#endif
 			if (checkmax(vtdData.rnzmax,MAX_TRIGGER)&& gTunerUnion.tp.gn>0)
 			{
 				gTunerUnion.tp.gn--;

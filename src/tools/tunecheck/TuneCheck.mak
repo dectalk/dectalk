@@ -61,7 +61,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -136,7 +136,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\vtm" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ENGLISH_US" /D "ENGLISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -208,7 +208,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -280,7 +280,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -352,7 +352,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -424,7 +424,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -499,7 +499,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "GERMAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -574,7 +574,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -649,7 +649,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "SPANISH_LA" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -724,7 +724,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\..\\" /I ".\..\..\dapi\src\api" /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ENGLISH_UK" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -799,7 +799,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -871,7 +871,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\api" /D "NDEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\api" /D "NDEBUG" /D "FRENCH" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -946,7 +946,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /I ".\..\..\dapi\src\vtm" /D "_DEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "_DEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -1018,7 +1018,7 @@ CLEAN :
     if not exist "$(INTDIR)/$(NULL)" mkdir "$(INTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /I ".\..\.." /I ".\..\..\dapi\src\api" /I ".\..\..\dapi\src\nt" /I ".\..\..\dapi\src\vtm" /I ".\..\..\dapi\src\include" /D "NDEBUG" /D "ITALIAN" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "BLD_DECTALK_DLL" /Fp"$(INTDIR)\TuneCheck.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
