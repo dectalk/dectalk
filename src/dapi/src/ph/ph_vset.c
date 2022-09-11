@@ -748,10 +748,17 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 	
 #else
 
+#if defined(CHANGES_AFTER_V43)
+
 	spdef->afgain = pDph_t->curspdef[SPD_GF]-5;/* GH -> GH         */
 
 
 	spdef->apgain = pDph_t->curspdef[SPD_GH]-5;	/* GH -> GH         */
+
+#else
+	spdef->afgain = pDph_t->curspdef[SPD_GF];/* GF -> GF         */
+	spdef->apgain = pDph_t->curspdef[SPD_GH];	/* GH -> GH         */
+#endif
 
 #endif
 
