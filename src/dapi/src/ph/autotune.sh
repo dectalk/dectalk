@@ -4,15 +4,6 @@ set -x
 
 rm -f *_backup.txt *_res.txt
 
-# Restore baseline by creating empty adjustment tables
-for lang in fr gr la sp uk us; do
-	../../../../dist/tools/tunecheck_${lang} -e
-done
-
-# Recompile baseline
-make -C ../../../ clean
-make -j -C ../../../ all
-
 # Run autotune
 set -m
 for lang in fr gr la sp uk us; do

@@ -180,9 +180,7 @@ void setparam (LPTTS_HANDLE_T phTTS, int which, int value)
 
 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
-#ifdef WIN32
 	PVTM_T			pVtm_t	=	phTTS->pVTMThreadData;
-#endif
 	
 	
 	int voice = pKsd_t->last_voice;
@@ -196,7 +194,6 @@ void setparam (LPTTS_HANDLE_T phTTS, int which, int value)
 	}
 	lp = &limit[which];
 
-#ifdef WIN32
 	if(pVtm_t->bDoTuning) /* Ignore autotuned vals when autotuning *///
 	{
 
@@ -211,9 +208,7 @@ void setparam (LPTTS_HANDLE_T phTTS, int which, int value)
 		pDph_t->curspdef[which] = value;   /* Zap the value and    */
 
 	}
-
 	else
-#endif
 	{
 		/* fixed tuning bug with values at the end of the range MGS */
 		value += (pDph_t->tunedef[voice][which]);
