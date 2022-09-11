@@ -178,7 +178,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 uuid.lib ole32.lib /nologo /debug /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT BASE LINK32 /pdb:none /map
-# ADD LINK32 ..\..\sapi\build\dlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /debug /machine:I386 /SUBSYSTEM:windows,4.0
+# ADD LINK32 ..\..\sapi\build\dtlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /debug /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT LINK32 /pdb:none /map
 
 !ELSEIF  "$(CFG)" == "Ttstst - Win32 W2ARel"
@@ -206,7 +206,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 uuid.lib ole32.lib /nologo /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT BASE LINK32 /pdb:none /map
-# ADD LINK32 ..\..\sapi\build\dlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /machine:I386 /SUBSYSTEM:windows,4.0
+# ADD LINK32 ..\..\sapi\build\dtlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT LINK32 /pdb:none /map
 
 !ELSEIF  "$(CFG)" == "Ttstst - Win32 W2WDebug"
@@ -234,7 +234,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 uuid.lib ole32.lib /nologo /debug /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT BASE LINK32 /pdb:none /map
-# ADD LINK32 ..\..\sapi\build\dlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /debug /machine:I386 /SUBSYSTEM:windows,4.0
+# ADD LINK32 ..\..\sapi\build\dtlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /debug /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT LINK32 /pdb:none /map
 
 !ELSEIF  "$(CFG)" == "Ttstst - Win32 W2WRel"
@@ -262,7 +262,7 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 uuid.lib ole32.lib /nologo /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT BASE LINK32 /pdb:none /map
-# ADD LINK32 ..\..\sapi\build\dlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /machine:I386 /SUBSYSTEM:windows,4.0
+# ADD LINK32 ..\..\sapi\build\dtlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /machine:I386 /SUBSYSTEM:windows,4.0
 # SUBTRACT LINK32 /pdb:none /map
 
 !ELSEIF  "$(CFG)" == "Ttstst - Win32 A2ARel Spanish"

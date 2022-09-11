@@ -491,7 +491,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=..\..\sapi\build\dlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:yes /pdb:"$(OUTDIR)\Ttstst.pdb" /debug /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
+LINK32_FLAGS=..\..\sapi\build\dtlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:yes /pdb:"$(OUTDIR)\Ttstst.pdb" /debug /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
 LINK32_OBJS= \
 	"$(INTDIR)\DLGFINDM.OBJ" \
 	"$(INTDIR)\guidseg.obj" \
@@ -599,7 +599,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=..\..\sapi\build\dlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:no /pdb:"$(OUTDIR)\Ttstst.pdb" /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
+LINK32_FLAGS=..\..\sapi\build\dtlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:no /pdb:"$(OUTDIR)\Ttstst.pdb" /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
 LINK32_OBJS= \
 	"$(INTDIR)\DLGFINDM.OBJ" \
 	"$(INTDIR)\guidseg.obj" \
@@ -710,7 +710,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=..\..\sapi\build\dlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:yes /pdb:"$(OUTDIR)\Ttstst.pdb" /debug /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
+LINK32_FLAGS=..\..\sapi\build\dtlkttse\us\debug\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:yes /pdb:"$(OUTDIR)\Ttstst.pdb" /debug /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
 LINK32_OBJS= \
 	"$(INTDIR)\DLGFINDM.OBJ" \
 	"$(INTDIR)\guidseg.obj" \
@@ -818,7 +818,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=..\..\sapi\build\dlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:no /pdb:"$(OUTDIR)\Ttstst.pdb" /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
+LINK32_FLAGS=..\..\sapi\build\dtlkttse\us\release\dtlkttse.lib winmm.lib uuid.lib ole32.lib /nologo /entry:"wWinMainCRTStartup" /incremental:no /pdb:"$(OUTDIR)\Ttstst.pdb" /machine:I386 /out:"$(OUTDIR)\Ttstst.exe" /SUBSYSTEM:windows,4.0 
 LINK32_OBJS= \
 	"$(INTDIR)\DLGFINDM.OBJ" \
 	"$(INTDIR)\guidseg.obj" \
