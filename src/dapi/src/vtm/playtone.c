@@ -70,7 +70,14 @@
 #include "dectalkf.h"
 #include "kernel.h"	   /* For PKSD_T definition */
 #include "tts.h"	   /* For TTS_HANDLE_T definition  */
+#ifdef LOWCOMPUTE
 #include "sinetab.h"
+#else
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#define  TWO_PI_EQUIVALENT  2 * M_PI
+#endif
 
 /* GL 04/21/1997  change this for OSF build */
 #if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
@@ -247,7 +254,11 @@ BOOL PlayTones( LPTTS_HANDLE_T phTTS,
 
   for ( i = 0; i < iRiseSamples; i++ )
   {
+#ifdef LOWCOMPUTE
     Sample = SineTable[(int)Phase_0];
+#else
+    Sample = sin(Phase_0);
+#endif
     *pRise++ = Sample * Sample;
     Phase_0 += PhaseIncrement_0;
   }
@@ -385,7 +396,11 @@ static double Tone( double PhaseIncrement, double * pPhase )
   /*  Synthesize tone sample 1.                                       */
   /********************************************************************/
 
+#ifdef LOWCOMPUTE
   Sample = SineTable[(int)*pPhase];
+#else
+  Sample = sin(*pPhase);
+#endif
 
   *pPhase += PhaseIncrement;
 
