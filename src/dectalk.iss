@@ -4,6 +4,7 @@ AppVerName=DECtalk 5.0
 DefaultDirName={pf}\DECtalk 5.0
 DefaultGroupName=DECtalk 5.0
 AllowNoIcons=yes
+UserInfoPage=yes
 LicenseFile=kitting\license.txt
 OutputBaseFilename=DECtalk 5.0
 Compression=lzma
@@ -66,6 +67,8 @@ Source: "sampleML\envpatch\build\release\envpatch.exe"; DestDir: "{app}"; Compon
 Source: "sampleML\MLDemo\build\release\MLDemo.exe"; DestDir: "{app}"; Components: samples
 
 [Registry]
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62"; ValueName: "Company"; ValueType: String; ValueData: "{userinfoorg}"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62"; ValueName: "Installer"; ValueType: String; ValueData: "{userinfoname}"; Flags: uninsdeletevalue uninsdeletekeyifempty
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\US"; ValueName: "Language"; ValueType: String; ValueData: "ENGLISH, US"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\US"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\us\dtalk_us.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\US"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk US version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
@@ -84,6 +87,7 @@ Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\GR"; ValueName: "Ver
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\FR"; ValueName: "Language"; ValueType: String; ValueData: "FRENCH"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\FR"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\fr\dtalk_fr.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\FR"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk FR version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\Langs"; ValueName: "DefaultLang"; Flags: uninsdeletevalue uninsdeletekeyifempty
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\Langs"; ValueName: "US"; ValueType: String; ValueData: "ENGLISH, US"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\Langs"; ValueName: "UK"; ValueType: String; ValueData: "ENGLISH, UK"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\Langs"; ValueName: "SP"; ValueType: String; ValueData: "SPANISH"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: sp
@@ -123,5 +127,5 @@ Name: "{group}\Speak"; Filename: "{app}\speak.exe"; Components: samples
 Name: "{group}\TTSSRV"; Filename: "{app}\ttssrv.exe"; Components: samples
 Name: "{group}\TTSTEST"; Filename: "{app}\ttstest.exe"; Components: samples
 Name: "{group}\Version Check"; Filename: "{app}\vercheck.exe"; Components: samples
-Name: "{group}\WinDic"; Filename: "{app}\windic.exe"; Components: samples
+Name: "{group}\Windic"; Filename: "{app}\windic.exe"; Components: samples
 Name: "{group}\{cm:UninstallProgram,DECtalk}"; Filename: "{uninstallexe}"
