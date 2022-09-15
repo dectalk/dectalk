@@ -46,4 +46,4 @@ To build DECtalk without setting up a local build environment, run `sudo docker-
 
 ## The Team
 
-![](./src/samples/speak/TEAM03.BMP)
+![A photograph of members captioned as: "The DECtalk Team". From left to right, stands Ron Gemma, Trung Ly, Nick Shin, Matt Schnee, Kevin Bruckert, Ed Lazar, Carl Leeber, Tom Kopee, Ed Bruckert, Ginger Lin and Rick Rahko.](./src/samples/speak/TEAM03.BMP "The original DECtalk developers!")
