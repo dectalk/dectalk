@@ -1,13 +1,14 @@
-name: Build DECtalk on Ubuntu Linux
+name: Build DECtalk
 
 on:
   push:
-    branches: ["linux-compile"]
+    branches: ["linux-compile", "windows-compile"]
   pull_request:
-    branches: ["linux-compile"]
+    branches: ["linux-compile", "windows-compile"]
 
 jobs:
-  build:
+  ubuntu:
+    name: Ubuntu (latest)
     runs-on: ubuntu-latest
 
     steps:
@@ -35,5 +36,27 @@ jobs:
       - name: Create artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: dectalk
+          name: ubuntu-latest
+          path: dist/
+
+  windows:
+    name: Windows Server 2019
+    runs-on: [self-hosted, windows, x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Make DECtalk
+        shell: cmd
+        run: devops\windows\dt_buildall.bat
+
+      - name: Copy files to the "/dist" folder
+        shell: cmd
+        run: devops\windows\dt_copyfiles.bat
+
+      - name: Create artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-server-2019
           path: dist/
