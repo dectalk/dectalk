@@ -1,0 +1,330 @@
+/*
+ ***********************************************************************
+ *
+ *                           Coryright (c)
+ *    © Digital Equipment Corporation 1995. All rights reserved.
+ *
+ *    Restricted Rights: Use, duplication, or disclosure by the U.S.
+ *    Government is subject to restrictions as set forth in subparagraph
+ *    (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
+ *    52.227-14 Alt. III, as applicable.
+ *
+ *    This software is proprietary to and embodies the confidential
+ *    technology of Digital Equipment Corporation and other parties.
+ *    Possession, use, or copying of this software and media is authorized
+ *    only pursuant to a valid written license from Digital or an
+ *    authorized sublicensor.
+ *                                                      
+ ***********************************************************************
+ *    File Name:		dtp_main.c
+ *    Author:			Trung Ly
+ *    Creation Date:	03/01/97
+ *    Functionality:	Automatic Rule Compiler
+ *    
+ *
+ ***********************************************************************
+ *    Revision History:
+ *
+ *	Rev.	Who		Date		Description
+ *	--------------------------------------------------------------------
+ *  001		TQL		03/01/1997	initial release
+ *
+ */                  
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <io.h>
+#include <fcntl.h>
+#include "dtp_main.h"
+
+char *hex_code=(char *)malloc(MEDIUM);	/* global variable for rule_hex_code() function */
+
+int main ( CString argv1, CString argv2, int conversion_mode)
+{
+
+  int i=0, j=0, k=0;	/* used in loops */
+  char *input_file_ex=(char *)malloc(SMALL), *output_file_ex=(char *)malloc(SMALL), *short_file_name=(char *)malloc(SMALL);	/* file extensions and names */
+  char *input_file=(char *)malloc(SMALL), *output_file=(char *)malloc(SMALL);	/* declare and initialize input_file to output_file */
+  
+  if( !strcmp( argv1, "/?" ) )	/* if the are no arguments or help is asked */
+  {
+    printf( "\nUsage:  rul_comp inputfile [outputfile] [options].\n" );
+	printf( "\n  inputfile    file to be converted");
+	printf( "\n  outputfile   file to be converted to");
+	printf( "\n  options      /m:#	indicates which conversion mode to use\n");
+	printf( "\nModes:  1 - Convert External format to Intermediate format.");
+	printf( "\n        2 - Convert External format to Internal format.");
+	printf( "\n        3 - Convert Intermediate format to Internal format.");
+	printf( "\n        4 - Convert Intermediate format to External format.\n");
+	printf( "\nExamples:  rulecomp sample.txt sample.par /m:1");
+	printf( "\n           rulecomp sample.par /m:4\n");
+	CString str102;
+	str102.LoadString(IDS_STRING102);
+
+	return 0;
+  }
+
+  if( strchr( argv1, '.' ) != NULL && strchr( argv2, '.' ) != NULL )
+  {
+	strcpy( input_file, argv1 );
+	strcpy( output_file, argv2 );
+  }
+
+  else if( strchr( argv1, '.' ) != NULL )	/* if the second argument is mode */
+  {
+	strcpy( input_file, argv1 );	/* get name of file to be converted */
+	for( i=0; input_file[i] != '.'; i++ )						/* construct name */
+	  short_file_name[i] = input_file[i];						/* of output file */
+	if( conversion_mode == 1 )
+	  strcat( strcpy( output_file, short_file_name ), ".par" );	/* for mode 1, output the output file ext. is .par */
+	else if( conversion_mode == 2 || conversion_mode == 3 )
+	  strcat( strcpy( output_file, short_file_name ), ".h" );	/* for mode 2 and 3, output the output file ext. is .h */
+	else if( conversion_mode == 4 )
+	  strcat( strcpy( output_file, short_file_name ), ".txt" );	/* for mode 4, output the output file ext. is .txt */
+	else
+	{
+	  printf( "Error - The conversion_mode has an incorrect value" );
+	  return 0;
+	}
+  }
+
+  else	/* There were some invalid arguments */
+  {
+    printf("\nERROR - Invalid arguments.  Type 'rul_comp /?' for help.\n" );
+	return 0;
+  }
+
+  strcpy( input_file_ex, strchr( input_file, '.' ) );	/* construct the input file extension */
+  strcpy( output_file_ex, strchr( output_file, '.' ) );	/* construct the output file extension */
+
+  printf( "\nConverting %s to %s...\n", input_file, output_file );
+
+  file_in( input_file, output_file, conversion_mode );
+
+  return 1;
+
+}
+
+int file_in( LPCTSTR input_file, LPCTSTR output_file, int c_mode )
+{
+
+  FILE *out_stream, *in_stream;
+  char *file_line=(char *)malloc(LARGE), *rule_number=(char *)malloc(SMALL), *rule_language=(char *)malloc(SMALL), *rule_mode=(char *)malloc(SMALL);
+  unsigned int k=0, m=0, n=0, p=0;
+  int rule_flag=0, replace_flag=0, insert_flag=0, optional_flag=0, S_flag=0, apostrophe_flag=0;
+  char *command=(char *)malloc(MEDIUM);
+
+  out_stream = fopen( output_file, "w" );
+  if( !out_stream )
+  {
+	printf( "\nError opening %s\n", output_file );
+	return 0;
+  }
+  in_stream = fopen( input_file, "r" );
+  if( !in_stream )
+  {
+	printf( "\nError opening %s\n", input_file );
+	return 0;
+  }
+
+  fprintf( out_stream, "; This file was generated by the Rule File Compiler.\n\n");
+  
+  switch( c_mode )
+  {
+
+  case 1:	/* Convert External format to Intermediate format */
+
+	while( fgets( file_line, LARGE, in_stream ) != NULL )
+	{
+	  for( k=0; k < strlen( file_line ); k++ )
+	  {
+		if( file_line[0] == ';' )
+		{ 
+		  if( rule_flag == 1 )
+		  {
+			fprintf( out_stream, "\n" );
+			rule_flag = 0;
+		  }
+		  fprintf( out_stream, "%s", file_line );
+		  break;
+		}
+		else if( !_strnicmp( file_line, "[RULE]", 6 ) )
+		{
+		  fprintf( out_stream, "%s", file_line );
+		  break;
+		}
+		else if( file_line[strlen( file_line )-2] == ':' )
+		{
+		  rule_flag = 1;
+		  m = 0;
+		  while( file_line[m] != ':' )
+			rule_number[m] = file_line[m++];
+		  rule_number[ m ] = '\0';
+
+		  m = m+2;
+		  n = 0;
+		  while( file_line[n+m] != ':' )
+			rule_language[n] = file_line[(n++)+m];
+		  rule_language[ n ] = '\0';
+		
+		  n = n+2;
+		  p = 0;
+		  while( file_line[p+n+m] != ':' && file_line[n+m] != '\0' )
+			rule_mode[p] = file_line[(p++)+n+m];
+		  rule_mode[ p ] = '\0';
+		
+		  rule_hex_code( rule_number, rule_language, rule_mode );
+
+		  fprintf( out_stream, "%s", hex_code );
+
+		  break;
+		}
+		else if( file_line[k] == '\'' )
+		{
+		  if( apostrophe_flag == 0 )
+			apostrophe_flag = 1;
+		  else if( apostrophe_flag == 1 )
+			apostrophe_flag = 0;
+		  fprintf( out_stream, "%c", '\'' );
+		}
+		else if( file_line[k] == ' ' && apostrophe_flag == 0);
+		else if( file_line[k] == '\n' && replace_flag == 1 )
+		{
+		  fprintf( out_stream, "%c", '/' );
+		  replace_flag = 0;
+		}
+		else if( file_line[k] == '\n' && insert_flag == 1 )
+		{
+		  fprintf( out_stream, "%c", '/' );
+		  insert_flag = 0;
+	    }
+		else if( file_line[k] == '}' && optional_flag == 1 )
+		{
+		  fprintf( out_stream, "%c", '/' );
+		  optional_flag = 0;
+		}
+		else if( file_line[k] == 'S' && file_line[k+1] == '{' )
+		{
+		  fprintf( out_stream, "%c%c", 'S', '{' );
+		  S_flag++;
+		  k++;
+		}
+		else if( file_line[k] == '{' );
+		else if( file_line[k] == '}' && S_flag != 0 )
+		{
+		  fprintf( out_stream, "%c", '}' );
+		  S_flag--;
+		  k--;
+		}
+		else if( file_line[k] == '}' );
+		else if( file_line[k] == '\n' );
+		else if( file_line[k] == '>' && file_line[k+1] == '>' )
+		{
+		  fprintf( out_stream, "%c", '/' );
+		  k = k + 1;
+		}
+		else if( file_line[k] == 'o' && file_line[k+1] == 'p' && file_line[k+2] == 't' && file_line[k+3] == 'i' )
+		{  
+		  fprintf( out_stream, "%c%c", 'o', '/' );
+		  optional_flag = 1;
+		  k = k + 8;
+		}
+		else if( file_line[k] == 'r' && file_line[k+1] == 'e' && file_line[k+2] == 'p' && file_line[k+3] == 'l' )
+		{  
+		  fprintf( out_stream, "%c%c", 'r', '/' );
+		  replace_flag = 1;
+		  k = k + 7;
+		}
+		else if( file_line[k] == 'i' && file_line[k+1] == 'n' && file_line[k+2] == 's' && file_line[k+3] == 'e' )
+		{  
+		  fprintf( out_stream, "%c%c", 'i', '/' );
+		  insert_flag = 1;
+		  k = k + 6;
+		}
+		else
+		  fprintf( out_stream, "%c", file_line[k] );
+	  }
+	}
+
+	break;
+
+  case 2:	/* Convert External format to Internal format */
+  
+	if ( file_in( input_file, "!!temp!!.par", 1 ) == 0 )
+	  printf( "ERROR" );	/* elaborate later */
+	strcat( strcat( strcpy( command, "par_comp "), "!!temp!!.par " ), output_file );
+	printf( "\n%s\n", command );
+	system( command );
+	strcpy( command, "del !!temp!!.par" );
+	system( command );
+
+	break;
+  
+  case 3:	/* Convert Intermediate format to Internal format */
+
+	strcat( strcat( strcat( strcpy( command, "par_comp "), input_file ), " " ), output_file );
+	if( system( command ) == 0 )
+	  printf( "ERROR\n" );
+
+	break;
+
+  case 4:	/* Convert Intermediate format to External format */
+
+	printf( "\nThis mode is not fully functional at this time.\n" );
+
+	break;
+
+
+  default:
+  
+	printf( "ERROR" ); /* elaborate later */
+  
+  }
+
+  fprintf( out_stream, "\n" );
+
+  fclose( in_stream );
+  fclose( out_stream );
+
+  return (1);
+
+}
+
+
+int rule_hex_code( char *rule_number, char *rule_language, char *rule_mode )
+{
+  char *number=(char *)malloc(SMALL), *language=(char *)malloc(SMALL), *mode=(char *)malloc(SMALL);
+  unsigned int q=0;
+
+  if( !strcmp( rule_language, "US" ) )
+	strcpy( language, "0x00000001" );
+  else if( !strcmp( rule_language, "FR" ) )
+	strcpy( language, "0x00000002" );
+  else if( !strcmp( rule_language, "GR" ) )
+	strcpy( language, "0x00000004" );
+  else if( !strcmp( rule_language, "SP" ) )
+	strcpy( language, "0x00000008" );
+  else if( !strcmp( rule_language, "JP" ) )
+	strcpy( language, "0x00000010" );
+  else if( !strcmp( rule_language, "ALL" ) )
+	strcpy( language, "0xFFFFFFFF" );
+
+  if( !strcmp( rule_mode, "ALL" ) )
+	strcpy( mode, "0xFFFFFFFF" );
+
+  for( q=0; q < strlen( rule_number ); q++)
+  {
+	if( rule_number[q] == ',' )
+	  number[q] = ':';
+	else
+	  number[q] = rule_number[q];
+  }
+  number[q] = ',';
+  number[q+1] = '\0';
+
+  hex_code[0] = '\0';  
+  strcat( strcat( strcat( strcat( strcat( hex_code, language ), "-" ), mode ), ":" ), number );
+
+  return( 1 );
+}

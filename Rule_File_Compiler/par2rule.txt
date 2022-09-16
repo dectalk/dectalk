@@ -1,0 +1,227 @@
+; punct none multiple deletion  ### -> #   ==== -> =
+R100,H101: ALL: PU1:
+{
+	W~<*>
+	shuffle_s s { P<1> }
+	delete
+	{
+		set { shuffle_u 1 }<+>
+	}
+	W~<*>
+}
+; save clause mark at the end.
+R101,M102,H120: ALL: PU1:
+{
+	set { A<+>, D<+> }<+>
+	E<+>
+}
+; replace a all punct with a space
+; avert lookahead for speed 
+R102,H102,M120: ALL: PU1:
+{
+	W~<*>
+	replace 
+	{ 
+		Px<+> 
+		>> 
+		' ' 
+	}
+	W~<*>
+}
+; German Rules 0x00000004
+; rule number 400 - 499
+R400: GR: ALL:
+{
+	Dx[0-23]
+	replace 
+	{
+		shuffle_s 1 { set {',',':'}<1> }
+		>>
+		':'
+	}
+	Dx[0-59]
+	optional
+	{
+		replace { $1 >> ':' }
+		Dx[0-59]
+	}
+	W<0-3>
+	delete
+	{
+		set {'U'`hr`,`h.`,`h`}<1>
+	}
+}
+;  /* Date format as Jan. 1, */
+R311: US: ALL:
+{
+	dictionary month_words
+	{
+		U<1>L<2>/
+		>>
+		copy {$7 }
+		|
+		FAIL
+	}
+	optianal {'.' }
+	W<+>
+	insert_a/
+	{
+		Dx[1-31]
+		>>
+		'th'|'st'|'nd'|'rd'|'th'|'th'|'th'|'th'|'th'|'th'
+	}
+	optional {','}
+}
+;  /* dates */	/* 5/10/96  5-10-96 */
+R312: US: ALL:
+{
+	d
+	{
+		shuffle_s 1 
+		{
+			dictionary english_months
+			{ 
+				Dx[1-12] >> replace { $7 >> $9 }|FAIL 
+			}
+		}
+		shuffle_s 2
+		{
+			S{'/','-'}<1>
+		}
+	}
+	Dx[1-31]
+	replace {$2 >> '-'$1'-' }
+	D<2,4>
+}
+;  /* phone number  (508)555-1212 (508) 555-1212 (508)555 1212 (508) 555 1212 */
+;  /* (508)5551212 (508) 5551212 */
+R206: US,FR,GR,SP: ALL:
+{
+	insert_a
+	{
+		insert
+		{
+			D<3> >> ' '
+		}
+		>>
+		' '
+	}
+	W<*>
+	insert 
+	{
+		Dx[2-9]D<2>
+		>>
+		' '
+	}
+	replace 
+	{
+		S{'-',' ',''}<1>
+		>>
+		', '
+	}
+	insert_a
+	{
+		insert
+		{
+			Dx<4>
+			>>
+			' '
+		}
+		>>
+		0x80'.'0x81
+	}
+}
+;  /* phone number 15085551212 and 5085551212 */
+R207: US: ALL:
+{
+	optional
+	{
+		insert_a{'1' >> ', '}
+	}
+	insert_a
+	{
+		insert
+		{
+			Dx[2-9]D<2> 
+			>> 
+			' '
+		} 
+		>> 
+		', '
+	}
+	insert_a
+	{
+		insert
+		{
+			Dx[2-9]D<2> 
+			>> 
+			' '
+		} 
+		>>
+		', '
+	}
+	insert_a
+	{
+		insert
+		{
+			Dx<4> >> ' '
+		} 
+		>> 
+		0x80'.'0x81
+	}
+}
+;  /* state and zip code */
+R327: US: ALL:
+{
+	insert_a
+	{
+		dictionary states
+		{
+			U<2> 
+			>> 
+			replace 
+			{
+				$7 
+				>> 
+				$9 
+			} 
+			| 
+			FAIL
+		}
+		Wx<1-4>
+		insert
+		{
+			Dx<5> >> ' '
+		}
+		optional
+		{
+			replace
+			{
+				'-' >> ' dash '
+			}
+			insert
+			{
+				Dx<4> >> ' '
+			}
+		}
+		>>
+		' '0x80','0x81
+	}
+}
+e-mail rule
+R603,H650: US: EM10,EM20:
+{
+	insert_a
+	{
+		replace
+		{
+			'Subject:'W<1-3>'Re: '
+			>>
+			'Subjectt: regarding, '
+		}
+		C<+>0x0DC<+>
+		>>
+		0x80'.'0x81
+	}
+}
+

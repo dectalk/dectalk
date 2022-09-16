@@ -1,0 +1,635 @@
+;/*
+; ***********************************************************************
+; *
+; *                           Coryright (c)
+; *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+; *
+; *    Restricted Rights: Use, duplication, or disclosure by the U.S.
+; *    Government is subject to restrictions as set forth in subparagraph
+; *    (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
+; *    52.227-14 Alt. III, as applicable.
+; *
+; *    This software is proprietary to and embodies the confidential
+; *    technology of Digital Equipment Corporation and other parties.
+; *    Possession, use, or copying of this software and media is authorized
+; *    only pursuant to a valid written license from Digital or an
+; *    authorized sublicensor.
+; *
+; ***********************************************************************
+; *    File Name:	par_rule.par
+; *    Author:      Matthew Schnee
+; *    Creation Date:05/15/96
+; *
+; *    Functionality:
+; * 		Text preprocessor main file
+; *
+; ***********************************************************************
+; *    Revision History:                    
+; *
+; *	Rev	Who		Date		Description
+; *	---	-----	-----------	---------------------------------------
+; *	001	MGS		05/15/1996	File Created
+; *	002	MGS		08/06/1996	Fixed punct all and punct none modes
+; * 003 GL		09/12/1996	remove many unused rules, simplify the rule list
+; */
+;
+[RULE]
+; rule number 600 - 650,  email processing rule
+; e-mail header picking rule
+0x00000001-0x00000020:R600;H600,r/'%'W<1-3>U<1>C<+>': 'C<+>0x0D/''/C<+>
+0x00000001-0x00000020:R601;H600,r/'%'W<1-3>'====== 'C<+>0x0D/''/C<+>
+0x00000001-0x00000030:R602;H650,a/'Date: 'C<+>0x0DC<+>/0x80'.'0x81/
+0x00000001-0x00000030:R603;H650,a/r/'Subject:'W<1-3>'Re: '/'Subjectt: regarding, '/C<+>0x0DC<+>/0x80'.'0x81/
+0x00000001-0x00000030:R604;H650,a/r/'Subject: '/'Subjectt: '/C<+>0x0DC<+>/0x80'.'0x81/
+0x00000001-0x00000030:R605;H650,a/'From: 'C<+>0x0DC<+>/0x80'.'0x81/
+0x00000001-0x00000030:R606;H650,a/r/'To: '/'To'0x80'/'0x81': '/C<+>0x0DC<+>/0x80'.'0x81/
+0x00000001-0x00000030:R607;H650,a/`cc: `C<+>0x0DC<+>/0x80'.'0x81/
+0x00000001-0x00000030:R608;H650,a/'------ Forwarded Message'C<+>0x0DC<+>/0x80'.'0x81/
+
+; replace ":From " with "from" for email content
+; for e-mail text body
+0x00000001-0x00000020:R609;H650,r/':From'/'from'/W<+>
+
+; e-mail header stripping rule
+0x00000001-0x00000010:R650,r/C<+>/' '/
+
+STOP,R650
+
+[RULE]
+;punctuation all rules 000004
+
+0xFFFFFFFF-0x00000004:R0,a/P<1>/' '/
+; find a punctuation put spaces around it
+0xFFFFFFFF-0x00000004:R5;H0;DM,W~<*>b/a/P<1>/' '//' '/W~<*>
+
+;test "s" action
+;0xFFFFFFFF-0x00000032:R38,s/'tturn on!'/'1'/
+;0xFFFFFFFF-0x00000032:R39,s/'tturn off!'/'0'/
+
+
+;for punct some mode (the complicated one)   000002
+; German only punct some mode
+;  German z.B. need to pronunce as "Z B"
+0x00000004-0x00000032:R30,r/'z.B.'/'z b'/
+
+; let the number flow through
+;!0xFFFFFFFF-0x00000032:R40,S{D<+>,'.','\,'}<+>
+0xFFFFFFFF-0x00000032:R40,S{D<+>,'.'D<+>,'\,'D<+>,'$'D<+>}<+>
+
+; let the time string  flow through
+0xFFFFFFFF-0x00000032:R41,D[0-23]':'D[0-59]o/':'D[0-59]/
+
+; let the money string  flow through
+0xFFFFFFFF-0x00000032:R42,'$'D<+>
+0xFFFFFFFF-0x00000032:R43,'$'D<+>'.'D<+>
+
+; let the single upper case character like U.S.A. to go through
+0xFFFFFFFF-0x00000032:R44,S{U<1>'.'}<2-10>
+
+; handle the internet URL syntax
+;0xFFFFFFFF-0x00000032:R46;H130,a/S{'http://','ftp://'}<1>/' '/S{A<1>,D<1>,'-','_','#','/','.',':'}<+>W<1>
+0xFFFFFFFF-0x00000032:R46;H130,a/a/S{'http://','ftp://'}<1>/' '/W~<+>/0x0B/
+
+; handle the internet smiling face syntax
+0xFFFFFFFF-0x00000032:R47,r/o/'{'/S{':-)',':)',':^)'}<1>/'smile!'/W<+>
+
+; turn the ":" become a long pulse. it make more sense
+;0xFFFFFFFF-0x00000032:R48,A<+>r/':'/'.'/
+
+;replace long(more than 4) symbol with a pause
+0xFFFFFFFF-0x00000032:R51,r/P<5-*>/' '0x80'.'0x81' '/
+
+; save c++
+0xFFFFFFFF-0x00000032:R52,`c`'++'
+
+; eat away single punctuation
+0xFFFFFFFF-0x00000032:R53,P<1>
+
+; punct some multiple deletion  ??? -> ?   ... -> .
+;!0xFFFFFFFF-0x00000032:R55;H55,W~<*>($1,E<1>)d/S{$1}<+>/W~<*>
+
+; let something like "Inc.," to pass through without breaking
+0xFFFFFFFF-0x00000032:R56,A<+>'.,'
+
+; punct some multiple deletion  ### -> #   ==== -> =
+0xFFFFFFFF-0x00000032:R57;H60,W~<*>($1,P<1>)d/S{$1}<+>/W~<*>
+; punct some rule. insert a space before all mid word puncutation
+; convert to end word punctuation
+0xFFFFFFFF-0x00000032:R60;H53;M63,W~<*>b/a/Ex<1>/' '//' '/W~<+>
+; convert to end word punctuation
+0xFFFFFFFF-0x00000032:R63;H53,W~<*>b/a/Tx<1>/' '//' '/W~<*>
+
+; convert to end word punctuation
+;!0xFFFFFFFF-0x00000032:R73;H74,a/P<+>/' '/W~<+>
+; punct some rule. delete all { < [ ( ' " before a word 
+;   probably unneeded but just in case or makes another rule unneeded
+;!0xFFFFFFFF-0x00000032:R74,h/punct_before_change,P<1>/r/$7/$9/|a/$7/' '//W~<*>
+
+;punctuation none mode   000001
+
+; punct none multiple deletion  ### -> #   ==== -> =
+0xFFFFFFFF-0x00000001:R100;H101,W~<*>($1,P<1>)d/S{$1}<+>/W~<*>
+; save clause mark at the end.
+0xFFFFFFFF-0x00000001:R101;M102;H120,S{A<+>,D<+>}<+>E<1>
+; replace a all punct with a space
+; avert lookahead for speed 
+0xFFFFFFFF-0x00000001:R102;H102;M120,W~<*>r/Px<+>/' '/W~<*>
+STOP,R120
+
+; replace "." with "dot", "/" with "slash"
+;0xFFFFFFFF-0x00000032:R130;H130,C<+>r/S{'.','/'}<1>/' dot '|' slash '/C<+>
+0x00000001-0x00000032:R130;H130,C<+>r/'.'/' dot '/W~<+>
+0x00000004-0x00000032:R131;H131,C<+>r/'.'/' Punkt '/W~<+>
+0x00000008-0x00000032:R132;H132,C<+>r/'.'/' punto '/W~<+>
+STOP,R140
+
+
+[RULE]
+; German Rules 0x00000004
+; rule number 400 - 499
+0x00000004-0xFFFFFFFF:R400,Dx[0-23]r/($1,S{',',':'}<1>)/':'/Dx[0-59]o/r/$1/':'/Dx[0-59]/W<0-3>d/S{'U'`hr`,`h.`,`h`}<1>/
+;  german dates  DD/MM/YYYY or DD/MM/YY
+0x00000004-0xFFFFFFFF:R401,Dx[1-31]r/($1,S{'/','-','.'}<1>)/'-'/h/german_months,Dx[1-12]/r/$7/$9/|FAIL/r/$1/'-'/D<2,4>
+;  german .wav need to pronunce as .wehv
+0x00000004-0xFFFFFFFF:R402,r/'wav'/'wehv'/
+;  german .wav need to pronunce as .wehv
+0x00000004-0xFFFFFFFF:R403,r/'DM'/'D Mark'/
+
+;Spanish Rules 0x00000008
+; rule numbers 500 - 599                 
+;  spanish dates  DD/MM/YYYY or DD/MM/YY
+0x00000008-0xFFFFFFFF:R500,Dx[1-31]r/($1,S{'/','-','.'}<1>)/'-'/h/spanish_months,Dx[1-12]/r/$7/$9/|FAIL/r/$1/'-'/D<2,4>
+
+
+;English Rules 0x00000001
+;Rule numbers 300 - 399
+;  /* 11-13 St. -> (11-13)th St. */
+;0x00000001-0xFFFFFFFF:R305,a/D[11-13]/'th'/W<+>S{`st.`,`ave.`,`dr.`}<1>
+;  /* 42 St. -> 42nd St. */
+;0x00000001-0xFFFFFFFF:R306,a/Dx<1-4>/'th'|'st'|'nd'|'rd'|'th'|'th'|'th'|'th'|'th'|'th'/r/W<1-4>/' '/S{`st.`,`ave.`,`dr.`}<1>
+
+; change "1 Aug" become "Aug 1"
+0x00000001-0xFFFFFFFF:R308;H309,d/($1,D[1-31])/W<+>a/h/month_words,U<1>L<2>/a/$7/'.'/|FAIL//' '$1/
+; check for abbr. for Month without period
+0x00000001-0xFFFFFFFF:R309;H310,h/month_words,U<1>L<2>/a/$7/'.'/|FAIL/W<+>D<1-4>o/','/
+;  /* Date format as Jan. 11-13, */
+0x00000001-0xFFFFFFFF:R310,h/month_words,U<1>L<2>/c/$7/|FAIL/o/'.'/W<+>a/Dx[11-13]/'th'/o/','/
+;  /* Date format as Jan. 1, */
+0x00000001-0xFFFFFFFF:R311,h/month_words,U<1>L<2>/c/$7/|FAIL/o/'.'/W<+>a/Dx[1-31]/'th'|'st'|'nd'|'rd'|'th'|'th'|'th'|'th'|'th'|'th'/o/','/
+;  /* dates */	/* 5/10/96  5-10-96 */
+0x00000001-0xFFFFFFFF:R312,d/($1,h/english_months,Dx[1-12]/r/$7/$9/|FAIL/)($2,S{'/','-'}<1>)/Dx[1-31]r/$2/'-'$1'-'/D<2,4>
+;  /* Dr. Lin  DR. Lin  Dr. LIN  DR. LIN (cover in ls_task.c)  */ 
+;!0x00000001-0xFFFFFFFF:R315,r/'D'`r.`/'Doctor'/r/Wx<+>/' '/U<1>A<+>
+;  /* St. John  ST. John  St. JOHN  ST. JOHN  (cover in ls_task.c )*/
+;!0x00000001-0xFFFFFFFF:R316,r/'S'`t.`/'Saint'/r/Wx<+>/' '/U<1>A<+>
+
+;  /* state and zip code */
+;  /*0x00000001-0xFFFFFFFF:R5,U<2>W<1-4>i/D<5>/' '/o/r/'-'/' dash '/i/D<4>/' '//, */
+0x00000001-0xFFFFFFFF:R327,a/h/states,U<2>/r/$7/$9/|FAIL/Wx<1-4>i/Dx<5>/' '/o/r/'-'/' dash '/i/Dx<4>/' '///' '0x80','0x81/
+
+; /* for no [:mode eur on] case */
+; /* v4.2bw-x01 -> V 4 point 2 B W "
+; note: i/A<*>/' '/ will hang !!!!!
+;!0x00000001-0xFFFFFFF7:R328,C<*>D<+>r/'.'/' point '/D<+>A<1>
+0x00000001-0xFFFFFFF7:R328,A<*>b/D<+>/' '/r/' . '/' point '/a/D<+>/' '/o/A<1>C<*>/
+;!0x00000001-0xFFFFFFF7:R328,i/A<*>/' '/b/D<+>/' '/r/'.'/' point '/a/D<+>/' '/i/D~<1>C<*>/' '/
+
+; file name  to replace . with dot"
+;!0x0000000F-0xFFFFFFFF:R339,A<*>r/' . '/' dot '/A<+>
+0x00000001-0xFFFFFFFF:R339;H342,r/'. '/'dot '/A<+>
+0x00000004-0xFFFFFFFF:R340;H342,r/'. '/'Punkt '/A<+>
+0x00000008-0xFFFFFFFF:R341;H342,r/'. '/'punto '/A<+>
+
+; process the file name text
+0x00000001-0xFFFFFFFF:R342,i/O<6>A<+>/' '/
+
+; process the compound words before word get eaten
+; 6 characters prefix
+0x00000001-0xFFFFFFFF:R345;DM,h/6_c_words,A<6>/r/$7/$9/|FAIL/O<+>V<1>A<*>
+; 5 characters prefix
+0x00000001-0xFFFFFFFF:R346;DM,h/5_c_words,A<5>/r/$7/$9/|FAIL/O<+>V<1>A<*>
+; 4 characters prefix
+0x00000001-0xFFFFFFFF:R347;DM,h/4_c_words,A<4>/r/$7/$9/|FAIL/O<+>V<1>A<*>
+; 3 characters prefix
+0x00000001-0xFFFFFFFF:R348;DM,h/3_c_words,A<3>/r/$7/$9/|FAIL/O<1>A<+>
+; 2 characters prefix
+0x00000001-0xFFFFFFFF:R349;DM,h/2_c_words,A<2>/r/$7/$9/|FAIL/A<+>
+
+; suffix compound word
+;!0x00000001-0xFFFFFFFF:R350;DM,A<*>V<1>A<*>O<1>h/4_c_words_s,A<4>W<1>/r/$7/$9/|FAIL/
+
+; 3 characters special
+0x00000001-0xFFFFFFFF:R351;DM,h/3_s_words,A<3>/r/$7/$9/|FAIL/A<+>
+
+; illegal cluster , insert "-"
+;!0x00000001-0xFFFFFFFF:R360;DM,A<+>i/S{`yf`,`rs`,`kd`}<1>/'-'/A<+>
+
+; check for abbr. for Day
+0x00000001-0xFFFFFFFF:R371,h/day_words,U<1>L<2>/r/$7/$9/|FAIL/
+
+; check for abbr. for Time
+0x00000001-0xFFFFFFFF:R372,o/'('/h/time_words,U<3>/r/$7/$9/|FAIL/o/')'/
+
+; check for e-mail , URL domain directionary
+0x0000000F-0xFFFFFFFF:R375,h/inte_words,A<+>/r/$7/$9/|FAIL/
+
+; check com,org, mil and net  pronunance them
+0x00000001-0xFFFFFFFF:R376,S{'com','org','net','mil'}<1>o/' : 'D<+>/r/'/'/' / '/C<+>
+; check for e-mail format, 
+0x00000001-0xFFFFFFFF:R377,i/A<2-3>/' '/o/' : 'D<+>/'/'A<+>
+;0x00000001-0xFFFFFFFF:R377,i/A<2>/' '/o/' : 'D<+>/'/'A<+>
+; check for e-mail format, break away the last part if it is two characters
+0x00000001-0xFFFFFFFF:R378,'dot 'i/A<2>/' '/
+; check for e-mail format, break away the last part if it is two characters
+0x00000004-0xFFFFFFFF:R379,'Punkt 'i/A<2>/' '/
+; check for e-mail format, break away the last part if it is two characters
+0x00000008-0xFFFFFFFF:R380,'punto 'i/A<2>/' '/
+
+; check for e-mail format, break away the last part if it is edu,gov
+0x00000001-0xFFFFFFFF:R381,'dot 'i/S{'edu','gov'}<1>/' '/
+; check for e-mail format, break away the last part if it is edu,gov
+0x00000004-0xFFFFFFFF:R382,'Punkt 'i/S{'edu','gov'}<1>/' '/
+; check for e-mail format, break away the last part if it is edu,gov
+0x00000008-0xFFFFFFFF:R383,'punto 'i/S{'edu','gov'}<1>/' '/
+
+; change w/o become "without"
+0x00000001-0xFFFFFFFF:R384,r/'w/o'/'without'/
+; change btw become "by the way"
+0x00000001-0xFFFFFFFF:R385,r/'btw'/'by the way'/
+; change rec'd become "received"
+0x00000001-0xFFFFFFFF:R386,r/'rec\'d'/'received'/
+
+
+; break away any left over "xxx/yyyy" to "xxx / yyyy"
+0x00000001-0xFFFFFFFF:R388,S{A<2-3>,D<+>}<1>r/'/'/' / '/A<1>C<*>
+
+; catch all regular word, so parser can scan from next word
+0xFFFFFFFF-0xFFFFFFFF:R390,c/A<+>/
+
+
+
+; common rules
+; rule nubmers 200 - 299
+
+;  /* phone number 1-508-555-1212  and 508-555-1212 */
+;  need for all local language to support the possible US phone number.
+0x0000000F-0xFFFFFFFF:R204,o/'1'r/'-'/', '//i/D<3>/' '/r/'-'/', '/i/Dx[2-9]D<2>/' '/r/'-'/', '/a/i/Dx<4>/' '//0x80'.'0x81/ 
+;  /* phone number 1 508 555 1212  and 508 555 1212 */
+0x0000000F-0xFFFFFFFF:R205,o/'1'r/' '/', '//i/D<3>/' '/r/' '/', '/i/Dx[2-9]D<2>/' '/r/' '/', '/a/i/Dx<4>/' '//0x80'.'0x81/
+;  /* phone number  (508)555-1212 (508) 555-1212 (508)555 1212 (508) 555 1212 */
+;  /* (508)5551212 (508) 5551212 */
+;!0x0000000F-0xFFFFFFFF:R206,d/'('/i/D<3>/' '/r/')'W<*>/', '/i/Dx[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/a/i/Dx<4>/' '//0x80'.'0x81/
+0x0000000F-0xFFFFFFFF:R206,a/i/D<3>/' '//' '/W<*>i/Dx[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/a/i/Dx<4>/' '//0x80'.'0x81/
+;  /* phone number 15085551212 and 5085551212 */
+0x00000001-0xFFFFFFFF:R207,o/a/'1'/', '//a/i/Dx[2-9]D<2>/' '//', '/a/i/Dx[2-9]D<2>/' '//', '/a/i/Dx<4>/' '//0x80'.'0x81/
+;  /* phone number 555-1212   555 1212  5551212 */
+0x00000001-0xFFFFFFFF:R208,i/D[2-9]D<2>/' '/r/S{'-',' ',''}<1>/', '/a/i/D<4>/' '//0x80'.'0x81/
+
+
+; more punct some rule here
+
+; change e-mail become "e mail" 
+0xFFFFFFFF-0xFFFFFFFF:R221,r/'e-mail'/'e mail'/
+; catch all compound word connected with -
+0xFFFFFFFF-0xFFFFFFFF:R222;H223;DM,A<+>S{A<+>,'-'}<+>
+; change x-y to x dash y
+0x00000001-0xFFFFFFFF:R223;H224;DM,A<1>r/'-'/' dash '/A<+>
+; change a-y to eyh dash y
+0x00000001-0xFFFFFFFF:R224;DM,r/`a dash `/'eyh  dash '/A<+>
+
+; insert a space before all mid word puncutation
+; convert to end word clause bountary "test,test" become "test, test"
+0xFFFFFFFF-0xFFFFFFFF:R230;H235,D~<+>a/Ex<1>/' '/A<+>
+; convert to end word punctuation "test,,,test" become "test , test"
+;!0xFFFFFFFF-0xFFFFFFFF:R231;H235,D~<*>b/a/Px<1>/' '//' '/A<+>
+; remove the leading punct if still there
+;!0xFFFFFFFF-0xFFFFFFFF:R231;H235;DM,D~<*>d/Px<1>/A<+>
+; restore "I ' ve" to "I've".  It is a patch but...
+;!0xFFFFFFFF-0xFFFFFFFF:R235,D~<+>r/' '0x27' '/0x27/A<+>
+; convert "NBC's" to "NBC[z]".
+0xFFFFFFFF-0xFFFFFFFF:R235,O<+>r/'\'s'/0x80'z'0x81/
+
+;  /* put space between Alphabet and digit. */
+;!0xFFFFFFFF-0xFFFFFFFF:R240,A<*>b/a/D<+>/' '//' '/A<*>
+
+STOP,R299
+
+
+
+[DICT,punct_del]
+(~
+)~
+¿~
+¡~
+"~
+$~
+%~
+
+[DICT,punct_del_more]
+(~
+)~
+¿~
+¡~
+"~
+'~
+-~
+/~
+
+
+
+[dict,punct_match]
+{~}
+\[~\]
+(~)
+<~>
+"~"
+'~'
+[dict,punct_before_change]
+{~
+\[~
+(~
+<~
+"~
+'~
+[dict,punct_after_change]
+}~
+\]~
+)~
+>~
+"~
+[dict,clause_b's]
+!~[!] 
+?~[?] 
+:~[,] 
+\;~[,] 
+,~[,] 
+.~[.] 
+
+[DICT,slash_dash]
+/~
+-~
+(~
+
+[DICT,mid_clause]
+!~
+?~
+:~
+\;~
+
+[dict,ordinals]
+0th~
+1st~
+2nd~
+3rd~
+4th~
+5th~
+6th~
+7th~
+8th~
+9th~
+
+[dict,states]
+AL~Alabama
+AK~Alaska
+AR~Arkansas
+AZ~Arizona
+CA~California
+CO~Colorado
+CT~Connecticut
+DC~District of Columbia
+DE~Delaware
+FL~Florida
+GA~Georgia
+HI~Hawaii
+IA~Iowa
+ID~Idaho
+IL~Illinois
+IN~Indiana
+KS~Kansas
+KY~Kentucky
+LA~Louisiana
+ME~Maine
+MD~Maryland
+MA~Massachusetts
+MI~Michigan
+MN~Minnesota
+MS~Mississippi
+MO~Missouri
+MT~Montana
+NE~Nebraska
+NV~Nevada
+NH~New Hampshire
+NJ~New Jersey
+NM~New Mexico
+NY~New York
+NC~North Carolina
+ND~North Dakota
+OH~Ohio
+OK~Oklahoma
+OR~Oregon
+PA~Pennsylvania
+RI~Rhode Island
+SC~South Carolina
+SD~South Dakota
+TN~Tennessee
+TX~Texas
+UT~Utah
+VT~Vermont
+VA~Virginia
+WA~Washington
+WV~West Virginia
+WI~Wisconsin
+WY~Wyoming
+
+[DICT,spanish_months]
+1~ene
+2~feb
+3~mar
+4~abr
+5~may
+6~jun
+7~jul
+8~ago
+9~sep
+01~ene
+02~feb
+03~mar
+04~abr
+05~may
+06~jun
+07~jul
+08~ago
+09~sep
+10~oct
+11~nov
+12~dic
+
+[DICT,german_months]
+1~jan
+2~feb
+3~mär
+4~apr
+5~mai
+6~jun
+7~jul
+8~aug
+9~sep
+01~jan
+02~feb
+03~mär
+04~apr
+05~mai
+06~jun
+07~jul
+08~aug
+09~sep
+10~okt
+11~nov
+12~dez
+
+[DICT,english_months]
+1~jan
+2~feb
+3~mar
+4~apr
+5~may
+6~jun
+7~jul
+8~aug
+9~sep
+01~jan
+02~feb
+03~mar
+04~apr
+05~may
+06~jun
+07~jul
+08~aug
+09~sep
+10~oct
+11~nov
+12~dec
+
+[DICT,3_letter_email]
+org~org
+mit~m i t
+
+[DICT,4_letter_email]
+enmu~e n m u
+nmsu~n m s u
+hnmu~h n m u
+enet~e net
+
+[DICT,6_c_words]
+health~health-
+little~little-
+roller~roller-
+worker~worker-
+
+[DICT,5_c_words]
+apple~apple-
+alpha~alpha-
+black~black-
+brook~brook-
+cedar~cedar-
+dream~dream-
+green~green-
+metro~metro-
+
+[DICT,4_c_words]
+best~best-
+beta~beta-
+baby~baby-
+ball~ball-
+budy~budy-
+blue~blue-
+fair~fair-[']
+fire~[']fire-
+flex~flex-
+folk~folk-
+gate~gate-
+good~good-
+hair~hair-
+hill~hill-
+home~home-
+land~land-
+read~read-
+work~work-
+
+[DICT,3_c_words]
+big~big-
+red~red-
+sun~sun-
+
+[DICT,2_c_words]
+ck~ck-
+cv~cv-
+df~df-
+lt~lt-
+kf~kf-
+tb~tb-
+tj~tj-
+
+[DICT,5_c_words_s]
+brook~-brook
+
+[DICT,4_c_words_s]
+folk~-folk
+leaf~-leaf
+
+[DICT,3_s_words]
+aaa~eyh eyh eyh 
+abc~eyh bee cee
+sun~sun-
+
+[DICT,inte_words]
+API~A.P.I.
+URL~U R L
+aol~A.O.L.
+hlo~h l o
+mro~m r o
+mko~m k o
+mso~m s o
+zko~z k o
+pko~p k o
+exe~x e
+enet~e net
+dtdemo~dt demo
+
+[DICT,month_words]
+Jan~
+Feb~
+Mar~
+Apr~
+May~
+Jun~
+Jul~
+Aug~
+Sep~
+Oct~
+Nov~
+Dec~
+
+[DICT,day_words]
+Mon~Monday
+Tue~Tuesday
+Wed~Wednesday
+Thu~Thursday
+Fri~Friday
+Sat~Saturday
+Sun~Sunday
+
+[DICT,time_words]
+PDT~pacific daylight time
+PST~pacific standard time
+WDT~western daylight time
+WST~western standard time
+CDT~central daylight time
+CST~central standard time
+MDT~mountain daylight time
+MST~mountain standard time
+EDT~eastern daylight time
+EST~eastern standard time
+ADT~atlantic daylight time
+AST~atlantic standard time
+
