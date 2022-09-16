@@ -1,0 +1,106 @@
+
+
+		DECtalk PC and SCSI II/CD ROM Readers.
+
+We have found that there might be a time when your SCSI II adapter and/or
+CD ROM Reader and will not work when a DECtalk PC is installed. The problem 
+accures when the DECtalk PC is at a I/O adress used by the SCSI II adapter.
+If the adapter driver finds a DECtalk PC at an I/O address it wants to use,
+it may hang the system.  Additionally the utility DT_CONF.EXE trys to find 
+and initialize any DECTALK PC modules at the following I/O base addresses: 
+240, 250, 340 and 350. If the adapter for the CD ROM Reader also uses one of
+these I/O base addresses for a "mailbox", DECtalk's DT_CONF.EXE utility will
+try to query it an it will no longer work.
+
+In order to work around this conflict we have added switches to the DT_CONF
+and DT_DRIV commands which cause the DECtalk to be initialized only at a 
+single otherwise unused I/O address.
+
+If you find you are having a problem getting your system to boot or 
+accessing your CD ROM Reader after installing the DECtalk PC, power down 
+your PC and remove the DECtalk. Reboot your system to insure that it boots 
+up satisfactorily and check the CDs operatin to insure that it is the
+DECtalk PC causing the problem.
+
+If it is, you will need to change the switch settings on your DECtalk to
+correspond to the I/O address you want to use.  There isn't any hard and 
+fast rule as to which address is open in your PC.  If you have a 
+SoundBlaster 16 card with a SCSI II interface card in your PC, address 250
+has worked.  The I/O adresses used depends on what SCSI adapter you are
+using, e.g. Adaptek, Trantor, Ultrastor, etc, or your CD ROM Reader may come
+with its own adapter card or your sound card may have an adapter built-in.
+
+Determining which I/O addresses are used by the various devices in your PC
+can be a challenge.  A proposed procedure for finding out which ones are
+used is as follows:
+
+1. Many devices when they install their drivers at boot up will report
+on the screen what I/O address they are using.  This information will
+usually scroll by too quickly to be read.  MS-DOS V6.x provides the
+capability to individually run each command line in the PC's CONFIG.SYS
+and AUTOEXEC.BAT files at startup.
+
+To utilize this feature reboot your system.  When the "Starting MS-DOS..."
+message appears on the screen, quickly press the F8 key.  You will be 
+prompted before each line in the files before they are executed.  Press the
+"Y" key when you are prompted with a new line.  After the line has been
+executed you will normally be given information back as a result of 
+executing that line.  The ones to particularly observe are the commands 
+which are the drivers for adapters/options which are installed in your PC.
+When these drivers are initiated they will report back as to what system
+resoures they are using such as COM/LPT ports, IRQs and I/O addresses.  Take
+note as to which I/O address are being used.  For instance a Sound Blaster
+16 with a SCSI II interface adapter for a CD ROM could utilize I/O address
+240 for the sound card and 340 for the SCSI II interface.  In this 
+particular case we found that we could also not use I/O address 350 even
+though we could not determine if any device was using it.  The reason for 
+this is that the sound card uses 340 and part of 350.
+
+2. Select the first I/O adress that does not seem to be used by any 
+other device.  In the example above, we selected I/O address 250 because
+it seemed to be the best candidate.  To have the DECtalk only use this I/O
+address during system boot we needed to add "switches" to command lines
+in two files.  You do this by editin the DT.bat file in the DECtalk's file
+directory (the default directory is DECTALK) and both the CONFIG.SYS and
+AUTOEXEC.BAT files in the system root directory (usually c:\).  On the lines
+that say DT_CONF and DT_DRIV -C, add the -b xxx switch where xxx is the 
+selected base I/O address.  For example, in the case we have been describing
+where we have selected I/O address 250, the command lines would look like:
+
+	DT_CONF 
+	Dt_DRIV -C -B 250
+
+Save the files after you have edited them.
+
+3. You will also need to set the selected I/O address on the DECtalk PC
+board.  Locate teh switch pack on the board and set the swiches accordingly.
+The Install/User Guide describes how to set the switches and what are the 
+available switch settings.  In the case described, I/O address 250 was set
+by setting switch 6 to ON and all the rest to OFF.  You should now turn off 
+your PC and reinstall the DECtalk PC making sure that the speaker is plugged
+in.  Restart the computer and repeat teh line-by-line boot process described
+above.  Observe the same driver load lines as before and be sure that each
+appears to load satisfactorily.  If a particular device doesn't appear to
+load satisfactorily or the system stops when you try to run a line, then 
+their is probably still a conflict between the device's settings and the
+DECtalk's.
+
+4. Referring to the device's installatin manual may provide information
+as to the I/O address it uses as defaults and what other addresses can be
+set.  Try changing the device's I/O address to one not available on the
+DECtalk and not used by another device.
+
+5. Repeat this process until you get a satisfactory system startup and the
+DECtalk speaks its startup message and you can access the CD ROMs directory.
+
+
+MULTIPLE DECTALK PC BOARDS.
+
+If you are running more than one DECtalk PC card in your system your 
+DT.BAT and AUTOEXEC.BAT file(s) should include the base address of each 
+card.  For cards that are set at I/O addresses 240 and 350 the command
+lines would look like:
+
+	DT_CONF  
+	DT_DRIV -c -B 240 -c -b 350
+

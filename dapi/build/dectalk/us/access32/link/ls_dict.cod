@@ -1,0 +1,5784 @@
+	TITLE	D:\work\Product\dapi\src\Lts\ls_dict.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_ls_dict_blook
+PUBLIC	_ls_dict_find_word
+PUBLIC	_ls_dict_ufind_word
+EXTRN	_ls_lower:BYTE
+EXTRN	_ls_char_feat:BYTE
+EXTRN	_ls_suff_suffix_find:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_type$ = 20
+_str_end$ = 12
+_pKsd_t$ = 8
+_ls_dict_blook PROC NEAR
+
+; 119  : 	int	i; /* j not used ...tek 9/18/95 */
+; 120  : 	unsigned char  __far *str_end;                                      
+; 121  : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 122  : 	PLTS_T pLts_t = phTTS->pLTSThreadData;
+; 123  : 	
+; 124  : 	/*
+; 125  : 	 *  if this is a single character lookup, do it quickly since we usually have
+; 126  : 	 *  a lot of them to do ...
+; 127  : 	 */
+; 128  : 
+; 129  : 	pLts_t->abbrev_look = pLts_t->no_pars = FALSE;
+; 130  : 	pLts_t->str_vowel = 0;
+; 131  : 	pLts_t->hit_type=MISS;
+; 132  : 	if((type == SINGLE_CHAR) || (pKsd_t->sayflag == SAY_LETTER) || (pKsd_t->sayflag == SAY_FLETTER))
+
+  00000	8b 54 24 10	 mov	 edx, DWORD PTR _type$[esp-4]
+  00004	53		 push	 ebx
+  00005	8b 5c 24 08	 mov	 ebx, DWORD PTR _phTTS$[esp]
+  00009	55		 push	 ebp
+  0000a	56		 push	 esi
+  0000b	57		 push	 edi
+  0000c	8b 73 10	 mov	 esi, DWORD PTR [ebx+16]
+  0000f	8b 7b 08	 mov	 edi, DWORD PTR [ebx+8]
+  00012	33 ed		 xor	 ebp, ebp
+  00014	83 fa 04	 cmp	 edx, 4
+  00017	89 7c 24 14	 mov	 DWORD PTR _pKsd_t$[esp+12], edi
+  0001b	89 ae f0 08 00
+	00		 mov	 DWORD PTR [esi+2288], ebp
+  00021	89 ae f4 08 00
+	00		 mov	 DWORD PTR [esi+2292], ebp
+  00027	89 ae b8 04 00
+	00		 mov	 DWORD PTR [esi+1208], ebp
+  0002d	89 ae 28 0b 00
+	00		 mov	 DWORD PTR [esi+2856], ebp
+  00033	0f 84 29 02 00
+	00		 je	 $L71792
+  00039	8b 87 c8 03 00
+	00		 mov	 eax, DWORD PTR [edi+968]
+  0003f	83 f8 02	 cmp	 eax, 2
+  00042	0f 84 1a 02 00
+	00		 je	 $L71792
+  00048	83 f8 10	 cmp	 eax, 16			; 00000010H
+  0004b	0f 84 11 02 00
+	00		 je	 $L71792
+
+; 164  : 	}
+; 165  : 
+; 166  : 	/*
+; 167  : 	 *  standard lookup ... set up the parameters ...
+; 168  : 	 */
+; 169  : 
+; 170  : 	if(type == FABBREV)
+
+  00051	b8 01 00 00 00	 mov	 eax, 1
+  00056	3b d0		 cmp	 edx, eax
+  00058	75 08		 jne	 SHORT $L71798
+
+; 171  : 	{
+; 172  : 		pLts_t->abbrev_look = TRUE;
+
+  0005a	89 86 f4 08 00
+	00		 mov	 DWORD PTR [esi+2292], eax
+
+; 173  : 	}
+; 174  : 	else
+
+  00060	eb 0b		 jmp	 SHORT $L71800
+$L71798:
+
+; 175  : 	{
+; 176  : 		if(type == SNOPARS)
+
+  00062	83 fa 03	 cmp	 edx, 3
+  00065	75 06		 jne	 SHORT $L71800
+
+; 177  : 			pLts_t->no_pars = TRUE;
+
+  00067	89 86 f0 08 00
+	00		 mov	 DWORD PTR [esi+2288], eax
+$L71800:
+
+; 178  : 	}
+; 179  : 	/* 4/94 eab if suffix stripper has eaten the whole word abandon ship*/
+; 180  : 
+; 181  : 	if(llp == rlp)
+
+  0006d	8b 7c 24 18	 mov	 edi, DWORD PTR _llp$[esp+12]
+  00071	8b 4c 24 1c	 mov	 ecx, DWORD PTR _rlp$[esp+12]
+  00075	3b f9		 cmp	 edi, ecx
+
+; 182  : 	{
+; 183  : 		return(MISS);
+
+  00077	0f 84 60 02 00
+	00		 je	 $L71832
+
+; 184  : 	}
+; 185  : 	for(i=0;llp < rlp;i++)
+
+  0007d	73 34		 jae	 SHORT $L71804
+$L71802:
+
+; 186  : 	{
+; 187  : 		pLts_t->comp_str[i] = (unsigned char)((*llp++).l_ch);
+
+  0007f	8a 17		 mov	 dl, BYTE PTR [edi]
+  00081	8d 84 2e 38 04
+	00 00		 lea	 eax, DWORD PTR [esi+ebp+1080]
+  00088	83 c7 02	 add	 edi, 2
+  0008b	88 10		 mov	 BYTE PTR [eax], dl
+
+; 188  : 		if(pLts_t->str_vowel == 0)
+
+  0008d	8b 96 b8 04 00
+	00		 mov	 edx, DWORD PTR [esi+1208]
+  00093	85 d2		 test	 edx, edx
+  00095	75 13		 jne	 SHORT $L71803
+
+; 189  : 		{
+; 190  : 			if(IS_VOWEL(pLts_t->comp_str[i]))
+
+  00097	33 d2		 xor	 edx, edx
+  00099	8a 10		 mov	 dl, BYTE PTR [eax]
+  0009b	f6 82 00 00 00
+	00 40		 test	 BYTE PTR _ls_char_feat[edx], 64 ; 00000040H
+  000a2	74 06		 je	 SHORT $L71803
+
+; 191  : 				pLts_t->str_vowel = &pLts_t->comp_str[i];
+
+  000a4	89 86 b8 04 00
+	00		 mov	 DWORD PTR [esi+1208], eax
+$L71803:
+
+; 184  : 	}
+; 185  : 	for(i=0;llp < rlp;i++)
+
+  000aa	45		 inc	 ebp
+  000ab	3b f9		 cmp	 edi, ecx
+  000ad	72 d0		 jb	 SHORT $L71802
+  000af	8b 54 24 20	 mov	 edx, DWORD PTR _type$[esp+12]
+$L71804:
+
+; 192  : 		}
+; 193  : 	}
+; 194  : 
+; 195  : 	pLts_t->comp_str[i] = 0;
+; 196  : 	str_end = &pLts_t->comp_str[i-1];
+
+  000b3	8d 84 2e 37 04
+	00 00		 lea	 eax, DWORD PTR [esi+ebp+1079]
+  000ba	8d bc 2e 38 04
+	00 00		 lea	 edi, DWORD PTR [esi+ebp+1080]
+  000c1	89 44 24 18	 mov	 DWORD PTR _str_end$[esp+12], eax
+
+; 197  : 	/*
+; 198  : 	 *  try the abbrev and user dictionary first if they are loaded ...
+; 199  : 	 */
+; 200  : 	/* 
+; 201  : 	   GL 06/23/1997  BATS#393 support the abbreviation search for user
+; 202  : 	   dictionary by appending the period before search then remove it
+; 203  : 	   before moving forward to master dictionary search
+; 204  : 	*/
+; 205  : 	/* 
+; 206  : 	   GL 10/08/1997  BATS#487 fix the ending period crash problem
+; 207  : 	   since we support the period(like abbreviation) in the user
+; 208  : 	   dictionary now, any words with ending period need to try with and
+; 209  : 	   without period to cover all the possible cases
+; 210  : 	 */
+; 211  : 	if(UDICT_ENTRY != 0)
+
+  000c5	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+12]
+  000c9	c6 07 00	 mov	 BYTE PTR [edi], 0
+  000cc	8b 88 a8 00 00
+	00		 mov	 ecx, DWORD PTR [eax+168]
+  000d2	85 c9		 test	 ecx, ecx
+  000d4	74 5d		 je	 SHORT $L71814
+
+; 212  : 	{
+; 213  : 		if(type == FABBREV)
+
+  000d6	83 fa 01	 cmp	 edx, 1
+  000d9	75 39		 jne	 SHORT $L71809
+
+; 214  : 		{
+; 215  : 			pLts_t->comp_str[i] = '.';
+; 216  : 			pLts_t->comp_str[i+1] = 0;
+; 217  : 			str_end = &pLts_t->comp_str[i];
+; 218  : #ifdef GERMAN
+; 219  : 			if(ls_dict_ufind_word(phTTS,0,0) == HIT)
+; 220  : #else
+; 221  : 			if(ls_dict_ufind_word(phTTS,0) == HIT)
+
+  000db	6a 00		 push	 0
+  000dd	c6 07 2e	 mov	 BYTE PTR [edi], 46	; 0000002eH
+  000e0	53		 push	 ebx
+  000e1	c6 84 2e 39 04
+	00 00 00	 mov	 BYTE PTR [esi+ebp+1081], 0
+  000e9	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  000ee	83 c4 08	 add	 esp, 8
+  000f1	83 f8 01	 cmp	 eax, 1
+
+; 222  : #endif
+; 223  : 			{
+; 224  : 				/* restore the original word structure */
+; 225  : 				pLts_t->comp_str[i] = 0;
+
+  000f4	c6 07 00	 mov	 BYTE PTR [edi], 0
+  000f7	75 10		 jne	 SHORT $L71810
+
+; 226  : 				str_end = &pLts_t->comp_str[i-1];
+; 227  : 				pLts_t->hit_type = ABBREV;
+
+  000f9	b8 02 00 00 00	 mov	 eax, 2
+  000fe	5f		 pop	 edi
+  000ff	89 86 28 0b 00
+	00		 mov	 DWORD PTR [esi+2856], eax
+  00105	5e		 pop	 esi
+  00106	5d		 pop	 ebp
+  00107	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  00108	c3		 ret	 0
+$L71810:
+
+; 228  : 
+; 229  : #ifdef DICDEBUG
+; 230  : 				printf("*");
+; 231  : #endif /*DICDEBUG*/
+; 232  : 				return(pLts_t->hit_type);
+; 233  : 			}
+; 234  : 			else
+; 235  : 			{
+; 236  : 				/* restore the original word structure */
+; 237  : 				/* Try again without the period. */
+; 238  : 				pLts_t->comp_str[i] = 0;
+; 239  : 				str_end = &pLts_t->comp_str[i-1];
+
+  00109	8d 84 2e 37 04
+	00 00		 lea	 eax, DWORD PTR [esi+ebp+1079]
+  00110	89 44 24 18	 mov	 DWORD PTR _str_end$[esp+12], eax
+$L71809:
+
+; 240  : #ifdef GERMAN
+; 241  : 				if(ls_dict_ufind_word(phTTS,0,0) == HIT)
+; 242  : #else
+; 243  : 				if(ls_dict_ufind_word(phTTS,0) == HIT)
+
+  00114	6a 00		 push	 0
+  00116	53		 push	 ebx
+  00117	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  0011c	83 c4 08	 add	 esp, 8
+  0011f	83 f8 01	 cmp	 eax, 1
+  00122	75 0b		 jne	 SHORT $L72353
+
+; 244  : #endif
+; 245  : 				{
+; 246  : 					pLts_t->hit_type = HIT;
+
+  00124	89 86 28 0b 00
+	00		 mov	 DWORD PTR [esi+2856], eax
+  0012a	5f		 pop	 edi
+  0012b	5e		 pop	 esi
+  0012c	5d		 pop	 ebp
+  0012d	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  0012e	c3		 ret	 0
+$L72353:
+
+; 247  : 
+; 248  : #ifdef DICDEBUG
+; 249  : 					printf("*");
+; 250  : #endif /*DICDEBUG*/
+; 251  : 					return(pLts_t->hit_type);
+; 252  : 				}
+; 253  : 			}
+; 254  : 		}
+; 255  : 		else
+; 256  : 		{
+; 257  : #ifdef GERMAN
+; 258  : 			if(ls_dict_ufind_word(phTTS,0,0) == HIT)
+; 259  : #else
+; 260  : 			if(ls_dict_ufind_word(phTTS,0) == HIT)
+; 261  : #endif
+; 262  : 			{
+; 263  : 				pLts_t->hit_type = HIT;
+; 264  : 
+; 265  : #ifdef DICDEBUG
+; 266  : 				printf("*");
+; 267  : #endif /*DICDEBUG*/
+; 268  : 				return(pLts_t->hit_type);
+
+  0012f	8b 54 24 20	 mov	 edx, DWORD PTR _type$[esp+12]
+$L71814:
+
+; 269  : 			}
+; 270  : 		}
+; 271  : 	}
+; 272  : 
+; 273  : 	if(FDICT_ENTRY != 0)
+
+  00133	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+12]
+  00137	8b 81 88 01 00
+	00		 mov	 eax, DWORD PTR [ecx+392]
+  0013d	85 c0		 test	 eax, eax
+  0013f	74 5d		 je	 SHORT $L71821
+
+; 274  : 	{
+; 275  : 		if(type == FABBREV)
+
+  00141	83 fa 01	 cmp	 edx, 1
+  00144	75 39		 jne	 SHORT $L71816
+
+; 276  : 		{
+; 277  : 			pLts_t->comp_str[i] = '.';
+; 278  : 			pLts_t->comp_str[i+1] = 0;
+; 279  : 			str_end = &pLts_t->comp_str[i];
+; 280  : #ifdef GERMAN
+; 281  : 			if(ls_dict_ufind_word(phTTS,2,0) == HIT)
+; 282  : #else
+; 283  : 			if(ls_dict_ufind_word(phTTS,2) == HIT)
+
+  00146	6a 02		 push	 2
+  00148	c6 07 2e	 mov	 BYTE PTR [edi], 46	; 0000002eH
+  0014b	53		 push	 ebx
+  0014c	c6 84 2e 39 04
+	00 00 00	 mov	 BYTE PTR [esi+ebp+1081], 0
+  00154	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  00159	83 c4 08	 add	 esp, 8
+  0015c	83 f8 01	 cmp	 eax, 1
+
+; 284  : #endif
+; 285  : 			{
+; 286  : 				/* restore the original word structure */
+; 287  : 				pLts_t->comp_str[i] = 0;
+
+  0015f	c6 07 00	 mov	 BYTE PTR [edi], 0
+  00162	75 10		 jne	 SHORT $L71817
+
+; 288  : 				str_end = &pLts_t->comp_str[i-1];
+; 289  : 				pLts_t->hit_type = ABBREV;
+
+  00164	b8 02 00 00 00	 mov	 eax, 2
+  00169	5f		 pop	 edi
+  0016a	89 86 28 0b 00
+	00		 mov	 DWORD PTR [esi+2856], eax
+  00170	5e		 pop	 esi
+  00171	5d		 pop	 ebp
+  00172	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  00173	c3		 ret	 0
+$L71817:
+
+; 290  : 
+; 291  : #ifdef DICDEBUG
+; 292  : 				printf("*");
+; 293  : #endif /*DICDEBUG*/
+; 294  : 				return(pLts_t->hit_type);
+; 295  : 			}
+; 296  : 			else
+; 297  : 			{
+; 298  : 				/* restore the original word structure */
+; 299  : 				/* Try again without the period. */
+; 300  : 				pLts_t->comp_str[i] = 0;
+; 301  : 				str_end = &pLts_t->comp_str[i-1];
+
+  00174	8d 84 2e 37 04
+	00 00		 lea	 eax, DWORD PTR [esi+ebp+1079]
+  0017b	89 44 24 18	 mov	 DWORD PTR _str_end$[esp+12], eax
+$L71816:
+
+; 302  : #ifdef GERMAN
+; 303  : 				if(ls_dict_ufind_word(phTTS,2,0) == HIT)
+; 304  : #else
+; 305  : 				if(ls_dict_ufind_word(phTTS,2) == HIT)
+
+  0017f	6a 02		 push	 2
+  00181	53		 push	 ebx
+  00182	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  00187	83 c4 08	 add	 esp, 8
+  0018a	83 f8 01	 cmp	 eax, 1
+  0018d	75 0b		 jne	 SHORT $L72354
+
+; 306  : #endif
+; 307  : 				{
+; 308  : 					pLts_t->hit_type = HIT;
+
+  0018f	89 86 28 0b 00
+	00		 mov	 DWORD PTR [esi+2856], eax
+  00195	5f		 pop	 edi
+  00196	5e		 pop	 esi
+  00197	5d		 pop	 ebp
+  00198	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  00199	c3		 ret	 0
+$L72354:
+
+; 309  : 
+; 310  : #ifdef DICDEBUG
+; 311  : 					printf("*");
+; 312  : #endif /*DICDEBUG*/
+; 313  : 					return(pLts_t->hit_type);
+; 314  : 				}
+; 315  : 			}
+; 316  : 		}
+; 317  : 		else
+; 318  : 		{
+; 319  : #ifdef GERMAN
+; 320  : 			if(ls_dict_ufind_word(phTTS,2,0) == HIT)
+; 321  : #else
+; 322  : 			if(ls_dict_ufind_word(phTTS,2) == HIT)
+; 323  : #endif
+; 324  : 			{
+; 325  : 				pLts_t->hit_type = HIT;
+; 326  : 
+; 327  : #ifdef DICDEBUG
+; 328  : 				printf("*");
+; 329  : #endif /*DICDEBUG*/
+; 330  : 				return(pLts_t->hit_type);
+
+  0019a	8b 54 24 20	 mov	 edx, DWORD PTR _type$[esp+12]
+$L71821:
+
+; 331  : 			}
+; 332  : 		}
+; 333  : 	}
+; 334  : 
+; 335  : 
+; 336  : 
+; 337  : 	/*
+; 338  : 	   GL 09/25/1997 use same ufind_word() rouitne for abbr. dictionary search except passing
+; 339  : 	   1 for second argument
+; 340  : 	*/
+; 341  : 	/* 
+; 342  : 	   GL 10/08/1997  BATS#487 fix the ending period crash problem
+; 343  : 	   since we support the period(like abbreviation) in the abbr
+; 344  : 	   dictionary now, any words with ending period need to try with and
+; 345  : 	   without period to cover all the possible cases
+; 346  : 	 */
+; 347  : 	if(ADICT_ENTRY != 0)
+
+  0019e	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+12]
+  001a2	8b 88 18 01 00
+	00		 mov	 ecx, DWORD PTR [eax+280]
+  001a8	85 c9		 test	 ecx, ecx
+  001aa	74 58		 je	 SHORT $L71828
+
+; 348  : 	{
+; 349  : 		if(type == FABBREV)
+
+  001ac	83 fa 01	 cmp	 edx, 1
+  001af	75 38		 jne	 SHORT $L71823
+
+; 350  : 		{
+; 351  : 			pLts_t->comp_str[i] = '.';
+; 352  : 			pLts_t->comp_str[i+1] = 0;
+; 353  : 			str_end = &pLts_t->comp_str[i];
+; 354  : #ifdef GERMAN
+; 355  : 			if(ls_dict_ufind_word(phTTS,1,0) == HIT)
+; 356  : #else
+; 357  : 			if(ls_dict_ufind_word(phTTS,1) == HIT)
+
+  001b1	52		 push	 edx
+  001b2	c6 07 2e	 mov	 BYTE PTR [edi], 46	; 0000002eH
+  001b5	53		 push	 ebx
+  001b6	c6 84 2e 39 04
+	00 00 00	 mov	 BYTE PTR [esi+ebp+1081], 0
+  001be	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  001c3	83 c4 08	 add	 esp, 8
+  001c6	83 f8 01	 cmp	 eax, 1
+
+; 358  : #endif
+; 359  : 			{
+; 360  : 				/* restore the original word structure */
+; 361  : 				pLts_t->comp_str[i] = 0;
+
+  001c9	c6 07 00	 mov	 BYTE PTR [edi], 0
+  001cc	75 10		 jne	 SHORT $L71824
+
+; 362  : 				str_end = &pLts_t->comp_str[i-1];
+; 363  : 				pLts_t->hit_type = ABBREV;
+
+  001ce	b8 02 00 00 00	 mov	 eax, 2
+  001d3	5f		 pop	 edi
+  001d4	89 86 28 0b 00
+	00		 mov	 DWORD PTR [esi+2856], eax
+  001da	5e		 pop	 esi
+  001db	5d		 pop	 ebp
+  001dc	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  001dd	c3		 ret	 0
+$L71824:
+
+; 364  : 
+; 365  : #ifdef DICDEBUG
+; 366  : 				printf("*");
+; 367  : #endif /*DICDEBUG*/
+; 368  : 				return(pLts_t->hit_type);
+; 369  : 			}
+; 370  : 			else
+; 371  : 			{
+; 372  : 				/* restore the original word structure */
+; 373  : 				/* Try again without the period. */
+; 374  : 				pLts_t->comp_str[i] = 0;
+; 375  : 				str_end = &pLts_t->comp_str[i-1];
+
+  001de	8d 84 2e 37 04
+	00 00		 lea	 eax, DWORD PTR [esi+ebp+1079]
+  001e5	89 44 24 18	 mov	 DWORD PTR _str_end$[esp+12], eax
+$L71823:
+
+; 376  : #ifdef GERMAN
+; 377  : 				if(ls_dict_ufind_word(phTTS,1,0) == HIT)
+; 378  : #else
+; 379  : 			    if(ls_dict_ufind_word(phTTS,1) == HIT)
+
+  001e9	6a 01		 push	 1
+  001eb	53		 push	 ebx
+  001ec	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  001f1	83 c4 08	 add	 esp, 8
+  001f4	83 f8 01	 cmp	 eax, 1
+  001f7	75 0b		 jne	 SHORT $L71828
+
+; 380  : #endif
+; 381  : 				{
+; 382  : 					pLts_t->hit_type = HIT;
+
+  001f9	89 86 28 0b 00
+	00		 mov	 DWORD PTR [esi+2856], eax
+  001ff	5f		 pop	 edi
+  00200	5e		 pop	 esi
+  00201	5d		 pop	 ebp
+  00202	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  00203	c3		 ret	 0
+$L71828:
+
+; 383  : 
+; 384  : #ifdef DICDEBUG
+; 385  : 					printf("*");
+; 386  : #endif /*DICDEBUG*/
+; 387  : 					return(pLts_t->hit_type);
+; 388  : 				}
+; 389  : 			}
+; 390  : 		}
+; 391  : 		else
+; 392  : 		{
+; 393  : #ifdef GERMAN
+; 394  : 			if(ls_dict_ufind_word(phTTS,1,0) == HIT)
+; 395  : #else
+; 396  : 			if(ls_dict_ufind_word(phTTS,1) == HIT)
+; 397  : #endif
+; 398  : 			{
+; 399  : 				pLts_t->hit_type = HIT;
+; 400  : 
+; 401  : #ifdef DICDEBUG
+; 402  : 				printf("*");
+; 403  : #endif /*DICDEBUG*/
+; 404  : 				return(pLts_t->hit_type);
+; 405  : 			}
+; 406  : 		}
+; 407  : 	}
+; 408  : 
+; 409  : 	/*
+; 410  :  	 *  make sure a primary dictionary is loaded ...
+; 411  : 	 */
+; 412  : 
+; 413  : 	/* Use the correct KS entry based on language being compiled */
+; 414  : 	if(DICT_ENTRY == 0)
+
+  00204	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+12]
+  00208	8b 41 38	 mov	 eax, DWORD PTR [ecx+56]
+  0020b	85 c0		 test	 eax, eax
+
+; 415  : 	{
+; 416  : 		return(MISS);
+
+  0020d	0f 84 ca 00 00
+	00		 je	 $L71832
+
+; 417  : 	}
+; 418  : 
+; 419  : 	/*
+; 420  :  	 *  don't let 'a', 'A' through for English only
+; 421  :  	 */
+; 422  : 	/* GL 8/17/95, not TRUE for German and Spanish */
+; 423  : #ifdef ENGLISH
+; 424  : 	if(i == 1 && (ls_lower[pLts_t->comp_str[0]] == 'a'))
+
+  00213	83 fd 01	 cmp	 ebp, 1
+  00216	75 15		 jne	 SHORT $L71830
+  00218	33 d2		 xor	 edx, edx
+  0021a	8a 96 38 04 00
+	00		 mov	 dl, BYTE PTR [esi+1080]
+  00220	80 ba 00 00 00
+	00 61		 cmp	 BYTE PTR _ls_lower[edx], 97 ; 00000061H
+
+; 425  : 		/* Must be |gls_lower| when we do German later */
+; 426  : 		return(MISS);
+
+  00227	0f 84 b0 00 00
+	00		 je	 $L71832
+$L71830:
+
+; 427  : #endif
+; 428  : 
+; 429  : 
+; 430  : #ifdef SAPI5DECTALK
+; 431  :     if(ls_sapi_find_word(phTTS, pLts_t->comp_str, 0) == HIT)
+; 432  : 		return  HIT;
+; 433  : #endif
+; 434  : 
+; 435  : 
+; 436  : #ifdef GERMAN
+; 437  : 	if(ls_dict_find_word(phTTS,0) == MISS)
+; 438  : #else
+; 439  : 	if(ls_dict_find_word(phTTS) == MISS)
+
+  0022d	53		 push	 ebx
+  0022e	e8 00 00 00 00	 call	 _ls_dict_find_word
+  00233	83 c4 04	 add	 esp, 4
+  00236	85 c0		 test	 eax, eax
+  00238	0f 85 94 00 00
+	00		 jne	 $L71833
+
+; 440  : #endif
+; 441  : 	{
+; 442  : 		/* Spanish has no suffixes as of 9/20/95, so rtn MISS. cjl per eab */
+; 443  : #if defined (ENGLISH) || defined (GERMAN)
+; 444  : 		if (i>2 )
+
+  0023e	83 fd 02	 cmp	 ebp, 2
+  00241	0f 8e 96 00 00
+	00		 jle	 $L71832
+
+; 445  : 		{
+; 446  : 			pLts_t->abbrev_look=FALSE;
+
+  00247	89 86 f4 08 00
+	00		 mov	 DWORD PTR [esi+2292], eax
+
+; 447  : 			/* Use the correct find routine based on language being compiled */
+; 448  : 			return(ls_suff_suffix_find(phTTS,str_end,1));
+
+  0024d	8b 44 24 18	 mov	 eax, DWORD PTR _str_end$[esp+12]
+  00251	6a 01		 push	 1
+  00253	50		 push	 eax
+  00254	53		 push	 ebx
+  00255	e8 00 00 00 00	 call	 _ls_suff_suffix_find
+  0025a	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0025d	5f		 pop	 edi
+  0025e	5e		 pop	 esi
+  0025f	5d		 pop	 ebp
+  00260	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  00261	c3		 ret	 0
+$L71792:
+
+; 133  : 	{
+; 134  : 		pLts_t->comp_str[0] = (unsigned char)((*llp).l_ch);
+
+  00262	8b 4c 24 18	 mov	 ecx, DWORD PTR _llp$[esp+12]
+  00266	8a 11		 mov	 dl, BYTE PTR [ecx]
+
+; 135  : 		pLts_t->comp_str[1] = 0;
+
+  00268	c6 86 39 04 00
+	00 00		 mov	 BYTE PTR [esi+1081], 0
+  0026f	88 96 38 04 00
+	00		 mov	 BYTE PTR [esi+1080], dl
+
+; 136  : 		pLts_t->no_pars = TRUE;
+
+  00275	c7 86 f0 08 00
+	00 01 00 00 00	 mov	 DWORD PTR [esi+2288], 1
+
+; 137  : #ifdef GERMAN
+; 138  : 		if((UDICT_ENTRY != 0) && (ls_dict_ufind_word(phTTS,0,0) == HIT))
+; 139  : #else
+; 140  : 		if((UDICT_ENTRY != 0) && (ls_dict_ufind_word(phTTS,0) == HIT))
+
+  0027f	39 af a8 00 00
+	00		 cmp	 DWORD PTR [edi+168], ebp
+  00285	74 1a		 je	 SHORT $L71794
+  00287	55		 push	 ebp
+  00288	53		 push	 ebx
+  00289	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  0028e	83 c4 08	 add	 esp, 8
+  00291	83 f8 01	 cmp	 eax, 1
+  00294	75 0b		 jne	 SHORT $L71794
+
+; 141  : #endif
+; 142  : 		{
+; 143  : 			return(pLts_t->hit_type);
+
+  00296	8b 86 28 0b 00
+	00		 mov	 eax, DWORD PTR [esi+2856]
+  0029c	5f		 pop	 edi
+  0029d	5e		 pop	 esi
+  0029e	5d		 pop	 ebp
+  0029f	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  002a0	c3		 ret	 0
+$L71794:
+
+; 144  : 		}
+; 145  : 		// use 2 for foreign lang
+; 146  : #ifdef GERMAN
+; 147  : 		if((FDICT_ENTRY != 0) && (ls_dict_ufind_word(phTTS,2,0) == HIT))
+; 148  : #else
+; 149  : 		if((FDICT_ENTRY != 0) && (ls_dict_ufind_word(phTTS,2) == HIT))
+
+  002a1	39 af 88 01 00
+	00		 cmp	 DWORD PTR [edi+392], ebp
+  002a7	74 1b		 je	 SHORT $L71795
+  002a9	6a 02		 push	 2
+  002ab	53		 push	 ebx
+  002ac	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  002b1	83 c4 08	 add	 esp, 8
+  002b4	83 f8 01	 cmp	 eax, 1
+  002b7	75 0b		 jne	 SHORT $L71795
+
+; 150  : #endif
+; 151  : 		{
+; 152  : 			return(pLts_t->hit_type);
+
+  002b9	8b 86 28 0b 00
+	00		 mov	 eax, DWORD PTR [esi+2856]
+  002bf	5f		 pop	 edi
+  002c0	5e		 pop	 esi
+  002c1	5d		 pop	 ebp
+  002c2	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  002c3	c3		 ret	 0
+$L71795:
+
+; 153  : 		}
+; 154  : 		/* Use the correct KS entry based on language being compiled */
+; 155  : 		if(DICT_ENTRY != 0)
+
+  002c4	39 6f 38	 cmp	 DWORD PTR [edi+56], ebp
+  002c7	74 14		 je	 SHORT $L71832
+
+; 156  : #ifdef GERMAN
+; 157  : 			ls_dict_find_word(phTTS,0);
+; 158  : #else
+; 159  : 			ls_dict_find_word(phTTS);
+
+  002c9	53		 push	 ebx
+  002ca	e8 00 00 00 00	 call	 _ls_dict_find_word
+  002cf	83 c4 04	 add	 esp, 4
+$L71833:
+
+; 163  : 		 return(pLts_t->hit_type); 
+
+  002d2	8b 86 28 0b 00
+	00		 mov	 eax, DWORD PTR [esi+2856]
+  002d8	5f		 pop	 edi
+  002d9	5e		 pop	 esi
+  002da	5d		 pop	 ebp
+  002db	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  002dc	c3		 ret	 0
+$L71832:
+  002dd	5f		 pop	 edi
+  002de	5e		 pop	 esi
+  002df	5d		 pop	 ebp
+
+; 160  : #endif
+; 161  : 		else
+; 162  : 			return(MISS);
+
+  002e0	33 c0		 xor	 eax, eax
+  002e2	5b		 pop	 ebx
+
+; 449  : 		}				 				 
+; 450  : 		else
+; 451  : #endif
+; 452  : 		return(MISS);
+; 453  : 	}
+; 454  : 	return(pLts_t->hit_type);
+; 455  : }
+
+  002e3	c3		 ret	 0
+_ls_dict_blook ENDP
+_TEXT	ENDS
+PUBLIC	_ls_dict_dlook
+EXTRN	_ls_util_send_phone:NEAR
+EXTRN	__imp__printf:NEAR
+_DATA	SEGMENT
+$SG71853 DB	'ls_dict_find_word:  up ', 0aH, 00H
+	ORG $+3
+$SG71856 DB	'ls_dict_find_word:  down ', 0aH, 00H
+	ORG $+1
+$SG71859 DB	'ls_dict_find_word:  crawling, stat=%x', 0aH, 00H
+	ORG $+1
+$SG71870 DB	'ls_dict_find_word:  miss ', 0aH, 00H
+	ORG $+1
+$SG71873 DB	'ls_dict_find_word:  cap:%x', 0aH, 00H
+$SG71878 DB	'ls_dict_find_word:  capit. homograph reverse', 00H
+	ORG $+3
+$SG71883 DB	'ls_dict_find_word:  HIT complete.', 0aH, 00H
+	ORG $+1
+$SG71895 DB	'ls_dict_find_word:  HIT', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_localoff$ = -12
+_pent$ = 8
+_pKsd_t$ = -8
+_pLts_t$ = -4
+_ls_dict_find_word PROC NEAR
+
+; 481  : {
+
+  002f0	83 ec 0c	 sub	 esp, 12			; 0000000cH
+  002f3	53		 push	 ebx
+
+; 482  : 	long offset;/* how far we move to do the next lookup */
+; 483  : 	int stat;	/* what the lookup returned */
+; 484  : 	long base;	/* where we are looking now */
+; 485  : 	long limit;
+; 486  : 
+; 487  : 	int	localoff;	/* MVP MI New */
+; 488  : 	long new_base = 0;		/* where we'll go look.. */
+; 489  : 	
+; 490  :    
+; 491  :    	struct   dic_entry far *pent;		 /* MVP MI New */
+; 492  : 	unsigned short cap;	/* the word is capitalized */ 
+; 493  : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+
+  002f4	8b 5c 24 14	 mov	 ebx, DWORD PTR _phTTS$[esp+12]
+  002f8	55		 push	 ebp
+  002f9	56		 push	 esi
+  002fa	8b 43 08	 mov	 eax, DWORD PTR [ebx+8]
+
+; 494  : 	PLTS_T pLts_t = phTTS->pLTSThreadData;
+
+  002fd	8b 4b 10	 mov	 ecx, DWORD PTR [ebx+16]
+  00300	89 44 24 10	 mov	 DWORD PTR _pKsd_t$[esp+24], eax
+
+; 495  :                                              
+; 496  : 	
+; 497  : 	
+; 498  : 	/* Use the correct KS dic entry based on language being compiled */
+; 499  : 	limit = (DICT_ENTRY); /* this is last_index+1 */
+; 500  :     /* 
+; 501  :      * pretend that the last time through we 	
+; 502  : 	 * were offsetting by 1/2 the dic size, so	
+; 503  : 	 * that when we enter the loop and cut the	
+; 504  : 	 * offset in half we end up with 1/4 dic as 	
+; 505  : 	 * the first move.			
+; 506  : 	 */
+; 507  : 	offset = limit>>1; 
+; 508  : 	base=offset;	/* start in the middle of the dictionary.	*/
+; 509  : 	                                                                  
+; 510  : 	limit--;		/* now = the last valid index.			*/
+; 511  : 	                                                                  
+; 512  : 	/* 
+; 513  : 	 * we now need to start searching, and continue until we either	
+; 514  : 	 * have a hit or the offset has gone to 0. For dic sizes that 	
+; 515  : 	 * are not a power of two, we may have to do one additional 	
+; 516  : 	 * lookup after this loop completes.				
+; 517  : 	 */
+; 518  : 	        
+; 519  : 	stat = MISS;	        
+; 520  : 	do
+; 521  : 	{
+; 522  : 		offset = offset>>1;	/* narrow the range */
+; 523  : 		if ( (stat=ls_dict_dlook(phTTS,base,&localoff,&pent)) == HIT)
+
+  00304	8d 54 24 1c	 lea	 edx, DWORD PTR _pent$[esp+20]
+  00308	8b 70 38	 mov	 esi, DWORD PTR [eax+56]
+  0030b	57		 push	 edi
+  0030c	d1 fe		 sar	 esi, 1
+  0030e	8d 44 24 10	 lea	 eax, DWORD PTR _localoff$[esp+28]
+  00312	8b ee		 mov	 ebp, esi
+  00314	52		 push	 edx
+  00315	50		 push	 eax
+  00316	55		 push	 ebp
+  00317	53		 push	 ebx
+  00318	89 4c 24 28	 mov	 DWORD PTR _pLts_t$[esp+44], ecx
+  0031c	d1 fe		 sar	 esi, 1
+  0031e	e8 00 00 00 00	 call	 _ls_dict_dlook
+  00323	8b f8		 mov	 edi, eax
+  00325	83 c4 10	 add	 esp, 16			; 00000010H
+  00328	83 ff 01	 cmp	 edi, 1
+  0032b	0f 84 ed 00 00
+	00		 je	 $L71868
+$L71847:
+
+; 524  : 			/* found it. */
+; 525  : 			break; 
+; 526  : 		
+; 527  : 		/* wasn't this one. Move to the next candidate. 	*/
+; 528  : 		if (stat == LOOK_HIGHER)
+
+  00331	81 ff ff ff 00
+	00		 cmp	 edi, 65535		; 0000ffffH
+  00337	75 26		 jne	 SHORT $L71851
+
+; 529  : 		{
+; 530  : 			/* debug switch */
+; 531  : 			if (DT_DBG(LTS_DBG,0x010))
+
+  00339	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+28]
+  0033d	66 8b 81 40 06
+	00 00		 mov	 ax, WORD PTR [ecx+1600]
+  00344	f6 c4 40	 test	 ah, 64			; 00000040H
+  00347	74 12		 je	 SHORT $L71852
+  00349	a8 10		 test	 al, 16			; 00000010H
+  0034b	74 0e		 je	 SHORT $L71852
+
+; 532  : 			{
+; 533  : 				printf("ls_dict_find_word:  up \n");
+
+  0034d	68 00 00 00 00	 push	 OFFSET FLAT:$SG71853
+  00352	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00358	83 c4 04	 add	 esp, 4
+$L71852:
+
+; 534  : 			}
+; 535  : 
+; 536  : #ifdef DICDEBUG
+; 537  : 			printf("LSDIC.C; ls_dict_find_word;  up \n");
+; 538  : #endif /*DICDEBUG*/
+; 539  : 			base += offset;
+
+  0035b	03 ee		 add	 ebp, esi
+
+; 540  : 		}
+; 541  : 	    else
+
+  0035d	eb 24		 jmp	 SHORT $L71848
+$L71851:
+
+; 542  : 	    {
+; 543  : 		    base -= offset;
+; 544  : 			/* debug switch */
+; 545  : 			if (DT_DBG(LTS_DBG,0x010))
+
+  0035f	8b 54 24 14	 mov	 edx, DWORD PTR _pKsd_t$[esp+28]
+  00363	2b ee		 sub	 ebp, esi
+  00365	66 8b 82 40 06
+	00 00		 mov	 ax, WORD PTR [edx+1600]
+  0036c	f6 c4 40	 test	 ah, 64			; 00000040H
+  0036f	74 12		 je	 SHORT $L71848
+  00371	a8 10		 test	 al, 16			; 00000010H
+  00373	74 0e		 je	 SHORT $L71848
+
+; 546  : 			{
+; 547  : 				printf("ls_dict_find_word:  down \n");
+
+  00375	68 00 00 00 00	 push	 OFFSET FLAT:$SG71856
+  0037a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00380	83 c4 04	 add	 esp, 4
+$L71848:
+
+; 548  : 			}
+; 549  : #ifdef DICDEBUG
+; 550  : 			printf("LSDIC.C; ls_dict_find_word;  down \n");
+; 551  : #endif /*DICDEBUG*/
+; 552  : 		}
+; 553  : 	} while (offset != 0);
+
+  00383	85 f6		 test	 esi, esi
+  00385	74 1f		 je	 SHORT $L71849
+  00387	8d 44 24 20	 lea	 eax, DWORD PTR _pent$[esp+24]
+  0038b	8d 4c 24 10	 lea	 ecx, DWORD PTR _localoff$[esp+28]
+  0038f	50		 push	 eax
+  00390	51		 push	 ecx
+  00391	55		 push	 ebp
+  00392	53		 push	 ebx
+  00393	d1 fe		 sar	 esi, 1
+  00395	e8 00 00 00 00	 call	 _ls_dict_dlook
+  0039a	8b f8		 mov	 edi, eax
+  0039c	83 c4 10	 add	 esp, 16			; 00000010H
+  0039f	83 ff 01	 cmp	 edi, 1
+  003a2	75 8d		 jne	 SHORT $L71847
+
+; 554  : 	
+; 555  : 	/* 
+; 556  : 	 * at this point, if we haven't hit we might have to walk a 	
+; 557  : 	 * 'few' entries. We don't exactly know how many (probably 	
+; 558  : 	 * log2(entries) in the worst case. We'll walk until we're 	
+; 559  : 	 * told to go in the other direction. (ls_dict_dlook should be bounded	
+; 560  : 	 * to turn the search away from the ends of the dictionary..) 	
+; 561  : 	 */
+; 562  : 	
+; 563  : 	if (stat != HIT)
+
+  003a4	eb 78		 jmp	 SHORT $L71868
+$L71849:
+  003a6	83 ff 01	 cmp	 edi, 1
+  003a9	74 73		 je	 SHORT $L71868
+
+; 564  : 	{
+; 565  : 		/* have to keep looking in the same direction */
+; 566  : 		/* debug switch */
+; 567  : 		if (DT_DBG(LTS_DBG,0x010))
+
+  003ab	8b 54 24 14	 mov	 edx, DWORD PTR _pKsd_t$[esp+28]
+  003af	66 8b 82 40 06
+	00 00		 mov	 ax, WORD PTR [edx+1600]
+  003b6	f6 c4 40	 test	 ah, 64			; 00000040H
+  003b9	74 13		 je	 SHORT $L71858
+  003bb	a8 10		 test	 al, 16			; 00000010H
+  003bd	74 0f		 je	 SHORT $L71858
+
+; 568  : 		{
+; 569  : 			printf("ls_dict_find_word:  crawling, stat=%x\n",stat);
+
+  003bf	57		 push	 edi
+  003c0	68 00 00 00 00	 push	 OFFSET FLAT:$SG71859
+  003c5	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  003cb	83 c4 08	 add	 esp, 8
+$L71858:
+
+; 570  : 		}
+; 571  : #ifdef DICDEBUG
+; 572  : 		printf("LSDIC.C; ls_dict_find_word;  crawling, stat=%x \n",stat);
+; 573  : #endif /*DICDEBUG*/
+; 574  : 		if (stat == LOOK_HIGHER)
+
+  003ce	81 ff ff ff 00
+	00		 cmp	 edi, 65535		; 0000ffffH
+  003d4	75 21		 jne	 SHORT $L71860
+$L71862:
+
+; 575  : 		{
+; 576  : 			while(stat == LOOK_HIGHER)
+; 577  : 			{
+; 578  : 				base++;
+; 579  : 				stat = ls_dict_dlook(phTTS,base,&localoff,&pent);
+
+  003d6	8d 44 24 20	 lea	 eax, DWORD PTR _pent$[esp+24]
+  003da	8d 4c 24 10	 lea	 ecx, DWORD PTR _localoff$[esp+28]
+  003de	45		 inc	 ebp
+  003df	50		 push	 eax
+  003e0	51		 push	 ecx
+  003e1	55		 push	 ebp
+  003e2	53		 push	 ebx
+  003e3	e8 00 00 00 00	 call	 _ls_dict_dlook
+  003e8	8b f8		 mov	 edi, eax
+  003ea	83 c4 10	 add	 esp, 16			; 00000010H
+  003ed	81 ff ff ff 00
+	00		 cmp	 edi, 65535		; 0000ffffH
+  003f3	74 e1		 je	 SHORT $L71862
+
+; 580  : 			}
+; 581  : 		}
+; 582  : 		else 
+
+  003f5	eb 27		 jmp	 SHORT $L71868
+$L71860:
+
+; 583  : 		{
+; 584  : 			if (stat == LOOK_LOWER)
+
+  003f7	81 ff fe ff 00
+	00		 cmp	 edi, 65534		; 0000fffeH
+  003fd	75 1f		 jne	 SHORT $L71868
+$L71867:
+
+; 585  : 			{
+; 586  : 		    	while(stat == LOOK_LOWER)
+; 587  : 		    		{
+; 588  : 		    		base--;
+; 589  : 		    		stat = ls_dict_dlook(phTTS,base,&localoff,&pent);
+
+  003ff	8d 54 24 20	 lea	 edx, DWORD PTR _pent$[esp+24]
+  00403	8d 44 24 10	 lea	 eax, DWORD PTR _localoff$[esp+28]
+  00407	4d		 dec	 ebp
+  00408	52		 push	 edx
+  00409	50		 push	 eax
+  0040a	55		 push	 ebp
+  0040b	53		 push	 ebx
+  0040c	e8 00 00 00 00	 call	 _ls_dict_dlook
+  00411	8b f8		 mov	 edi, eax
+  00413	83 c4 10	 add	 esp, 16			; 00000010H
+  00416	81 ff fe ff 00
+	00		 cmp	 edi, 65534		; 0000fffeH
+  0041c	74 e1		 je	 SHORT $L71867
+$L71868:
+
+; 590  : 		    	}
+; 591  : 		    }
+; 592  : 		}
+; 593  : 	} /* if (stat != HIT ) */
+; 594  : 	                                     
+; 595  : 	/* *** this is the end of the binary search. */
+; 596  : 		                                
+; 597  : 	/* if we don't have stat == HIT now, it's a miss. */
+; 598  : 	/* debug switch */
+; 599  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  0041e	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+28]
+  00422	66 8b 81 40 06
+	00 00		 mov	 ax, WORD PTR [ecx+1600]
+  00429	f6 c4 40	 test	 ah, 64			; 00000040H
+  0042c	74 12		 je	 SHORT $L71869
+  0042e	a8 10		 test	 al, 16			; 00000010H
+  00430	74 0e		 je	 SHORT $L71869
+
+; 600  : 	{
+; 601  : 		printf("ls_dict_find_word:  miss \n");
+
+  00432	68 00 00 00 00	 push	 OFFSET FLAT:$SG71870
+  00437	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  0043d	83 c4 04	 add	 esp, 4
+$L71869:
+
+; 602  : 	}
+; 603  : #ifdef DICDEBUG
+; 604  : 		printf("LSDIC.C; ls_dict_find_word;  miss. \n");
+; 605  : #endif /*DICDEBUG*/
+; 606  : 	if (stat != HIT)
+
+  00440	83 ff 01	 cmp	 edi, 1
+  00443	74 0a		 je	 SHORT $L71871
+  00445	5f		 pop	 edi
+  00446	5e		 pop	 esi
+  00447	5d		 pop	 ebp
+
+; 607  : 		return(MISS); /* all done. */
+
+  00448	33 c0		 xor	 eax, eax
+  0044a	5b		 pop	 ebx
+
+; 736  : 
+; 737  : 
+; 738  : } /* ls_dict_find_word(phTTS) */
+
+  0044b	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0044e	c3		 ret	 0
+$L71871:
+
+; 608  :         /*************************************************************/
+; 609  :          /*  We have HIT the word. The word has been found at index   */
+; 610  :          /*  base.                                                    */
+; 611  :          /*************************************************************/
+; 612  : 
+; 613  : 
+; 614  : 	
+; 615  : 	/* 
+; 616  : 	 * The dictionary allows words with an initial uppercase to 	
+; 617  : 	 * signal a homograph. To detect the *possibility* of this, 	
+; 618  : 	 * we look for the first character to be uppercase, and the 	
+; 619  : 	 * second character to be lower case (this eliminates the 	
+; 620  : 	 * possibility of capslock on..) .. then we'll go take a 	
+; 621  : 	 * peek 							
+; 622  : 	 * Be careful here folks.. we also have to make sure that 	
+; 623  : 	 * the reverse hasn't happened (namely, that the word is NOT	
+; 624  : 	 * capitalized and we hit the capitalized version) .. but..	
+; 625  : 	 * ls_dict_dlook() won't match uppercase dictionary letters with 	
+; 626  : 	 * lowercase incoming letters. It will, however, match an	
+; 627  : 	 * incoming uppercase character with upper or lowercase 	
+; 628  : 	 * dictionary letters. So, the cases that we have to look for	
+; 629  : 	 * are:								
+; 630  : 	 *	1) all-uppercase incoming, which could hit either	
+; 631  : 	 *		1A)all lower case dict entry			
+; 632  : 	 *		1B)capitalized dict entry   			
+; 633  : 	 * 	2) capitalized incoming, which could hit either		
+; 634  : 	 *		2A)all lower case dict entry		
+; 635  : 	 *		2B)capitalized dict entry			
+; 636  : 	 */
+; 637  : 	
+; 638  : 	/* figure out if the incoming word is "capitalized".. 		*/                                                                  
+; 639  : 	cap = (IS_UPPER(pLts_t->comp_str[0])) && (IS_LOWER(pLts_t->comp_str[1]));	                                                                  
+
+  0044f	8b 74 24 18	 mov	 esi, DWORD PTR _pLts_t$[esp+28]
+  00453	33 d2		 xor	 edx, edx
+  00455	8a 96 38 04 00
+	00		 mov	 dl, BYTE PTR [esi+1080]
+  0045b	f6 82 00 00 00
+	00 02		 test	 BYTE PTR _ls_char_feat[edx], 2
+  00462	74 18		 je	 SHORT $L72361
+  00464	33 c0		 xor	 eax, eax
+  00466	8a 86 39 04 00
+	00		 mov	 al, BYTE PTR [esi+1081]
+  0046c	f6 80 00 00 00
+	00 01		 test	 BYTE PTR _ls_char_feat[eax], 1
+  00473	74 07		 je	 SHORT $L72361
+  00475	bf 01 00 00 00	 mov	 edi, 1
+  0047a	eb 02		 jmp	 SHORT $L72362
+$L72361:
+  0047c	33 ff		 xor	 edi, edi
+$L72362:
+
+; 640  : 	/* debug switch */
+; 641  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  0047e	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+28]
+  00482	66 8b 81 40 06
+	00 00		 mov	 ax, WORD PTR [ecx+1600]
+  00489	f6 c4 40	 test	 ah, 64			; 00000040H
+  0048c	74 1b		 je	 SHORT $L71872
+  0048e	a8 10		 test	 al, 16			; 00000010H
+  00490	74 17		 je	 SHORT $L71872
+
+; 642  : 	{
+; 643  : 		printf("ls_dict_find_word:  cap:%x\n",cap);
+
+  00492	8b d7		 mov	 edx, edi
+  00494	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  0049a	52		 push	 edx
+  0049b	68 00 00 00 00	 push	 OFFSET FLAT:$SG71873
+  004a0	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  004a6	83 c4 08	 add	 esp, 8
+$L71872:
+
+; 644  : 	}
+; 645  : #ifdef DICDEBUG
+; 646  : 	printf("LSDIC.C; ls_dict_find_word;  cap:%x \n",cap);
+; 647  : #endif /*DICDEBUG*/
+; 648  : 	                                              
+; 649  : 	/* cases 1A and 2B are correct, so we don't have to do anything	*/
+; 650  : 	/* for them. We just have to go looking if we have the other 	*/
+; 651  : 	/* two cases..							*/	                                              
+; 652  : 	if(   (cap && IS_LOWER(pent->text[0])) 	/*2A*/
+; 653  : 	   || (!cap && IS_UPPER(pent->text[0])) )	/*1B*/
+
+  004a9	66 85 ff	 test	 di, di
+  004ac	74 14		 je	 SHORT $L72374
+  004ae	8b 4c 24 20	 mov	 ecx, DWORD PTR _pent$[esp+24]
+  004b2	33 c0		 xor	 eax, eax
+  004b4	8a 41 04	 mov	 al, BYTE PTR [ecx+4]
+  004b7	f6 80 00 00 00
+	00 01		 test	 BYTE PTR _ls_char_feat[eax], 1
+  004be	75 14		 jne	 SHORT $L71875
+  004c0	eb 6c		 jmp	 SHORT $L71881
+$L72374:
+  004c2	8b 44 24 20	 mov	 eax, DWORD PTR _pent$[esp+24]
+  004c6	33 d2		 xor	 edx, edx
+  004c8	8a 50 04	 mov	 dl, BYTE PTR [eax+4]
+  004cb	f6 82 00 00 00
+	00 02		 test	 BYTE PTR _ls_char_feat[edx], 2
+  004d2	74 5a		 je	 SHORT $L71881
+$L71875:
+
+; 654  : 	{                    
+; 655  : 		/* at this point, the incoming word's capitalization	*/
+; 656  : 		/* doesn't match the dictionary entry. 			*/
+; 657  :                                                                           
+; 658  : 	/* debug switch */
+; 659  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  004d4	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+28]
+  004d8	66 8b 81 40 06
+	00 00		 mov	 ax, WORD PTR [ecx+1600]
+  004df	f6 c4 40	 test	 ah, 64			; 00000040H
+  004e2	74 12		 je	 SHORT $L71877
+  004e4	a8 10		 test	 al, 16			; 00000010H
+  004e6	74 0e		 je	 SHORT $L71877
+
+; 660  : 	{
+; 661  : 		printf("ls_dict_find_word:  capit. homograph reverse");
+
+  004e8	68 00 00 00 00	 push	 OFFSET FLAT:$SG71878
+  004ed	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  004f3	83 c4 04	 add	 esp, 4
+$L71877:
+
+; 662  : 	}
+; 663  : #ifdef DICDEBUG
+; 664  : 		printf("LSDIC.C; ls_dict_find_word;  capit. homograph reverse \n");
+; 665  : #endif /*DICDEBUG*/								     
+; 666  : 				                                     
+; 667  : 		/* 
+; 668  : 		 * the dictionary is sorted such that the capitalized	
+; 669  : 		 * entry would be immediately before the uncap'd 	
+; 670  : 		 * entry. We know we're on the wrong entry, and we know	
+; 671  : 		 * which way we have to look..				
+; 672  : 		 */
+; 673  : 		if (cap)
+
+  004f6	66 85 ff	 test	 di, di
+
+; 674  : 			new_base = base-1;
+
+  004f9	8d 45 ff	 lea	 eax, DWORD PTR [ebp-1]
+  004fc	75 03		 jne	 SHORT $L71880
+
+; 675  : 		else
+; 676  : 		  	new_base = base+1;		
+
+  004fe	8d 45 01	 lea	 eax, DWORD PTR [ebp+1]
+$L71880:
+
+; 677  : 		
+; 678  : 		
+; 679  : 		if((stat = ls_dict_dlook(phTTS, new_base,&localoff,&pent)) != HIT)
+
+  00501	8d 54 24 20	 lea	 edx, DWORD PTR _pent$[esp+24]
+  00505	8d 4c 24 10	 lea	 ecx, DWORD PTR _localoff$[esp+28]
+  00509	52		 push	 edx
+  0050a	51		 push	 ecx
+  0050b	50		 push	 eax
+  0050c	53		 push	 ebx
+  0050d	e8 00 00 00 00	 call	 _ls_dict_dlook
+  00512	83 c4 10	 add	 esp, 16			; 00000010H
+  00515	83 f8 01	 cmp	 eax, 1
+  00518	74 14		 je	 SHORT $L71881
+
+; 680  : 		{
+; 681  : 			ls_dict_dlook(phTTS, base,&localoff,&pent);
+
+  0051a	8d 54 24 20	 lea	 edx, DWORD PTR _pent$[esp+24]
+  0051e	8d 44 24 10	 lea	 eax, DWORD PTR _localoff$[esp+28]
+  00522	52		 push	 edx
+  00523	50		 push	 eax
+  00524	55		 push	 ebp
+  00525	53		 push	 ebx
+  00526	e8 00 00 00 00	 call	 _ls_dict_dlook
+  0052b	83 c4 10	 add	 esp, 16			; 00000010H
+$L71881:
+
+; 682  : 		}						 
+; 683  : 
+; 684  : 	}                                                         
+; 685  : 		
+; 686  : 	/* now just blurt it out.. */
+; 687  : 	/* debug switch */
+; 688  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  0052e	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+28]
+  00532	66 8b 81 40 06
+	00 00		 mov	 ax, WORD PTR [ecx+1600]
+  00539	f6 c4 40	 test	 ah, 64			; 00000040H
+  0053c	74 12		 je	 SHORT $L71882
+  0053e	a8 10		 test	 al, 16			; 00000010H
+  00540	74 0e		 je	 SHORT $L71882
+
+; 689  : 	{
+; 690  : 		printf("ls_dict_find_word:  HIT complete.\n");
+
+  00542	68 00 00 00 00	 push	 OFFSET FLAT:$SG71883
+  00547	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  0054d	83 c4 04	 add	 esp, 4
+$L71882:
+
+; 691  : 	}
+; 692  : #ifdef DICDEBUG
+; 693  : 	printf("LSDIC.C; ls_dict_find_word;  HIT complete. \n");
+; 694  : #endif /*DICDEBUG*/
+; 695  : 	
+; 696  : 	pKsd_t->pronflag &= (~PRON_DIC_ALTERNATE);
+
+  00550	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+28]
+  00554	8b b8 cc 03 00
+	00		 mov	 edi, DWORD PTR [eax+972]
+  0055a	83 e7 fd	 and	 edi, -3			; fffffffdH
+  0055d	89 b8 cc 03 00
+	00		 mov	 DWORD PTR [eax+972], edi
+
+; 697  : 	if(pLts_t->fc_struct[pLts_t->fc_index] == 0)
+
+  00563	8b 96 bc 08 00
+	00		 mov	 edx, DWORD PTR [esi+2236]
+  00569	8b 84 96 bc 04
+	00 00		 mov	 eax, DWORD PTR [esi+edx*4+1212]
+  00570	8d 8c 96 bc 04
+	00 00		 lea	 ecx, DWORD PTR [esi+edx*4+1212]
+  00577	85 c0		 test	 eax, eax
+  00579	75 0a		 jne	 SHORT $L71884
+
+; 698  : 		pLts_t->fc_struct[pLts_t->fc_index] = pent->fc;
+
+  0057b	8b 44 24 20	 mov	 eax, DWORD PTR _pent$[esp+24]
+  0057f	8b 10		 mov	 edx, DWORD PTR [eax]
+  00581	89 11		 mov	 DWORD PTR [ecx], edx
+
+; 699  : 	else 
+
+  00583	eb 13		 jmp	 SHORT $L71886
+$L71884:
+
+; 700  : 	{
+; 701  : 		if(pent->fc & FC_HOMOGRAPH)
+
+  00585	8b 54 24 20	 mov	 edx, DWORD PTR _pent$[esp+24]
+  00589	f7 02 00 00 00
+	80		 test	 DWORD PTR [edx], -2147483648 ; 80000000H
+  0058f	74 07		 je	 SHORT $L71886
+
+; 702  : 		{
+; 703  : 			pLts_t->fc_struct[pLts_t->fc_index] = pLts_t->fc_struct[pLts_t->fc_index] | FC_HOMOGRAPH;
+
+  00591	0d 00 00 00 80	 or	 eax, -2147483648	; 80000000H
+  00596	89 01		 mov	 DWORD PTR [ecx], eax
+$L71886:
+
+; 704  : 		}
+; 705  : 	}
+; 706  : 	/*
+; 707  : 	 * eab 8/94 if suff stripper overrides
+; 708  : 	 * form_class on a homograph we need to remember it's a homograph
+; 709  : 	 */
+; 710  :         if((pent->fc & PPHRASE) == PPHRASE) 
+
+  00598	8b 44 24 20	 mov	 eax, DWORD PTR _pent$[esp+24]
+  0059c	8b 08		 mov	 ecx, DWORD PTR [eax]
+  0059e	81 e1 00 10 00
+	02		 and	 ecx, 33558528		; 02001000H
+  005a4	81 f9 00 10 00
+	02		 cmp	 ecx, 33558528		; 02001000H
+  005aa	75 0b		 jne	 SHORT $L71887
+
+; 711  : 		/* Use the correct ls_util_send_phone routine based on language being compiled */
+; 712  : 		ls_util_send_phone(phTTS,PPSTART);
+
+  005ac	6a 70		 push	 112			; 00000070H
+  005ae	53		 push	 ebx
+  005af	e8 00 00 00 00	 call	 _ls_util_send_phone
+  005b4	83 c4 08	 add	 esp, 8
+$L71887:
+
+; 713  : 	if((((pent->fc & VPHRASE) == VPHRASE) || (pent->fc == FC_VERB)) && pLts_t->no_pars == FALSE)
+
+  005b7	8b 54 24 20	 mov	 edx, DWORD PTR _pent$[esp+24]
+  005bb	8b 02		 mov	 eax, DWORD PTR [edx]
+  005bd	8b c8		 mov	 ecx, eax
+  005bf	81 e1 00 00 02
+	02		 and	 ecx, 33685504		; 02020000H
+  005c5	81 f9 00 00 02
+	02		 cmp	 ecx, 33685504		; 02020000H
+  005cb	74 07		 je	 SHORT $L71889
+  005cd	3d 00 00 02 00	 cmp	 eax, 131072		; 00020000H
+  005d2	75 15		 jne	 SHORT $L71888
+$L71889:
+  005d4	8b 86 f0 08 00
+	00		 mov	 eax, DWORD PTR [esi+2288]
+  005da	85 c0		 test	 eax, eax
+  005dc	75 0b		 jne	 SHORT $L71888
+
+; 714  : 		ls_util_send_phone(phTTS,VPSTART);
+
+  005de	6a 71		 push	 113			; 00000071H
+  005e0	53		 push	 ebx
+  005e1	e8 00 00 00 00	 call	 _ls_util_send_phone
+  005e6	83 c4 08	 add	 esp, 8
+$L71888:
+
+; 715  : #ifdef GWMICRO
+; 716  : 	if (pLts_t->hit_type==ABBREV)
+
+  005e9	83 be 28 0b 00
+	00 02		 cmp	 DWORD PTR [esi+2856], 2
+
+; 717  : 		return(HIT);
+
+  005f0	74 5b		 je	 SHORT $L71894
+
+; 718  : #endif
+; 719  : #ifdef GERMAN
+; 720  : 	for(localoff += 1;pent->text[localoff+nosend] != '\0';localoff++)
+; 721  : #else
+; 722  : 	for(localoff += 1;pent->text[localoff] != '\0';localoff++)
+
+  005f2	8b 44 24 10	 mov	 eax, DWORD PTR _localoff$[esp+28]
+  005f6	8b 54 24 20	 mov	 edx, DWORD PTR _pent$[esp+24]
+  005fa	40		 inc	 eax
+  005fb	89 44 24 10	 mov	 DWORD PTR _localoff$[esp+28], eax
+  005ff	8a 44 10 04	 mov	 al, BYTE PTR [eax+edx+4]
+  00603	84 c0		 test	 al, al
+  00605	74 24		 je	 SHORT $L71893
+$L71891:
+
+; 723  : #endif
+; 724  : 	{
+; 725  : 		ls_util_send_phone(phTTS,pent->text[localoff]);
+
+  00607	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0060c	50		 push	 eax
+  0060d	53		 push	 ebx
+  0060e	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00613	8b 44 24 18	 mov	 eax, DWORD PTR _localoff$[esp+36]
+  00617	8b 4c 24 28	 mov	 ecx, DWORD PTR _pent$[esp+32]
+  0061b	83 c4 08	 add	 esp, 8
+  0061e	40		 inc	 eax
+  0061f	89 44 24 10	 mov	 DWORD PTR _localoff$[esp+28], eax
+  00623	8a 44 08 04	 mov	 al, BYTE PTR [eax+ecx+4]
+  00627	84 c0		 test	 al, al
+  00629	75 dc		 jne	 SHORT $L71891
+$L71893:
+
+; 726  : 	}
+; 727  : 	/* debug switch */
+; 728  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  0062b	8b 54 24 14	 mov	 edx, DWORD PTR _pKsd_t$[esp+28]
+  0062f	66 8b 82 40 06
+	00 00		 mov	 ax, WORD PTR [edx+1600]
+  00636	f6 c4 40	 test	 ah, 64			; 00000040H
+  00639	74 12		 je	 SHORT $L71894
+  0063b	a8 10		 test	 al, 16			; 00000010H
+  0063d	74 0e		 je	 SHORT $L71894
+
+; 729  : 	{
+; 730  : 		printf("ls_dict_find_word:  HIT");
+
+  0063f	68 00 00 00 00	 push	 OFFSET FLAT:$SG71895
+  00644	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  0064a	83 c4 04	 add	 esp, 4
+$L71894:
+  0064d	5f		 pop	 edi
+  0064e	5e		 pop	 esi
+  0064f	5d		 pop	 ebp
+
+; 731  : 	}
+; 732  : #ifdef DICDEBUG
+; 733  : 	printf("*");
+; 734  : #endif /*DICDEBUG*/
+; 735  : 	return(HIT);
+
+  00650	b8 01 00 00 00	 mov	 eax, 1
+  00655	5b		 pop	 ebx
+
+; 736  : 
+; 737  : 
+; 738  : } /* ls_dict_find_word(phTTS) */
+
+  00656	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00659	c3		 ret	 0
+_ls_dict_find_word ENDP
+_TEXT	ENDS
+PUBLIC	_ls_dict_where_to_look
+EXTRN	_ls_upper:BYTE
+EXTRN	_ls_homo_homo:NEAR
+_DATA	SEGMENT
+$SG71912 DB	'ls_dict_dlook:  limit. LOOK_HIGHER', 0aH, 00H
+$SG71915 DB	'ls_dict_dlook:  limit. LOOK_LOWER', 0aH, 00H
+	ORG $+1
+$SG71919 DB	'ls_dict_dlook:', 00H
+	ORG $+1
+$SG71923 DB	'%c', 00H
+	ORG $+1
+$SG71924 DB	0aH, 00H
+	ORG $+2
+$SG71931 DB	'ls_dict_dlook:  short string. LOOK_LOWER', 0aH, 00H
+	ORG $+2
+$SG71936 DB	'ls_dict_dlook:  limit. LOOK_HIGHT', 0aH, 00H
+	ORG $+1
+$SG71939 DB	'ls_dict_dlook:  limit. LOOK_LOWER', 0aH, 00H
+	ORG $+1
+$SG71944 DB	'ls_dict_find_word:  HIT', 0aH, 00H
+	ORG $+3
+$SG71946 DB	'ls_dict_dlook:  long string. LOOK_HIGHER', 0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_index$ = 12
+_pLocaloff$ = 16
+_ppent$ = 20
+_limit$ = -4
+_ls_dict_dlook PROC NEAR
+
+; 776  : {
+
+  00660	51		 push	 ecx
+
+; 777  : 
+; 778  : 	int	i;
+; 779  : 	long limit;
+; 780  : 	              
+; 781  : 	PKSD_T pKsd_t;
+; 782  : 	PLTS_T pLts_t;
+; 783  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00661	8b 44 24 08	 mov	 eax, DWORD PTR _phTTS$[esp]
+  00665	53		 push	 ebx
+
+; 784  : 	pLts_t = phTTS->pLTSThreadData;
+; 785  : 	limit = ((int)DICT_ENTRY) - 1;
+; 786  : 
+; 787  : 	/* first, bail out if we've fallen off the end of the list.. 	*/
+; 788  : 	if (index<0)
+
+  00666	8b 4c 24 10	 mov	 ecx, DWORD PTR _index$[esp+4]
+  0066a	55		 push	 ebp
+  0066b	8b 68 10	 mov	 ebp, DWORD PTR [eax+16]
+  0066e	56		 push	 esi
+  0066f	57		 push	 edi
+  00670	8b 78 08	 mov	 edi, DWORD PTR [eax+8]
+  00673	33 d2		 xor	 edx, edx
+  00675	8b 47 38	 mov	 eax, DWORD PTR [edi+56]
+  00678	48		 dec	 eax
+  00679	3b ca		 cmp	 ecx, edx
+  0067b	89 44 24 10	 mov	 DWORD PTR _limit$[esp+20], eax
+  0067f	7d 37		 jge	 SHORT $L71910
+
+; 789  : 	{
+; 790  : 		pLts_t->hit_type=MISS;
+
+  00681	89 95 28 0b 00
+	00		 mov	 DWORD PTR [ebp+2856], edx
+
+; 791  : 		/* debug switch */
+; 792  : 		if (DT_DBG(LTS_DBG,0x010))
+
+  00687	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  0068e	f6 c4 40	 test	 ah, 64			; 00000040H
+  00691	0f 84 86 02 00
+	00		 je	 $L71911
+  00697	a8 10		 test	 al, 16			; 00000010H
+  00699	0f 84 7e 02 00
+	00		 je	 $L71911
+
+; 793  : 		{
+; 794  : 			printf("ls_dict_dlook:  limit. LOOK_HIGHER\n");
+
+  0069f	68 00 00 00 00	 push	 OFFSET FLAT:$SG71912
+
+; 953  : 	{
+; 954  : 		printf("ls_dict_dlook:  long string. LOOK_HIGHER\n");
+
+  006a4	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  006aa	83 c4 04	 add	 esp, 4
+
+; 955  : 	}
+; 956  : #ifdef DICDEBUG
+; 957  : 	printf("LSDIC.C; ls_dict_dlook;  long string, LOOK_HIGHER \n");
+; 958  : #endif /*DICDEBUG*/
+; 959  : 	return(LOOK_HIGHER);
+
+  006ad	b8 ff ff 00 00	 mov	 eax, 65535		; 0000ffffH
+  006b2	5f		 pop	 edi
+  006b3	5e		 pop	 esi
+  006b4	5d		 pop	 ebp
+  006b5	5b		 pop	 ebx
+
+; 960  : }
+
+  006b6	59		 pop	 ecx
+  006b7	c3		 ret	 0
+$L71910:
+
+; 795  : 		}
+; 796  : #ifdef DICDEBUG
+; 797  : 		printf("LSDIC.C; ls_dict_dlook;  limit, LOOK_HIGHER \n");
+; 798  : #endif /*DICDEBUG*/
+; 799  : 		return(LOOK_HIGHER);
+; 800  : 	}
+; 801  : 	if (index>limit)
+
+  006b8	3b c8		 cmp	 ecx, eax
+  006ba	7e 37		 jle	 SHORT $L71913
+
+; 802  : 	{
+; 803  : 		pLts_t->hit_type=MISS;
+
+  006bc	89 95 28 0b 00
+	00		 mov	 DWORD PTR [ebp+2856], edx
+
+; 804  : 		/* debug switch */
+; 805  : 		if (DT_DBG(LTS_DBG,0x010))
+
+  006c2	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  006c9	f6 c4 40	 test	 ah, 64			; 00000040H
+  006cc	0f 84 02 02 00
+	00		 je	 $L71914
+  006d2	a8 10		 test	 al, 16			; 00000010H
+  006d4	0f 84 fa 01 00
+	00		 je	 $L71914
+
+; 806  : 		{
+; 807  : 			printf("ls_dict_dlook:  limit. LOOK_LOWER\n");
+
+  006da	68 00 00 00 00	 push	 OFFSET FLAT:$SG71915
+  006df	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  006e5	83 c4 04	 add	 esp, 4
+
+; 808  : 		}
+; 809  : #ifdef DICDEBUG
+; 810  : 		printf("LSDIC.C; ls_dict_dlook;  limit. LOOK_LOWER \n");
+; 811  : #endif /*DICDEBUG*/
+; 812  : 		return(LOOK_LOWER);
+
+  006e8	b8 fe ff 00 00	 mov	 eax, 65534		; 0000fffeH
+  006ed	5f		 pop	 edi
+  006ee	5e		 pop	 esi
+  006ef	5d		 pop	 ebp
+  006f0	5b		 pop	 ebx
+
+; 960  : }
+
+  006f1	59		 pop	 ecx
+  006f2	c3		 ret	 0
+$L71913:
+
+; 813  : 	}
+; 814  : 	
+; 815  : 	*ppent = (struct dic_entry far *)DICT_ACCESS(index);
+
+  006f3	8b 07		 mov	 eax, DWORD PTR [edi]
+  006f5	8b 57 1c	 mov	 edx, DWORD PTR [edi+28]
+  006f8	8b 5c 24 24	 mov	 ebx, DWORD PTR _ppent$[esp+16]
+  006fc	8b 0c 88	 mov	 ecx, DWORD PTR [eax+ecx*4]
+  006ff	03 ca		 add	 ecx, edx
+  00701	89 0b		 mov	 DWORD PTR [ebx], ecx
+
+; 816  : 	pLts_t->hit_type = HIT;                                                   
+
+  00703	c7 85 28 0b 00
+	00 01 00 00 00	 mov	 DWORD PTR [ebp+2856], 1
+
+; 817  : 	
+; 818  : 	/* debug switch */
+; 819  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  0070d	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00714	f6 c4 40	 test	 ah, 64			; 00000040H
+  00717	74 4a		 je	 SHORT $L71918
+  00719	a8 10		 test	 al, 16			; 00000010H
+  0071b	74 46		 je	 SHORT $L71918
+
+; 820  : 	{
+; 821  : 		printf("ls_dict_dlook:");
+
+  0071d	68 00 00 00 00	 push	 OFFSET FLAT:$SG71919
+  00722	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+
+; 822  : 		for (i=0;(*ppent)->text[i];i++)
+
+  00728	8b 13		 mov	 edx, DWORD PTR [ebx]
+  0072a	83 c4 04	 add	 esp, 4
+  0072d	33 f6		 xor	 esi, esi
+  0072f	8a 42 04	 mov	 al, BYTE PTR [edx+4]
+  00732	84 c0		 test	 al, al
+  00734	74 1f		 je	 SHORT $L71922
+$L71920:
+
+; 823  : 		printf("%c",(*ppent)->text[i]);
+
+  00736	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0073b	50		 push	 eax
+  0073c	68 00 00 00 00	 push	 OFFSET FLAT:$SG71923
+  00741	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00747	8b 03		 mov	 eax, DWORD PTR [ebx]
+  00749	83 c4 08	 add	 esp, 8
+  0074c	46		 inc	 esi
+  0074d	8a 44 30 04	 mov	 al, BYTE PTR [eax+esi+4]
+  00751	84 c0		 test	 al, al
+  00753	75 e1		 jne	 SHORT $L71920
+$L71922:
+
+; 824  : 		printf("\n");
+
+  00755	68 00 00 00 00	 push	 OFFSET FLAT:$SG71924
+  0075a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00760	83 c4 04	 add	 esp, 4
+$L71918:
+
+; 825  : 	}
+; 826  : #ifdef DICDEBUG
+; 827  : 	printf("LSDIC.C; ls_dict_dlook;");
+; 828  : 	for (i=0;(*ppent)->text[i];i++)
+; 829  : 		printf("%c",(*ppent)->text[i]);
+; 830  : 	printf("\n");
+; 831  : #endif /*DICDEBUG*/
+; 832  : 
+; 833  : 	/* this loop is written to 'continue' on matching charaters	*/
+; 834  : 	for(i=0;(*ppent)->text[i] != '\0';i++)
+
+  00763	8b 13		 mov	 edx, DWORD PTR [ebx]
+  00765	33 f6		 xor	 esi, esi
+  00767	8a 42 04	 mov	 al, BYTE PTR [edx+4]
+  0076a	84 c0		 test	 al, al
+  0076c	74 3e		 je	 SHORT $L71927
+$L71925:
+
+; 835  : 	{
+; 836  : 		if(pLts_t->comp_str[i] == '\0')
+
+  0076e	8a 8c 2e 38 04
+	00 00		 mov	 cl, BYTE PTR [esi+ebp+1080]
+  00775	84 c9		 test	 cl, cl
+  00777	0f 84 95 00 00
+	00		 je	 $L72389
+
+; 879  : 
+; 880  : 		}
+; 881  : 		if(pLts_t->comp_str[i] == (*ppent)->text[i])
+
+  0077d	8a 44 32 04	 mov	 al, BYTE PTR [edx+esi+4]
+  00781	3a c8		 cmp	 cl, al
+  00783	74 1e		 je	 SHORT $L71926
+
+; 882  : 		{
+; 883  : 			continue;
+; 884  : 		}
+; 885  : 
+; 886  : 		if(IS_LOWER((*ppent)->text[i])  && (pLts_t->comp_str[i] == ls_upper[(*ppent)->text[i]]))
+
+  00785	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0078a	f6 80 00 00 00
+	00 01		 test	 BYTE PTR _ls_char_feat[eax], 1
+  00791	0f 84 d6 00 00
+	00		 je	 $L71933
+  00797	3a 88 00 00 00
+	00		 cmp	 cl, BYTE PTR _ls_upper[eax]
+  0079d	0f 85 ca 00 00
+	00		 jne	 $L71933
+$L71926:
+
+; 825  : 	}
+; 826  : #ifdef DICDEBUG
+; 827  : 	printf("LSDIC.C; ls_dict_dlook;");
+; 828  : 	for (i=0;(*ppent)->text[i];i++)
+; 829  : 		printf("%c",(*ppent)->text[i]);
+; 830  : 	printf("\n");
+; 831  : #endif /*DICDEBUG*/
+; 832  : 
+; 833  : 	/* this loop is written to 'continue' on matching charaters	*/
+; 834  : 	for(i=0;(*ppent)->text[i] != '\0';i++)
+
+  007a3	8a 44 32 05	 mov	 al, BYTE PTR [edx+esi+5]
+  007a7	46		 inc	 esi
+  007a8	84 c0		 test	 al, al
+  007aa	75 c2		 jne	 SHORT $L71925
+$L71927:
+
+; 916  : 	}
+; 917  : 	
+; 918  : 	/* 
+; 919  : 	 * if we got here, we got to the end of the dictionary string	
+; 920  : 	 * without bailing out on a miscompare. 		
+; 921  : 	 * if this is also the end of the incoming string, it's a hit.	
+; 922  : 	 */
+; 923  : 	if(pLts_t->comp_str[i] == '\0')
+
+  007ac	8a 84 2e 38 04
+	00 00		 mov	 al, BYTE PTR [esi+ebp+1080]
+  007b3	84 c0		 test	 al, al
+  007b5	0f 85 3a 01 00
+	00		 jne	 $L71940
+
+; 924  : 	{             
+; 925  : 		/* get past the period in an abbreviation.. */
+; 926  : 		if(pLts_t->hit_type == ABBREV)
+
+  007bb	83 bd 28 0b 00
+	00 02		 cmp	 DWORD PTR [ebp+2856], 2
+  007c2	75 01		 jne	 SHORT $L71941
+
+; 927  : 			i += 1;
+
+  007c4	46		 inc	 esi
+$L71941:
+
+; 928  : 		/* eab out 3/95 not imple for Spanish yet */
+; 929  : 		/* GL 8/17/95, German don't do homograph at this point */
+; 930  : #ifdef ENGLISH
+; 931  : 		/* check for homograph.. */
+; 932  : 		if((*ppent)->fc & FC_HOMOGRAPH)
+
+  007c5	8b 03		 mov	 eax, DWORD PTR [ebx]
+  007c7	f7 00 00 00 00
+	80		 test	 DWORD PTR [eax], -2147483648 ; 80000000H
+  007cd	74 14		 je	 SHORT $L71942
+
+; 933  : 		{
+; 934  : 			*ppent = ls_homo_homo(phTTS,index);
+
+  007cf	8b 4c 24 1c	 mov	 ecx, DWORD PTR _index$[esp+16]
+  007d3	8b 54 24 18	 mov	 edx, DWORD PTR _phTTS$[esp+16]
+  007d7	51		 push	 ecx
+  007d8	52		 push	 edx
+  007d9	e8 00 00 00 00	 call	 _ls_homo_homo
+  007de	83 c4 08	 add	 esp, 8
+  007e1	89 03		 mov	 DWORD PTR [ebx], eax
+$L71942:
+
+; 935  : 		}
+; 936  : #endif
+; 937  : 		/* save the index of the end of the graphemes.. 	*/
+; 938  : 		*pLocaloff=i;
+
+  007e3	8b 44 24 20	 mov	 eax, DWORD PTR _pLocaloff$[esp+16]
+  007e7	89 30		 mov	 DWORD PTR [eax], esi
+
+; 939  : 		/* debug switch */
+; 940  : 		if (DT_DBG(LTS_DBG,0x010))
+
+  007e9	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  007f0	f6 c4 40	 test	 ah, 64			; 00000040H
+  007f3	74 12		 je	 SHORT $L71943
+  007f5	a8 10		 test	 al, 16			; 00000010H
+  007f7	74 0e		 je	 SHORT $L71943
+
+; 941  : 		{
+; 942  : 			printf("ls_dict_find_word:  HIT\n");
+
+  007f9	68 00 00 00 00	 push	 OFFSET FLAT:$SG71944
+  007fe	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00804	83 c4 04	 add	 esp, 4
+$L71943:
+  00807	5f		 pop	 edi
+  00808	5e		 pop	 esi
+  00809	5d		 pop	 ebp
+
+; 943  : 		}
+; 944  : #ifdef DICDEBUG
+; 945  : 		printf("*");
+; 946  : #endif /*DICDEBUG*/
+; 947  : 		return(HIT);
+
+  0080a	b8 01 00 00 00	 mov	 eax, 1
+  0080f	5b		 pop	 ebx
+
+; 960  : }
+
+  00810	59		 pop	 ecx
+  00811	c3		 ret	 0
+$L72389:
+
+; 837  : 		{
+; 838  : //#ifndef GWMICRO
+; 839  : 			if(pLts_t->abbrev_look && ((*ppent)->text[i] == '.') && ((*ppent)->text[i+1]) == '\0')
+
+  00812	8b 85 f4 08 00
+	00		 mov	 eax, DWORD PTR [ebp+2292]
+  00818	85 c0		 test	 eax, eax
+  0081a	74 1e		 je	 SHORT $L71929
+  0081c	80 7c 32 04 2e	 cmp	 BYTE PTR [edx+esi+4], 46 ; 0000002eH
+  00821	75 17		 jne	 SHORT $L71929
+  00823	8a 44 32 05	 mov	 al, BYTE PTR [edx+esi+5]
+  00827	84 c0		 test	 al, al
+  00829	75 0f		 jne	 SHORT $L71929
+
+; 840  : 			{
+; 841  : 				pLts_t->hit_type = ABBREV;
+
+  0082b	c7 85 28 0b 00
+	00 02 00 00 00	 mov	 DWORD PTR [ebp+2856], 2
+
+; 842  : 				break;
+
+  00835	e9 72 ff ff ff	 jmp	 $L71927
+$L71929:
+
+; 843  : 			}
+; 844  : //#endif
+; 845  : 	/* debug switch */
+; 846  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  0083a	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00841	f6 c4 40	 test	 ah, 64			; 00000040H
+  00844	74 12		 je	 SHORT $L71930
+  00846	a8 10		 test	 al, 16			; 00000010H
+  00848	74 0e		 je	 SHORT $L71930
+
+; 847  : 	{
+; 848  : 		printf("ls_dict_dlook:  short string. LOOK_LOWER\n");
+
+  0084a	68 00 00 00 00	 push	 OFFSET FLAT:$SG71931
+  0084f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00855	83 c4 04	 add	 esp, 4
+$L71930:
+  00858	5f		 pop	 edi
+
+; 849  : 	}
+; 850  : #ifdef DICDEBUG
+; 851  : 			printf("LSDIC.C; ls_dict_dlook;  short string, LOOK_LOWER\n");
+; 852  : #endif /*DICDEBUG*/
+; 853  : 			pLts_t->hit_type = MISS;
+
+  00859	c7 85 28 0b 00
+	00 00 00 00 00	 mov	 DWORD PTR [ebp+2856], 0
+  00863	5e		 pop	 esi
+  00864	5d		 pop	 ebp
+
+; 854  :                         /* Change 7/11/96 to fix the ms. miss probelm, GL.
+; 855  : 			 * when entry is line up like
+; 856  : 			 * ...
+; 857  : 			 * ms-dos
+; 858  : 			 * ms.
+; 859  : 			 * ...
+; 860  : 			 * And the input word is "ms."  The "." of input word will be
+; 861  : 			 * replaced with 0 in comp_str[2].
+; 862  : 		         * So if (*ppent)->text[] is "ms-dos" we need to check "-" against "."
+; 863  : 			 * to decide the LOOK_LOWER or LOOK_UPPER. (need LOOK_UPPER here)
+; 864  : 			 *
+; 865  :                          * Change 8/13/96, GL
+; 866  : 			 * when entry is line up like
+; 867  :                          * ...
+; 868  :                          * on
+; 869  :                          * on-line
+; 870  :                          * ...
+; 871  : 			 * And the input word is "on." 
+; 872  : 		         * So if (*ppent)->text[] is "on-line" we need to check "-" against "."
+; 873  : 			 * to decide the LOOK_LOWER or LOOK_UPPER.(need LOOK_LOWER here)
+; 874  :                          *
+; 875  :                          * I think this is a bug for current search routine. I will let pre-process take care of
+; 876  :                          * "ms." if possible
+; 877  : 			 */
+; 878  :                           return(LOOK_LOWER);
+
+  00865	b8 fe ff 00 00	 mov	 eax, 65534		; 0000fffeH
+  0086a	5b		 pop	 ebx
+
+; 960  : }
+
+  0086b	59		 pop	 ecx
+  0086c	c3		 ret	 0
+$L71933:
+
+; 887  : 			continue;
+; 888  : 		/* must be a miscompare.. */
+; 889  : 		pLts_t->hit_type=MISS;
+; 890  : 		/* don't even ask where to look if we're at the edge */
+; 891  : 		if (index==0)
+
+  0086d	8b 44 24 1c	 mov	 eax, DWORD PTR _index$[esp+16]
+  00871	c7 85 28 0b 00
+	00 00 00 00 00	 mov	 DWORD PTR [ebp+2856], 0
+  0087b	85 c0		 test	 eax, eax
+  0087d	75 31		 jne	 SHORT $L71934
+
+; 892  : 		{
+; 893  : 		/* debug switch */
+; 894  : 		if (DT_DBG(LTS_DBG,0x010))
+
+  0087f	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00886	f6 c4 40	 test	 ah, 64			; 00000040H
+  00889	0f 84 8e 00 00
+	00		 je	 $L71911
+  0088f	a8 10		 test	 al, 16			; 00000010H
+  00891	0f 84 86 00 00
+	00		 je	 $L71911
+
+; 895  : 		{
+; 896  : 			printf("ls_dict_dlook:  limit. LOOK_HIGHT\n");
+
+  00897	68 00 00 00 00	 push	 OFFSET FLAT:$SG71936
+
+; 953  : 	{
+; 954  : 		printf("ls_dict_dlook:  long string. LOOK_HIGHER\n");
+
+  0089c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  008a2	83 c4 04	 add	 esp, 4
+
+; 955  : 	}
+; 956  : #ifdef DICDEBUG
+; 957  : 	printf("LSDIC.C; ls_dict_dlook;  long string, LOOK_HIGHER \n");
+; 958  : #endif /*DICDEBUG*/
+; 959  : 	return(LOOK_HIGHER);
+
+  008a5	b8 ff ff 00 00	 mov	 eax, 65535		; 0000ffffH
+  008aa	5f		 pop	 edi
+  008ab	5e		 pop	 esi
+  008ac	5d		 pop	 ebp
+  008ad	5b		 pop	 ebx
+
+; 960  : }
+
+  008ae	59		 pop	 ecx
+  008af	c3		 ret	 0
+$L71934:
+
+; 897  : 		}
+; 898  : #ifdef DICDEBUG
+; 899  : 			printf("LSDIC.C; ls_dict_dlook;  Limit, LOOK_HIGHER \n");
+; 900  : #endif /*DICDEBUG*/
+; 901  : 			return(LOOK_HIGHER); /* bound.. */
+; 902  : 		}
+; 903  : 		if (index==limit)
+
+  008b0	3b 44 24 10	 cmp	 eax, DWORD PTR _limit$[esp+20]
+  008b4	75 29		 jne	 SHORT $L71937
+
+; 904  : 		{
+; 905  : 		/* debug switch */
+; 906  : 		if (DT_DBG(LTS_DBG,0x010))
+
+  008b6	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  008bd	f6 c4 40	 test	 ah, 64			; 00000040H
+  008c0	74 12		 je	 SHORT $L71914
+  008c2	a8 10		 test	 al, 16			; 00000010H
+  008c4	74 0e		 je	 SHORT $L71914
+
+; 907  : 		{
+; 908  : 			printf("ls_dict_dlook:  limit. LOOK_LOWER\n");
+
+  008c6	68 00 00 00 00	 push	 OFFSET FLAT:$SG71939
+  008cb	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  008d1	83 c4 04	 add	 esp, 4
+$L71914:
+  008d4	5f		 pop	 edi
+  008d5	5e		 pop	 esi
+  008d6	5d		 pop	 ebp
+
+; 909  : 		}
+; 910  : #ifdef DICDEBUG
+; 911  : 			printf("LSDIC.C; ls_dict_dlook;  Limit. LOOK_LOWER \n");
+; 912  : #endif /*DICDEBUG*/			
+; 913  : 			return(LOOK_LOWER); /* boune.. */
+
+  008d7	b8 fe ff 00 00	 mov	 eax, 65534		; 0000fffeH
+  008dc	5b		 pop	 ebx
+
+; 960  : }
+
+  008dd	59		 pop	 ecx
+  008de	c3		 ret	 0
+$L71937:
+
+; 914  : 		}
+; 915  : 		return(ls_dict_where_to_look(phTTS,*ppent));
+
+  008df	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  008e1	8b 54 24 18	 mov	 edx, DWORD PTR _phTTS$[esp+16]
+  008e5	51		 push	 ecx
+  008e6	52		 push	 edx
+  008e7	e8 00 00 00 00	 call	 _ls_dict_where_to_look
+  008ec	83 c4 08	 add	 esp, 8
+  008ef	5f		 pop	 edi
+  008f0	5e		 pop	 esi
+  008f1	5d		 pop	 ebp
+  008f2	5b		 pop	 ebx
+
+; 960  : }
+
+  008f3	59		 pop	 ecx
+  008f4	c3		 ret	 0
+$L71940:
+
+; 948  : 	}
+; 949  : 	/* was a match, but the incoming string was longer.. */
+; 950  : 	pLts_t->hit_type = MISS;
+
+  008f5	c7 85 28 0b 00
+	00 00 00 00 00	 mov	 DWORD PTR [ebp+2856], 0
+
+; 951  : 	/* debug switch */
+; 952  : 	if (DT_DBG(LTS_DBG,0x010))
+
+  008ff	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00906	f6 c4 40	 test	 ah, 64			; 00000040H
+  00909	74 12		 je	 SHORT $L71911
+  0090b	a8 10		 test	 al, 16			; 00000010H
+  0090d	74 0e		 je	 SHORT $L71911
+
+; 953  : 	{
+; 954  : 		printf("ls_dict_dlook:  long string. LOOK_HIGHER\n");
+
+  0090f	68 00 00 00 00	 push	 OFFSET FLAT:$SG71946
+  00914	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  0091a	83 c4 04	 add	 esp, 4
+$L71911:
+  0091d	5f		 pop	 edi
+  0091e	5e		 pop	 esi
+  0091f	5d		 pop	 ebp
+
+; 955  : 	}
+; 956  : #ifdef DICDEBUG
+; 957  : 	printf("LSDIC.C; ls_dict_dlook;  long string, LOOK_HIGHER \n");
+; 958  : #endif /*DICDEBUG*/
+; 959  : 	return(LOOK_HIGHER);
+
+  00920	b8 ff ff 00 00	 mov	 eax, 65535		; 0000ffffH
+  00925	5b		 pop	 ebx
+
+; 960  : }
+
+  00926	59		 pop	 ecx
+  00927	c3		 ret	 0
+_ls_dict_dlook ENDP
+_TEXT	ENDS
+_DATA	SEGMENT
+	ORG $+2
+$SG71962 DB	'ls_dict_where_to_look:  w-t-l match. LOOK_HIGHER', 0aH, 00H
+	ORG $+2
+$SG71965 DB	'ls_dict_where_to_look:  w-t-l. LOOK_HIGHER', 0aH, 00H
+$SG71967 DB	'ls_dict_where_to_look:  w-t-l. LOOK_LOWER', 0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pent$ = 12
+_ls_dict_where_to_look PROC NEAR
+
+; 981  : 	int	i;
+; 982  : 	unsigned char	pivot_char = '\0';
+; 983  : 	PKSD_T pKsd_t;
+; 984  : 	PLTS_T pLts_t;
+; 985  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00930	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00934	53		 push	 ebx
+  00935	55		 push	 ebp
+  00936	56		 push	 esi
+
+; 986  : 	pLts_t = phTTS->pLTSThreadData;
+
+  00937	8b 70 10	 mov	 esi, DWORD PTR [eax+16]
+  0093a	8b 68 08	 mov	 ebp, DWORD PTR [eax+8]
+  0093d	32 d2		 xor	 dl, dl
+
+; 987  :   	
+; 988  : 	for(i=0;pLts_t->comp_str[i];i++)
+
+  0093f	33 c9		 xor	 ecx, ecx
+  00941	8a 86 38 04 00
+	00		 mov	 al, BYTE PTR [esi+1080]
+  00947	57		 push	 edi
+  00948	8b 7c 24 18	 mov	 edi, DWORD PTR _pent$[esp+12]
+  0094c	84 c0		 test	 al, al
+  0094e	74 27		 je	 SHORT $L72396
+$L71956:
+
+; 989  : 	{
+; 990  : 		pivot_char = ls_upper[pent->text[i]];
+
+  00950	33 d2		 xor	 edx, edx
+
+; 991  : 		if(ls_upper[pLts_t->comp_str[i]] != pivot_char)
+
+  00952	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00957	8a 54 0f 04	 mov	 dl, BYTE PTR [edi+ecx+4]
+  0095b	8a 98 00 00 00
+	00		 mov	 bl, BYTE PTR _ls_upper[eax]
+  00961	8a 92 00 00 00
+	00		 mov	 dl, BYTE PTR _ls_upper[edx]
+  00967	3a da		 cmp	 bl, dl
+  00969	75 0c		 jne	 SHORT $L72396
+  0096b	8a 84 0e 39 04
+	00 00		 mov	 al, BYTE PTR [esi+ecx+1081]
+  00972	41		 inc	 ecx
+  00973	84 c0		 test	 al, al
+  00975	75 d9		 jne	 SHORT $L71956
+$L72396:
+
+; 992  : 			break;
+; 993  : 	}	                           
+; 994  : 	/* 
+; 995  : 	 * ...tek 03oct95 I think this is broken; we have to check for 
+; 996  : 	 * the case where the two appear to match, and if that happens 
+; 997  : 	 * we must have matched but the dic was capitalized and the    
+; 998  : 	 * incoming was lower. If that's the case, we have to go HIGHER
+; 999  : 	 * because uppercase comes before lower in the dictionary.     
+; 1000 : 	 */
+; 1001 : 
+; 1002 : 	if ( (pLts_t->comp_str[i]=='\0') && (pent->text[i]=='\0'))
+
+  00977	8a 84 31 38 04
+	00 00		 mov	 al, BYTE PTR [ecx+esi+1080]
+  0097e	84 c0		 test	 al, al
+  00980	75 30		 jne	 SHORT $L71960
+  00982	8a 5c 39 04	 mov	 bl, BYTE PTR [ecx+edi+4]
+  00986	84 db		 test	 bl, bl
+  00988	75 28		 jne	 SHORT $L71960
+
+; 1003 : 	{
+; 1004 : 		/* debug switch */
+; 1005 : 		if (DT_DBG(LTS_DBG,0x010))
+
+  0098a	66 8b 85 40 06
+	00 00		 mov	 ax, WORD PTR [ebp+1600]
+  00991	f6 c4 40	 test	 ah, 64			; 00000040H
+  00994	74 49		 je	 SHORT $L71961
+  00996	a8 10		 test	 al, 16			; 00000010H
+  00998	74 45		 je	 SHORT $L71961
+
+; 1006 : 		{
+; 1007 : 			printf("ls_dict_where_to_look:  w-t-l match. LOOK_HIGHER\n");
+
+  0099a	68 00 00 00 00	 push	 OFFSET FLAT:$SG71962
+  0099f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  009a5	83 c4 04	 add	 esp, 4
+
+; 1008 : 		}
+; 1009 : #ifdef DICDEBUG
+; 1010 : 		printf("LSDIC.C; ls_dict_where_to_look;  w-t-l match: LOOK_HIGHER \n");
+; 1011 : #endif /*DICDEBUG*/
+; 1012 : 		return(LOOK_HIGHER);
+
+  009a8	b8 ff ff 00 00	 mov	 eax, 65535		; 0000ffffH
+  009ad	5f		 pop	 edi
+  009ae	5e		 pop	 esi
+  009af	5d		 pop	 ebp
+  009b0	5b		 pop	 ebx
+
+; 1035 : }
+
+  009b1	c3		 ret	 0
+$L71960:
+
+; 1013 : 	}
+; 1014 : 	if(ls_upper[pLts_t->comp_str[i]] > pivot_char)
+
+  009b2	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  009b7	8a 88 00 00 00
+	00		 mov	 cl, BYTE PTR _ls_upper[eax]
+
+; 1015 : 	{
+; 1016 : 		/* debug switch */
+; 1017 : 		if (DT_DBG(LTS_DBG,0x010))
+
+  009bd	66 8b 85 40 06
+	00 00		 mov	 ax, WORD PTR [ebp+1600]
+  009c4	3a ca		 cmp	 cl, dl
+  009c6	76 21		 jbe	 SHORT $L71963
+  009c8	f6 c4 40	 test	 ah, 64			; 00000040H
+  009cb	74 12		 je	 SHORT $L71961
+  009cd	a8 10		 test	 al, 16			; 00000010H
+  009cf	74 0e		 je	 SHORT $L71961
+
+; 1018 : 		{
+; 1019 : 			printf("ls_dict_where_to_look:  w-t-l. LOOK_HIGHER\n");
+
+  009d1	68 00 00 00 00	 push	 OFFSET FLAT:$SG71965
+  009d6	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  009dc	83 c4 04	 add	 esp, 4
+$L71961:
+  009df	5f		 pop	 edi
+  009e0	5e		 pop	 esi
+  009e1	5d		 pop	 ebp
+
+; 1020 : 		}
+; 1021 : #ifdef DICDEBUG
+; 1022 : 		printf("LSDIC.C; ls_dict_where_to_look;  w-t-l: LOOK_HIGHER \n");
+; 1023 : #endif /*DICDEBUG*/
+; 1024 : 		return(LOOK_HIGHER);
+
+  009e2	b8 ff ff 00 00	 mov	 eax, 65535		; 0000ffffH
+  009e7	5b		 pop	 ebx
+
+; 1035 : }
+
+  009e8	c3		 ret	 0
+$L71963:
+
+; 1025 : 	}
+; 1026 : 	/* debug switch */
+; 1027 : 	if (DT_DBG(LTS_DBG,0x010))
+
+  009e9	f6 c4 40	 test	 ah, 64			; 00000040H
+  009ec	74 12		 je	 SHORT $L71966
+  009ee	a8 10		 test	 al, 16			; 00000010H
+  009f0	74 0e		 je	 SHORT $L71966
+
+; 1028 : 	{
+; 1029 : 		printf("ls_dict_where_to_look:  w-t-l. LOOK_LOWER\n");
+
+  009f2	68 00 00 00 00	 push	 OFFSET FLAT:$SG71967
+  009f7	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  009fd	83 c4 04	 add	 esp, 4
+$L71966:
+  00a00	5f		 pop	 edi
+  00a01	5e		 pop	 esi
+  00a02	5d		 pop	 ebp
+
+; 1030 : 	}
+; 1031 : #ifdef DICDEBUG
+; 1032 : 	printf("LSDIC.C; ls_dict_where_to_look;  w-t-l: LOOK_LOWER \n");
+; 1033 : #endif /*DICDEBUG*/
+; 1034 : 	return(LOOK_LOWER);
+
+  00a03	b8 fe ff 00 00	 mov	 eax, 65534		; 0000fffeH
+  00a08	5b		 pop	 ebx
+
+; 1035 : }
+
+  00a09	c3		 ret	 0
+_ls_dict_where_to_look ENDP
+_TEXT	ENDS
+PUBLIC	_ls_dict_user_dict_look
+_TEXT	SEGMENT
+_phTTS$ = 8
+_abbr$ = 12
+_ls_dict_ufind_word PROC NEAR
+
+; 1068 : 	/* Simpler bsearch code 19-JAN-1995 cjl adn */
+; 1069 :  
+; 1070 : 	long first,base;
+; 1071 : 	long last;     
+; 1072 : 	int stat;
+; 1073 : 
+; 1074 : 	PKSD_T pKsd_t;
+; 1075 : 	pKsd_t = phTTS->pKernelShareData;
+
+  00a10	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00a14	53		 push	 ebx
+  00a15	55		 push	 ebp
+
+; 1076 : 	first = 0;							/* 0 is the bottom */
+; 1077 : 	if (abbr == 0)
+
+  00a16	8b 6c 24 10	 mov	 ebp, DWORD PTR _abbr$[esp+4]
+  00a1a	8b 40 08	 mov	 eax, DWORD PTR [eax+8]
+  00a1d	33 db		 xor	 ebx, ebx
+  00a1f	56		 push	 esi
+  00a20	57		 push	 edi
+  00a21	66 85 ed	 test	 bp, bp
+  00a24	75 08		 jne	 SHORT $L71978
+
+; 1078 : 		last  =	UDICT_ENTRY - 1;		 	/* max number of entries */
+
+  00a26	8b b8 a8 00 00
+	00		 mov	 edi, DWORD PTR [eax+168]
+
+; 1079 : 	else if (abbr==2)
+
+  00a2c	eb 14		 jmp	 SHORT $L72401
+$L71978:
+  00a2e	66 83 fd 02	 cmp	 bp, 2
+  00a32	75 08		 jne	 SHORT $L71980
+
+; 1080 : 		last=FDICT_ENTRY-1;
+
+  00a34	8b b8 88 01 00
+	00		 mov	 edi, DWORD PTR [eax+392]
+
+; 1081 : 	else
+
+  00a3a	eb 06		 jmp	 SHORT $L72401
+$L71980:
+
+; 1082 : 		last  =	ADICT_ENTRY - 1;		 	/* max number of entries */
+
+  00a3c	8b b8 18 01 00
+	00		 mov	 edi, DWORD PTR [eax+280]
+$L72401:
+  00a42	4f		 dec	 edi
+
+; 1083 : 
+; 1084 : 	while (first <= last)				/* search until list is empty */
+
+  00a43	85 ff		 test	 edi, edi
+  00a45	7c 2e		 jl	 SHORT $L71984
+$L71983:
+
+; 1085 : 	{
+; 1086 : 		base = (first + last) >> 1;				/* find the mid point for compare */
+; 1087 : #ifdef GERMAN
+; 1088 : 		if ((stat = ls_dict_user_dict_look(phTTS,base,abbr,nosend)) == LOOK_LOWER)							/* match */
+; 1089 : #else
+; 1090 : 		if ((stat = ls_dict_user_dict_look(phTTS,base,abbr)) == LOOK_LOWER)							/* match */
+
+  00a47	8b 4c 24 14	 mov	 ecx, DWORD PTR _phTTS$[esp+12]
+  00a4b	8d 34 1f	 lea	 esi, DWORD PTR [edi+ebx]
+  00a4e	d1 fe		 sar	 esi, 1
+  00a50	55		 push	 ebp
+  00a51	56		 push	 esi
+  00a52	51		 push	 ecx
+  00a53	e8 00 00 00 00	 call	 _ls_dict_user_dict_look
+  00a58	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00a5b	3d fe ff 00 00	 cmp	 eax, 65534		; 0000fffeH
+  00a60	75 05		 jne	 SHORT $L71985
+
+; 1091 : #endif
+; 1092 : 		{
+; 1093 : #ifdef DICDEBUG
+; 1094 : 				printf("lower stat = %d\n",stat);
+; 1095 : #endif
+; 1096 : 			last = base - 1;
+
+  00a62	8d 7e ff	 lea	 edi, DWORD PTR [esi-1]
+
+; 1097 : 		}
+; 1098 : 		else                                    	/*search lower */
+
+  00a65	eb 0a		 jmp	 SHORT $L71988
+$L71985:
+
+; 1099 : 		{			
+; 1100 : 			if (stat == LOOK_HIGHER)			 	/* search higher */
+
+  00a67	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+  00a6c	75 0e		 jne	 SHORT $L71987
+
+; 1101 : 			{
+; 1102 : #ifdef DICDEBUG
+; 1103 : 					printf("higher stat = %d\n",stat);
+; 1104 : #endif
+; 1105 : 				first = base + 1;
+
+  00a6e	8d 5e 01	 lea	 ebx, DWORD PTR [esi+1]
+$L71988:
+
+; 1083 : 
+; 1084 : 	while (first <= last)				/* search until list is empty */
+
+  00a71	3b df		 cmp	 ebx, edi
+  00a73	7e d2		 jle	 SHORT $L71983
+$L71984:
+  00a75	5f		 pop	 edi
+  00a76	5e		 pop	 esi
+  00a77	5d		 pop	 ebp
+
+; 1113 : 			}
+; 1114 : 		}    
+; 1115 : 	}
+; 1116 : 	return (MISS);
+
+  00a78	33 c0		 xor	 eax, eax
+  00a7a	5b		 pop	 ebx
+
+; 1117 : }
+
+  00a7b	c3		 ret	 0
+$L71987:
+  00a7c	5f		 pop	 edi
+  00a7d	5e		 pop	 esi
+  00a7e	5d		 pop	 ebp
+
+; 1106 : 			}
+; 1107 : 			else											
+; 1108 : 			{
+; 1109 : #ifdef DICDEBUG
+; 1110 : 					printf("hit stat = %d\n",stat);
+; 1111 : #endif
+; 1112 : 				return(HIT);
+
+  00a7f	b8 01 00 00 00	 mov	 eax, 1
+  00a84	5b		 pop	 ebx
+
+; 1117 : }
+
+  00a85	c3		 ret	 0
+_ls_dict_ufind_word ENDP
+_TEXT	ENDS
+PUBLIC	_ls_dict_where_to_ulook
+_TEXT	SEGMENT
+_phTTS$ = 8
+_uindex$ = 12
+_abbr$ = 16
+_two_byte_phon$ = -4
+_ls_dict_user_dict_look PROC NEAR
+
+; 1146 : {
+
+  00a90	51		 push	 ecx
+
+; 1147 :     char _far *ent;
+; 1148 :     int     i; 
+; 1149 : 	short temp;
+; 1150 : 	int two_byte_phon = 0;
+; 1151 : 	PKSD_T pKsd_t;
+; 1152 : 	PLTS_T pLts_t;
+; 1153 : 	pKsd_t = phTTS->pKernelShareData;
+; 1154 : 	pLts_t = phTTS->pLTSThreadData;
+; 1155 : 
+; 1156 : 
+; 1157 :         /* add for WIN95.  6/03/96.  by MGS */
+; 1158 : #ifdef MSDOS
+; 1159 : 		if (abbr == 0)
+; 1160 :         	ent = UDICT_HEAD[uindex];
+; 1161 : 		else if (abbr==2)
+; 1162 :         	ent = FDICT_HEAD[uindex];
+; 1163 :         else
+; 1164 :         	ent = ADICT_HEAD[uindex];
+; 1165 : #else
+; 1166 : 		if (abbr == 0)
+
+  00a91	66 8b 4c 24 10	 mov	 cx, WORD PTR _abbr$[esp]
+  00a96	53		 push	 ebx
+  00a97	8b 5c 24 0c	 mov	 ebx, DWORD PTR _phTTS$[esp+4]
+  00a9b	55		 push	 ebp
+  00a9c	56		 push	 esi
+  00a9d	57		 push	 edi
+  00a9e	8b 43 08	 mov	 eax, DWORD PTR [ebx+8]
+  00aa1	8b 6b 10	 mov	 ebp, DWORD PTR [ebx+16]
+  00aa4	66 85 c9	 test	 cx, cx
+  00aa7	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _two_byte_phon$[esp+20], 0
+  00aaf	75 12		 jne	 SHORT $L72002
+
+; 1167 : 			ent = ((struct dic_entry *) UDICT_ACCESS(uindex))->text;
+
+  00ab1	8b 48 70	 mov	 ecx, DWORD PTR [eax+112]
+  00ab4	8b 54 24 1c	 mov	 edx, DWORD PTR _uindex$[esp+16]
+  00ab8	8b 0c 91	 mov	 ecx, DWORD PTR [ecx+edx*4]
+  00abb	8b 90 8c 00 00
+	00		 mov	 edx, DWORD PTR [eax+140]
+
+; 1168 : 		else if (abbr==2)
+
+  00ac1	eb 2e		 jmp	 SHORT $L72410
+$L72002:
+  00ac3	66 83 f9 02	 cmp	 cx, 2
+  00ac7	75 15		 jne	 SHORT $L72006
+
+; 1169 : 			ent = ((struct dic_entry *) FDICT_ACCESS(uindex))->text;
+
+  00ac9	8b 88 50 01 00
+	00		 mov	 ecx, DWORD PTR [eax+336]
+  00acf	8b 54 24 1c	 mov	 edx, DWORD PTR _uindex$[esp+16]
+  00ad3	8b 0c 91	 mov	 ecx, DWORD PTR [ecx+edx*4]
+  00ad6	8b 90 6c 01 00
+	00		 mov	 edx, DWORD PTR [eax+364]
+
+; 1170 : 		else
+
+  00adc	eb 13		 jmp	 SHORT $L72410
+$L72006:
+
+; 1171 : 			ent = ((struct dic_entry *) ADICT_ACCESS(uindex))->text;
+
+  00ade	8b 88 e0 00 00
+	00		 mov	 ecx, DWORD PTR [eax+224]
+  00ae4	8b 54 24 1c	 mov	 edx, DWORD PTR _uindex$[esp+16]
+  00ae8	8b 0c 91	 mov	 ecx, DWORD PTR [ecx+edx*4]
+  00aeb	8b 90 fc 00 00
+	00		 mov	 edx, DWORD PTR [eax+252]
+$L72410:
+
+; 1172 : #endif
+; 1173 : 	/*	pLts_t->hit_type=HIT; */
+; 1174 : #ifdef DICDEBUG
+; 1175 : 		printf("LSDIC.C; ls_dict_user_dict_look;  %d in lk\n",uindex);
+; 1176 : #endif
+; 1177 : 
+; 1178 : 	for(i=0;ent[i] != '\0';i++)
+
+  00af1	8a 44 11 04	 mov	 al, BYTE PTR [ecx+edx+4]
+  00af5	8d 7c 11 04	 lea	 edi, DWORD PTR [ecx+edx+4]
+  00af9	33 c9		 xor	 ecx, ecx
+  00afb	84 c0		 test	 al, al
+  00afd	74 3d		 je	 SHORT $L72014
+$L72012:
+
+; 1179 : 	{
+; 1180 : 		if(pLts_t->comp_str[i] == ent[i])
+
+  00aff	8a 94 29 38 04
+	00 00		 mov	 dl, BYTE PTR [ecx+ebp+1080]
+  00b06	0f be f0	 movsx	 esi, al
+  00b09	8b da		 mov	 ebx, edx
+  00b0b	81 e3 ff 00 00
+	00		 and	 ebx, 255		; 000000ffH
+  00b11	3b de		 cmp	 ebx, esi
+  00b13	74 1a		 je	 SHORT $L72013
+
+; 1181 : 			continue;
+; 1182 : 		if(pLts_t->comp_str[i] == '\0')
+
+  00b15	84 d2		 test	 dl, dl
+  00b17	74 4a		 je	 SHORT $L72405
+
+; 1188 : 		}
+; 1189 : 		if(IS_LOWER(ent[i])  && (pLts_t->comp_str[i] == ls_upper[(int)ent[i]]))
+
+  00b19	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00b1e	f6 80 00 00 00
+	00 01		 test	 BYTE PTR _ls_char_feat[eax], 1
+  00b25	74 47		 je	 SHORT $L72018
+  00b27	3a 96 00 00 00
+	00		 cmp	 dl, BYTE PTR _ls_upper[esi]
+  00b2d	75 3f		 jne	 SHORT $L72018
+$L72013:
+
+; 1172 : #endif
+; 1173 : 	/*	pLts_t->hit_type=HIT; */
+; 1174 : #ifdef DICDEBUG
+; 1175 : 		printf("LSDIC.C; ls_dict_user_dict_look;  %d in lk\n",uindex);
+; 1176 : #endif
+; 1177 : 
+; 1178 : 	for(i=0;ent[i] != '\0';i++)
+
+  00b2f	8a 44 39 01	 mov	 al, BYTE PTR [ecx+edi+1]
+  00b33	41		 inc	 ecx
+  00b34	84 c0		 test	 al, al
+  00b36	75 c7		 jne	 SHORT $L72012
+
+; 1181 : 			continue;
+; 1182 : 		if(pLts_t->comp_str[i] == '\0')
+
+  00b38	8b 5c 24 18	 mov	 ebx, DWORD PTR _phTTS$[esp+16]
+$L72014:
+
+; 1195 : 	}
+; 1196 : 	if(pLts_t->comp_str[i] == '\0')
+
+  00b3c	8a 84 29 38 04
+	00 00		 mov	 al, BYTE PTR [ecx+ebp+1080]
+  00b43	84 c0		 test	 al, al
+  00b45	75 73		 jne	 SHORT $L72019
+
+; 1197 : 	{
+; 1198 : #ifdef GERMAN
+; 1199 : 		for(i += 1;ent[i+nosend] != 0x00;i++)
+; 1200 : #else
+; 1201 : 		for(i += 1;ent[i] != 0x00;i++)
+
+  00b47	8a 44 39 01	 mov	 al, BYTE PTR [ecx+edi+1]
+  00b4b	8d 74 39 01	 lea	 esi, DWORD PTR [ecx+edi+1]
+  00b4f	84 c0		 test	 al, al
+  00b51	74 5c		 je	 SHORT $L72022
+$L72020:
+
+; 1202 : #endif
+; 1203 : 		{
+; 1204 : 			if((unsigned char)(ent[i]) == 0xFF)
+
+  00b53	8a 06		 mov	 al, BYTE PTR [esi]
+  00b55	3c ff		 cmp	 al, 255			; 000000ffH
+  00b57	75 25		 jne	 SHORT $L72024
+
+; 1205 : 			{
+; 1206 : 				two_byte_phon = 1;
+
+  00b59	c7 44 24 10 01
+	00 00 00	 mov	 DWORD PTR _two_byte_phon$[esp+20], 1
+
+; 1207 : 				continue;
+
+  00b61	eb 44		 jmp	 SHORT $L72021
+$L72405:
+  00b63	5f		 pop	 edi
+  00b64	5e		 pop	 esi
+  00b65	5d		 pop	 ebp
+
+; 1183 : 		{   
+; 1184 : #ifdef DICDEBUG
+; 1185 : 			printf("leaving ls_dict_user_dict_look lower 1\n");
+; 1186 : #endif
+; 1187 : 			return(LOOK_LOWER);
+
+  00b66	b8 fe ff 00 00	 mov	 eax, 65534		; 0000fffeH
+  00b6b	5b		 pop	 ebx
+
+; 1232 : }
+
+  00b6c	59		 pop	 ecx
+  00b6d	c3		 ret	 0
+$L72018:
+
+; 1190 : 			continue;                       
+; 1191 : #ifdef DICDEBUG
+; 1192 : 		printf("leaving ls_dict_user_dict_look  where to look\n");
+; 1193 : #endif
+; 1194 : 		return(ls_dict_where_to_ulook(pLts_t,ent));
+
+  00b6e	57		 push	 edi
+  00b6f	55		 push	 ebp
+  00b70	e8 00 00 00 00	 call	 _ls_dict_where_to_ulook
+  00b75	83 c4 08	 add	 esp, 8
+  00b78	5f		 pop	 edi
+  00b79	5e		 pop	 esi
+  00b7a	5d		 pop	 ebp
+  00b7b	5b		 pop	 ebx
+
+; 1232 : }
+
+  00b7c	59		 pop	 ecx
+  00b7d	c3		 ret	 0
+$L72024:
+
+; 1208 : 			}
+; 1209 : 			if(two_byte_phon)
+
+  00b7e	8b 4c 24 10	 mov	 ecx, DWORD PTR _two_byte_phon$[esp+20]
+  00b82	85 c9		 test	 ecx, ecx
+  00b84	74 14		 je	 SHORT $L72025
+
+; 1210 : 			{
+; 1211 : 				temp = ((short)(ent[i])<<PSFONT);
+; 1212 : 				i++;
+; 1213 : 				temp += (short)(ent[i]);
+; 1214 : 				ls_util_send_phone(phTTS,temp);
+
+  00b86	66 0f be 56 01	 movsx	 dx, BYTE PTR [esi+1]
+  00b8b	33 c9		 xor	 ecx, ecx
+  00b8d	46		 inc	 esi
+  00b8e	8a e8		 mov	 ch, al
+  00b90	8b c1		 mov	 eax, ecx
+  00b92	03 d0		 add	 edx, eax
+  00b94	0f bf c2	 movsx	 eax, dx
+  00b97	50		 push	 eax
+
+; 1215 : 			}
+; 1216 : 			else
+
+  00b98	eb 04		 jmp	 SHORT $L72411
+$L72025:
+
+; 1217 : 			{
+; 1218 : 			/* Use the correct ls_util_send_phone routine based on language being compiled */
+; 1219 : 				ls_util_send_phone(phTTS,ent[i]);
+
+  00b9a	0f be c8	 movsx	 ecx, al
+  00b9d	51		 push	 ecx
+$L72411:
+  00b9e	53		 push	 ebx
+  00b9f	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00ba4	83 c4 08	 add	 esp, 8
+$L72021:
+  00ba7	8a 46 01	 mov	 al, BYTE PTR [esi+1]
+  00baa	46		 inc	 esi
+  00bab	84 c0		 test	 al, al
+  00bad	75 a4		 jne	 SHORT $L72020
+$L72022:
+  00baf	5f		 pop	 edi
+  00bb0	5e		 pop	 esi
+  00bb1	5d		 pop	 ebp
+
+; 1220 : 			}
+; 1221 : 		}
+; 1222 : 		two_byte_phon = 0;
+; 1223 : #ifdef DICDEBUG
+; 1224 : 		printf("leaving ls_dict_user_dict_look hit\n");
+; 1225 : #endif /*DICDEBUG*/
+; 1226 : 		return(HIT);
+
+  00bb2	b8 01 00 00 00	 mov	 eax, 1
+  00bb7	5b		 pop	 ebx
+
+; 1232 : }
+
+  00bb8	59		 pop	 ecx
+  00bb9	c3		 ret	 0
+$L72019:
+  00bba	5f		 pop	 edi
+  00bbb	5e		 pop	 esi
+  00bbc	5d		 pop	 ebp
+
+; 1227 : 	}
+; 1228 : #ifdef DICDEBUG
+; 1229 : 	printf("leaving ls_dict_user_dict_look higher\n");
+; 1230 : #endif
+; 1231 : 	return(LOOK_HIGHER);
+
+  00bbd	b8 ff ff 00 00	 mov	 eax, 65535		; 0000ffffH
+  00bc2	5b		 pop	 ebx
+
+; 1232 : }
+
+  00bc3	59		 pop	 ecx
+  00bc4	c3		 ret	 0
+_ls_dict_user_dict_look ENDP
+_pLts_t$ = 8
+_ent$ = 12
+_ls_dict_where_to_ulook PROC NEAR
+
+; 1252 : {	
+
+  00bd0	53		 push	 ebx
+  00bd1	56		 push	 esi
+
+; 1253 : 
+; 1254 : 	int	i;
+; 1255 : 	unsigned char	pivot_char = '\0';
+; 1256 : #ifdef DICDEBUG
+; 1257 : 	printf("in ls_dict_where_to_ulook\n");
+; 1258 : #endif
+; 1259 : 	for(i=0;pLts_t->comp_str[i];i++)
+
+  00bd2	8b 74 24 0c	 mov	 esi, DWORD PTR _pLts_t$[esp+4]
+  00bd6	32 d2		 xor	 dl, dl
+  00bd8	33 c9		 xor	 ecx, ecx
+  00bda	57		 push	 edi
+  00bdb	8a 86 38 04 00
+	00		 mov	 al, BYTE PTR [esi+1080]
+  00be1	84 c0		 test	 al, al
+  00be3	74 27		 je	 SHORT $L72414
+
+; 1262 : 		if(ls_upper[pLts_t->comp_str[i]] != pivot_char)
+
+  00be5	8b 7c 24 14	 mov	 edi, DWORD PTR _ent$[esp+8]
+$L72036:
+
+; 1260 : 	{
+; 1261 : 		pivot_char = ls_upper[(int)ent[i]];
+
+  00be9	0f be 14 39	 movsx	 edx, BYTE PTR [ecx+edi]
+
+; 1262 : 		if(ls_upper[pLts_t->comp_str[i]] != pivot_char)
+
+  00bed	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00bf2	8a 92 00 00 00
+	00		 mov	 dl, BYTE PTR _ls_upper[edx]
+  00bf8	38 90 00 00 00
+	00		 cmp	 BYTE PTR _ls_upper[eax], dl
+  00bfe	75 0c		 jne	 SHORT $L72414
+  00c00	8a 84 0e 39 04
+	00 00		 mov	 al, BYTE PTR [esi+ecx+1081]
+  00c07	41		 inc	 ecx
+  00c08	84 c0		 test	 al, al
+  00c0a	75 dd		 jne	 SHORT $L72036
+$L72414:
+
+; 1263 : 			break;
+; 1264 : 	}
+; 1265 : 	if(ls_upper[pLts_t->comp_str[i]] > pivot_char)
+
+  00c0c	33 c0		 xor	 eax, eax
+  00c0e	5f		 pop	 edi
+  00c0f	8a 84 31 38 04
+	00 00		 mov	 al, BYTE PTR [ecx+esi+1080]
+  00c16	5e		 pop	 esi
+  00c17	8a 98 00 00 00
+	00		 mov	 bl, BYTE PTR _ls_upper[eax]
+  00c1d	3a d3		 cmp	 dl, bl
+  00c1f	5b		 pop	 ebx
+  00c20	1b c0		 sbb	 eax, eax
+  00c22	f7 d8		 neg	 eax
+  00c24	05 fe ff 00 00	 add	 eax, 65534		; 0000fffeH
+
+; 1266 : 	{
+; 1267 : #ifdef DICDEBUG
+; 1268 : 		printf("leaving ls_dict_where_to_ulook higher\n");
+; 1269 : #endif
+; 1270 : 		return(LOOK_HIGHER);                         
+; 1271 : 	}
+; 1272 : #ifdef DICDEBUG
+; 1273 : 		printf("leaving ls_dict_where_to_ulook lower\n");
+; 1274 : #endif
+; 1275 : 	return(LOOK_LOWER);
+; 1276 : }
+
+  00c29	c3		 ret	 0
+_ls_dict_where_to_ulook ENDP
+_TEXT	ENDS
+PUBLIC	_DictionaryHit
+_TEXT	SEGMENT
+_phTTS$ = 8
+_entry$ = 12
+_pKsd_t$ = -12
+_first$ = -8
+_last$ = -16
+_temp$ = -4
+_DictionaryHit PROC NEAR
+
+; 1297 : {
+
+  00c30	83 ec 10	 sub	 esp, 16			; 00000010H
+
+; 1298 : 	PKSD_T pKsd_t;
+; 1299 : 	PLTS_T pLts_t;
+; 1300 : 	long first, last, mid;
+; 1301 : 	int temp;
+; 1302 : 
+; 1303 : 
+; 1304 : 	pKsd_t = phTTS->pKernelShareData;
+
+  00c33	8b 44 24 14	 mov	 eax, DWORD PTR _phTTS$[esp+12]
+  00c37	53		 push	 ebx
+  00c38	55		 push	 ebp
+  00c39	56		 push	 esi
+  00c3a	8b 48 08	 mov	 ecx, DWORD PTR [eax+8]
+  00c3d	57		 push	 edi
+  00c3e	89 4c 24 14	 mov	 DWORD PTR _pKsd_t$[esp+32], ecx
+
+; 1305 : 
+; 1306 : 	if (DICT_ENTRY == 0)
+
+  00c42	8b 41 38	 mov	 eax, DWORD PTR [ecx+56]
+  00c45	85 c0		 test	 eax, eax
+
+; 1307 : 		return -1;
+
+  00c47	0f 84 f4 01 00
+	00		 je	 $L72065
+
+; 1308 : 
+; 1309 : 	pLts_t = phTTS->pLTSThreadData;
+; 1310 : 	first = 0;
+; 1311 : 	last = DICT_ENTRY - 1;
+; 1312 : 	mid = last >> 1;
+; 1313 : 
+; 1314 : 	if (strcmp(entry->text, DICT_ACCESS(first)->text) == 0)
+
+  00c4d	8b 39		 mov	 edi, DWORD PTR [ecx]
+  00c4f	8b 49 1c	 mov	 ecx, DWORD PTR [ecx+28]
+  00c52	48		 dec	 eax
+  00c53	c7 44 24 18 00
+	00 00 00	 mov	 DWORD PTR _first$[esp+32], 0
+  00c5b	8b 17		 mov	 edx, DWORD PTR [edi]
+  00c5d	89 44 24 10	 mov	 DWORD PTR _last$[esp+32], eax
+  00c61	8b e8		 mov	 ebp, eax
+  00c63	8b 44 24 28	 mov	 eax, DWORD PTR _entry$[esp+28]
+  00c67	8d 74 0a 04	 lea	 esi, DWORD PTR [edx+ecx+4]
+  00c6b	d1 fd		 sar	 ebp, 1
+  00c6d	89 74 24 1c	 mov	 DWORD PTR -4+[esp+32], esi
+  00c71	83 c0 04	 add	 eax, 4
+$L72420:
+  00c74	8a 18		 mov	 bl, BYTE PTR [eax]
+  00c76	8a d3		 mov	 dl, bl
+  00c78	3a 1e		 cmp	 bl, BYTE PTR [esi]
+  00c7a	75 1c		 jne	 SHORT $L72421
+  00c7c	84 d2		 test	 dl, dl
+  00c7e	74 14		 je	 SHORT $L72422
+  00c80	8a 58 01	 mov	 bl, BYTE PTR [eax+1]
+  00c83	8a d3		 mov	 dl, bl
+  00c85	3a 5e 01	 cmp	 bl, BYTE PTR [esi+1]
+  00c88	75 0e		 jne	 SHORT $L72421
+  00c8a	83 c0 02	 add	 eax, 2
+  00c8d	83 c6 02	 add	 esi, 2
+  00c90	84 d2		 test	 dl, dl
+  00c92	75 e0		 jne	 SHORT $L72420
+$L72422:
+  00c94	33 c0		 xor	 eax, eax
+  00c96	eb 05		 jmp	 SHORT $L72423
+$L72421:
+  00c98	1b c0		 sbb	 eax, eax
+  00c9a	83 d8 ff	 sbb	 eax, -1
+$L72423:
+  00c9d	85 c0		 test	 eax, eax
+  00c9f	75 08		 jne	 SHORT $L72056
+  00ca1	5f		 pop	 edi
+  00ca2	5e		 pop	 esi
+  00ca3	5d		 pop	 ebp
+  00ca4	5b		 pop	 ebx
+
+; 1350 : }
+
+  00ca5	83 c4 10	 add	 esp, 16			; 00000010H
+  00ca8	c3		 ret	 0
+$L72056:
+
+; 1315 : 		return first; /* a form of the word is in the dictionary */
+; 1316 : 
+; 1317 : 	if (strcmp(entry->text, DICT_ACCESS(last)->text) == 0)
+
+  00ca9	8b 54 24 10	 mov	 edx, DWORD PTR _last$[esp+32]
+  00cad	8b 04 97	 mov	 eax, DWORD PTR [edi+edx*4]
+  00cb0	8d 74 08 04	 lea	 esi, DWORD PTR [eax+ecx+4]
+  00cb4	8b 4c 24 28	 mov	 ecx, DWORD PTR _entry$[esp+28]
+  00cb8	8d 41 04	 lea	 eax, DWORD PTR [ecx+4]
+$L72424:
+  00cbb	8a 18		 mov	 bl, BYTE PTR [eax]
+  00cbd	8a cb		 mov	 cl, bl
+  00cbf	3a 1e		 cmp	 bl, BYTE PTR [esi]
+  00cc1	75 1c		 jne	 SHORT $L72425
+  00cc3	84 c9		 test	 cl, cl
+  00cc5	74 14		 je	 SHORT $L72426
+  00cc7	8a 58 01	 mov	 bl, BYTE PTR [eax+1]
+  00cca	8a cb		 mov	 cl, bl
+  00ccc	3a 5e 01	 cmp	 bl, BYTE PTR [esi+1]
+  00ccf	75 0e		 jne	 SHORT $L72425
+  00cd1	83 c0 02	 add	 eax, 2
+  00cd4	83 c6 02	 add	 esi, 2
+  00cd7	84 c9		 test	 cl, cl
+  00cd9	75 e0		 jne	 SHORT $L72424
+$L72426:
+  00cdb	33 c0		 xor	 eax, eax
+  00cdd	eb 05		 jmp	 SHORT $L72427
+$L72425:
+  00cdf	1b c0		 sbb	 eax, eax
+  00ce1	83 d8 ff	 sbb	 eax, -1
+$L72427:
+  00ce4	85 c0		 test	 eax, eax
+  00ce6	75 0a		 jne	 SHORT $L72058
+  00ce8	5f		 pop	 edi
+  00ce9	5e		 pop	 esi
+  00cea	5d		 pop	 ebp
+
+; 1318 : 		return last; /* a form of the word is in the dictionary */
+
+  00ceb	8b c2		 mov	 eax, edx
+  00ced	5b		 pop	 ebx
+
+; 1350 : }
+
+  00cee	83 c4 10	 add	 esp, 16			; 00000010H
+  00cf1	c3		 ret	 0
+$L72058:
+
+; 1319 : 
+; 1320 : 	/* first we check to see if the entry is not within the range of the current entries */
+; 1321 : 	strcpy(pLts_t->comp_str, DICT_ACCESS(first)->text);
+
+  00cf2	8b 54 24 24	 mov	 edx, DWORD PTR _phTTS$[esp+28]
+  00cf6	8b 7c 24 1c	 mov	 edi, DWORD PTR -4+[esp+32]
+  00cfa	83 c9 ff	 or	 ecx, -1
+  00cfd	33 c0		 xor	 eax, eax
+  00cff	8b 5a 10	 mov	 ebx, DWORD PTR [edx+16]
+  00d02	81 c3 38 04 00
+	00		 add	 ebx, 1080		; 00000438H
+  00d08	f2 ae		 repne scasb
+  00d0a	f7 d1		 not	 ecx
+  00d0c	2b f9		 sub	 edi, ecx
+  00d0e	8b c1		 mov	 eax, ecx
+  00d10	8b f7		 mov	 esi, edi
+  00d12	8b fb		 mov	 edi, ebx
+  00d14	c1 e9 02	 shr	 ecx, 2
+  00d17	f3 a5		 rep movsd
+  00d19	8b c8		 mov	 ecx, eax
+  00d1b	83 e1 03	 and	 ecx, 3
+  00d1e	f3 a4		 rep movsb
+
+; 1322 : 	if (ls_dict_where_to_look(phTTS, entry) == LOOK_HIGHER)
+
+  00d20	8b 4c 24 28	 mov	 ecx, DWORD PTR _entry$[esp+28]
+  00d24	51		 push	 ecx
+  00d25	52		 push	 edx
+  00d26	e8 00 00 00 00	 call	 _ls_dict_where_to_look
+  00d2b	83 c4 08	 add	 esp, 8
+  00d2e	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+
+; 1323 : 		return -1;
+
+  00d33	0f 84 08 01 00
+	00		 je	 $L72065
+
+; 1324 : 
+; 1325 : 	strcpy(pLts_t->comp_str, DICT_ACCESS(last)->text);
+
+  00d39	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+32]
+  00d3d	8b 4c 24 10	 mov	 ecx, DWORD PTR _last$[esp+32]
+  00d41	8b 10		 mov	 edx, DWORD PTR [eax]
+  00d43	8b 40 1c	 mov	 eax, DWORD PTR [eax+28]
+  00d46	8b 14 8a	 mov	 edx, DWORD PTR [edx+ecx*4]
+  00d49	83 c9 ff	 or	 ecx, -1
+  00d4c	8d 7c 02 04	 lea	 edi, DWORD PTR [edx+eax+4]
+  00d50	33 c0		 xor	 eax, eax
+  00d52	f2 ae		 repne scasb
+  00d54	f7 d1		 not	 ecx
+  00d56	2b f9		 sub	 edi, ecx
+
+; 1326 : 	if (ls_dict_where_to_look(phTTS, entry) == LOOK_LOWER)
+
+  00d58	8b 44 24 28	 mov	 eax, DWORD PTR _entry$[esp+28]
+  00d5c	8b d1		 mov	 edx, ecx
+  00d5e	8b f7		 mov	 esi, edi
+  00d60	8b fb		 mov	 edi, ebx
+  00d62	50		 push	 eax
+  00d63	c1 e9 02	 shr	 ecx, 2
+  00d66	f3 a5		 rep movsd
+  00d68	8b ca		 mov	 ecx, edx
+  00d6a	83 e1 03	 and	 ecx, 3
+  00d6d	f3 a4		 rep movsb
+  00d6f	8b 4c 24 28	 mov	 ecx, DWORD PTR _phTTS$[esp+32]
+  00d73	51		 push	 ecx
+  00d74	e8 00 00 00 00	 call	 _ls_dict_where_to_look
+  00d79	83 c4 08	 add	 esp, 8
+  00d7c	3d fe ff 00 00	 cmp	 eax, 65534		; 0000fffeH
+
+; 1327 : 		return -1;
+
+  00d81	0f 84 ba 00 00
+	00		 je	 $L72065
+
+; 1328 : 
+; 1329 : 	/* do a binary search */
+; 1330 : 
+; 1331 : 	while ((last - first) >> 1 != 0)
+
+  00d87	f7 44 24 10 fe
+	ff ff ff	 test	 DWORD PTR _last$[esp+32], -2 ; fffffffeH
+  00d8f	0f 84 ac 00 00
+	00		 je	 $L72065
+$L72064:
+
+; 1332 : 	{
+; 1333 : 		strcpy(pLts_t->comp_str, DICT_ACCESS(mid)->text);
+
+  00d95	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+32]
+  00d99	8b 10		 mov	 edx, DWORD PTR [eax]
+  00d9b	8b 0c aa	 mov	 ecx, DWORD PTR [edx+ebp*4]
+  00d9e	8b 50 1c	 mov	 edx, DWORD PTR [eax+28]
+  00da1	33 c0		 xor	 eax, eax
+  00da3	8d 7c 11 04	 lea	 edi, DWORD PTR [ecx+edx+4]
+  00da7	83 c9 ff	 or	 ecx, -1
+  00daa	f2 ae		 repne scasb
+  00dac	f7 d1		 not	 ecx
+  00dae	2b f9		 sub	 edi, ecx
+  00db0	8b c1		 mov	 eax, ecx
+  00db2	8b f7		 mov	 esi, edi
+  00db4	8b fb		 mov	 edi, ebx
+  00db6	c1 e9 02	 shr	 ecx, 2
+  00db9	f3 a5		 rep movsd
+  00dbb	8b c8		 mov	 ecx, eax
+  00dbd	83 e1 03	 and	 ecx, 3
+  00dc0	f3 a4		 rep movsb
+
+; 1334 : 		temp = ls_dict_where_to_look(phTTS, entry);
+
+  00dc2	8b 7c 24 28	 mov	 edi, DWORD PTR _entry$[esp+28]
+  00dc6	8b 4c 24 24	 mov	 ecx, DWORD PTR _phTTS$[esp+28]
+  00dca	57		 push	 edi
+  00dcb	51		 push	 ecx
+  00dcc	e8 00 00 00 00	 call	 _ls_dict_where_to_look
+  00dd1	83 c4 08	 add	 esp, 8
+  00dd4	89 44 24 1c	 mov	 DWORD PTR _temp$[esp+32], eax
+
+; 1335 : 		if (strcmp(entry->text, pLts_t->comp_str) == 0)
+
+  00dd8	8b f3		 mov	 esi, ebx
+  00dda	8d 4f 04	 lea	 ecx, DWORD PTR [edi+4]
+$L72428:
+  00ddd	8a 11		 mov	 dl, BYTE PTR [ecx]
+  00ddf	8a c2		 mov	 al, dl
+  00de1	3a 16		 cmp	 dl, BYTE PTR [esi]
+  00de3	75 1c		 jne	 SHORT $L72429
+  00de5	84 c0		 test	 al, al
+  00de7	74 14		 je	 SHORT $L72430
+  00de9	8a 41 01	 mov	 al, BYTE PTR [ecx+1]
+  00dec	8a d0		 mov	 dl, al
+  00dee	3a 46 01	 cmp	 al, BYTE PTR [esi+1]
+  00df1	75 0e		 jne	 SHORT $L72429
+  00df3	83 c1 02	 add	 ecx, 2
+  00df6	83 c6 02	 add	 esi, 2
+  00df9	84 d2		 test	 dl, dl
+  00dfb	75 e0		 jne	 SHORT $L72428
+$L72430:
+  00dfd	33 c0		 xor	 eax, eax
+  00dff	eb 05		 jmp	 SHORT $L72431
+$L72429:
+  00e01	1b c0		 sbb	 eax, eax
+  00e03	83 d8 ff	 sbb	 eax, -1
+$L72431:
+  00e06	85 c0		 test	 eax, eax
+  00e08	74 42		 je	 SHORT $L72418
+
+; 1337 : 		if (temp == LOOK_LOWER)
+
+  00e0a	8b 44 24 1c	 mov	 eax, DWORD PTR _temp$[esp+32]
+  00e0e	3d fe ff 00 00	 cmp	 eax, 65534		; 0000fffeH
+  00e13	75 06		 jne	 SHORT $L72068
+
+; 1338 : 			first = mid;
+
+  00e15	89 6c 24 18	 mov	 DWORD PTR _first$[esp+32], ebp
+
+; 1339 : 		else if (temp == LOOK_HIGHER)
+
+  00e19	eb 0b		 jmp	 SHORT $L72070
+$L72068:
+  00e1b	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+  00e20	75 04		 jne	 SHORT $L72070
+
+; 1340 : 			last = mid;
+
+  00e22	89 6c 24 10	 mov	 DWORD PTR _last$[esp+32], ebp
+$L72070:
+
+; 1341 : 
+; 1342 : 		mid = first + ((last - first) >> 1);
+
+  00e26	8b 44 24 10	 mov	 eax, DWORD PTR _last$[esp+32]
+  00e2a	8b 4c 24 18	 mov	 ecx, DWORD PTR _first$[esp+32]
+  00e2e	2b c1		 sub	 eax, ecx
+  00e30	8b e8		 mov	 ebp, eax
+  00e32	d1 fd		 sar	 ebp, 1
+  00e34	03 e9		 add	 ebp, ecx
+  00e36	a9 fe ff ff ff	 test	 eax, -2			; fffffffeH
+  00e3b	0f 85 54 ff ff
+	ff		 jne	 $L72064
+$L72065:
+  00e41	5f		 pop	 edi
+  00e42	5e		 pop	 esi
+  00e43	5d		 pop	 ebp
+
+; 1343 : 	}
+; 1344 : 			
+; 1345 : 	/* At this point, first and last are two consecutive indexes, with the entry at first being
+; 1346 : 	   less than the entry we're looking for and the entry at last being greater than the entry
+; 1347 : 	   we're looking for. */
+; 1348 : 
+; 1349 : 	return -1;
+
+  00e44	83 c8 ff	 or	 eax, -1
+  00e47	5b		 pop	 ebx
+
+; 1350 : }
+
+  00e48	83 c4 10	 add	 esp, 16			; 00000010H
+  00e4b	c3		 ret	 0
+$L72418:
+  00e4c	5f		 pop	 edi
+
+; 1336 : 			return mid; /* a form of the word is in the dictionary */
+
+  00e4d	8b c5		 mov	 eax, ebp
+  00e4f	5e		 pop	 esi
+  00e50	5d		 pop	 ebp
+  00e51	5b		 pop	 ebx
+
+; 1350 : }
+
+  00e52	83 c4 10	 add	 esp, 16			; 00000010H
+  00e55	c3		 ret	 0
+_DictionaryHit ENDP
+_TEXT	ENDS
+PUBLIC	_DumpDictionary
+EXTRN	__imp__fclose:NEAR
+EXTRN	__imp__fopen:NEAR
+EXTRN	__imp__fprintf:NEAR
+EXTRN	_form_class_strings:BYTE
+_DATA	SEGMENT
+	ORG $+1
+$SG72088 DB	'w', 00H
+	ORG $+2
+$SG72089 DB	'Total dictionary entries: %d', 0aH, 0aH, 00H
+	ORG $+1
+$SG72099 DB	'%s, %s, %s,', 00H
+$SG72107 DB	'%s', 00H
+	ORG $+1
+$SG72109 DB	' none', 00H
+	ORG $+2
+$SG72110 DB	0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_filename$ = 12
+_outfile$ = -388
+_arpabet_ph$ = -256
+_ascky_ph$ = -384
+_DumpDictionary PROC NEAR
+
+; 1363 : {
+
+  00e60	81 ec 84 01 00
+	00		 sub	 esp, 388		; 00000184H
+
+; 1364 : 	FILE *outfile;
+; 1365 : 	PKSD_T pKsd_t;
+; 1366 : 	unsigned char *phoneme_ptr;
+; 1367 : 	unsigned char arpabet_ph[253], ascky_ph[127];
+; 1368 : 	long fc_mask;
+; 1369 : 	extern unsigned char *form_class_strings[];
+; 1370 : 	int lcv, lcv2; /* loop-control variables */
+; 1371 : 
+; 1372 : 
+; 1373 : 	if ((outfile = fopen(filename, "w")) == NULL)
+
+  00e66	8b 84 24 8c 01
+	00 00		 mov	 eax, DWORD PTR _filename$[esp+384]
+  00e6d	57		 push	 edi
+  00e6e	68 00 00 00 00	 push	 OFFSET FLAT:$SG72088
+  00e73	50		 push	 eax
+  00e74	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+  00e7a	8b f8		 mov	 edi, eax
+  00e7c	83 c4 08	 add	 esp, 8
+  00e7f	85 ff		 test	 edi, edi
+  00e81	89 7c 24 04	 mov	 DWORD PTR _outfile$[esp+392], edi
+  00e85	75 0d		 jne	 SHORT $L72087
+
+; 1374 : 		return MMSYSERR_ERROR;
+
+  00e87	b8 01 00 00 00	 mov	 eax, 1
+  00e8c	5f		 pop	 edi
+
+; 1407 : }
+
+  00e8d	81 c4 84 01 00
+	00		 add	 esp, 388		; 00000184H
+  00e93	c3		 ret	 0
+$L72087:
+
+; 1375 : 
+; 1376 : 	pKsd_t = phTTS->pKernelShareData;
+
+  00e94	8b 8c 24 8c 01
+	00 00		 mov	 ecx, DWORD PTR _phTTS$[esp+388]
+  00e9b	53		 push	 ebx
+  00e9c	56		 push	 esi
+  00e9d	8b 71 08	 mov	 esi, DWORD PTR [ecx+8]
+
+; 1377 : 
+; 1378 : 	fprintf(outfile, "Total dictionary entries: %d\n\n", DICT_ENTRY);
+
+  00ea0	8b 56 38	 mov	 edx, DWORD PTR [esi+56]
+  00ea3	52		 push	 edx
+  00ea4	68 00 00 00 00	 push	 OFFSET FLAT:$SG72089
+  00ea9	57		 push	 edi
+  00eaa	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+
+; 1379 : 	for (lcv = 0; lcv < DICT_ENTRY; lcv++)
+
+  00eb0	8b 46 38	 mov	 eax, DWORD PTR [esi+56]
+  00eb3	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00eb6	33 db		 xor	 ebx, ebx
+  00eb8	85 c0		 test	 eax, eax
+  00eba	0f 8e 25 01 00
+	00		 jle	 $L72092
+  00ec0	55		 push	 ebp
+$L72090:
+
+; 1380 : 	{
+; 1381 : 		for (phoneme_ptr = DICT_ACCESS(lcv)->text + (strlen(DICT_ACCESS(lcv)->text) + 1), lcv2 = 0;
+; 1382 : 			 *phoneme_ptr != '\0'; phoneme_ptr++, lcv2++)
+
+  00ec1	8b 06		 mov	 eax, DWORD PTR [esi]
+  00ec3	8b 6e 1c	 mov	 ebp, DWORD PTR [esi+28]
+  00ec6	83 c9 ff	 or	 ecx, -1
+  00ec9	8b 14 98	 mov	 edx, DWORD PTR [eax+ebx*4]
+  00ecc	33 c0		 xor	 eax, eax
+  00ece	8d 7c 2a 04	 lea	 edi, DWORD PTR [edx+ebp+4]
+  00ed2	f2 ae		 repne scasb
+  00ed4	f7 d1		 not	 ecx
+  00ed6	49		 dec	 ecx
+  00ed7	03 ca		 add	 ecx, edx
+  00ed9	33 d2		 xor	 edx, edx
+  00edb	8d 44 29 05	 lea	 eax, DWORD PTR [ecx+ebp+5]
+  00edf	8a 4c 29 05	 mov	 cl, BYTE PTR [ecx+ebp+5]
+  00ee3	84 c9		 test	 cl, cl
+  00ee5	74 47		 je	 SHORT $L72097
+  00ee7	8d bc 24 95 00
+	00 00		 lea	 edi, DWORD PTR _arpabet_ph$[esp+405]
+$L72095:
+
+; 1383 : 		{
+; 1384 : 			arpabet_ph[lcv2 * 2]     = pKsd_t->arpabet[(*phoneme_ptr) * 2];
+
+  00eee	8b ae 2c 06 00
+	00		 mov	 ebp, DWORD PTR [esi+1580]
+  00ef4	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00efa	83 c7 02	 add	 edi, 2
+  00efd	8a 4c 4d 00	 mov	 cl, BYTE PTR [ebp+ecx*2]
+  00f01	88 4f fd	 mov	 BYTE PTR [edi-3], cl
+
+; 1385 : 			arpabet_ph[lcv2 * 2 + 1] = pKsd_t->arpabet[(*phoneme_ptr) * 2 + 1];
+
+  00f04	8b ae 2c 06 00
+	00		 mov	 ebp, DWORD PTR [esi+1580]
+  00f0a	33 c9		 xor	 ecx, ecx
+  00f0c	8a 08		 mov	 cl, BYTE PTR [eax]
+  00f0e	8a 4c 4d 01	 mov	 cl, BYTE PTR [ebp+ecx*2+1]
+  00f12	88 4f fe	 mov	 BYTE PTR [edi-2], cl
+
+; 1386 : 			ascky_ph[lcv2]           = pKsd_t->ascky[*phoneme_ptr];
+
+  00f15	8b ae 20 06 00
+	00		 mov	 ebp, DWORD PTR [esi+1568]
+  00f1b	33 c9		 xor	 ecx, ecx
+  00f1d	8a 08		 mov	 cl, BYTE PTR [eax]
+  00f1f	40		 inc	 eax
+  00f20	42		 inc	 edx
+  00f21	8a 0c 29	 mov	 cl, BYTE PTR [ecx+ebp]
+  00f24	88 4c 14 13	 mov	 BYTE PTR _ascky_ph$[esp+edx+403], cl
+  00f28	8a 08		 mov	 cl, BYTE PTR [eax]
+  00f2a	84 c9		 test	 cl, cl
+  00f2c	75 c0		 jne	 SHORT $L72095
+$L72097:
+
+; 1387 : 		}
+; 1388 : 		arpabet_ph[lcv2 * 2] = ascky_ph[lcv2] = '\0';
+
+  00f2e	c6 44 14 14 00	 mov	 BYTE PTR _ascky_ph$[esp+edx+404], 0
+  00f33	c6 84 54 94 00
+	00 00 00	 mov	 BYTE PTR _arpabet_ph$[esp+edx*2+404], 0
+
+; 1389 : 		fprintf(outfile, "%s, %s, %s,", DICT_ACCESS(lcv)->text, arpabet_ph, ascky_ph);
+
+  00f3b	8b 0e		 mov	 ecx, DWORD PTR [esi]
+  00f3d	8d 54 24 14	 lea	 edx, DWORD PTR _ascky_ph$[esp+404]
+  00f41	8d 84 24 94 00
+	00 00		 lea	 eax, DWORD PTR _arpabet_ph$[esp+404]
+  00f48	8b 6c 24 10	 mov	 ebp, DWORD PTR _outfile$[esp+404]
+  00f4c	52		 push	 edx
+  00f4d	8b 14 99	 mov	 edx, DWORD PTR [ecx+ebx*4]
+  00f50	50		 push	 eax
+  00f51	8b 46 1c	 mov	 eax, DWORD PTR [esi+28]
+  00f54	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__fprintf
+  00f5a	8d 4c 02 04	 lea	 ecx, DWORD PTR [edx+eax+4]
+  00f5e	51		 push	 ecx
+  00f5f	68 00 00 00 00	 push	 OFFSET FLAT:$SG72099
+  00f64	55		 push	 ebp
+  00f65	ff d7		 call	 edi
+
+; 1390 : 		if (DICT_ACCESS(lcv)->fc)
+
+  00f67	8b 16		 mov	 edx, DWORD PTR [esi]
+  00f69	8b 4e 1c	 mov	 ecx, DWORD PTR [esi+28]
+  00f6c	83 c4 14	 add	 esp, 20			; 00000014H
+  00f6f	8b 04 9a	 mov	 eax, DWORD PTR [edx+ebx*4]
+  00f72	83 3c 08 00	 cmp	 DWORD PTR [eax+ecx], 0
+  00f76	74 46		 je	 SHORT $L72101
+
+; 1391 : 		{
+; 1392 : 			fc_mask = 1;
+
+  00f78	bd 01 00 00 00	 mov	 ebp, 1
+  00f7d	bf 00 00 00 00	 mov	 edi, OFFSET FLAT:_form_class_strings
+$L72102:
+
+; 1393 : 			for (lcv2 = 0; lcv2 < 32; lcv2++)
+; 1394 : 			{
+; 1395 : 				if (DICT_ACCESS(lcv)->fc & fc_mask)
+
+  00f82	8b 16		 mov	 edx, DWORD PTR [esi]
+  00f84	8b 4e 1c	 mov	 ecx, DWORD PTR [esi+28]
+  00f87	8b 04 9a	 mov	 eax, DWORD PTR [edx+ebx*4]
+  00f8a	85 2c 08	 test	 DWORD PTR [eax+ecx], ebp
+  00f8d	74 16		 je	 SHORT $L72106
+
+; 1396 : 					fprintf(outfile, "%s", form_class_strings[lcv2]);
+
+  00f8f	8b 17		 mov	 edx, DWORD PTR [edi]
+  00f91	8b 44 24 10	 mov	 eax, DWORD PTR _outfile$[esp+404]
+  00f95	52		 push	 edx
+  00f96	68 00 00 00 00	 push	 OFFSET FLAT:$SG72107
+  00f9b	50		 push	 eax
+  00f9c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00fa2	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72106:
+  00fa5	83 c7 04	 add	 edi, 4
+
+; 1397 : 				fc_mask *= 2;
+
+  00fa8	03 ed		 add	 ebp, ebp
+  00faa	81 ff 80 00 00
+	00		 cmp	 edi, OFFSET FLAT:_form_class_strings+128
+  00fb0	7c d0		 jl	 SHORT $L72102
+
+; 1398 : 			}
+; 1399 : 		}
+; 1400 : 		else
+
+  00fb2	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__fprintf
+  00fb8	8b 6c 24 10	 mov	 ebp, DWORD PTR _outfile$[esp+404]
+  00fbc	eb 0b		 jmp	 SHORT $L72108
+$L72101:
+
+; 1401 : 			fprintf(outfile, " none");
+
+  00fbe	68 00 00 00 00	 push	 OFFSET FLAT:$SG72109
+  00fc3	55		 push	 ebp
+  00fc4	ff d7		 call	 edi
+  00fc6	83 c4 08	 add	 esp, 8
+$L72108:
+
+; 1402 : 		fprintf(outfile, "\n");
+
+  00fc9	68 00 00 00 00	 push	 OFFSET FLAT:$SG72110
+  00fce	55		 push	 ebp
+  00fcf	ff d7		 call	 edi
+  00fd1	8b 46 38	 mov	 eax, DWORD PTR [esi+56]
+  00fd4	83 c4 08	 add	 esp, 8
+  00fd7	43		 inc	 ebx
+  00fd8	3b d8		 cmp	 ebx, eax
+  00fda	0f 8c e1 fe ff
+	ff		 jl	 $L72090
+  00fe0	8b 7c 24 10	 mov	 edi, DWORD PTR _outfile$[esp+404]
+  00fe4	5d		 pop	 ebp
+$L72092:
+
+; 1403 : 	}
+; 1404 : 
+; 1405 : 	fclose(outfile);
+
+  00fe5	57		 push	 edi
+  00fe6	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  00fec	83 c4 04	 add	 esp, 4
+
+; 1406 : 	return MMSYSERR_NOERROR;
+
+  00fef	33 c0		 xor	 eax, eax
+  00ff1	5e		 pop	 esi
+  00ff2	5b		 pop	 ebx
+  00ff3	5f		 pop	 edi
+
+; 1407 : }
+
+  00ff4	81 c4 84 01 00
+	00		 add	 esp, 388		; 00000184H
+  00ffa	c3		 ret	 0
+_DumpDictionary ENDP
+_TEXT	ENDS
+PUBLIC	_UserDictionaryHit
+_TEXT	SEGMENT
+_phTTS$ = 8
+_entry$ = 12
+_pKsd_t$ = -12
+_pLts_t$ = -16
+_first$ = -8
+_last$ = 8
+_temp$ = -4
+_UserDictionaryHit PROC NEAR
+
+; 1424 : {
+
+  01000	83 ec 10	 sub	 esp, 16			; 00000010H
+
+; 1425 : 	PKSD_T pKsd_t;
+; 1426 : 	PLTS_T pLts_t;
+; 1427 : 	long first, last, mid;
+; 1428 : 	int temp;
+; 1429 : 
+; 1430 : 
+; 1431 : 	pKsd_t = phTTS->pKernelShareData;
+
+  01003	8b 4c 24 14	 mov	 ecx, DWORD PTR _phTTS$[esp+12]
+  01007	53		 push	 ebx
+  01008	55		 push	 ebp
+  01009	56		 push	 esi
+  0100a	8b 51 08	 mov	 edx, DWORD PTR [ecx+8]
+  0100d	57		 push	 edi
+  0100e	89 54 24 14	 mov	 DWORD PTR _pKsd_t$[esp+32], edx
+
+; 1432 : 
+; 1433 : 	if (UDICT_ENTRY == 0)
+
+  01012	8b 82 a8 00 00
+	00		 mov	 eax, DWORD PTR [edx+168]
+  01018	85 c0		 test	 eax, eax
+
+; 1434 : 		return -1;
+
+  0101a	0f 84 04 02 00
+	00		 je	 $L72134
+
+; 1435 : 
+; 1436 : 	pLts_t = phTTS->pLTSThreadData;
+
+  01020	8b 49 10	 mov	 ecx, DWORD PTR [ecx+16]
+
+; 1437 : 	first = 0;
+; 1438 : 	last = UDICT_ENTRY - 1;
+; 1439 : 	mid = last >> 1;
+; 1440 : 
+; 1441 : 	if (strcmp(entry->text, UDICT_ACCESS(first)->text) == 0)
+
+  01023	8b 7a 70	 mov	 edi, DWORD PTR [edx+112]
+  01026	89 4c 24 10	 mov	 DWORD PTR _pLts_t$[esp+32], ecx
+  0102a	8b 8a 8c 00 00
+	00		 mov	 ecx, DWORD PTR [edx+140]
+  01030	8b 17		 mov	 edx, DWORD PTR [edi]
+  01032	48		 dec	 eax
+  01033	89 44 24 24	 mov	 DWORD PTR _last$[esp+28], eax
+  01037	8b e8		 mov	 ebp, eax
+  01039	8b 44 24 28	 mov	 eax, DWORD PTR _entry$[esp+28]
+  0103d	8d 74 0a 04	 lea	 esi, DWORD PTR [edx+ecx+4]
+  01041	d1 fd		 sar	 ebp, 1
+  01043	83 c0 04	 add	 eax, 4
+  01046	c7 44 24 18 00
+	00 00 00	 mov	 DWORD PTR _first$[esp+32], 0
+  0104e	89 74 24 1c	 mov	 DWORD PTR -4+[esp+32], esi
+  01052	89 44 24 28	 mov	 DWORD PTR 12+[esp+28], eax
+$L72444:
+  01056	8a 18		 mov	 bl, BYTE PTR [eax]
+  01058	8a d3		 mov	 dl, bl
+  0105a	3a 1e		 cmp	 bl, BYTE PTR [esi]
+  0105c	75 1c		 jne	 SHORT $L72445
+  0105e	84 d2		 test	 dl, dl
+  01060	74 14		 je	 SHORT $L72446
+  01062	8a 58 01	 mov	 bl, BYTE PTR [eax+1]
+  01065	8a d3		 mov	 dl, bl
+  01067	3a 5e 01	 cmp	 bl, BYTE PTR [esi+1]
+  0106a	75 0e		 jne	 SHORT $L72445
+  0106c	83 c0 02	 add	 eax, 2
+  0106f	83 c6 02	 add	 esi, 2
+  01072	84 d2		 test	 dl, dl
+  01074	75 e0		 jne	 SHORT $L72444
+$L72446:
+  01076	33 c0		 xor	 eax, eax
+  01078	eb 05		 jmp	 SHORT $L72447
+$L72445:
+  0107a	1b c0		 sbb	 eax, eax
+  0107c	83 d8 ff	 sbb	 eax, -1
+$L72447:
+  0107f	85 c0		 test	 eax, eax
+  01081	75 08		 jne	 SHORT $L72125
+  01083	5f		 pop	 edi
+  01084	5e		 pop	 esi
+  01085	5d		 pop	 ebp
+  01086	5b		 pop	 ebx
+
+; 1477 : }
+
+  01087	83 c4 10	 add	 esp, 16			; 00000010H
+  0108a	c3		 ret	 0
+$L72125:
+
+; 1442 : 		return first; /* a form of the word is in the dictionary */
+; 1443 : 
+; 1444 : 	if (strcmp(entry->text, UDICT_ACCESS(last)->text) == 0)
+
+  0108b	8b 54 24 24	 mov	 edx, DWORD PTR _last$[esp+28]
+  0108f	8b 04 97	 mov	 eax, DWORD PTR [edi+edx*4]
+  01092	8d 74 08 04	 lea	 esi, DWORD PTR [eax+ecx+4]
+  01096	8b 44 24 28	 mov	 eax, DWORD PTR 12+[esp+28]
+$L72448:
+  0109a	8a 18		 mov	 bl, BYTE PTR [eax]
+  0109c	8a cb		 mov	 cl, bl
+  0109e	3a 1e		 cmp	 bl, BYTE PTR [esi]
+  010a0	75 1c		 jne	 SHORT $L72449
+  010a2	84 c9		 test	 cl, cl
+  010a4	74 14		 je	 SHORT $L72450
+  010a6	8a 58 01	 mov	 bl, BYTE PTR [eax+1]
+  010a9	8a cb		 mov	 cl, bl
+  010ab	3a 5e 01	 cmp	 bl, BYTE PTR [esi+1]
+  010ae	75 0e		 jne	 SHORT $L72449
+  010b0	83 c0 02	 add	 eax, 2
+  010b3	83 c6 02	 add	 esi, 2
+  010b6	84 c9		 test	 cl, cl
+  010b8	75 e0		 jne	 SHORT $L72448
+$L72450:
+  010ba	33 c0		 xor	 eax, eax
+  010bc	eb 05		 jmp	 SHORT $L72451
+$L72449:
+  010be	1b c0		 sbb	 eax, eax
+  010c0	83 d8 ff	 sbb	 eax, -1
+$L72451:
+  010c3	85 c0		 test	 eax, eax
+  010c5	75 0a		 jne	 SHORT $L72127
+  010c7	5f		 pop	 edi
+  010c8	5e		 pop	 esi
+  010c9	5d		 pop	 ebp
+
+; 1445 : 		return last; /* a form of the word is in the dictionary */
+
+  010ca	8b c2		 mov	 eax, edx
+  010cc	5b		 pop	 ebx
+
+; 1477 : }
+
+  010cd	83 c4 10	 add	 esp, 16			; 00000010H
+  010d0	c3		 ret	 0
+$L72127:
+
+; 1446 : 
+; 1447 : 	/* first we check to see if the entry is not within the range of the current entries */
+; 1448 : 	strcpy(pLts_t->comp_str, UDICT_ACCESS(first)->text);
+
+  010d1	8b 7c 24 1c	 mov	 edi, DWORD PTR -4+[esp+32]
+  010d5	83 c9 ff	 or	 ecx, -1
+  010d8	33 c0		 xor	 eax, eax
+  010da	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+32]
+  010de	f2 ae		 repne scasb
+  010e0	f7 d1		 not	 ecx
+  010e2	2b f9		 sub	 edi, ecx
+  010e4	8d 9a 38 04 00
+	00		 lea	 ebx, DWORD PTR [edx+1080]
+  010ea	8b c1		 mov	 eax, ecx
+  010ec	8b f7		 mov	 esi, edi
+  010ee	8b fb		 mov	 edi, ebx
+  010f0	c1 e9 02	 shr	 ecx, 2
+  010f3	f3 a5		 rep movsd
+  010f5	8b c8		 mov	 ecx, eax
+  010f7	83 e1 03	 and	 ecx, 3
+  010fa	f3 a4		 rep movsb
+
+; 1449 : 	if (ls_dict_where_to_ulook(pLts_t, entry->text) == LOOK_HIGHER)
+
+  010fc	8b 4c 24 28	 mov	 ecx, DWORD PTR 12+[esp+28]
+  01100	51		 push	 ecx
+  01101	52		 push	 edx
+  01102	e8 00 00 00 00	 call	 _ls_dict_where_to_ulook
+  01107	83 c4 08	 add	 esp, 8
+  0110a	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+
+; 1450 : 		return -1;
+
+  0110f	0f 84 0f 01 00
+	00		 je	 $L72134
+
+; 1451 : 
+; 1452 : 	strcpy(pLts_t->comp_str, UDICT_ACCESS(last)->text);
+
+  01115	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+32]
+  01119	8b 4c 24 24	 mov	 ecx, DWORD PTR _last$[esp+28]
+  0111d	8b 50 70	 mov	 edx, DWORD PTR [eax+112]
+  01120	8b 80 8c 00 00
+	00		 mov	 eax, DWORD PTR [eax+140]
+  01126	8b 14 8a	 mov	 edx, DWORD PTR [edx+ecx*4]
+  01129	83 c9 ff	 or	 ecx, -1
+  0112c	8d 7c 02 04	 lea	 edi, DWORD PTR [edx+eax+4]
+  01130	33 c0		 xor	 eax, eax
+  01132	f2 ae		 repne scasb
+  01134	f7 d1		 not	 ecx
+  01136	2b f9		 sub	 edi, ecx
+
+; 1453 : 	if (ls_dict_where_to_ulook(pLts_t, entry->text) == LOOK_LOWER)
+
+  01138	8b 44 24 28	 mov	 eax, DWORD PTR 12+[esp+28]
+  0113c	8b d1		 mov	 edx, ecx
+  0113e	8b f7		 mov	 esi, edi
+  01140	8b fb		 mov	 edi, ebx
+  01142	50		 push	 eax
+  01143	c1 e9 02	 shr	 ecx, 2
+  01146	f3 a5		 rep movsd
+  01148	8b ca		 mov	 ecx, edx
+  0114a	83 e1 03	 and	 ecx, 3
+  0114d	f3 a4		 rep movsb
+  0114f	8b 4c 24 14	 mov	 ecx, DWORD PTR _pLts_t$[esp+36]
+  01153	51		 push	 ecx
+  01154	e8 00 00 00 00	 call	 _ls_dict_where_to_ulook
+  01159	83 c4 08	 add	 esp, 8
+  0115c	3d fe ff 00 00	 cmp	 eax, 65534		; 0000fffeH
+
+; 1454 : 		return -1;
+
+  01161	0f 84 bd 00 00
+	00		 je	 $L72134
+
+; 1455 : 
+; 1456 : 	/* do a binary search */
+; 1457 : 
+; 1458 : 	while ((last - first) >> 1 != 0)
+
+  01167	f7 44 24 24 fe
+	ff ff ff	 test	 DWORD PTR _last$[esp+28], -2 ; fffffffeH
+  0116f	0f 84 af 00 00
+	00		 je	 $L72134
+$L72133:
+
+; 1459 : 	{
+; 1460 : 		strcpy(pLts_t->comp_str, UDICT_ACCESS(mid)->text);
+
+  01175	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+32]
+  01179	8b 50 70	 mov	 edx, DWORD PTR [eax+112]
+  0117c	8b 0c aa	 mov	 ecx, DWORD PTR [edx+ebp*4]
+  0117f	8b 90 8c 00 00
+	00		 mov	 edx, DWORD PTR [eax+140]
+  01185	33 c0		 xor	 eax, eax
+  01187	8d 7c 11 04	 lea	 edi, DWORD PTR [ecx+edx+4]
+  0118b	83 c9 ff	 or	 ecx, -1
+  0118e	f2 ae		 repne scasb
+  01190	f7 d1		 not	 ecx
+  01192	2b f9		 sub	 edi, ecx
+  01194	8b c1		 mov	 eax, ecx
+  01196	8b f7		 mov	 esi, edi
+  01198	8b fb		 mov	 edi, ebx
+  0119a	c1 e9 02	 shr	 ecx, 2
+  0119d	f3 a5		 rep movsd
+  0119f	8b c8		 mov	 ecx, eax
+  011a1	83 e1 03	 and	 ecx, 3
+  011a4	f3 a4		 rep movsb
+
+; 1461 : 		temp = ls_dict_where_to_ulook(pLts_t, entry->text);
+
+  011a6	8b 7c 24 28	 mov	 edi, DWORD PTR 12+[esp+28]
+  011aa	8b 4c 24 10	 mov	 ecx, DWORD PTR _pLts_t$[esp+32]
+  011ae	57		 push	 edi
+  011af	51		 push	 ecx
+  011b0	e8 00 00 00 00	 call	 _ls_dict_where_to_ulook
+  011b5	83 c4 08	 add	 esp, 8
+  011b8	89 44 24 1c	 mov	 DWORD PTR _temp$[esp+32], eax
+
+; 1462 : 		if (strcmp(entry->text, pLts_t->comp_str) == 0)
+
+  011bc	8b f3		 mov	 esi, ebx
+  011be	8b cf		 mov	 ecx, edi
+$L72452:
+  011c0	8a 01		 mov	 al, BYTE PTR [ecx]
+  011c2	8a d0		 mov	 dl, al
+  011c4	3a 06		 cmp	 al, BYTE PTR [esi]
+  011c6	75 1c		 jne	 SHORT $L72453
+  011c8	84 d2		 test	 dl, dl
+  011ca	74 14		 je	 SHORT $L72454
+  011cc	8a 41 01	 mov	 al, BYTE PTR [ecx+1]
+  011cf	8a d0		 mov	 dl, al
+  011d1	3a 46 01	 cmp	 al, BYTE PTR [esi+1]
+  011d4	75 0e		 jne	 SHORT $L72453
+  011d6	83 c1 02	 add	 ecx, 2
+  011d9	83 c6 02	 add	 esi, 2
+  011dc	84 d2		 test	 dl, dl
+  011de	75 e0		 jne	 SHORT $L72452
+$L72454:
+  011e0	33 c9		 xor	 ecx, ecx
+  011e2	eb 05		 jmp	 SHORT $L72455
+$L72453:
+  011e4	1b c9		 sbb	 ecx, ecx
+  011e6	83 d9 ff	 sbb	 ecx, -1
+$L72455:
+  011e9	85 c9		 test	 ecx, ecx
+  011eb	74 42		 je	 SHORT $L72442
+
+; 1464 : 		if (temp == LOOK_LOWER)
+
+  011ed	8b 44 24 1c	 mov	 eax, DWORD PTR _temp$[esp+32]
+  011f1	3d fe ff 00 00	 cmp	 eax, 65534		; 0000fffeH
+  011f6	75 06		 jne	 SHORT $L72137
+
+; 1465 : 			first = mid;
+
+  011f8	89 6c 24 18	 mov	 DWORD PTR _first$[esp+32], ebp
+
+; 1466 : 		else if (temp == LOOK_HIGHER)
+
+  011fc	eb 0b		 jmp	 SHORT $L72139
+$L72137:
+  011fe	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+  01203	75 04		 jne	 SHORT $L72139
+
+; 1467 : 			last = mid;
+
+  01205	89 6c 24 24	 mov	 DWORD PTR _last$[esp+28], ebp
+$L72139:
+
+; 1468 : 
+; 1469 : 		mid = first + ((last - first) >> 1);
+
+  01209	8b 44 24 24	 mov	 eax, DWORD PTR _last$[esp+28]
+  0120d	8b 4c 24 18	 mov	 ecx, DWORD PTR _first$[esp+32]
+  01211	2b c1		 sub	 eax, ecx
+  01213	8b e8		 mov	 ebp, eax
+  01215	d1 fd		 sar	 ebp, 1
+  01217	03 e9		 add	 ebp, ecx
+  01219	a9 fe ff ff ff	 test	 eax, -2			; fffffffeH
+  0121e	0f 85 51 ff ff
+	ff		 jne	 $L72133
+$L72134:
+  01224	5f		 pop	 edi
+  01225	5e		 pop	 esi
+  01226	5d		 pop	 ebp
+
+; 1470 : 	}
+; 1471 : 			
+; 1472 : 	/* At this point, first and last are two consecutive indexes, with the entry at first being
+; 1473 : 	   less than the entry we're looking for and the entry at last being greater than the entry
+; 1474 : 	   we're looking for. */
+; 1475 : 
+; 1476 : 	return -1;
+
+  01227	83 c8 ff	 or	 eax, -1
+  0122a	5b		 pop	 ebx
+
+; 1477 : }
+
+  0122b	83 c4 10	 add	 esp, 16			; 00000010H
+  0122e	c3		 ret	 0
+$L72442:
+  0122f	5f		 pop	 edi
+
+; 1463 : 			return mid; /* a form of the word is in the dictionary */
+
+  01230	8b c5		 mov	 eax, ebp
+  01232	5e		 pop	 esi
+  01233	5d		 pop	 ebp
+  01234	5b		 pop	 ebx
+
+; 1477 : }
+
+  01235	83 c4 10	 add	 esp, 16			; 00000010H
+  01238	c3		 ret	 0
+_UserDictionaryHit ENDP
+_TEXT	ENDS
+PUBLIC	_DumpUserDictionary
+_DATA	SEGMENT
+	ORG $+2
+$SG72155 DB	'w', 00H
+	ORG $+2
+$SG72156 DB	'Total user dictionary entries: %d', 0aH, 0aH, 00H
+$SG72166 DB	'%s, %s, %s', 0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_filename$ = 12
+_outfile$ = -388
+_arpabet_ph$ = -256
+_ascky_ph$ = -384
+_DumpUserDictionary PROC NEAR
+
+; 1490 : {
+
+  01240	81 ec 84 01 00
+	00		 sub	 esp, 388		; 00000184H
+
+; 1491 : 	FILE *outfile;
+; 1492 : 	PKSD_T pKsd_t;
+; 1493 : 	unsigned char *phoneme_ptr;
+; 1494 : 	unsigned char arpabet_ph[253], ascky_ph[127];
+; 1495 : 	int lcv, lcv2; /* loop-control variables */
+; 1496 : 
+; 1497 : 
+; 1498 : 	if ((outfile = fopen(filename, "w")) == NULL)
+
+  01246	8b 84 24 8c 01
+	00 00		 mov	 eax, DWORD PTR _filename$[esp+384]
+  0124d	57		 push	 edi
+  0124e	68 00 00 00 00	 push	 OFFSET FLAT:$SG72155
+  01253	50		 push	 eax
+  01254	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+  0125a	8b f8		 mov	 edi, eax
+  0125c	83 c4 08	 add	 esp, 8
+  0125f	85 ff		 test	 edi, edi
+  01261	89 7c 24 04	 mov	 DWORD PTR _outfile$[esp+392], edi
+  01265	75 0d		 jne	 SHORT $L72154
+
+; 1499 : 		return MMSYSERR_ERROR;
+
+  01267	b8 01 00 00 00	 mov	 eax, 1
+  0126c	5f		 pop	 edi
+
+; 1520 : }
+
+  0126d	81 c4 84 01 00
+	00		 add	 esp, 388		; 00000184H
+  01273	c3		 ret	 0
+$L72154:
+
+; 1500 : 
+; 1501 : 	pKsd_t = phTTS->pKernelShareData;
+
+  01274	8b 8c 24 8c 01
+	00 00		 mov	 ecx, DWORD PTR _phTTS$[esp+388]
+  0127b	53		 push	 ebx
+  0127c	56		 push	 esi
+  0127d	8b 71 08	 mov	 esi, DWORD PTR [ecx+8]
+
+; 1502 : 
+; 1503 : 	fprintf(outfile, "Total user dictionary entries: %d\n\n", UDICT_ENTRY);
+
+  01280	8b 96 a8 00 00
+	00		 mov	 edx, DWORD PTR [esi+168]
+  01286	52		 push	 edx
+  01287	68 00 00 00 00	 push	 OFFSET FLAT:$SG72156
+  0128c	57		 push	 edi
+  0128d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+
+; 1504 : 	for (lcv = 0; lcv < UDICT_ENTRY; lcv++)
+
+  01293	8b 86 a8 00 00
+	00		 mov	 eax, DWORD PTR [esi+168]
+  01299	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0129c	33 db		 xor	 ebx, ebx
+  0129e	85 c0		 test	 eax, eax
+  012a0	0f 8e c4 00 00
+	00		 jle	 $L72159
+  012a6	55		 push	 ebp
+$L72157:
+
+; 1505 : 	{
+; 1506 : 		for (phoneme_ptr = UDICT_ACCESS(lcv)->text + (strlen(UDICT_ACCESS(lcv)->text) + 1), 
+; 1507 : 			 lcv2 = 0; *phoneme_ptr != '\0'; phoneme_ptr++, lcv2++)
+
+  012a7	8b 46 70	 mov	 eax, DWORD PTR [esi+112]
+  012aa	8b ae 8c 00 00
+	00		 mov	 ebp, DWORD PTR [esi+140]
+  012b0	83 c9 ff	 or	 ecx, -1
+  012b3	8b 14 98	 mov	 edx, DWORD PTR [eax+ebx*4]
+  012b6	33 c0		 xor	 eax, eax
+  012b8	8d 7c 2a 04	 lea	 edi, DWORD PTR [edx+ebp+4]
+  012bc	f2 ae		 repne scasb
+  012be	f7 d1		 not	 ecx
+  012c0	49		 dec	 ecx
+  012c1	03 ca		 add	 ecx, edx
+  012c3	33 d2		 xor	 edx, edx
+  012c5	8d 44 29 05	 lea	 eax, DWORD PTR [ecx+ebp+5]
+  012c9	8a 4c 29 05	 mov	 cl, BYTE PTR [ecx+ebp+5]
+  012cd	84 c9		 test	 cl, cl
+  012cf	74 47		 je	 SHORT $L72164
+  012d1	8d bc 24 95 00
+	00 00		 lea	 edi, DWORD PTR _arpabet_ph$[esp+405]
+$L72162:
+
+; 1508 : 		{
+; 1509 : 			arpabet_ph[lcv2 * 2]     = pKsd_t->arpabet[(*phoneme_ptr) * 2];
+
+  012d8	8b ae 2c 06 00
+	00		 mov	 ebp, DWORD PTR [esi+1580]
+  012de	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  012e4	83 c7 02	 add	 edi, 2
+  012e7	8a 4c 4d 00	 mov	 cl, BYTE PTR [ebp+ecx*2]
+  012eb	88 4f fd	 mov	 BYTE PTR [edi-3], cl
+
+; 1510 : 			arpabet_ph[lcv2 * 2 + 1] = pKsd_t->arpabet[(*phoneme_ptr) * 2 + 1];
+
+  012ee	8b ae 2c 06 00
+	00		 mov	 ebp, DWORD PTR [esi+1580]
+  012f4	33 c9		 xor	 ecx, ecx
+  012f6	8a 08		 mov	 cl, BYTE PTR [eax]
+  012f8	8a 4c 4d 01	 mov	 cl, BYTE PTR [ebp+ecx*2+1]
+  012fc	88 4f fe	 mov	 BYTE PTR [edi-2], cl
+
+; 1511 : 			ascky_ph[lcv2]           = pKsd_t->ascky[*phoneme_ptr];
+
+  012ff	8b ae 20 06 00
+	00		 mov	 ebp, DWORD PTR [esi+1568]
+  01305	33 c9		 xor	 ecx, ecx
+  01307	8a 08		 mov	 cl, BYTE PTR [eax]
+  01309	40		 inc	 eax
+  0130a	42		 inc	 edx
+  0130b	8a 0c 29	 mov	 cl, BYTE PTR [ecx+ebp]
+  0130e	88 4c 14 13	 mov	 BYTE PTR _ascky_ph$[esp+edx+403], cl
+  01312	8a 08		 mov	 cl, BYTE PTR [eax]
+  01314	84 c9		 test	 cl, cl
+  01316	75 c0		 jne	 SHORT $L72162
+$L72164:
+
+; 1512 : 		}
+; 1513 : 		arpabet_ph[lcv2 * 2] ='\0';
+
+  01318	c6 84 54 94 00
+	00 00 00	 mov	 BYTE PTR _arpabet_ph$[esp+edx*2+404], 0
+
+; 1514 : 		ascky_ph[lcv2] = '\0';
+
+  01320	c6 44 14 14 00	 mov	 BYTE PTR _ascky_ph$[esp+edx+404], 0
+
+; 1515 : 		fprintf(outfile, "%s, %s, %s\n", UDICT_ACCESS(lcv)->text, arpabet_ph, ascky_ph);
+
+  01325	8b 4e 70	 mov	 ecx, DWORD PTR [esi+112]
+  01328	8d 54 24 14	 lea	 edx, DWORD PTR _ascky_ph$[esp+404]
+  0132c	8d 84 24 94 00
+	00 00		 lea	 eax, DWORD PTR _arpabet_ph$[esp+404]
+  01333	52		 push	 edx
+  01334	8b 14 99	 mov	 edx, DWORD PTR [ecx+ebx*4]
+  01337	50		 push	 eax
+  01338	8b 86 8c 00 00
+	00		 mov	 eax, DWORD PTR [esi+140]
+  0133e	8d 4c 02 04	 lea	 ecx, DWORD PTR [edx+eax+4]
+  01342	8b 54 24 18	 mov	 edx, DWORD PTR _outfile$[esp+412]
+  01346	51		 push	 ecx
+  01347	68 00 00 00 00	 push	 OFFSET FLAT:$SG72166
+  0134c	52		 push	 edx
+  0134d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01353	8b 86 a8 00 00
+	00		 mov	 eax, DWORD PTR [esi+168]
+  01359	83 c4 14	 add	 esp, 20			; 00000014H
+  0135c	43		 inc	 ebx
+  0135d	3b d8		 cmp	 ebx, eax
+  0135f	0f 8c 42 ff ff
+	ff		 jl	 $L72157
+  01365	8b 7c 24 10	 mov	 edi, DWORD PTR _outfile$[esp+404]
+  01369	5d		 pop	 ebp
+$L72159:
+
+; 1516 : 	}
+; 1517 : 
+; 1518 : 	fclose(outfile);
+
+  0136a	57		 push	 edi
+  0136b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  01371	83 c4 04	 add	 esp, 4
+
+; 1519 : 	return MMSYSERR_NOERROR;
+
+  01374	33 c0		 xor	 eax, eax
+  01376	5e		 pop	 esi
+  01377	5b		 pop	 ebx
+  01378	5f		 pop	 edi
+
+; 1520 : }
+
+  01379	81 c4 84 01 00
+	00		 add	 esp, 388		; 00000184H
+  0137f	c3		 ret	 0
+_DumpUserDictionary ENDP
+_TEXT	ENDS
+PUBLIC	_UserDictionaryHead
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_UserDictionaryHead PROC NEAR
+
+; 1535 : 	return (void *) ((long) UDICT_INDEX );
+
+  01380	8b 44 24 04	 mov	 eax, DWORD PTR _pKsd_t$[esp-4]
+  01384	8b 40 70	 mov	 eax, DWORD PTR [eax+112]
+
+; 1536 : }
+
+  01387	c3		 ret	 0
+_UserDictionaryHead ENDP
+_TEXT	ENDS
+PUBLIC	_GetUserEntrySize
+_TEXT	SEGMENT
+_entry$ = 8
+_GetUserEntrySize PROC NEAR
+
+; 1548 : {
+
+  01390	56		 push	 esi
+
+; 1549 : 	unsigned char *phoneme_ptr;
+; 1550 : 	int entry_size;
+; 1551 : 
+; 1552 : 
+; 1553 : 	phoneme_ptr = entry->text + (strlen(entry->text) + 1);
+
+  01391	8b 74 24 08	 mov	 esi, DWORD PTR _entry$[esp]
+  01395	57		 push	 edi
+  01396	83 c9 ff	 or	 ecx, -1
+  01399	8d 56 04	 lea	 edx, DWORD PTR [esi+4]
+  0139c	33 c0		 xor	 eax, eax
+  0139e	8b fa		 mov	 edi, edx
+  013a0	f2 ae		 repne scasb
+  013a2	f7 d1		 not	 ecx
+  013a4	49		 dec	 ecx
+
+; 1554 : 
+; 1555 : 	/* add the lengths of the grapheme and phoneme strings (including the null characters) */
+; 1556 : 	entry_size = strlen(entry->text) + strlen(phoneme_ptr) + 2;
+; 1557 : 
+; 1558 : 	return entry_size;
+
+  013a5	8d 7c 31 05	 lea	 edi, DWORD PTR [ecx+esi+5]
+  013a9	83 c9 ff	 or	 ecx, -1
+  013ac	f2 ae		 repne scasb
+  013ae	f7 d1		 not	 ecx
+  013b0	49		 dec	 ecx
+  013b1	8b fa		 mov	 edi, edx
+  013b3	8b f1		 mov	 esi, ecx
+  013b5	83 c9 ff	 or	 ecx, -1
+  013b8	f2 ae		 repne scasb
+  013ba	f7 d1		 not	 ecx
+  013bc	49		 dec	 ecx
+  013bd	5f		 pop	 edi
+  013be	8d 44 0e 02	 lea	 eax, DWORD PTR [esi+ecx+2]
+  013c2	5e		 pop	 esi
+
+; 1559 : }
+
+  013c3	c3		 ret	 0
+_GetUserEntrySize ENDP
+_TEXT	ENDS
+PUBLIC	_AddUserEntry
+EXTRN	_mallocLock:NEAR
+EXTRN	_reallocLock:NEAR
+EXTRN	__imp__memmove:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_entry$ = 12
+_pLts_t$ = -12
+_first$ = -8
+_last$ = 8
+_mid$ = -20
+_dict_bytes$ = 8
+_new_size$ = 12
+_AddUserEntry PROC NEAR
+
+; 1579 : {
+
+  013d0	83 ec 14	 sub	 esp, 20			; 00000014H
+
+; 1580 : 	PKSD_T pKsd_t;
+; 1581 : 	PLTS_T pLts_t;
+; 1582 : 	long first, last, mid, index; /* index is where the new entry belongs */
+; 1583 : 	int temp;
+; 1584 : 	long dict_bytes, new_size, end_addr, bytes_to_scoot;
+; 1585 : 	int entry_size;
+; 1586 : 	long modifier; /* for shifting entry addresses after the dictionary has been reallocated */
+; 1587 : 
+; 1588 : 
+; 1589 : 	pKsd_t = phTTS->pKernelShareData;
+
+  013d3	8b 44 24 18	 mov	 eax, DWORD PTR _phTTS$[esp+16]
+  013d7	53		 push	 ebx
+  013d8	55		 push	 ebp
+  013d9	56		 push	 esi
+  013da	8b 58 08	 mov	 ebx, DWORD PTR [eax+8]
+
+; 1590 : 	pLts_t = phTTS->pLTSThreadData;
+
+  013dd	8b 40 10	 mov	 eax, DWORD PTR [eax+16]
+  013e0	89 44 24 14	 mov	 DWORD PTR _pLts_t$[esp+32], eax
+  013e4	57		 push	 edi
+
+; 1591 : 	first = 0;
+; 1592 : 	last = UDICT_ENTRY - 1;
+
+  013e5	8b ab a8 00 00
+	00		 mov	 ebp, DWORD PTR [ebx+168]
+
+; 1593 : 	mid = last >> 1;
+; 1594 : 
+; 1595 : 	if (UDICT_INDEX == NULL)
+
+  013eb	8b 4b 70	 mov	 ecx, DWORD PTR [ebx+112]
+  013ee	4d		 dec	 ebp
+  013ef	c7 44 24 1c 00
+	00 00 00	 mov	 DWORD PTR _first$[esp+36], 0
+  013f7	8b c5		 mov	 eax, ebp
+  013f9	89 6c 24 28	 mov	 DWORD PTR _last$[esp+32], ebp
+  013fd	d1 f8		 sar	 eax, 1
+  013ff	85 c9		 test	 ecx, ecx
+  01401	89 44 24 10	 mov	 DWORD PTR _mid$[esp+36], eax
+  01405	0f 85 86 00 00
+	00		 jne	 $L72201
+
+; 1596 : 	{
+; 1597 : 		/* The user dictionary does not exist, so we must create it. */
+; 1598 : 		entry_size = GetUserEntrySize(entry);
+
+  0140b	8b 74 24 2c	 mov	 esi, DWORD PTR _entry$[esp+32]
+  0140f	56		 push	 esi
+  01410	e8 00 00 00 00	 call	 _GetUserEntrySize
+
+; 1599 : 		dict_bytes = 4 + entry_size; /* 4 bytes for dict_bytes, 4 bytes for the pointer */
+; 1600 : 
+; 1601 : #if (defined WIN32) && (!defined UNDER_CE)
+; 1602 : 		if (!(UDICT_INDEX = (S32 *) mallocLock(4)))
+
+  01415	6a 04		 push	 4
+  01417	8b e8		 mov	 ebp, eax
+  01419	e8 00 00 00 00	 call	 _mallocLock
+  0141e	83 c4 08	 add	 esp, 8
+  01421	89 43 70	 mov	 DWORD PTR [ebx+112], eax
+  01424	85 c0		 test	 eax, eax
+  01426	75 0d		 jne	 SHORT $L72204
+  01428	5f		 pop	 edi
+  01429	5e		 pop	 esi
+  0142a	5d		 pop	 ebp
+
+; 1603 : #else
+; 1604 : 		if (!(UDICT_INDEX = (S32 *) malloc(4)))
+; 1605 : #endif
+; 1606 : 			return MMSYSERR_NOMEM;
+
+  0142b	b8 07 00 00 00	 mov	 eax, 7
+  01430	5b		 pop	 ebx
+
+; 1731 : }
+
+  01431	83 c4 14	 add	 esp, 20			; 00000014H
+  01434	c3		 ret	 0
+$L72204:
+
+; 1607 : #if (defined WIN32) && (!defined UNDER_CE)
+; 1608 : 		if (!(UDICT_DATA = (unsigned char *) mallocLock(entry_size)))
+
+  01435	55		 push	 ebp
+  01436	e8 00 00 00 00	 call	 _mallocLock
+  0143b	83 c4 04	 add	 esp, 4
+  0143e	89 83 8c 00 00
+	00		 mov	 DWORD PTR [ebx+140], eax
+  01444	85 c0		 test	 eax, eax
+  01446	75 0d		 jne	 SHORT $L72206
+  01448	5f		 pop	 edi
+  01449	5e		 pop	 esi
+  0144a	5d		 pop	 ebp
+
+; 1609 : #else
+; 1610 : 		if (!(UDICT_DATA = (unsigned char *) malloc(entry_size)))
+; 1611 : #endif
+; 1612 : 			return MMSYSERR_NOMEM;
+
+  0144b	b8 07 00 00 00	 mov	 eax, 7
+  01450	5b		 pop	 ebx
+
+; 1731 : }
+
+  01451	83 c4 14	 add	 esp, 20			; 00000014H
+  01454	c3		 ret	 0
+$L72206:
+
+; 1613 : 
+; 1614 : 		UDICT_INDEX[0]=-4;
+
+  01455	8b 4b 70	 mov	 ecx, DWORD PTR [ebx+112]
+
+; 1615 : 			
+; 1616 : 		memcpy((unsigned char *)&(UDICT_DATA[0]), entry->text, entry_size);
+
+  01458	83 c6 04	 add	 esi, 4
+  0145b	c7 01 fc ff ff
+	ff		 mov	 DWORD PTR [ecx], -4	; fffffffcH
+  01461	8b bb 8c 00 00
+	00		 mov	 edi, DWORD PTR [ebx+140]
+  01467	8b cd		 mov	 ecx, ebp
+  01469	8b d1		 mov	 edx, ecx
+  0146b	c1 e9 02	 shr	 ecx, 2
+  0146e	f3 a5		 rep movsd
+  01470	8b ca		 mov	 ecx, edx
+  01472	83 e1 03	 and	 ecx, 3
+
+; 1727 : 															    works is to point 4 bytes
+; 1728 : 																before the actual entry */
+; 1729 : 
+; 1730 : 	return MMSYSERR_NOERROR;
+
+  01475	33 c0		 xor	 eax, eax
+  01477	f3 a4		 rep movsb
+  01479	5f		 pop	 edi
+  0147a	89 ab c4 00 00
+	00		 mov	 DWORD PTR [ebx+196], ebp
+  01480	5e		 pop	 esi
+  01481	c7 83 a8 00 00
+	00 01 00 00 00	 mov	 DWORD PTR [ebx+168], 1
+  0148b	5d		 pop	 ebp
+  0148c	5b		 pop	 ebx
+
+; 1731 : }
+
+  0148d	83 c4 14	 add	 esp, 20			; 00000014H
+  01490	c3		 ret	 0
+$L72201:
+
+; 1617 : 		UDICT_ENTRY=1;
+; 1618 : 		UDICT_BYTES=entry_size;
+; 1619 : #if LTS_DEBUG
+; 1620 : 		{
+; 1621 : 			char szTemp[256];
+; 1622 : 			sprintf(szTemp, "Allocated user dictionary; UDICT_HEAD:%08lx\n",
+; 1623 : 				UDICT_HEAD);
+; 1624 : 			OutputDebugString(szTemp);
+; 1625 : 		}
+; 1626 : #endif //LTS_DEBUG
+; 1627 : 
+; 1628 : 		return MMSYSERR_NOERROR;	
+; 1629 : 	}
+; 1630 : 
+; 1631 : 	if (strcmp(entry->text, UDICT_ACCESS(first)->text) == 0)
+
+  01491	8b 83 8c 00 00
+	00		 mov	 eax, DWORD PTR [ebx+140]
+  01497	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01499	8d 7c 10 04	 lea	 edi, DWORD PTR [eax+edx+4]
+  0149d	8b 44 24 2c	 mov	 eax, DWORD PTR _entry$[esp+32]
+  014a1	89 7c 24 20	 mov	 DWORD PTR -4+[esp+36], edi
+  014a5	8d 70 04	 lea	 esi, DWORD PTR [eax+4]
+  014a8	89 74 24 14	 mov	 DWORD PTR -16+[esp+36], esi
+$L72471:
+  014ac	8a 16		 mov	 dl, BYTE PTR [esi]
+  014ae	8a c2		 mov	 al, dl
+  014b0	3a 17		 cmp	 dl, BYTE PTR [edi]
+  014b2	75 1c		 jne	 SHORT $L72472
+  014b4	84 c0		 test	 al, al
+  014b6	74 14		 je	 SHORT $L72473
+  014b8	8a 56 01	 mov	 dl, BYTE PTR [esi+1]
+  014bb	8a c2		 mov	 al, dl
+  014bd	3a 57 01	 cmp	 dl, BYTE PTR [edi+1]
+  014c0	75 0e		 jne	 SHORT $L72472
+  014c2	83 c6 02	 add	 esi, 2
+  014c5	83 c7 02	 add	 edi, 2
+  014c8	84 c0		 test	 al, al
+  014ca	75 e0		 jne	 SHORT $L72471
+$L72473:
+  014cc	33 c0		 xor	 eax, eax
+  014ce	eb 05		 jmp	 SHORT $L72474
+$L72472:
+  014d0	1b c0		 sbb	 eax, eax
+  014d2	83 d8 ff	 sbb	 eax, -1
+$L72474:
+  014d5	85 c0		 test	 eax, eax
+  014d7	75 0d		 jne	 SHORT $L72210
+  014d9	5f		 pop	 edi
+  014da	5e		 pop	 esi
+  014db	5d		 pop	 ebp
+
+; 1632 : 		return MMSYSERR_ERROR; /* a form of the word is already in the dictionary */
+
+  014dc	b8 01 00 00 00	 mov	 eax, 1
+  014e1	5b		 pop	 ebx
+
+; 1731 : }
+
+  014e2	83 c4 14	 add	 esp, 20			; 00000014H
+  014e5	c3		 ret	 0
+$L72210:
+
+; 1633 : 
+; 1634 : 	if (strcmp(entry->text, UDICT_ACCESS(last)->text) == 0)
+
+  014e6	8b 0c a9	 mov	 ecx, DWORD PTR [ecx+ebp*4]
+  014e9	8b 83 8c 00 00
+	00		 mov	 eax, DWORD PTR [ebx+140]
+  014ef	8b 74 24 14	 mov	 esi, DWORD PTR -16+[esp+36]
+  014f3	8d 7c 01 04	 lea	 edi, DWORD PTR [ecx+eax+4]
+$L72475:
+  014f7	8a 16		 mov	 dl, BYTE PTR [esi]
+  014f9	8a 0f		 mov	 cl, BYTE PTR [edi]
+  014fb	8a c2		 mov	 al, dl
+  014fd	3a d1		 cmp	 dl, cl
+  014ff	75 1e		 jne	 SHORT $L72476
+  01501	84 c0		 test	 al, al
+  01503	74 16		 je	 SHORT $L72477
+  01505	8a 4e 01	 mov	 cl, BYTE PTR [esi+1]
+  01508	8a 57 01	 mov	 dl, BYTE PTR [edi+1]
+  0150b	8a c1		 mov	 al, cl
+  0150d	3a ca		 cmp	 cl, dl
+  0150f	75 0e		 jne	 SHORT $L72476
+  01511	83 c6 02	 add	 esi, 2
+  01514	83 c7 02	 add	 edi, 2
+  01517	84 c0		 test	 al, al
+  01519	75 dc		 jne	 SHORT $L72475
+$L72477:
+  0151b	33 c0		 xor	 eax, eax
+  0151d	eb 05		 jmp	 SHORT $L72478
+$L72476:
+  0151f	1b c0		 sbb	 eax, eax
+  01521	83 d8 ff	 sbb	 eax, -1
+$L72478:
+  01524	85 c0		 test	 eax, eax
+  01526	75 0d		 jne	 SHORT $L72212
+$L72469:
+  01528	5f		 pop	 edi
+  01529	5e		 pop	 esi
+  0152a	5d		 pop	 ebp
+
+; 1635 : 		return MMSYSERR_ERROR; /* a form of the word is already in the dictionary */
+
+  0152b	b8 01 00 00 00	 mov	 eax, 1
+  01530	5b		 pop	 ebx
+
+; 1731 : }
+
+  01531	83 c4 14	 add	 esp, 20			; 00000014H
+  01534	c3		 ret	 0
+$L72212:
+
+; 1636 : 
+; 1637 : 	/* first we check to see if the new entry is not within the range of the current entries */
+; 1638 : 	strcpy(pLts_t->comp_str, UDICT_ACCESS(first)->text);
+
+  01535	8b 7c 24 20	 mov	 edi, DWORD PTR -4+[esp+36]
+  01539	83 c9 ff	 or	 ecx, -1
+  0153c	33 c0		 xor	 eax, eax
+  0153e	8b 54 24 18	 mov	 edx, DWORD PTR _pLts_t$[esp+36]
+  01542	f2 ae		 repne scasb
+  01544	f7 d1		 not	 ecx
+  01546	2b f9		 sub	 edi, ecx
+  01548	8d aa 38 04 00
+	00		 lea	 ebp, DWORD PTR [edx+1080]
+  0154e	8b c1		 mov	 eax, ecx
+  01550	8b f7		 mov	 esi, edi
+  01552	8b fd		 mov	 edi, ebp
+  01554	c1 e9 02	 shr	 ecx, 2
+  01557	f3 a5		 rep movsd
+  01559	8b c8		 mov	 ecx, eax
+  0155b	83 e1 03	 and	 ecx, 3
+  0155e	f3 a4		 rep movsb
+
+; 1639 : 	if (ls_dict_where_to_ulook(pLts_t, entry->text) == LOOK_HIGHER)
+
+  01560	8b 4c 24 14	 mov	 ecx, DWORD PTR -16+[esp+36]
+  01564	51		 push	 ecx
+  01565	52		 push	 edx
+  01566	e8 00 00 00 00	 call	 _ls_dict_where_to_ulook
+  0156b	83 c4 08	 add	 esp, 8
+  0156e	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+  01573	75 07		 jne	 SHORT $L72214
+
+; 1640 : 		index = 0;
+
+  01575	33 ed		 xor	 ebp, ebp
+
+; 1641 : 	else
+
+  01577	e9 1d 01 00 00	 jmp	 $L72218
+$L72214:
+
+; 1642 : 	{
+; 1643 : 		strcpy(pLts_t->comp_str, UDICT_ACCESS(last)->text);
+
+  0157c	8b 53 70	 mov	 edx, DWORD PTR [ebx+112]
+  0157f	8b 44 24 28	 mov	 eax, DWORD PTR _last$[esp+32]
+  01583	8b 0c 82	 mov	 ecx, DWORD PTR [edx+eax*4]
+  01586	8b 93 8c 00 00
+	00		 mov	 edx, DWORD PTR [ebx+140]
+  0158c	33 c0		 xor	 eax, eax
+  0158e	8d 7c 11 04	 lea	 edi, DWORD PTR [ecx+edx+4]
+  01592	83 c9 ff	 or	 ecx, -1
+  01595	f2 ae		 repne scasb
+  01597	f7 d1		 not	 ecx
+  01599	2b f9		 sub	 edi, ecx
+
+; 1644 : 		if (ls_dict_where_to_ulook(pLts_t, entry->text) == LOOK_LOWER)
+
+  0159b	8b 54 24 18	 mov	 edx, DWORD PTR _pLts_t$[esp+36]
+  0159f	8b c1		 mov	 eax, ecx
+  015a1	8b f7		 mov	 esi, edi
+  015a3	8b fd		 mov	 edi, ebp
+  015a5	c1 e9 02	 shr	 ecx, 2
+  015a8	f3 a5		 rep movsd
+  015aa	8b c8		 mov	 ecx, eax
+  015ac	83 e1 03	 and	 ecx, 3
+  015af	f3 a4		 rep movsb
+  015b1	8b 4c 24 14	 mov	 ecx, DWORD PTR -16+[esp+36]
+  015b5	51		 push	 ecx
+  015b6	52		 push	 edx
+  015b7	e8 00 00 00 00	 call	 _ls_dict_where_to_ulook
+  015bc	83 c4 08	 add	 esp, 8
+  015bf	3d fe ff 00 00	 cmp	 eax, 65534		; 0000fffeH
+
+; 1645 : 			index = last + 1;
+
+  015c4	8b 44 24 28	 mov	 eax, DWORD PTR _last$[esp+32]
+  015c8	75 08		 jne	 SHORT $L72468
+  015ca	8d 68 01	 lea	 ebp, DWORD PTR [eax+1]
+
+; 1646 : 		else /* do a binary search to figure out where the new entry belongs */
+
+  015cd	e9 c7 00 00 00	 jmp	 $L72218
+$L72468:
+
+; 1647 : 		{
+; 1648 : 			while ((last - first) >> 1 != 0)
+
+  015d2	a9 fe ff ff ff	 test	 eax, -2			; fffffffeH
+  015d7	0f 84 b5 00 00
+	00		 je	 $L72221
+$L72220:
+
+; 1649 : 			{
+; 1650 : 				strcpy(pLts_t->comp_str, UDICT_ACCESS(mid)->text);
+
+  015dd	8b 4b 70	 mov	 ecx, DWORD PTR [ebx+112]
+  015e0	8b 54 24 10	 mov	 edx, DWORD PTR _mid$[esp+36]
+  015e4	8b 04 91	 mov	 eax, DWORD PTR [ecx+edx*4]
+  015e7	8b 8b 8c 00 00
+	00		 mov	 ecx, DWORD PTR [ebx+140]
+  015ed	8d 7c 08 04	 lea	 edi, DWORD PTR [eax+ecx+4]
+  015f1	83 c9 ff	 or	 ecx, -1
+  015f4	33 c0		 xor	 eax, eax
+  015f6	f2 ae		 repne scasb
+  015f8	f7 d1		 not	 ecx
+  015fa	2b f9		 sub	 edi, ecx
+
+; 1651 : 				temp = ls_dict_where_to_ulook(pLts_t, entry->text);
+
+  015fc	8b 44 24 18	 mov	 eax, DWORD PTR _pLts_t$[esp+36]
+  01600	8b d1		 mov	 edx, ecx
+  01602	8b f7		 mov	 esi, edi
+  01604	8b fd		 mov	 edi, ebp
+  01606	c1 e9 02	 shr	 ecx, 2
+  01609	f3 a5		 rep movsd
+  0160b	8b ca		 mov	 ecx, edx
+  0160d	83 e1 03	 and	 ecx, 3
+  01610	f3 a4		 rep movsb
+  01612	8b 74 24 14	 mov	 esi, DWORD PTR -16+[esp+36]
+  01616	56		 push	 esi
+  01617	50		 push	 eax
+  01618	e8 00 00 00 00	 call	 _ls_dict_where_to_ulook
+  0161d	83 c4 08	 add	 esp, 8
+
+; 1652 : 				if (strcmp(entry->text, pLts_t->comp_str) == 0)
+
+  01620	8b fd		 mov	 edi, ebp
+$L72479:
+  01622	8a 16		 mov	 dl, BYTE PTR [esi]
+  01624	8a ca		 mov	 cl, dl
+  01626	3a 17		 cmp	 dl, BYTE PTR [edi]
+  01628	75 1c		 jne	 SHORT $L72480
+  0162a	84 c9		 test	 cl, cl
+  0162c	74 14		 je	 SHORT $L72481
+  0162e	8a 56 01	 mov	 dl, BYTE PTR [esi+1]
+  01631	8a ca		 mov	 cl, dl
+  01633	3a 57 01	 cmp	 dl, BYTE PTR [edi+1]
+  01636	75 0e		 jne	 SHORT $L72480
+  01638	83 c6 02	 add	 esi, 2
+  0163b	83 c7 02	 add	 edi, 2
+  0163e	84 c9		 test	 cl, cl
+  01640	75 e0		 jne	 SHORT $L72479
+$L72481:
+  01642	33 c9		 xor	 ecx, ecx
+  01644	eb 05		 jmp	 SHORT $L72482
+$L72480:
+  01646	1b c9		 sbb	 ecx, ecx
+  01648	83 d9 ff	 sbb	 ecx, -1
+$L72482:
+  0164b	85 c9		 test	 ecx, ecx
+  0164d	0f 84 d5 fe ff
+	ff		 je	 $L72469
+
+; 1653 : 					return MMSYSERR_ERROR; /* a form of the word is already in the dictionary
+; 1654 : 										      */
+; 1655 : 				if (temp == LOOK_LOWER)
+
+  01653	3d fe ff 00 00	 cmp	 eax, 65534		; 0000fffeH
+  01658	75 0a		 jne	 SHORT $L72224
+
+; 1656 : 					first = mid;
+
+  0165a	8b 44 24 10	 mov	 eax, DWORD PTR _mid$[esp+36]
+  0165e	89 44 24 1c	 mov	 DWORD PTR _first$[esp+36], eax
+
+; 1657 : 				else if (temp == LOOK_HIGHER)
+
+  01662	eb 0f		 jmp	 SHORT $L72226
+$L72224:
+  01664	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+  01669	75 08		 jne	 SHORT $L72226
+
+; 1658 : 					last = mid;
+
+  0166b	8b 4c 24 10	 mov	 ecx, DWORD PTR _mid$[esp+36]
+  0166f	89 4c 24 28	 mov	 DWORD PTR _last$[esp+32], ecx
+$L72226:
+
+; 1659 : 
+; 1660 : 				mid = first + ((last - first) >> 1);
+
+  01673	8b 44 24 28	 mov	 eax, DWORD PTR _last$[esp+32]
+  01677	8b 54 24 1c	 mov	 edx, DWORD PTR _first$[esp+36]
+  0167b	2b c2		 sub	 eax, edx
+  0167d	8b c8		 mov	 ecx, eax
+  0167f	d1 f9		 sar	 ecx, 1
+  01681	03 ca		 add	 ecx, edx
+  01683	a9 fe ff ff ff	 test	 eax, -2			; fffffffeH
+  01688	89 4c 24 10	 mov	 DWORD PTR _mid$[esp+36], ecx
+  0168c	0f 85 4b ff ff
+	ff		 jne	 $L72220
+$L72221:
+
+; 1661 : 			}
+; 1662 : 			
+; 1663 : 			/* At this point, first and last are two consecutive indexes, with the entry at
+; 1664 : 			   first being less than the new entry and the entry at last being greater than the
+; 1665 : 			   new entry.  We assign the index for the new entry to be mid + 1. */
+; 1666 : 			index = mid + 1;
+
+  01692	8b 54 24 10	 mov	 edx, DWORD PTR _mid$[esp+36]
+  01696	8d 6a 01	 lea	 ebp, DWORD PTR [edx+1]
+$L72218:
+
+; 1667 : 		}
+; 1668 : 	}
+; 1669 : 
+; 1670 : 	/* figure out the new size of the dictionary */
+; 1671 : 	dict_bytes = UDICT_BYTES;
+; 1672 : 	entry_size = GetUserEntrySize(entry);
+
+  01699	8b 44 24 2c	 mov	 eax, DWORD PTR _entry$[esp+32]
+  0169d	8b bb c4 00 00
+	00		 mov	 edi, DWORD PTR [ebx+196]
+  016a3	50		 push	 eax
+  016a4	89 7c 24 2c	 mov	 DWORD PTR _dict_bytes$[esp+36], edi
+  016a8	e8 00 00 00 00	 call	 _GetUserEntrySize
+
+; 1673 : 	new_size = dict_bytes + entry_size;
+; 1674 : 
+; 1675 : 	/* reallocate the dictionary */
+; 1676 : 
+; 1677 : #if defined (WIN32) && !defined (UNDER_CE)
+; 1678 : 	//tek 18jun98 this is inconsistent; use reallocLock.
+; 1679 : 	if ((UDICT_INDEX = reallocLock(UDICT_INDEX, (UDICT_ENTRY+1) * sizeof(S32))) == NULL)
+
+  016ad	8b 93 a8 00 00
+	00		 mov	 edx, DWORD PTR [ebx+168]
+  016b3	8b f0		 mov	 esi, eax
+  016b5	8d 0c 37	 lea	 ecx, DWORD PTR [edi+esi]
+  016b8	8d 04 95 04 00
+	00 00		 lea	 eax, DWORD PTR [edx*4+4]
+  016bf	89 4c 24 30	 mov	 DWORD PTR _new_size$[esp+36], ecx
+  016c3	8b 4b 70	 mov	 ecx, DWORD PTR [ebx+112]
+  016c6	50		 push	 eax
+  016c7	51		 push	 ecx
+  016c8	e8 00 00 00 00	 call	 _reallocLock
+  016cd	83 c4 0c	 add	 esp, 12			; 0000000cH
+  016d0	89 43 70	 mov	 DWORD PTR [ebx+112], eax
+  016d3	85 c0		 test	 eax, eax
+  016d5	75 0d		 jne	 SHORT $L72231
+  016d7	5f		 pop	 edi
+  016d8	5e		 pop	 esi
+  016d9	5d		 pop	 ebp
+
+; 1680 : 	{
+; 1681 : 		return MMSYSERR_NOMEM;
+
+  016da	b8 07 00 00 00	 mov	 eax, 7
+  016df	5b		 pop	 ebx
+
+; 1731 : }
+
+  016e0	83 c4 14	 add	 esp, 20			; 00000014H
+  016e3	c3		 ret	 0
+$L72231:
+
+; 1682 : 	}
+; 1683 : 	if ((UDICT_DATA = reallocLock(UDICT_DATA, new_size)) == NULL)
+
+  016e4	8b 54 24 2c	 mov	 edx, DWORD PTR _new_size$[esp+32]
+  016e8	8b 83 8c 00 00
+	00		 mov	 eax, DWORD PTR [ebx+140]
+  016ee	52		 push	 edx
+  016ef	50		 push	 eax
+  016f0	e8 00 00 00 00	 call	 _reallocLock
+  016f5	83 c4 08	 add	 esp, 8
+  016f8	89 83 8c 00 00
+	00		 mov	 DWORD PTR [ebx+140], eax
+  016fe	85 c0		 test	 eax, eax
+  01700	75 0d		 jne	 SHORT $L72233
+  01702	5f		 pop	 edi
+  01703	5e		 pop	 esi
+  01704	5d		 pop	 ebp
+
+; 1684 : 	{
+; 1685 : 		return MMSYSERR_NOMEM;
+
+  01705	b8 07 00 00 00	 mov	 eax, 7
+  0170a	5b		 pop	 ebx
+
+; 1731 : }
+
+  0170b	83 c4 14	 add	 esp, 20			; 00000014H
+  0170e	c3		 ret	 0
+$L72233:
+
+; 1686 : 	}
+; 1687 : 
+; 1688 : #else
+; 1689 : 	if ((UDICT_INDEX = realloc(UDICT_INDEX, (UDICT_ENTRY+1) * sizeof(S32))) == NULL)
+; 1690 : 	{
+; 1691 : 		return MMSYSERR_NOMEM;
+; 1692 : 	}
+; 1693 : 	if ((UDICT_DATA = realloc((unsigned char *)UDICT_DATA, new_size)) == NULL)
+; 1694 : 	{
+; 1695 : 		return MMSYSERR_NOMEM;
+; 1696 : 	}
+; 1697 : 
+; 1698 : #endif
+; 1699 : 
+; 1700 : #if LTS_DEBUG
+; 1701 : 		{
+; 1702 : 			char szTemp[256];
+; 1703 : 			sprintf(szTemp, "Reallocated user dictionary; UDICT_HEAD:%08lx\n",
+; 1704 : 				UDICT_HEAD);
+; 1705 : 			OutputDebugString(szTemp);
+; 1706 : 		}
+; 1707 : #endif //LTS_DEBUG
+; 1708 : 
+; 1709 : 	modifier = 0;
+; 1710 : 
+; 1711 : 	/* get the address of the last byte of the dictionary */
+; 1712 : 	end_addr = dict_bytes;
+; 1713 : 
+; 1714 : 	/* put entry at end of dictionary */
+; 1715 : 	memcpy( (unsigned char *)&(UDICT_DATA[end_addr]), entry->text, entry_size);
+
+  0170f	8b ce		 mov	 ecx, esi
+  01711	8b 74 24 14	 mov	 esi, DWORD PTR -16+[esp+36]
+  01715	8b d1		 mov	 edx, ecx
+  01717	03 f8		 add	 edi, eax
+  01719	c1 e9 02	 shr	 ecx, 2
+  0171c	f3 a5		 rep movsd
+  0171e	8b ca		 mov	 ecx, edx
+  01720	83 e1 03	 and	 ecx, 3
+  01723	f3 a4		 rep movsb
+
+; 1716 : 
+; 1717 : 	bytes_to_scoot = (UDICT_ENTRY-index)*sizeof(S32);
+; 1718 : 
+; 1719 : 	memmove(&UDICT_INDEX[index+1] , &UDICT_INDEX[index],
+; 1720 : 			bytes_to_scoot);
+
+  01725	8b b3 a8 00 00
+	00		 mov	 esi, DWORD PTR [ebx+168]
+  0172b	8b 43 70	 mov	 eax, DWORD PTR [ebx+112]
+  0172e	8b cd		 mov	 ecx, ebp
+  01730	c1 e1 1e	 shl	 ecx, 30			; 0000001eH
+  01733	2b cd		 sub	 ecx, ebp
+  01735	8d 14 a8	 lea	 edx, DWORD PTR [eax+ebp*4]
+  01738	03 ce		 add	 ecx, esi
+  0173a	8d 44 a8 04	 lea	 eax, DWORD PTR [eax+ebp*4+4]
+  0173e	c1 e1 02	 shl	 ecx, 2
+  01741	51		 push	 ecx
+  01742	52		 push	 edx
+  01743	50		 push	 eax
+  01744	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__memmove
+
+; 1721 : 
+; 1722 : 	/* fix up pointers */
+; 1723 : 	UDICT_ENTRY++;
+
+  0174a	8b 83 a8 00 00
+	00		 mov	 eax, DWORD PTR [ebx+168]
+
+; 1724 : 	UDICT_BYTES=new_size;
+; 1725 : 
+; 1726 : 	UDICT_INDEX[index] = (end_addr -4); /* the way the user dictionary
+
+  01750	8b 54 24 34	 mov	 edx, DWORD PTR _dict_bytes$[esp+44]
+  01754	8b 4c 24 38	 mov	 ecx, DWORD PTR _new_size$[esp+44]
+  01758	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0175b	40		 inc	 eax
+  0175c	83 c2 fc	 add	 edx, -4			; fffffffcH
+  0175f	89 83 a8 00 00
+	00		 mov	 DWORD PTR [ebx+168], eax
+  01765	8b 43 70	 mov	 eax, DWORD PTR [ebx+112]
+  01768	89 8b c4 00 00
+	00		 mov	 DWORD PTR [ebx+196], ecx
+  0176e	5f		 pop	 edi
+  0176f	89 14 a8	 mov	 DWORD PTR [eax+ebp*4], edx
+  01772	5e		 pop	 esi
+  01773	5d		 pop	 ebp
+
+; 1727 : 															    works is to point 4 bytes
+; 1728 : 																before the actual entry */
+; 1729 : 
+; 1730 : 	return MMSYSERR_NOERROR;
+
+  01774	33 c0		 xor	 eax, eax
+  01776	5b		 pop	 ebx
+
+; 1731 : }
+
+  01777	83 c4 14	 add	 esp, 20			; 00000014H
+  0177a	c3		 ret	 0
+_AddUserEntry ENDP
+_TEXT	ENDS
+PUBLIC	_DeleteUserEntry
+EXTRN	_freeLock:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_entry$ = 12
+_entry_size$ = 8
+_DeleteUserEntry PROC NEAR
+
+; 1749 : 	PKSD_T pKsd_t;
+; 1750 : 	int index;
+; 1751 : 	long dict_bytes, new_size, end_addr;
+; 1752 : 	int deleted_entry_addr;
+; 1753 :     int bytes_to_scoot;
+; 1754 : 	int entry_size;
+; 1755 : 	int lcv; /* loop-control variable */
+; 1756 : 
+; 1757 : 
+; 1758 : 	pKsd_t = phTTS->pKernelShareData;
+; 1759 : 
+; 1760 : 	index = UserDictionaryHit(phTTS, entry);
+
+  01780	8b 4c 24 08	 mov	 ecx, DWORD PTR _entry$[esp-4]
+  01784	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  01788	53		 push	 ebx
+  01789	55		 push	 ebp
+  0178a	56		 push	 esi
+  0178b	8b 70 08	 mov	 esi, DWORD PTR [eax+8]
+  0178e	51		 push	 ecx
+  0178f	50		 push	 eax
+  01790	e8 00 00 00 00	 call	 _UserDictionaryHit
+  01795	8b d8		 mov	 ebx, eax
+  01797	83 c4 08	 add	 esp, 8
+
+; 1761 : 	if (index == -1)
+
+  0179a	83 fb ff	 cmp	 ebx, -1
+  0179d	75 09		 jne	 SHORT $L72254
+  0179f	5e		 pop	 esi
+  017a0	5d		 pop	 ebp
+
+; 1762 : 		return MMSYSERR_ERROR;
+
+  017a1	b8 01 00 00 00	 mov	 eax, 1
+  017a6	5b		 pop	 ebx
+
+; 1848 : }
+
+  017a7	c3		 ret	 0
+$L72254:
+
+; 1763 : 
+; 1764 : 	/* figure out the new size of the dictionary */
+; 1765 : 	dict_bytes = UDICT_BYTES;
+; 1766 : 	entry_size = GetUserEntrySize(UDICT_ACCESS(index));
+
+  017a8	8b 56 70	 mov	 edx, DWORD PTR [esi+112]
+  017ab	8b ae c4 00 00
+	00		 mov	 ebp, DWORD PTR [esi+196]
+  017b1	8b 04 9a	 mov	 eax, DWORD PTR [edx+ebx*4]
+  017b4	8b 96 8c 00 00
+	00		 mov	 edx, DWORD PTR [esi+140]
+  017ba	03 c2		 add	 eax, edx
+  017bc	50		 push	 eax
+  017bd	e8 00 00 00 00	 call	 _GetUserEntrySize
+  017c2	8b c8		 mov	 ecx, eax
+  017c4	83 c4 04	 add	 esp, 4
+
+; 1767 : 	new_size = dict_bytes - entry_size;
+
+  017c7	2b e9		 sub	 ebp, ecx
+  017c9	89 4c 24 10	 mov	 DWORD PTR _entry_size$[esp+8], ecx
+
+; 1768 : 	
+; 1769 : 	if (new_size < 2) /* We're deleting the only entry in the user dictionary, so we free the
+
+  017cd	83 fd 02	 cmp	 ebp, 2
+  017d0	7d 35		 jge	 SHORT $L72256
+
+; 1770 : 					      memory block it's occupying and return. */
+; 1771 : 	{
+; 1772 : 
+; 1773 : #if LTS_DEBUG
+; 1774 : 		{
+; 1775 : 			char szTemp[256];
+; 1776 : 			sprintf(szTemp, "Freeing user dictionary; UDICT_HEAD:%08lx\n",
+; 1777 : 				UDICT_HEAD);
+; 1778 : 			OutputDebugString(szTemp);
+; 1779 : 		}
+; 1780 : #endif //LTS_DEBUG
+; 1781 : 
+; 1782 : #if (defined WIN32) && (!defined UNDER_CE)
+; 1783 : 		freeLock(UDICT_INDEX);
+
+  017d2	8b 4e 70	 mov	 ecx, DWORD PTR [esi+112]
+  017d5	51		 push	 ecx
+  017d6	e8 00 00 00 00	 call	 _freeLock
+
+; 1784 : 		freeLock(UDICT_DATA);
+
+  017db	8b 96 8c 00 00
+	00		 mov	 edx, DWORD PTR [esi+140]
+  017e1	52		 push	 edx
+  017e2	e8 00 00 00 00	 call	 _freeLock
+  017e7	83 c4 08	 add	 esp, 8
+
+; 1785 : #else
+; 1786 : 		free(UDICT_INDEX);
+; 1787 : 		free((unsigned char *)UDICT_DATA);
+; 1788 : #endif
+; 1789 : 		UDICT_INDEX = NULL;
+
+  017ea	33 c9		 xor	 ecx, ecx
+  017ec	89 4e 70	 mov	 DWORD PTR [esi+112], ecx
+
+; 1790 : 		UDICT_DATA=NULL;
+
+  017ef	89 8e 8c 00 00
+	00		 mov	 DWORD PTR [esi+140], ecx
+
+; 1791 : 		UDICT_ENTRY = 0;
+
+  017f5	89 8e a8 00 00
+	00		 mov	 DWORD PTR [esi+168], ecx
+
+; 1792 : 		UDICT_BYTES=0;
+
+  017fb	89 8e c4 00 00
+	00		 mov	 DWORD PTR [esi+196], ecx
+  01801	5e		 pop	 esi
+  01802	5d		 pop	 ebp
+
+; 1793 : 		return MMSYSERR_NOERROR;
+
+  01803	33 c0		 xor	 eax, eax
+  01805	5b		 pop	 ebx
+
+; 1848 : }
+
+  01806	c3		 ret	 0
+$L72256:
+
+; 1794 : 	}
+; 1795 : 
+; 1796 : 	/* get the address of the last byte of the dictionary */
+; 1797 : 	end_addr = UDICT_BYTES-1;
+; 1798 : 	
+; 1799 : 
+; 1800 : 	/* remove entry from dictionary */
+; 1801 : 
+; 1802 : 	deleted_entry_addr = (long) UDICT_INDEX[index]+4;
+
+  01807	8b 46 70	 mov	 eax, DWORD PTR [esi+112]
+
+; 1803 : 
+; 1804 : 	bytes_to_scoot=UDICT_BYTES-(deleted_entry_addr+entry_size);
+; 1805 : 
+; 1806 : //	bytes_to_scoot =  UDICT_BYTES - (UDICT_INDEX[index+1]); 
+; 1807 : 
+; 1808 : 	memmove((unsigned char *)&(UDICT_DATA[deleted_entry_addr]), (unsigned char *)&UDICT_DATA[deleted_entry_addr+entry_size], bytes_to_scoot);
+
+  0180a	8b 96 8c 00 00
+	00		 mov	 edx, DWORD PTR [esi+140]
+  01810	57		 push	 edi
+  01811	8b 3c 98	 mov	 edi, DWORD PTR [eax+ebx*4]
+  01814	83 c7 04	 add	 edi, 4
+  01817	8d 04 17	 lea	 eax, DWORD PTR [edi+edx]
+  0181a	8b 96 c4 00 00
+	00		 mov	 edx, DWORD PTR [esi+196]
+  01820	2b d7		 sub	 edx, edi
+  01822	2b d1		 sub	 edx, ecx
+
+; 1844 : 		}
+; 1845 : 	}
+; 1846 : 
+; 1847 : 	return MMSYSERR_NOERROR;
+
+  01824	03 c8		 add	 ecx, eax
+  01826	52		 push	 edx
+  01827	51		 push	 ecx
+  01828	50		 push	 eax
+  01829	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__memmove
+  0182f	8d 43 01	 lea	 eax, DWORD PTR [ebx+1]
+  01832	8b 4e 70	 mov	 ecx, DWORD PTR [esi+112]
+  01835	8b d0		 mov	 edx, eax
+  01837	c1 e2 1e	 shl	 edx, 30			; 0000001eH
+  0183a	2b d0		 sub	 edx, eax
+  0183c	8d 04 81	 lea	 eax, DWORD PTR [ecx+eax*4]
+  0183f	03 96 a8 00 00
+	00		 add	 edx, DWORD PTR [esi+168]
+  01845	8d 0c 99	 lea	 ecx, DWORD PTR [ecx+ebx*4]
+  01848	c1 e2 02	 shl	 edx, 2
+  0184b	52		 push	 edx
+  0184c	50		 push	 eax
+  0184d	51		 push	 ecx
+  0184e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__memmove
+  01854	8b 96 a8 00 00
+	00		 mov	 edx, DWORD PTR [esi+168]
+  0185a	8b 4e 70	 mov	 ecx, DWORD PTR [esi+112]
+  0185d	8d 04 95 fc ff
+	ff ff		 lea	 eax, DWORD PTR [edx*4-4]
+  01864	50		 push	 eax
+  01865	51		 push	 ecx
+  01866	e8 00 00 00 00	 call	 _reallocLock
+  0186b	8b 96 8c 00 00
+	00		 mov	 edx, DWORD PTR [esi+140]
+  01871	55		 push	 ebp
+  01872	52		 push	 edx
+  01873	89 46 70	 mov	 DWORD PTR [esi+112], eax
+  01876	e8 00 00 00 00	 call	 _reallocLock
+  0187b	89 86 8c 00 00
+	00		 mov	 DWORD PTR [esi+140], eax
+  01881	8b 86 a8 00 00
+	00		 mov	 eax, DWORD PTR [esi+168]
+  01887	83 c4 28	 add	 esp, 40			; 00000028H
+  0188a	48		 dec	 eax
+  0188b	33 c9		 xor	 ecx, ecx
+  0188d	83 ef 04	 sub	 edi, 4
+  01890	3b c1		 cmp	 eax, ecx
+  01892	89 86 a8 00 00
+	00		 mov	 DWORD PTR [esi+168], eax
+  01898	89 ae c4 00 00
+	00		 mov	 DWORD PTR [esi+196], ebp
+  0189e	7e 1e		 jle	 SHORT $L72273
+$L72271:
+
+; 1809 : 
+; 1810 : 	bytes_to_scoot = (UDICT_ENTRY-(index+1))*sizeof(S32);
+; 1811 : 	memmove( &UDICT_INDEX[index],  &UDICT_INDEX[index + 1], bytes_to_scoot);
+; 1812 : 
+; 1813 : 	/* reallocate the dictionary */
+; 1814 : 
+; 1815 : #if defined (WIN32) && !defined (UNDER_CE)
+; 1816 : 	// tek 18jun98 must be reallocLock..
+; 1817 : 	UDICT_INDEX = reallocLock(UDICT_INDEX, (UDICT_ENTRY-1) * sizeof(S32));
+; 1818 : 	UDICT_DATA = reallocLock(UDICT_DATA, new_size);
+; 1819 : #else
+; 1820 : 	UDICT_INDEX = realloc(UDICT_INDEX, (UDICT_ENTRY-1) * sizeof(S32));
+; 1821 : 	UDICT_DATA = realloc((unsigned char *)UDICT_DATA, new_size);
+; 1822 : #endif
+; 1823 : 
+; 1824 : 
+; 1825 : #if LTS_DEBUG
+; 1826 : 		{
+; 1827 : 			char szTemp[256];
+; 1828 : 			sprintf(szTemp, "Reallocated user dictionary; UDICT_HEAD:%08lx\n",
+; 1829 : 				UDICT_HEAD);
+; 1830 : 			OutputDebugString(szTemp);
+; 1831 : 		}
+; 1832 : #endif //LTS_DEBUG
+; 1833 : 
+; 1834 : 	/* fix up pointers */
+; 1835 : 	UDICT_ENTRY--;
+; 1836 : 	UDICT_BYTES=new_size;
+; 1837 : 	deleted_entry_addr-=4;
+; 1838 : 
+; 1839 : 	for (lcv = 0; lcv < UDICT_ENTRY; lcv++)
+
+  018a0	8b 46 70	 mov	 eax, DWORD PTR [esi+112]
+  018a3	8d 14 88	 lea	 edx, DWORD PTR [eax+ecx*4]
+
+; 1840 : 	{
+; 1841 : 		if ((int)(UDICT_INDEX[lcv])>(int)(deleted_entry_addr))
+
+  018a6	8b 04 88	 mov	 eax, DWORD PTR [eax+ecx*4]
+  018a9	3b c7		 cmp	 eax, edi
+  018ab	7e 06		 jle	 SHORT $L72272
+
+; 1842 : 		{
+; 1843 : 			UDICT_INDEX[lcv] -=entry_size;
+
+  018ad	2b 44 24 14	 sub	 eax, DWORD PTR _entry_size$[esp+12]
+  018b1	89 02		 mov	 DWORD PTR [edx], eax
+$L72272:
+  018b3	8b 86 a8 00 00
+	00		 mov	 eax, DWORD PTR [esi+168]
+  018b9	41		 inc	 ecx
+  018ba	3b c8		 cmp	 ecx, eax
+  018bc	7c e2		 jl	 SHORT $L72271
+$L72273:
+  018be	5f		 pop	 edi
+  018bf	5e		 pop	 esi
+  018c0	5d		 pop	 ebp
+
+; 1844 : 		}
+; 1845 : 	}
+; 1846 : 
+; 1847 : 	return MMSYSERR_NOERROR;
+
+  018c1	33 c0		 xor	 eax, eax
+  018c3	5b		 pop	 ebx
+
+; 1848 : }
+
+  018c4	c3		 ret	 0
+_DeleteUserEntry ENDP
+_TEXT	ENDS
+PUBLIC	_ChangeUserPhoneme
+_TEXT	SEGMENT
+_phTTS$ = 8
+_entry$ = 12
+_new_phoneme$ = 16
+_ChangeUserPhoneme PROC NEAR
+
+; 1862 : {
+
+  018d0	53		 push	 ebx
+
+; 1863 : 	PKSD_T pKsd_t;
+; 1864 : 	int index;
+; 1865 : 	unsigned char *phoneme_ptr;
+; 1866 : 	int i;
+; 1867 : 	
+; 1868 : 
+; 1869 : 	pKsd_t = phTTS->pKernelShareData;
+; 1870 : 
+; 1871 : 	index = UserDictionaryHit(phTTS, entry);
+
+  018d1	8b 5c 24 0c	 mov	 ebx, DWORD PTR _entry$[esp]
+  018d5	55		 push	 ebp
+  018d6	8b 6c 24 0c	 mov	 ebp, DWORD PTR _phTTS$[esp+4]
+  018da	56		 push	 esi
+  018db	53		 push	 ebx
+  018dc	8b 75 08	 mov	 esi, DWORD PTR [ebp+8]
+  018df	55		 push	 ebp
+  018e0	e8 00 00 00 00	 call	 _UserDictionaryHit
+  018e5	83 c4 08	 add	 esp, 8
+
+; 1872 : 	if (index == -1)
+
+  018e8	83 f8 ff	 cmp	 eax, -1
+  018eb	75 09		 jne	 SHORT $L72291
+  018ed	5e		 pop	 esi
+  018ee	5d		 pop	 ebp
+
+; 1873 : 		return MMSYSERR_ERROR;
+
+  018ef	b8 01 00 00 00	 mov	 eax, 1
+  018f4	5b		 pop	 ebx
+
+; 1881 : 		return MMSYSERR_NOMEM;
+; 1882 : 	/* If there's an error adding the entry with the new phoneme to the dictionary, the entry
+; 1883 : 	   with the original phoneme will still be deleted. */
+; 1884 : 
+; 1885 : 	return MMSYSERR_NOERROR;
+; 1886 : }
+
+  018f5	c3		 ret	 0
+$L72291:
+
+; 1874 : 	
+; 1875 : 	entry->fc = UDICT_ACCESS(index)->fc;
+
+  018f6	8b 4e 70	 mov	 ecx, DWORD PTR [esi+112]
+  018f9	57		 push	 edi
+
+; 1876 : 	DeleteUserEntry(phTTS, entry);
+
+  018fa	53		 push	 ebx
+  018fb	55		 push	 ebp
+  018fc	8b 14 81	 mov	 edx, DWORD PTR [ecx+eax*4]
+  018ff	8b 86 8c 00 00
+	00		 mov	 eax, DWORD PTR [esi+140]
+  01905	8b 0c 02	 mov	 ecx, DWORD PTR [edx+eax]
+  01908	89 0b		 mov	 DWORD PTR [ebx], ecx
+  0190a	e8 00 00 00 00	 call	 _DeleteUserEntry
+
+; 1877 : 	phoneme_ptr = entry->text + (strlen(entry->text) + 1);
+
+  0190f	8d 7b 04	 lea	 edi, DWORD PTR [ebx+4]
+  01912	83 c9 ff	 or	 ecx, -1
+  01915	33 c0		 xor	 eax, eax
+
+; 1878 : 	strcpy(phoneme_ptr, new_phoneme);
+; 1879 : 	i = AddUserEntry(phTTS, entry);
+
+  01917	53		 push	 ebx
+  01918	f2 ae		 repne scasb
+  0191a	8b 7c 24 28	 mov	 edi, DWORD PTR _new_phoneme$[esp+24]
+  0191e	55		 push	 ebp
+  0191f	f7 d1		 not	 ecx
+  01921	49		 dec	 ecx
+  01922	8d 54 19 05	 lea	 edx, DWORD PTR [ecx+ebx+5]
+  01926	83 c9 ff	 or	 ecx, -1
+  01929	f2 ae		 repne scasb
+  0192b	f7 d1		 not	 ecx
+  0192d	2b f9		 sub	 edi, ecx
+  0192f	8b c1		 mov	 eax, ecx
+  01931	8b f7		 mov	 esi, edi
+  01933	8b fa		 mov	 edi, edx
+  01935	c1 e9 02	 shr	 ecx, 2
+  01938	f3 a5		 rep movsd
+  0193a	8b c8		 mov	 ecx, eax
+  0193c	83 e1 03	 and	 ecx, 3
+  0193f	f3 a4		 rep movsb
+  01941	e8 00 00 00 00	 call	 _AddUserEntry
+
+; 1880 : 	if (i == MMSYSERR_NOMEM)
+
+  01946	83 e8 07	 sub	 eax, 7
+  01949	83 c4 10	 add	 esp, 16			; 00000010H
+  0194c	f7 d8		 neg	 eax
+  0194e	1b c0		 sbb	 eax, eax
+  01950	5f		 pop	 edi
+  01951	24 f9		 and	 al, -7			; fffffff9H
+  01953	5e		 pop	 esi
+  01954	5d		 pop	 ebp
+  01955	83 c0 07	 add	 eax, 7
+  01958	5b		 pop	 ebx
+
+; 1881 : 		return MMSYSERR_NOMEM;
+; 1882 : 	/* If there's an error adding the entry with the new phoneme to the dictionary, the entry
+; 1883 : 	   with the original phoneme will still be deleted. */
+; 1884 : 
+; 1885 : 	return MMSYSERR_NOERROR;
+; 1886 : }
+
+  01959	c3		 ret	 0
+_ChangeUserPhoneme ENDP
+_TEXT	ENDS
+PUBLIC	_GetNumUserEntries
+_TEXT	SEGMENT
+_phTTS$ = 8
+_GetNumUserEntries PROC NEAR
+
+; 1898 : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 1899 : 	return UDICT_ENTRY;
+
+  01960	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  01964	8b 48 08	 mov	 ecx, DWORD PTR [eax+8]
+  01967	8b 81 a8 00 00
+	00		 mov	 eax, DWORD PTR [ecx+168]
+
+; 1900 : }
+
+  0196d	c3		 ret	 0
+_GetNumUserEntries ENDP
+_TEXT	ENDS
+PUBLIC	_GetUserEntry
+_TEXT	SEGMENT
+_phTTS$ = 8
+_gr_ph$ = 12
+_index$ = 16
+_arpabet_ph$ = -252
+_GetUserEntry PROC NEAR
+
+; 1913 : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+
+  01970	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  01974	81 ec fc 00 00
+	00		 sub	 esp, 252		; 000000fcH
+  0197a	8b 50 08	 mov	 edx, DWORD PTR [eax+8]
+  0197d	53		 push	 ebx
+
+; 1914 : 	unsigned char *phoneme_ptr;
+; 1915 : 	unsigned char arpabet_ph[252];
+; 1916 : 	int lcv; /* loop-control variable */
+; 1917 : 
+; 1918 : 	strcpy(gr_ph, UDICT_ACCESS(index)->text); /* copy the grapheme */
+
+  0197e	8b 9c 24 0c 01
+	00 00		 mov	 ebx, DWORD PTR _index$[esp+252]
+  01985	55		 push	 ebp
+  01986	8b 4a 70	 mov	 ecx, DWORD PTR [edx+112]
+  01989	56		 push	 esi
+  0198a	57		 push	 edi
+  0198b	8b ac 24 14 01
+	00 00		 mov	 ebp, DWORD PTR _gr_ph$[esp+264]
+  01992	8b 04 99	 mov	 eax, DWORD PTR [ecx+ebx*4]
+  01995	8b 8a 8c 00 00
+	00		 mov	 ecx, DWORD PTR [edx+140]
+  0199b	8d 7c 08 04	 lea	 edi, DWORD PTR [eax+ecx+4]
+  0199f	83 c9 ff	 or	 ecx, -1
+  019a2	33 c0		 xor	 eax, eax
+  019a4	f2 ae		 repne scasb
+  019a6	f7 d1		 not	 ecx
+  019a8	2b f9		 sub	 edi, ecx
+  019aa	8b c1		 mov	 eax, ecx
+  019ac	8b f7		 mov	 esi, edi
+  019ae	8b fd		 mov	 edi, ebp
+  019b0	c1 e9 02	 shr	 ecx, 2
+  019b3	f3 a5		 rep movsd
+  019b5	8b c8		 mov	 ecx, eax
+
+; 1919 : 
+; 1920 : 	for (phoneme_ptr = UDICT_ACCESS(index)->text + (strlen(UDICT_ACCESS(index)->text) + 1),
+; 1921 : 		 lcv = 0; *phoneme_ptr != '\0'; phoneme_ptr++, lcv++)
+
+  019b7	33 c0		 xor	 eax, eax
+  019b9	83 e1 03	 and	 ecx, 3
+  019bc	f3 a4		 rep movsb
+  019be	8b 4a 70	 mov	 ecx, DWORD PTR [edx+112]
+  019c1	8b 34 99	 mov	 esi, DWORD PTR [ecx+ebx*4]
+  019c4	8b 9a 8c 00 00
+	00		 mov	 ebx, DWORD PTR [edx+140]
+  019ca	83 c9 ff	 or	 ecx, -1
+  019cd	8d 7c 33 04	 lea	 edi, DWORD PTR [ebx+esi+4]
+  019d1	f2 ae		 repne scasb
+  019d3	f7 d1		 not	 ecx
+  019d5	49		 dec	 ecx
+  019d6	03 cb		 add	 ecx, ebx
+  019d8	8a 44 31 05	 mov	 al, BYTE PTR [ecx+esi+5]
+  019dc	8d 7c 31 05	 lea	 edi, DWORD PTR [ecx+esi+5]
+  019e0	33 f6		 xor	 esi, esi
+  019e2	84 c0		 test	 al, al
+  019e4	74 32		 je	 SHORT $L72316
+
+; 1922 : 	{
+; 1923 : 		arpabet_ph[lcv * 2]     = pKsd_t->arpabet[(*phoneme_ptr) * 2];
+; 1924 : 		arpabet_ph[lcv * 2 + 1] = pKsd_t->arpabet[(*phoneme_ptr) * 2 + 1];
+
+  019e6	8b aa 2c 06 00
+	00		 mov	 ebp, DWORD PTR [edx+1580]
+  019ec	8d 4c 24 11	 lea	 ecx, DWORD PTR _arpabet_ph$[esp+269]
+$L72314:
+  019f0	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  019f5	46		 inc	 esi
+  019f6	83 c1 02	 add	 ecx, 2
+  019f9	8a 54 45 00	 mov	 dl, BYTE PTR [ebp+eax*2]
+  019fd	8d 44 45 00	 lea	 eax, DWORD PTR [ebp+eax*2]
+  01a01	88 51 fd	 mov	 BYTE PTR [ecx-3], dl
+  01a04	8a 40 01	 mov	 al, BYTE PTR [eax+1]
+  01a07	88 41 fe	 mov	 BYTE PTR [ecx-2], al
+  01a0a	8a 04 37	 mov	 al, BYTE PTR [edi+esi]
+  01a0d	84 c0		 test	 al, al
+  01a0f	75 df		 jne	 SHORT $L72314
+
+; 1919 : 
+; 1920 : 	for (phoneme_ptr = UDICT_ACCESS(index)->text + (strlen(UDICT_ACCESS(index)->text) + 1),
+; 1921 : 		 lcv = 0; *phoneme_ptr != '\0'; phoneme_ptr++, lcv++)
+
+  01a11	8b ac 24 14 01
+	00 00		 mov	 ebp, DWORD PTR _gr_ph$[esp+264]
+$L72316:
+
+; 1925 : 	}
+; 1926 : 	arpabet_ph[lcv * 2] = '\0';
+; 1927 : 
+; 1928 : 	phoneme_ptr = gr_ph + (strlen(gr_ph) + 1);
+
+  01a18	8b fd		 mov	 edi, ebp
+  01a1a	83 c9 ff	 or	 ecx, -1
+  01a1d	33 c0		 xor	 eax, eax
+
+; 1929 : 	strcpy(phoneme_ptr, arpabet_ph); /* copy the phoneme */
+
+  01a1f	8d 54 24 10	 lea	 edx, DWORD PTR _arpabet_ph$[esp+268]
+  01a23	f2 ae		 repne scasb
+  01a25	f7 d1		 not	 ecx
+  01a27	49		 dec	 ecx
+  01a28	8b fa		 mov	 edi, edx
+  01a2a	c6 44 74 10 00	 mov	 BYTE PTR _arpabet_ph$[esp+esi*2+268], 0
+  01a2f	8d 5c 29 01	 lea	 ebx, DWORD PTR [ecx+ebp+1]
+  01a33	83 c9 ff	 or	 ecx, -1
+  01a36	f2 ae		 repne scasb
+  01a38	f7 d1		 not	 ecx
+  01a3a	2b f9		 sub	 edi, ecx
+  01a3c	8b c1		 mov	 eax, ecx
+  01a3e	8b f7		 mov	 esi, edi
+  01a40	8b fb		 mov	 edi, ebx
+  01a42	c1 e9 02	 shr	 ecx, 2
+  01a45	f3 a5		 rep movsd
+  01a47	8b c8		 mov	 ecx, eax
+
+; 1930 : 	
+; 1931 : 	return strlen(gr_ph) + 1; /* returns the starting index of the phoneme */
+
+  01a49	33 c0		 xor	 eax, eax
+  01a4b	83 e1 03	 and	 ecx, 3
+  01a4e	f3 a4		 rep movsb
+  01a50	8b fd		 mov	 edi, ebp
+  01a52	83 c9 ff	 or	 ecx, -1
+  01a55	f2 ae		 repne scasb
+  01a57	f7 d1		 not	 ecx
+  01a59	49		 dec	 ecx
+  01a5a	5f		 pop	 edi
+  01a5b	8b c1		 mov	 eax, ecx
+  01a5d	5e		 pop	 esi
+  01a5e	5d		 pop	 ebp
+  01a5f	40		 inc	 eax
+  01a60	5b		 pop	 ebx
+
+; 1932 : }
+
+  01a61	81 c4 fc 00 00
+	00		 add	 esp, 252		; 000000fcH
+  01a67	c3		 ret	 0
+_GetUserEntry ENDP
+_TEXT	ENDS
+PUBLIC	_SaveUserDictionary
+EXTRN	__imp__fwrite:NEAR
+_DATA	SEGMENT
+$SG72334 DB	'wb', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_filename$ = 12
+_bytes$ = 8
+_offset$ = 12
+_SaveUserDictionary PROC NEAR
+
+; 1948 : 	FILE *outfile;
+; 1949 : 	PKSD_T pKsd_t;
+; 1950 : 	long pointer_list_size, bytes, offset;
+; 1951 : 	long lcv; /* loop-control variable */
+; 1952 : 
+; 1953 : 
+; 1954 : 	pKsd_t = phTTS->pKernelShareData;
+
+  01a70	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  01a74	55		 push	 ebp
+  01a75	57		 push	 edi
+  01a76	8b 68 08	 mov	 ebp, DWORD PTR [eax+8]
+
+; 1955 : 
+; 1956 : 	if (UDICT_INDEX == NULL) /* no user dictionary to save */
+
+  01a79	8b 45 70	 mov	 eax, DWORD PTR [ebp+112]
+  01a7c	85 c0		 test	 eax, eax
+  01a7e	75 08		 jne	 SHORT $L72331
+  01a80	5f		 pop	 edi
+
+; 1957 : 		return MMSYSERR_ERROR;
+
+  01a81	b8 01 00 00 00	 mov	 eax, 1
+  01a86	5d		 pop	 ebp
+
+; 1983 : }
+
+  01a87	c3		 ret	 0
+$L72331:
+
+; 1958 : 
+; 1959 : 	if ((outfile = fopen(filename, "wb")) == NULL)
+
+  01a88	8b 4c 24 10	 mov	 ecx, DWORD PTR _filename$[esp+4]
+  01a8c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72334
+  01a91	51		 push	 ecx
+  01a92	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+  01a98	8b f8		 mov	 edi, eax
+  01a9a	83 c4 08	 add	 esp, 8
+  01a9d	85 ff		 test	 edi, edi
+  01a9f	75 08		 jne	 SHORT $L72333
+  01aa1	5f		 pop	 edi
+
+; 1960 : 		return MMSYSERR_ERROR;
+
+  01aa2	b8 01 00 00 00	 mov	 eax, 1
+  01aa7	5d		 pop	 ebp
+
+; 1983 : }
+
+  01aa8	c3		 ret	 0
+$L72333:
+  01aa9	53		 push	 ebx
+  01aaa	56		 push	 esi
+
+; 1961 : 
+; 1962 : 	/* output number of entries */
+; 1963 : 	fwrite((S32 *)&UDICT_ENTRY, 4, 1, outfile);
+
+  01aab	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fwrite
+  01ab1	57		 push	 edi
+  01ab2	8d 9d a8 00 00
+	00		 lea	 ebx, DWORD PTR [ebp+168]
+  01ab8	6a 01		 push	 1
+  01aba	6a 04		 push	 4
+  01abc	53		 push	 ebx
+  01abd	ff d6		 call	 esi
+
+; 1964 : 
+; 1965 : 	pointer_list_size = sizeof(void *) * UDICT_ENTRY;
+; 1966 : 	bytes = UDICT_BYTES;
+
+  01abf	8b 95 c4 00 00
+	00		 mov	 edx, DWORD PTR [ebp+196]
+
+; 1967 : 
+; 1968 : 	/* output number of bytes */
+; 1969 : 	fwrite(&bytes, 4, 1, outfile);
+
+  01ac5	57		 push	 edi
+  01ac6	6a 01		 push	 1
+  01ac8	8d 44 24 2c	 lea	 eax, DWORD PTR _bytes$[esp+36]
+  01acc	6a 04		 push	 4
+  01ace	50		 push	 eax
+  01acf	89 54 24 34	 mov	 DWORD PTR _bytes$[esp+44], edx
+  01ad3	ff d6		 call	 esi
+
+; 1970 : 
+; 1971 : 	/* output the offsets */
+; 1972 : 	for (lcv = 0; lcv < UDICT_ENTRY; lcv++)
+
+  01ad5	8b 03		 mov	 eax, DWORD PTR [ebx]
+  01ad7	83 c4 20	 add	 esp, 32			; 00000020H
+  01ada	33 f6		 xor	 esi, esi
+  01adc	85 c0		 test	 eax, eax
+  01ade	7e 24		 jle	 SHORT $L72339
+$L72337:
+
+; 1973 : 	{
+; 1974 : 		offset = UDICT_INDEX[lcv];
+
+  01ae0	8b 4d 70	 mov	 ecx, DWORD PTR [ebp+112]
+
+; 1975 : 		fwrite(&offset, 4, 1, outfile);
+
+  01ae3	57		 push	 edi
+  01ae4	6a 01		 push	 1
+  01ae6	8d 44 24 20	 lea	 eax, DWORD PTR _offset$[esp+20]
+  01aea	8b 14 b1	 mov	 edx, DWORD PTR [ecx+esi*4]
+  01aed	6a 04		 push	 4
+  01aef	50		 push	 eax
+  01af0	89 54 24 28	 mov	 DWORD PTR _offset$[esp+28], edx
+  01af4	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fwrite
+  01afa	8b 03		 mov	 eax, DWORD PTR [ebx]
+  01afc	83 c4 10	 add	 esp, 16			; 00000010H
+  01aff	46		 inc	 esi
+  01b00	3b f0		 cmp	 esi, eax
+  01b02	7c dc		 jl	 SHORT $L72337
+$L72339:
+
+; 1976 : 	}
+; 1977 : 
+; 1978 : 	/* output all of the entries */
+; 1979 : 	fwrite((unsigned char *)&(UDICT_DATA[0]), bytes, 1, outfile);
+
+  01b04	8b 4c 24 14	 mov	 ecx, DWORD PTR _bytes$[esp+12]
+  01b08	8b 95 8c 00 00
+	00		 mov	 edx, DWORD PTR [ebp+140]
+  01b0e	57		 push	 edi
+  01b0f	6a 01		 push	 1
+  01b11	51		 push	 ecx
+  01b12	52		 push	 edx
+  01b13	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fwrite
+
+; 1980 : 
+; 1981 : 	fclose(outfile);
+
+  01b19	57		 push	 edi
+  01b1a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  01b20	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 1982 : 	return MMSYSERR_NOERROR;
+
+  01b23	33 c0		 xor	 eax, eax
+  01b25	5e		 pop	 esi
+  01b26	5b		 pop	 ebx
+  01b27	5f		 pop	 edi
+  01b28	5d		 pop	 ebp
+
+; 1983 : }
+
+  01b29	c3		 ret	 0
+_SaveUserDictionary ENDP
+_TEXT	ENDS
+END

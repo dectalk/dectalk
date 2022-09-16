@@ -1,0 +1,1863 @@
+	TITLE	D:\work\Product\dapi\src\kernel\SERVICES.C
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+_DATA	SEGMENT
+_dwVolumeTable DD 00H
+	DD	08acH
+	DD	08faH
+	DD	094bH
+	DD	099fH
+	DD	09f5H
+	DD	0a4fH
+	DD	0aabH
+	DD	0b0bH
+	DD	0b6fH
+	DD	0bd6H
+	DD	0c40H
+	DD	0caeH
+	DD	0d21H
+	DD	0d97H
+	DD	0e11H
+	DD	0e8fH
+	DD	0f12H
+	DD	0f9aH
+	DD	01026H
+	DD	010b8H
+	DD	0114eH
+	DD	011eaH
+	DD	0128bH
+	DD	01332H
+	DD	013dfH
+	DD	01491H
+	DD	0154aH
+	DD	0160aH
+	DD	016d0H
+	DD	0179eH
+	DD	01872H
+	DD	0194eH
+	DD	01a32H
+	DD	01b1dH
+	DD	01c11H
+	DD	01d0eH
+	DD	01e13H
+	DD	01f22H
+	DD	0203aH
+	DD	0215cH
+	DD	02288H
+	DD	023bfH
+	DD	02500H
+	DD	0264dH
+	DD	027a6H
+	DD	0290aH
+	DD	02a7cH
+	DD	02bfaH
+	DD	02d85H
+	DD	02f1fH
+	DD	030c7H
+	DD	0327eH
+	DD	03444H
+	DD	0361aH
+	DD	03801H
+	DD	039f9H
+	DD	03c02H
+	DD	03e1eH
+	DD	0404dH
+	DD	04290H
+	DD	044e6H
+	DD	04752H
+	DD	049d4H
+	DD	04c6cH
+	DD	04f1cH
+	DD	051e3H
+	DD	054c4H
+	DD	057bfH
+	DD	05ad4H
+	DD	05e05H
+	DD	06153H
+	DD	064bfH
+	DD	06849H
+	DD	06bf3H
+	DD	06fbfH
+	DD	073acH
+	DD	077bdH
+	DD	07bf2H
+	DD	0804dH
+	DD	084cfH
+	DD	0897aH
+	DD	08e4fH
+	DD	0934fH
+	DD	0987cH
+	DD	09dd8H
+	DD	0a364H
+	DD	0a922H
+	DD	0af14H
+	DD	0b53bH
+	DD	0bb99H
+	DD	0c231H
+	DD	0c904H
+	DD	0d014H
+	DD	0d764H
+	DD	0def6H
+	DD	0e6ccH
+	DD	0eee8H
+	DD	0f74eH
+	DD	0ffffH
+_DATA	ENDS
+PUBLIC	_save_index
+EXTRN	__imp__malloc:NEAR
+EXTRN	__imp__EnterCriticalSection@4:NEAR
+EXTRN	__imp__LeaveCriticalSection@4:NEAR
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_sym$ = 12
+_type$ = 16
+_value$ = 20
+_how$ = 24
+_save_index PROC NEAR
+
+; 118  : {
+
+  00000	57		 push	 edi
+
+; 119  :   struct spc_packet _far *spc_pkt;   /*MVP : Doesn't appear like a static variable */
+; 120  :   struct spc_packet _far *last_pkt;  /*MVP : Doesn't appear like a static variable */
+; 121  : 
+; 122  :   /********************************************************************/
+; 123  :   /*  Go to the end of the packet chain and add a new packet.         */
+; 124  :   /********************************************************************/
+; 125  : //#ifdef WIN32
+; 126  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 127  :   EnterCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  00001	8b 7c 24 08	 mov	 edi, DWORD PTR _pKsd_t$[esp]
+  00005	8b 87 40 03 00
+	00		 mov	 eax, DWORD PTR [edi+832]
+  0000b	50		 push	 eax
+  0000c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 128  : //#endif
+; 129  : 
+; 130  :   spc_pkt = pKsd_t->spc_pkt_save;
+
+  00012	8b 87 3c 03 00
+	00		 mov	 eax, DWORD PTR [edi+828]
+
+; 131  : 
+; 132  :   if ( spc_pkt == NULL_SPC_PACKET )
+
+  00018	85 c0		 test	 eax, eax
+  0001a	75 1c		 jne	 SHORT $L70886
+
+; 133  :   {
+; 134  : 	spc_pkt = (struct spc_packet *)malloc(sizeof(struct spc_packet));
+
+  0001c	68 94 00 00 00	 push	 148			; 00000094H
+  00021	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__malloc
+
+; 135  : 	spc_pkt->link = NULL_SPC_PACKET;
+
+  00027	c7 00 00 00 00
+	00		 mov	 DWORD PTR [eax], 0
+  0002d	83 c4 04	 add	 esp, 4
+
+; 136  : 	pKsd_t->spc_pkt_save = spc_pkt;
+
+  00030	89 87 3c 03 00
+	00		 mov	 DWORD PTR [edi+828], eax
+
+; 137  :   }
+; 138  :   else
+
+  00036	eb 28		 jmp	 SHORT $L70890
+$L70886:
+  00038	56		 push	 esi
+
+; 139  :   {
+; 140  : 	last_pkt = spc_pkt;
+
+  00039	8b f0		 mov	 esi, eax
+
+; 141  : 	spc_pkt = spc_pkt->link;
+
+  0003b	8b 00		 mov	 eax, DWORD PTR [eax]
+
+; 142  : 
+; 143  : 	while( spc_pkt != NULL_SPC_PACKET )
+
+  0003d	85 c0		 test	 eax, eax
+  0003f	74 08		 je	 SHORT $L70894
+$L70893:
+
+; 144  : 	{
+; 145  : 	  last_pkt = spc_pkt;
+
+  00041	8b f0		 mov	 esi, eax
+
+; 146  : 	  spc_pkt = spc_pkt->link;
+
+  00043	8b 00		 mov	 eax, DWORD PTR [eax]
+  00045	85 c0		 test	 eax, eax
+  00047	75 f8		 jne	 SHORT $L70893
+$L70894:
+
+; 147  : 	}
+; 148  : 
+; 149  : 	spc_pkt = (struct spc_packet *)malloc(sizeof(struct spc_packet));
+
+  00049	68 94 00 00 00	 push	 148			; 00000094H
+  0004e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__malloc
+  00054	83 c4 04	 add	 esp, 4
+
+; 150  : 	spc_pkt->link = NULL_SPC_PACKET;
+
+  00057	c7 00 00 00 00
+	00		 mov	 DWORD PTR [eax], 0
+
+; 151  : 	last_pkt->link = spc_pkt;
+
+  0005d	89 06		 mov	 DWORD PTR [esi], eax
+  0005f	5e		 pop	 esi
+$L70890:
+
+; 152  :   }
+; 153  : 
+; 154  :   spc_pkt->type = SPC_type_index;
+; 155  :   spc_pkt->data[0] = sym;
+; 156  :   spc_pkt->data[1] = type;
+
+  00060	8b 54 24 10	 mov	 edx, DWORD PTR _type$[esp]
+  00064	8b 4c 24 0c	 mov	 ecx, DWORD PTR _sym$[esp]
+  00068	89 50 18	 mov	 DWORD PTR [eax+24], edx
+
+; 157  :   spc_pkt->data[2] = value;
+
+  0006b	8b 54 24 14	 mov	 edx, DWORD PTR _value$[esp]
+  0006f	89 50 1c	 mov	 DWORD PTR [eax+28], edx
+
+; 158  :   spc_pkt->data[3] = how;
+
+  00072	8b 54 24 18	 mov	 edx, DWORD PTR _how$[esp]
+  00076	c7 40 10 07 00
+	00 00		 mov	 DWORD PTR [eax+16], 7
+  0007d	89 48 14	 mov	 DWORD PTR [eax+20], ecx
+  00080	89 50 20	 mov	 DWORD PTR [eax+32], edx
+
+; 159  :   spc_pkt->data[4] = sym;
+
+  00083	89 48 24	 mov	 DWORD PTR [eax+36], ecx
+
+; 160  :   spc_pkt->data[5] = sym;
+
+  00086	89 48 28	 mov	 DWORD PTR [eax+40], ecx
+
+; 161  :   spc_pkt->data[6] = 0;  /* KSB 11/14/1996,  Sync bug for uninitialized number */
+
+  00089	c7 40 2c 00 00
+	00 00		 mov	 DWORD PTR [eax+44], 0
+
+; 162  : //#ifdef WIN32
+; 163  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 164  :   LeaveCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  00090	8b 87 40 03 00
+	00		 mov	 eax, DWORD PTR [edi+832]
+  00096	50		 push	 eax
+  00097	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  0009d	5f		 pop	 edi
+
+; 165  : //#endif
+; 166  : 
+; 167  : 
+; 168  :   return;
+; 169  : }
+
+  0009e	c3		 ret	 0
+_save_index ENDP
+_TEXT	ENDS
+PUBLIC	_check_index
+EXTRN	__imp__free:NEAR
+EXTRN	_write_pipe:NEAR
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_which_phone$ = 12
+_buf$ = -8
+_check_index PROC NEAR
+
+; 178  : {
+
+  000a0	83 ec 08	 sub	 esp, 8
+  000a3	55		 push	 ebp
+  000a4	56		 push	 esi
+
+; 179  :   struct spc_packet _far *spc_pkt;
+; 180  :   struct spc_packet _far *last_pkt; /*MVP : Usuage doesn't appear like a static variable*/
+; 181  :   DT_PIPE_T buf[3];
+; 182  : 
+; 183  : //#ifdef WIN32
+; 184  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 185  :   EnterCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  000a5	8b 74 24 14	 mov	 esi, DWORD PTR _pKsd_t$[esp+12]
+  000a9	57		 push	 edi
+  000aa	8b 86 40 03 00
+	00		 mov	 eax, DWORD PTR [esi+832]
+  000b0	50		 push	 eax
+  000b1	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 186  : //#endif
+; 187  : 
+; 188  :   while(( spc_pkt = pKsd_t->spc_pkt_save ) != NULL_SPC_PACKET )
+
+  000b7	8b 86 3c 03 00
+	00		 mov	 eax, DWORD PTR [esi+828]
+  000bd	85 c0		 test	 eax, eax
+  000bf	0f 84 ae 00 00
+	00		 je	 $L71140
+  000c5	8b 6c 24 1c	 mov	 ebp, DWORD PTR _which_phone$[esp+16]
+  000c9	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+$L70908:
+
+; 189  :   {
+; 190  : 	if( spc_pkt->data[5] > which_phone )
+
+  000cf	39 68 28	 cmp	 DWORD PTR [eax+40], ebp
+  000d2	0f 87 9b 00 00
+	00		 ja	 $L71140
+
+; 191  : 	  break;
+; 192  : 
+; 193  : 	// tek 12nov97 bats404 generate pkts for the new indices
+; 194  : 	switch (spc_pkt->data[1])	// see what kind of index it is.. 
+; 195  : 	{
+
+  000d8	8b 48 18	 mov	 ecx, DWORD PTR [eax+24]
+  000db	81 c1 f8 e0 ff
+	ff		 add	 ecx, -7944		; ffffe0f8H
+  000e1	83 f9 11	 cmp	 ecx, 17			; 00000011H
+  000e4	77 4c		 ja	 SHORT $L70912
+  000e6	33 d2		 xor	 edx, edx
+  000e8	8a 91 00 00 00
+	00		 mov	 dl, BYTE PTR $L71142[ecx]
+  000ee	ff 24 95 00 00
+	00 00		 jmp	 DWORD PTR $L71143[edx*4]
+$L70915:
+
+; 196  : 	case INDEX:
+; 197  : 	case INDEX_REPLY:
+; 198  : 		buf[0] = SPC_type_index;
+
+  000f5	66 c7 44 24 0c
+	07 00		 mov	 WORD PTR _buf$[esp+20], 7
+
+; 199  : 		break;
+
+  000fc	eb 34		 jmp	 SHORT $L70912
+$L70916:
+
+; 200  : /* MGS 007 12/29/1997 ifdefed sapi stuff for WIN32 only */
+; 201  : //#ifdef WIN32
+; 202  : 	case INDEX_BOOKMARK:
+; 203  : 		buf[0] = SPC_type_index	| SPC_subtype_bookmark;
+
+  000fe	66 c7 44 24 0c
+	07 01		 mov	 WORD PTR _buf$[esp+20], 263 ; 00000107H
+
+; 204  : 		break;
+
+  00105	eb 2b		 jmp	 SHORT $L70912
+$L70917:
+
+; 205  : 	case INDEX_WORDPOS:
+; 206  : 		buf[0] = SPC_type_index	| SPC_subtype_wordpos;
+
+  00107	66 c7 44 24 0c
+	07 02		 mov	 WORD PTR _buf$[esp+20], 519 ; 00000207H
+
+; 207  : 		break;
+
+  0010e	eb 22		 jmp	 SHORT $L70912
+$L70918:
+
+; 208  : 	case INDEX_START:
+; 209  : 		buf[0] = SPC_type_index	| SPC_subtype_start;
+
+  00110	66 c7 44 24 0c
+	07 03		 mov	 WORD PTR _buf$[esp+20], 775 ; 00000307H
+
+; 210  : 		break;
+
+  00117	eb 19		 jmp	 SHORT $L70912
+$L70919:
+
+; 211  : 	case INDEX_STOP:
+; 212  : 		buf[0] = SPC_type_index	| SPC_subtype_stop;
+
+  00119	66 c7 44 24 0c
+	07 04		 mov	 WORD PTR _buf$[esp+20], 1031 ; 00000407H
+
+; 213  : 		break;
+
+  00120	eb 10		 jmp	 SHORT $L70912
+$L70920:
+
+; 214  : 	case INDEX_SENTENCE:
+; 215  : 		buf[0] = SPC_type_index	| SPC_subtype_sentence;
+
+  00122	66 c7 44 24 0c
+	07 05		 mov	 WORD PTR _buf$[esp+20], 1287 ; 00000507H
+
+; 216  : 		break;
+
+  00129	eb 07		 jmp	 SHORT $L70912
+$L70921:
+
+; 217  : 	case INDEX_VOLUME:
+; 218  : 		buf[0] = SPC_type_index	| SPC_subtype_volume;
+
+  0012b	66 c7 44 24 0c
+	07 06		 mov	 WORD PTR _buf$[esp+20], 1543 ; 00000607H
+$L70912:
+
+; 219  : 		break;
+; 220  : //#endif
+; 221  : 	} // switch
+; 222  : 
+; 223  : 	buf[1] = spc_pkt->data[2];
+
+  00132	66 8b 48 1c	 mov	 cx, WORD PTR [eax+28]
+
+; 224  : 	buf[2] = spc_pkt->data[3];
+; 225  : 
+; 226  : 	last_pkt = spc_pkt;
+; 227  : 	spc_pkt = spc_pkt->link;
+; 228  : 	pKsd_t->spc_pkt_save = spc_pkt;
+; 229  : 
+; 230  : 	free( last_pkt );
+
+  00136	50		 push	 eax
+  00137	66 89 4c 24 12	 mov	 WORD PTR _buf$[esp+26], cx
+  0013c	66 8b 50 20	 mov	 dx, WORD PTR [eax+32]
+  00140	66 89 54 24 14	 mov	 WORD PTR _buf$[esp+28], dx
+  00145	8b 08		 mov	 ecx, DWORD PTR [eax]
+  00147	89 8e 3c 03 00
+	00		 mov	 DWORD PTR [esi+828], ecx
+  0014d	ff d7		 call	 edi
+
+; 231  : 
+; 232  : 	/* GL 04/21/1997  change this for OSF build */
+; 233  : 	write_pipe( pKsd_t->vtm_pipe, buf, 3 );
+
+  0014f	8b 86 9c 02 00
+	00		 mov	 eax, DWORD PTR [esi+668]
+  00155	8d 54 24 10	 lea	 edx, DWORD PTR _buf$[esp+24]
+  00159	6a 03		 push	 3
+  0015b	52		 push	 edx
+  0015c	50		 push	 eax
+  0015d	e8 00 00 00 00	 call	 _write_pipe
+  00162	8b 86 3c 03 00
+	00		 mov	 eax, DWORD PTR [esi+828]
+  00168	83 c4 10	 add	 esp, 16			; 00000010H
+  0016b	85 c0		 test	 eax, eax
+  0016d	0f 85 5c ff ff
+	ff		 jne	 $L70908
+$L71140:
+
+; 234  : 
+; 235  :   }
+; 236  : //#ifdef WIN32
+; 237  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 238  :   LeaveCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  00173	8b 8e 40 03 00
+	00		 mov	 ecx, DWORD PTR [esi+832]
+  00179	51		 push	 ecx
+  0017a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00180	5f		 pop	 edi
+  00181	5e		 pop	 esi
+  00182	5d		 pop	 ebp
+
+; 239  : //#endif
+; 240  : 
+; 241  :   return;
+; 242  : }
+
+  00183	83 c4 08	 add	 esp, 8
+  00186	c3		 ret	 0
+  00187	90		 npad	 1
+$L71143:
+  00188	00 00 00 00	 DD	 $L70915
+  0018c	00 00 00 00	 DD	 $L70916
+  00190	00 00 00 00	 DD	 $L70917
+  00194	00 00 00 00	 DD	 $L70918
+  00198	00 00 00 00	 DD	 $L70919
+  0019c	00 00 00 00	 DD	 $L70920
+  001a0	00 00 00 00	 DD	 $L70921
+  001a4	00 00 00 00	 DD	 $L70912
+$L71142:
+  001a8	00		 DB	 0
+  001a9	00		 DB	 0
+  001aa	07		 DB	 7
+  001ab	07		 DB	 7
+  001ac	07		 DB	 7
+  001ad	07		 DB	 7
+  001ae	07		 DB	 7
+  001af	07		 DB	 7
+  001b0	07		 DB	 7
+  001b1	07		 DB	 7
+  001b2	07		 DB	 7
+  001b3	01		 DB	 1
+  001b4	02		 DB	 2
+  001b5	03		 DB	 3
+  001b6	04		 DB	 4
+  001b7	07		 DB	 7
+  001b8	05		 DB	 5
+  001b9	06		 DB	 6
+_check_index ENDP
+_TEXT	ENDS
+PUBLIC	_adjust_index
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_which$ = 12
+_direction$ = 16
+_del$ = 20
+_adjust_index PROC NEAR
+
+; 251  : {
+
+  001c0	57		 push	 edi
+
+; 252  :   struct spc_packet _far *spc_pkt;
+; 253  :   /*static struct spc_packet _far *last_pkt;*/  /*MVP : NEVER USED */
+; 254  : 
+; 255  : //#ifdef WIN32
+; 256  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 257  :   EnterCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  001c1	8b 7c 24 08	 mov	 edi, DWORD PTR _pKsd_t$[esp]
+  001c5	8b 87 40 03 00
+	00		 mov	 eax, DWORD PTR [edi+832]
+  001cb	50		 push	 eax
+  001cc	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 258  : //#endif
+; 259  : 
+; 260  :   if(( spc_pkt = pKsd_t->spc_pkt_save ) != NULL_SPC_PACKET )
+
+  001d2	8b 87 3c 03 00
+	00		 mov	 eax, DWORD PTR [edi+828]
+  001d8	85 c0		 test	 eax, eax
+  001da	74 34		 je	 SHORT $L70938
+  001dc	8b 4c 24 14	 mov	 ecx, DWORD PTR _del$[esp]
+  001e0	8b 54 24 10	 mov	 edx, DWORD PTR _direction$[esp]
+  001e4	53		 push	 ebx
+  001e5	55		 push	 ebp
+  001e6	56		 push	 esi
+  001e7	8b 74 24 18	 mov	 esi, DWORD PTR _which$[esp+12]
+$L70937:
+
+; 261  :   {
+; 262  : 	while(spc_pkt != NULL_SPC_PACKET)
+; 263  : 	{
+; 264  : 	  if ( spc_pkt->data[5] >= which+(int)spc_pkt->data[6] )
+
+  001eb	8b 58 2c	 mov	 ebx, DWORD PTR [eax+44]
+  001ee	8b 68 28	 mov	 ebp, DWORD PTR [eax+40]
+  001f1	03 de		 add	 ebx, esi
+  001f3	3b eb		 cmp	 ebp, ebx
+  001f5	72 10		 jb	 SHORT $L70940
+
+; 265  : 	  {
+; 266  : 	(int)spc_pkt->data[4] += direction;
+
+  001f7	8b 68 24	 mov	 ebp, DWORD PTR [eax+36]
+
+; 267  : 	(int)spc_pkt->data[6] += del;
+
+  001fa	8b 58 2c	 mov	 ebx, DWORD PTR [eax+44]
+  001fd	03 ea		 add	 ebp, edx
+  001ff	03 d9		 add	 ebx, ecx
+  00201	89 68 24	 mov	 DWORD PTR [eax+36], ebp
+  00204	89 58 2c	 mov	 DWORD PTR [eax+44], ebx
+$L70940:
+
+; 268  : 	  }
+; 269  : 	  spc_pkt = spc_pkt->link;
+
+  00207	8b 00		 mov	 eax, DWORD PTR [eax]
+  00209	85 c0		 test	 eax, eax
+  0020b	75 de		 jne	 SHORT $L70937
+  0020d	5e		 pop	 esi
+  0020e	5d		 pop	 ebp
+  0020f	5b		 pop	 ebx
+$L70938:
+
+; 270  : 	}
+; 271  :   }
+; 272  : //#ifdef WIN32
+; 273  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 274  :   LeaveCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  00210	8b 8f 40 03 00
+	00		 mov	 ecx, DWORD PTR [edi+832]
+  00216	51		 push	 ecx
+  00217	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  0021d	5f		 pop	 edi
+
+; 275  : //#endif
+; 276  : 
+; 277  : }
+
+  0021e	c3		 ret	 0
+_adjust_index ENDP
+_TEXT	ENDS
+PUBLIC	_adjust_allo
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_which$ = 12
+_direction$ = 16
+_adjust_allo PROC NEAR
+
+; 286  : {
+
+  00220	57		 push	 edi
+
+; 287  :   struct spc_packet _far *spc_pkt;
+; 288  : 
+; 289  : //#ifdef WIN32
+; 290  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 291  :   EnterCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  00221	8b 7c 24 08	 mov	 edi, DWORD PTR _pKsd_t$[esp]
+  00225	8b 87 40 03 00
+	00		 mov	 eax, DWORD PTR [edi+832]
+  0022b	50		 push	 eax
+  0022c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 292  : //#endif
+; 293  : 
+; 294  :   if((spc_pkt = pKsd_t->spc_pkt_save ) != NULL_SPC_PACKET )
+
+  00232	8b 87 3c 03 00
+	00		 mov	 eax, DWORD PTR [edi+828]
+  00238	85 c0		 test	 eax, eax
+  0023a	74 1c		 je	 SHORT $L70957
+  0023c	8b 54 24 10	 mov	 edx, DWORD PTR _direction$[esp]
+  00240	56		 push	 esi
+  00241	8b 74 24 10	 mov	 esi, DWORD PTR _which$[esp+4]
+$L70956:
+
+; 295  :   {
+; 296  : 	while(spc_pkt != NULL_SPC_PACKET)
+; 297  : 	{
+; 298  : 	  if ((spc_pkt->data[5] >= which ))
+
+  00245	8b 48 28	 mov	 ecx, DWORD PTR [eax+40]
+  00248	3b ce		 cmp	 ecx, esi
+  0024a	72 05		 jb	 SHORT $L70958
+
+; 299  : 	  {
+; 300  : 	/* (int)spc_pkt->data[4] += direction; */
+; 301  : 	(int)spc_pkt->data[5] += direction;
+
+  0024c	03 ca		 add	 ecx, edx
+  0024e	89 48 28	 mov	 DWORD PTR [eax+40], ecx
+$L70958:
+
+; 302  : 	  }
+; 303  : 	  spc_pkt = spc_pkt->link;
+
+  00251	8b 00		 mov	 eax, DWORD PTR [eax]
+  00253	85 c0		 test	 eax, eax
+  00255	75 ee		 jne	 SHORT $L70956
+  00257	5e		 pop	 esi
+$L70957:
+
+; 304  : 	}
+; 305  :   }
+; 306  : 
+; 307  : //#ifdef WIN32
+; 308  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 309  :   LeaveCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  00258	8b 8f 40 03 00
+	00		 mov	 ecx, DWORD PTR [edi+832]
+  0025e	51		 push	 ecx
+  0025f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00265	5f		 pop	 edi
+
+; 310  : //#endif
+; 311  : 
+; 312  : }
+
+  00266	c3		 ret	 0
+_adjust_allo ENDP
+_TEXT	ENDS
+PUBLIC	_set_index_allo
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_nphone$ = 12
+_nallo$ = 16
+_set_index_allo PROC NEAR
+
+; 322  : {
+
+  00270	56		 push	 esi
+
+; 323  :   struct spc_packet _far *spc_pkt;
+; 324  : 
+; 325  : //#ifdef WIN32
+; 326  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 327  :   EnterCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  00271	8b 74 24 08	 mov	 esi, DWORD PTR _pKsd_t$[esp]
+  00275	8b 86 40 03 00
+	00		 mov	 eax, DWORD PTR [esi+832]
+  0027b	50		 push	 eax
+  0027c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 328  : //#endif
+; 329  : 
+; 330  :   if (( spc_pkt = pKsd_t->spc_pkt_save ) != NULL_SPC_PACKET )
+
+  00282	8b 86 3c 03 00
+	00		 mov	 eax, DWORD PTR [esi+828]
+  00288	85 c0		 test	 eax, eax
+  0028a	74 16		 je	 SHORT $L70974
+  0028c	8b 4c 24 10	 mov	 ecx, DWORD PTR _nallo$[esp]
+  00290	8b 54 24 0c	 mov	 edx, DWORD PTR _nphone$[esp]
+$L70973:
+
+; 331  :   {
+; 332  : 	while( spc_pkt != NULL_SPC_PACKET )
+; 333  : 	{
+; 334  : 	  if(spc_pkt->data[4] == nphone )
+
+  00294	39 50 24	 cmp	 DWORD PTR [eax+36], edx
+  00297	75 03		 jne	 SHORT $L70975
+
+; 335  : 	  {
+; 336  : 	spc_pkt->data[5] = nallo;
+
+  00299	89 48 28	 mov	 DWORD PTR [eax+40], ecx
+$L70975:
+
+; 337  : 	  }
+; 338  : 	  spc_pkt = spc_pkt->link;
+
+  0029c	8b 00		 mov	 eax, DWORD PTR [eax]
+  0029e	85 c0		 test	 eax, eax
+  002a0	75 f2		 jne	 SHORT $L70973
+$L70974:
+
+; 339  : 	}
+; 340  :   }
+; 341  : 
+; 342  : //#ifdef WIN32
+; 343  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 344  :   LeaveCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  002a2	8b 8e 40 03 00
+	00		 mov	 ecx, DWORD PTR [esi+832]
+  002a8	51		 push	 ecx
+  002a9	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  002af	5e		 pop	 esi
+
+; 345  : //#endif
+; 346  : 
+; 347  : }
+
+  002b0	c3		 ret	 0
+_set_index_allo ENDP
+_TEXT	ENDS
+PUBLIC	_free_index
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_free_index PROC NEAR
+
+; 356  : {
+
+  002c0	53		 push	 ebx
+
+; 357  :   struct spc_packet _far *spc_pkt;
+; 358  :   struct spc_packet _far *free_pkt;
+; 359  : 
+; 360  : //#ifdef WIN32
+; 361  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 362  :   EnterCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  002c1	8b 5c 24 08	 mov	 ebx, DWORD PTR _pKsd_t$[esp]
+  002c5	56		 push	 esi
+  002c6	8b 83 40 03 00
+	00		 mov	 eax, DWORD PTR [ebx+832]
+  002cc	50		 push	 eax
+  002cd	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 363  : //#endif
+; 364  : 
+; 365  :   if (( spc_pkt = pKsd_t->spc_pkt_save ) != NULL_SPC_PACKET )
+
+  002d3	8b b3 3c 03 00
+	00		 mov	 esi, DWORD PTR [ebx+828]
+  002d9	85 f6		 test	 esi, esi
+  002db	74 1c		 je	 SHORT $L70982
+  002dd	57		 push	 edi
+  002de	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+$L70985:
+
+; 366  :   {
+; 367  : 	while( spc_pkt != NULL_SPC_PACKET )
+; 368  : 	{
+; 369  : 	  free_pkt = spc_pkt;
+
+  002e4	8b c6		 mov	 eax, esi
+
+; 370  : 	  spc_pkt = spc_pkt->link;
+
+  002e6	8b 36		 mov	 esi, DWORD PTR [esi]
+
+; 371  : 	  free( free_pkt );
+
+  002e8	50		 push	 eax
+  002e9	ff d7		 call	 edi
+  002eb	83 c4 04	 add	 esp, 4
+  002ee	85 f6		 test	 esi, esi
+  002f0	75 f2		 jne	 SHORT $L70985
+
+; 372  : 	}
+; 373  : //#ifdef WIN32
+; 374  :   /* tek 7mar97 bats 278 - have to update spc_pkt_save! */
+; 375  :   pKsd_t->spc_pkt_save = NULL_SPC_PACKET;
+
+  002f2	89 b3 3c 03 00
+	00		 mov	 DWORD PTR [ebx+828], esi
+  002f8	5f		 pop	 edi
+$L70982:
+
+; 376  : //#endif
+; 377  :   }
+; 378  : //#ifdef WIN32
+; 379  :   /* tek 6mar97 bats 278 this is protected by a critial section */
+; 380  :   LeaveCriticalSection(pKsd_t->pcsSpcPktSave);
+
+  002f9	8b 8b 40 03 00
+	00		 mov	 ecx, DWORD PTR [ebx+832]
+  002ff	51		 push	 ecx
+  00300	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00306	5e		 pop	 esi
+  00307	5b		 pop	 ebx
+
+; 381  : //#endif
+; 382  : 
+; 383  : }
+
+  00308	c3		 ret	 0
+_free_index ENDP
+_TEXT	ENDS
+PUBLIC	_send_index
+_TEXT	SEGMENT
+_send_index PROC NEAR
+
+; 394  : /*
+; 395  :   SEQ     seq;
+; 396  : 
+; 397  :   WAIT_PRINT;
+; 398  :   if(how == ESCAPE_OUTPUT)
+; 399  :   {
+; 400  : 	seq.s_type   = DCS;
+; 401  : 	seq.s_pintro = 0;
+; 402  : 	seq.s_final  = DCS_F_DECTALK;
+; 403  : 	seq.s_ninter = 0;
+; 404  : 	seq.s_nparam = 3;
+; 405  : 	seq.s_dflag[0] = FALSE;
+; 406  : 	seq.s_param[0] = P1_DECTALK;
+; 407  : 	seq.s_param[1] = R2_IX_REPLY;
+; 408  : 	seq.s_dflag[1] = FALSE;
+; 409  : 	seq.s_param[2] = value;
+; 410  : 	seq.s_dflag[2] = FALSE;
+; 411  : 	if (seq.s_param[2] == 0)
+; 412  : 	seq.s_dflag[2] = TRUE;
+; 413  : 	putseq((SEQ _far *)&seq);
+; 414  : 	seq.s_type = ST;
+; 415  : 	putseq((SEQ _far *)&seq);
+; 416  :   }
+; 417  :   else
+; 418  :   {
+; 419  : 	printf("/n[:index %d]",value);
+; 420  :   }
+; 421  :   SIGNAL_PRINT;
+; 422  : */
+; 423  :   return;
+; 424  : }
+
+  00310	c3		 ret	 0
+_send_index ENDP
+_TEXT	ENDS
+PUBLIC	_start_flush
+_TEXT	SEGMENT
+_start_flush PROC NEAR
+
+; 435  : /*
+; 436  : #ifdef WIN32
+; 437  :   int i;
+; 438  :   LPTTS_HANDLE_T phTTS;
+; 439  : 
+; 440  :   phTTS = TextToSpeechGetHandle();
+; 441  : 
+; 442  :   TextToSpeechReset( phTTS, TRUE );
+; 443  : 
+; 444  :   return;
+; 445  : #endif
+; 446  : */
+; 447  : 
+; 448  : /*
+; 449  :   unsigned int            temp,flags;
+; 450  :   int                                     old_volume,old_log;
+; 451  :   PCB _far        *sw;
+; 452  : 
+; 453  : 
+; 454  :   status_set_update(STAT_flushing);
+; 455  : 
+; 456  :   flags=kernel_disable();
+; 457  : 
+; 458  :   old_volume = KS.volume;
+; 459  :   old_log = KS.logflag;
+; 460  :   KS.logflag = 0;
+; 461  :   vol_set(0);
+; 462  : 
+; 463  :   if(serial_mode == false)
+; 464  :   {
+; 465  : 	KS.cmd_flush = CMD_flush_toss;
+; 466  : 	flush_ring(KS.in_ring);
+; 467  : 	status_set(STAT_rr_char);
+; 468  :   }
+; 469  : 
+; 470  :   flush_ring(KS.out_ring);
+; 471  :   KS.spc_flush_type = SPC_flush_all;
+; 472  :   KS.spc_flush = true;
+; 473  :   KS.halting = true;
+; 474  : 
+; 475  :   flush_pipe(KS.lts_pipe);
+; 476  :   flush_pipe(KS.ph_pipe);
+; 477  : 
+; 478  :   if(KS.spc_sync.queue)
+; 479  : 	signal_semaphore(&KS.spc_sync);
+; 480  :   if(KS.spc_resume.queue)
+; 481  : 	signal_semaphore(&KS.spc_resume);
+; 482  : 
+; 483  : */
+; 484  : /*
+; 485  :  *  hack time ... now the pipes may be waiting for some data (psnextra is
+; 486  :  *  was set, so push some data through the pipe to insure we see the sync
+; 487  :  *  pop out ...
+; 488  :  */
+; 489  : /*
+; 490  :   set_gpio(GPIO_STOP);
+; 491  : 
+; 492  :   KS.spc_sync.value = 0;
+; 493  :   temp = ((PFASCII<<PSFONT)+0xb);
+; 494  :   write_pipe(KS.lts_pipe,&temp,1);
+; 495  :   temp = SYNC;
+; 496  :   write_pipe(KS.lts_pipe,&temp,1);
+; 497  : 
+; 498  :   kernel_enable(flags);
+; 499  :   wait_semaphore(&KS.spc_sync);
+; 500  :   KS.spc_sync.value = 1;
+; 501  :   flags=kernel_disable();
+; 502  : 
+; 503  :   KS.spc_flush = false;
+; 504  :   KS.halting = false;
+; 505  :   KS.logflag = old_log;
+; 506  : 
+; 507  :   reset_spc();
+; 508  :   vol_set(old_volume);
+; 509  :   kernel_enable(flags);
+; 510  : */
+; 511  : }
+
+  00320	c3		 ret	 0
+_start_flush ENDP
+_TEXT	ENDS
+PUBLIC	_reset_spc
+_TEXT	SEGMENT
+_reset_spc PROC NEAR
+
+; 522  : /*
+; 523  :   unsigned int temp,old_vol;
+; 524  : 
+; 525  :   old_vol = KS.volume;
+; 526  :   vol_set(0);
+; 527  :   clr_gpio(GPIO_RESET+GPIO_STOP);
+; 528  :   set_gpio(GPIO_RESET+GPIO_STOP);
+; 529  :   if(KS.pause)
+; 530  : 	clr_gpio(GPIO_STOP);
+; 531  :   temp = LAST_VOICE;
+; 532  :   write_pipe(KS.lts_pipe,&temp,1);
+; 533  :   while(old_vol)
+; 534  :   {
+; 535  : 	vol_up(1);
+; 536  : 	old_vol -= 1;
+; 537  :   }
+; 538  : */
+; 539  : }
+
+  00330	c3		 ret	 0
+_reset_spc ENDP
+_TEXT	ENDS
+PUBLIC	_kernel_enable
+PUBLIC	_kernel_disable
+PUBLIC	_default_lang
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_lang_code$ = 12
+_ready_code$ = 16
+_default_lang PROC NEAR
+
+; 551  : {
+
+  00340	53		 push	 ebx
+
+; 552  : 	unsigned int flags;
+; 553  : 	volatile struct dtpc_language_tables _far *cp;
+; 554  : 
+; 555  : #ifdef SERVDEBUG
+; 556  : sprintf(tmp, "serv: In default lang %d ready code: %d\n", lang_code, ready_code);
+; 557  : f_fprintf(tmp);
+; 558  : #endif
+; 559  : 
+; 560  : 	if(pKsd_t->lang_ready[lang_code] == 0)
+; 561  : 		{
+; 562  : #ifdef MSDOS
+; 563  : 		pKsd_t->lang_lts[lang_code] = create_pipe(LTS_PIPE+lang_code,256);
+; 564  : 		pKsd_t->lang_ph[lang_code] = create_pipe(PH_PIPE+lang_code,256);
+; 565  : #else
+; 566  : 		pKsd_t->lang_lts[lang_code] = pKsd_t->lang_lts[lang_code];
+; 567  : 		pKsd_t->lang_ph[lang_code]  = pKsd_t->lang_ph[lang_code];
+; 568  : #endif
+; 569  : 		}
+; 570  : 	
+; 571  : 	pKsd_t->lang_ready[lang_code] |= ready_code;
+
+  00341	8b 5c 24 10	 mov	 ebx, DWORD PTR _ready_code$[esp]
+  00345	56		 push	 esi
+  00346	8b 74 24 0c	 mov	 esi, DWORD PTR _pKsd_t$[esp+4]
+  0034a	57		 push	 edi
+  0034b	8b 7c 24 14	 mov	 edi, DWORD PTR _lang_code$[esp+8]
+
+; 572  : 	flags=kernel_disable(pKsd_t);
+
+  0034f	56		 push	 esi
+  00350	8b 84 be bc 02
+	00 00		 mov	 eax, DWORD PTR [esi+edi*4+700]
+  00357	0b c3		 or	 eax, ebx
+  00359	89 84 be bc 02
+	00 00		 mov	 DWORD PTR [esi+edi*4+700], eax
+  00360	e8 00 00 00 00	 call	 _kernel_disable
+
+; 573  : 
+; 574  : #ifdef SERVDEBUG
+; 575  : sprintf(tmp, "serv: pKsd_t->lang_ready %d \n", pKsd_t->lang_ready[lang_code]);
+; 576  : f_fprintf(tmp);
+; 577  : #endif
+; 578  : 	
+; 579  : 	if((pKsd_t->lang_ready[lang_code] == LANG_both_ready) && (pKsd_t->lang_curr == LANG_none || ready_code == 0))
+
+  00365	8b 8c be bc 02
+	00 00		 mov	 ecx, DWORD PTR [esi+edi*4+700]
+  0036c	83 c4 04	 add	 esp, 4
+  0036f	83 f9 07	 cmp	 ecx, 7
+  00372	0f 85 8d 00 00
+	00		 jne	 $L71016
+  00378	81 be b8 02 00
+	00 ff ff 00 00	 cmp	 DWORD PTR [esi+696], 65535 ; 0000ffffH
+  00382	74 04		 je	 SHORT $L71012
+  00384	85 db		 test	 ebx, ebx
+  00386	75 7d		 jne	 SHORT $L71016
+$L71012:
+
+; 580  : 		{
+; 581  : 		pKsd_t->lang_curr = lang_code;
+
+  00388	89 be b8 02 00
+	00		 mov	 DWORD PTR [esi+696], edi
+
+; 582  : 		pKsd_t->lts_pipe = pKsd_t->lang_lts[lang_code];
+
+  0038e	8b 8c be d8 02
+	00 00		 mov	 ecx, DWORD PTR [esi+edi*4+728]
+  00395	89 8e 90 02 00
+	00		 mov	 DWORD PTR [esi+656], ecx
+
+; 583  : 		pKsd_t->ph_pipe = pKsd_t->lang_ph[lang_code];
+; 584  : 
+; 585  : 		cp = pKsd_t->loaded_languages;
+
+  0039b	8b 8e 1c 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1564]
+  003a1	8b 94 be f4 02
+	00 00		 mov	 edx, DWORD PTR [esi+edi*4+756]
+
+; 586  : 		while(cp != NULL_LT)
+
+  003a8	85 c9		 test	 ecx, ecx
+  003aa	89 96 94 02 00
+	00		 mov	 DWORD PTR [esi+660], edx
+  003b0	74 53		 je	 SHORT $L71016
+$L71015:
+
+; 587  : 			{
+; 588  : 			if((*cp).lang_id == (int)lang_code)
+
+  003b2	39 79 04	 cmp	 DWORD PTR [ecx+4], edi
+  003b5	75 48		 jne	 SHORT $L71018
+
+; 589  : 				{
+; 590  : 				pKsd_t->ascky = (*cp).lang_ascky;
+
+  003b7	8b 51 08	 mov	 edx, DWORD PTR [ecx+8]
+  003ba	89 96 20 06 00
+	00		 mov	 DWORD PTR [esi+1568], edx
+
+; 591  : 				pKsd_t->ascky_size = (*cp).lang_ascky_size;
+
+  003c0	8b 51 0c	 mov	 edx, DWORD PTR [ecx+12]
+  003c3	89 96 24 06 00
+	00		 mov	 DWORD PTR [esi+1572], edx
+
+; 592  : 				pKsd_t->reverse_ascky = (*cp).lang_reverse_ascky;
+
+  003c9	8b 51 10	 mov	 edx, DWORD PTR [ecx+16]
+  003cc	89 96 28 06 00
+	00		 mov	 DWORD PTR [esi+1576], edx
+
+; 593  : 				pKsd_t->arpabet = (*cp).lang_arpabet;
+
+  003d2	8b 51 14	 mov	 edx, DWORD PTR [ecx+20]
+  003d5	89 96 2c 06 00
+	00		 mov	 DWORD PTR [esi+1580], edx
+
+; 594  : 				pKsd_t->arpa_size = (*cp).lang_arpa_size;
+
+  003db	8b 51 18	 mov	 edx, DWORD PTR [ecx+24]
+  003de	89 96 30 06 00
+	00		 mov	 DWORD PTR [esi+1584], edx
+
+; 595  : 				pKsd_t->arpa_case = (*cp).lang_arpa_case;
+
+  003e4	8b 51 1c	 mov	 edx, DWORD PTR [ecx+28]
+  003e7	89 96 34 06 00
+	00		 mov	 DWORD PTR [esi+1588], edx
+
+; 596  : 				pKsd_t->typing_table = (*cp).lang_typing;
+
+  003ed	8b 51 20	 mov	 edx, DWORD PTR [ecx+32]
+  003f0	89 96 38 06 00
+	00		 mov	 DWORD PTR [esi+1592], edx
+
+; 597  : 				pKsd_t->error_table = (*cp).lang_error;
+
+  003f6	8b 51 24	 mov	 edx, DWORD PTR [ecx+36]
+  003f9	89 96 3c 06 00
+	00		 mov	 DWORD PTR [esi+1596], edx
+$L71018:
+
+; 598  : #ifdef SERVDEBUG
+; 599  : f_fprintf("serv: Updated typing table \n");    
+; 600  : #endif
+; 601  : 				}
+; 602  : 			cp = (*cp).link;
+
+  003ff	8b 09		 mov	 ecx, DWORD PTR [ecx]
+  00401	85 c9		 test	 ecx, ecx
+  00403	75 ad		 jne	 SHORT $L71015
+$L71016:
+
+; 603  : 			}
+; 604  : 		}
+; 605  : 	kernel_enable(pKsd_t, flags);
+
+  00405	50		 push	 eax
+  00406	56		 push	 esi
+  00407	e8 00 00 00 00	 call	 _kernel_enable
+  0040c	83 c4 08	 add	 esp, 8
+  0040f	5f		 pop	 edi
+  00410	5e		 pop	 esi
+  00411	5b		 pop	 ebx
+
+; 606  : }
+
+  00412	c3		 ret	 0
+_default_lang ENDP
+_TEXT	ENDS
+PUBLIC	_flush_done
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_flush_done PROC NEAR
+
+; 618  : 
+; 619  :   pKsd_t->cmd_flush = false;
+
+  00420	8b 44 24 04	 mov	 eax, DWORD PTR _pKsd_t$[esp-4]
+  00424	33 c9		 xor	 ecx, ecx
+  00426	89 88 2c 03 00
+	00		 mov	 DWORD PTR [eax+812], ecx
+
+; 620  :   pKsd_t->spc_sync.value = 0;
+
+  0042c	89 88 a0 03 00
+	00		 mov	 DWORD PTR [eax+928], ecx
+
+; 621  : }
+
+  00432	c3		 ret	 0
+_flush_done ENDP
+_kernel_disable PROC NEAR
+
+; 631  : #ifdef MSDOS
+; 632  :   pause_pipe( pKsd_t->cmd_pipe );
+; 633  :   pause_pipe( pKsd_t->lts_pipe );
+; 634  :   pause_pipe( pKsd_t->ph_pipe );
+; 635  :   pause_pipe( pKsd_t->vtm_pipe );
+; 636  :   pause_pipe( pKsd_t->sync_pipe );
+; 637  : #endif
+; 638  : 
+; 639  :   return( 0 );
+
+  00440	33 c0		 xor	 eax, eax
+
+; 640  : }
+
+  00442	c3		 ret	 0
+_kernel_disable ENDP
+_kernel_enable PROC NEAR
+
+; 650  : 
+; 651  : #ifdef MSDOS 
+; 652  : 
+; 653  :   resume_pipe( pKsd_t->sync_pipe );
+; 654  :   resume_pipe( pKsd_t->vtm_pipe );
+; 655  :   resume_pipe( pKsd_t->ph_pipe );
+; 656  :   resume_pipe( pKsd_t->lts_pipe );
+; 657  :   resume_pipe( pKsd_t->cmd_pipe );
+; 658  : #endif
+; 659  : 
+; 660  :   return;
+; 661  : }
+
+  00450	c3		 ret	 0
+_kernel_enable ENDP
+_TEXT	ENDS
+PUBLIC	_wait_semaphore
+_TEXT	SEGMENT
+_wait_semaphore PROC NEAR
+
+; 677  : }
+
+  00460	c3		 ret	 0
+_wait_semaphore ENDP
+_TEXT	ENDS
+PUBLIC	_signal_semaphore
+_TEXT	SEGMENT
+_signal_semaphore PROC NEAR
+
+; 687  : }
+
+  00470	c3		 ret	 0
+_signal_semaphore ENDP
+_TEXT	ENDS
+PUBLIC	_set_gpio
+_TEXT	SEGMENT
+_set_gpio PROC NEAR
+
+; 697  : }
+
+  00480	c3		 ret	 0
+_set_gpio ENDP
+_TEXT	ENDS
+PUBLIC	_clr_gpio
+_TEXT	SEGMENT
+_clr_gpio PROC NEAR
+
+; 707  : }
+
+  00490	c3		 ret	 0
+_clr_gpio ENDP
+_TEXT	ENDS
+PUBLIC	_sleep
+EXTRN	__imp__Sleep@4:NEAR
+_TEXT	SEGMENT
+_uiTimeInMsec$ = 8
+_sleep	PROC NEAR
+
+; 719  :   Sleep((DWORD)uiTimeInMsec );
+
+  004a0	8b 44 24 04	 mov	 eax, DWORD PTR _uiTimeInMsec$[esp-4]
+  004a4	50		 push	 eax
+  004a5	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__Sleep@4
+
+; 720  : }
+
+  004ab	c3		 ret	 0
+_sleep	ENDP
+_TEXT	ENDS
+PUBLIC	_putseq
+_TEXT	SEGMENT
+_putseq	PROC NEAR
+
+; 737  :   return(0);
+
+  004b0	33 c0		 xor	 eax, eax
+
+; 738  : }
+
+  004b2	c3		 ret	 0
+_putseq	ENDP
+_TEXT	ENDS
+PUBLIC	_EncodeDectalkVolume
+_TEXT	SEGMENT
+_dwVolume$ = 8
+_EncodeDectalkVolume PROC NEAR
+
+; 810  :   /*DWORD dwEncodedVolume;*/ /* MVP : Unreferenced variable */
+; 811  : 
+; 812  :   if ( dwVolume > MAX_VOLUME )
+
+  004c0	8b 44 24 04	 mov	 eax, DWORD PTR _dwVolume$[esp-4]
+  004c4	83 f8 63	 cmp	 eax, 99			; 00000063H
+  004c7	76 05		 jbe	 SHORT $L71180
+
+; 813  : 	dwVolume = MAX_VOLUME;
+
+  004c9	b8 63 00 00 00	 mov	 eax, 99			; 00000063H
+$L71180:
+
+; 814  : 
+; 815  :   return( dwVolumeTable[dwVolume] );
+
+  004ce	8b 04 85 00 00
+	00 00		 mov	 eax, DWORD PTR _dwVolumeTable[eax*4]
+
+; 816  : }
+
+  004d5	c3		 ret	 0
+_EncodeDectalkVolume ENDP
+_TEXT	ENDS
+PUBLIC	_DecodeDectalkVolume
+_TEXT	SEGMENT
+_dwVolume$ = 8
+_DecodeDectalkVolume PROC NEAR
+
+; 826  : {
+
+  004e0	53		 push	 ebx
+  004e1	55		 push	 ebp
+
+; 827  :   DWORD dwLow;
+; 828  :   DWORD dwMid;
+; 829  :   DWORD dwHigh;
+; 830  : 
+; 831  :   if ( dwVolume > 65535 )
+
+  004e2	8b 6c 24 0c	 mov	 ebp, DWORD PTR _dwVolume$[esp+4]
+  004e6	56		 push	 esi
+  004e7	81 fd ff ff 00
+	00		 cmp	 ebp, 65535		; 0000ffffH
+  004ed	57		 push	 edi
+  004ee	76 0a		 jbe	 SHORT $L71068
+  004f0	5f		 pop	 edi
+  004f1	5e		 pop	 esi
+  004f2	5d		 pop	 ebp
+
+; 832  :   {
+; 833  : 	dwMid = MAX_VOLUME;
+
+  004f3	b8 63 00 00 00	 mov	 eax, 99			; 00000063H
+  004f8	5b		 pop	 ebx
+
+; 862  : }
+
+  004f9	c3		 ret	 0
+$L71068:
+
+; 834  :   }
+; 835  :   else
+; 836  :   {
+; 837  : 	dwLow = 0;
+
+  004fa	33 ff		 xor	 edi, edi
+
+; 838  : 	dwHigh = MAX_VOLUME;
+
+  004fc	bb 63 00 00 00	 mov	 ebx, 99			; 00000063H
+$L71071:
+
+; 841  : 	{
+; 842  : 	  dwMid = ( dwLow + dwHigh ) >> 1;
+
+  00501	8d 34 3b	 lea	 esi, DWORD PTR [ebx+edi]
+  00504	d1 ee		 shr	 esi, 1
+
+; 843  : 
+; 844  : 	  if ( dwVolume < EncodeDectalkVolume( dwMid ))
+
+  00506	56		 push	 esi
+  00507	e8 00 00 00 00	 call	 _EncodeDectalkVolume
+  0050c	83 c4 04	 add	 esp, 4
+  0050f	3b e8		 cmp	 ebp, eax
+  00511	73 05		 jae	 SHORT $L71073
+
+; 845  : 	  {
+; 846  : 	dwHigh = dwMid - 1;
+
+  00513	8d 5e ff	 lea	 ebx, DWORD PTR [esi-1]
+
+; 847  : 	  }
+; 848  : 	  else
+
+  00516	eb 10		 jmp	 SHORT $L71076
+$L71073:
+
+; 849  : 	  {
+; 850  : 	if ( dwVolume > EncodeDectalkVolume( dwMid ))
+
+  00518	56		 push	 esi
+  00519	e8 00 00 00 00	 call	 _EncodeDectalkVolume
+  0051e	83 c4 04	 add	 esp, 4
+  00521	3b e8		 cmp	 ebp, eax
+  00523	76 07		 jbe	 SHORT $L71183
+
+; 851  : 	{
+; 852  : 	  dwLow = dwMid + 1;
+
+  00525	8d 7e 01	 lea	 edi, DWORD PTR [esi+1]
+$L71076:
+
+; 839  : 
+; 840  : 	while ( dwLow <= dwHigh )
+
+  00528	3b fb		 cmp	 edi, ebx
+  0052a	76 d5		 jbe	 SHORT $L71071
+$L71183:
+
+; 853  : 	}
+; 854  : 	else
+; 855  : 	{
+; 856  : 	  break;
+; 857  : 	}
+; 858  : 	  }
+; 859  : 	}
+; 860  :   }
+; 861  :   return( dwMid );
+
+  0052c	8b c6		 mov	 eax, esi
+  0052e	5f		 pop	 edi
+  0052f	5e		 pop	 esi
+  00530	5d		 pop	 ebp
+  00531	5b		 pop	 ebx
+
+; 862  : }
+
+  00532	c3		 ret	 0
+_DecodeDectalkVolume ENDP
+_TEXT	ENDS
+PUBLIC	_StereoVolumeControl
+EXTRN	_PA_SetVolume:NEAR
+EXTRN	_PA_GetVolume:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_iVolume$ = 12
+_iVolumeType$ = 16
+_bLeft$ = 20
+_bRight$ = 24
+_dwStereoVolume$ = -4
+_StereoVolumeControl PROC NEAR
+
+; 914  : {
+
+  00540	51		 push	 ecx
+
+; 915  :   DWORD dwStereoVolume;
+; 916  :   DWORD dwRightChannelVolume;
+; 917  :   DWORD dwLeftChannelVolume;
+; 918  :   /*LPTTS_HANDLE_T phTTS;*/
+; 919  : 
+; 920  : /* GL 04/21/1997  change this for OSF build */
+; 921  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 922  :   /*phTTS = TextToSpeechGetHandle();*/
+; 923  :   PA_GetVolume( phTTS->pAudioHandle, &dwStereoVolume );
+
+  00541	8b 4c 24 08	 mov	 ecx, DWORD PTR _phTTS$[esp]
+  00545	53		 push	 ebx
+  00546	55		 push	 ebp
+  00547	56		 push	 esi
+  00548	8b 91 d8 00 00
+	00		 mov	 edx, DWORD PTR [ecx+216]
+  0054e	8d 44 24 0c	 lea	 eax, DWORD PTR _dwStereoVolume$[esp+16]
+  00552	57		 push	 edi
+  00553	50		 push	 eax
+  00554	52		 push	 edx
+  00555	e8 00 00 00 00	 call	 _PA_GetVolume
+
+; 924  : #endif
+; 925  : 
+; 926  : 
+; 927  :   /********************************************************************/
+; 928  :   /*  Extract the right channel volume from the high 16 bits and      */
+; 929  :   /*  the left channel volume from the low 16 bits.                   */
+; 930  :   /*  (Although shifting a DWORD 16 bits should not involve sign      */
+; 931  :   /*  extension, mask with 0xFFFF anyways to be sure.)                */
+; 932  :   /********************************************************************/
+; 933  : 
+; 934  :   dwRightChannelVolume = ( dwStereoVolume >> 16 ) & 0xFFFF;
+
+  0055a	8b 44 24 18	 mov	 eax, DWORD PTR _dwStereoVolume$[esp+28]
+
+; 935  :   dwLeftChannelVolume = dwStereoVolume & 0xFFFF;
+; 936  : 
+; 937  :   /********************************************************************/
+; 938  :   /*  Conditionally update the left channel volume.                   */
+; 939  :   /********************************************************************/
+; 940  : 
+; 941  :   if ( bLeft )
+
+  0055e	8b 5c 24 28	 mov	 ebx, DWORD PTR _iVolumeType$[esp+24]
+  00562	8b 6c 24 24	 mov	 ebp, DWORD PTR _iVolume$[esp+24]
+  00566	8b f0		 mov	 esi, eax
+  00568	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  0056d	83 c4 08	 add	 esp, 8
+  00570	8b f8		 mov	 edi, eax
+  00572	8b 44 24 24	 mov	 eax, DWORD PTR _bLeft$[esp+16]
+  00576	c1 ee 10	 shr	 esi, 16			; 00000010H
+  00579	85 c0		 test	 eax, eax
+  0057b	74 19		 je	 SHORT $L71092
+
+; 942  :   {
+; 943  : 	/******************************************************************/
+; 944  : 	/*  Convert the volume from 0 to 65535 to 0 to MAX_VOLUME.        */
+; 945  : 	/******************************************************************/
+; 946  : 
+; 947  : 	dwLeftChannelVolume = DecodeDectalkVolume( dwLeftChannelVolume );
+
+  0057d	57		 push	 edi
+  0057e	e8 00 00 00 00	 call	 _DecodeDectalkVolume
+
+; 948  : 
+; 949  : 	/******************************************************************/
+; 950  : 	/*  Change the left volume level.                                 */
+; 951  : 	/******************************************************************/
+; 952  : 
+; 953  : 	dwLeftChannelVolume = ModifyVolume( dwLeftChannelVolume,
+; 954  : 					iVolume,
+; 955  : 					iVolumeType );
+
+  00583	53		 push	 ebx
+  00584	55		 push	 ebp
+  00585	50		 push	 eax
+  00586	e8 00 00 00 00	 call	 _ModifyVolume
+
+; 956  : 
+; 957  : 	/******************************************************************/
+; 958  : 	/*  Convert the volume numbers from 0 to MAX_VOLUME to 0 to 65535 */
+; 959  : 	/******************************************************************/
+; 960  : 
+; 961  : 	dwLeftChannelVolume = EncodeDectalkVolume( dwLeftChannelVolume );
+
+  0058b	50		 push	 eax
+  0058c	e8 00 00 00 00	 call	 _EncodeDectalkVolume
+  00591	83 c4 14	 add	 esp, 20			; 00000014H
+  00594	8b f8		 mov	 edi, eax
+$L71092:
+
+; 962  :   }
+; 963  : 
+; 964  :   /********************************************************************/
+; 965  :   /*  Conditionally update the right channel volume.                  */
+; 966  :   /********************************************************************/
+; 967  : 
+; 968  :   if ( bRight )
+
+  00596	8b 44 24 28	 mov	 eax, DWORD PTR _bRight$[esp+16]
+  0059a	85 c0		 test	 eax, eax
+  0059c	74 19		 je	 SHORT $L71093
+
+; 969  :   {
+; 970  : 	/******************************************************************/
+; 971  : 	/*  Convert the volume from 0 to 65535 to 0 to MAX_VOLUME.        */
+; 972  : 	/******************************************************************/
+; 973  : 
+; 974  : 	dwRightChannelVolume = DecodeDectalkVolume( dwRightChannelVolume );
+
+  0059e	56		 push	 esi
+  0059f	e8 00 00 00 00	 call	 _DecodeDectalkVolume
+
+; 975  : 
+; 976  : 	/******************************************************************/
+; 977  : 	/*  Change the right channel volume level.                        */
+; 978  : 	/******************************************************************/
+; 979  : 
+; 980  : 	dwRightChannelVolume = ModifyVolume( dwRightChannelVolume,
+; 981  : 					 iVolume,
+; 982  : 					 iVolumeType );
+
+  005a4	53		 push	 ebx
+  005a5	55		 push	 ebp
+  005a6	50		 push	 eax
+  005a7	e8 00 00 00 00	 call	 _ModifyVolume
+
+; 983  : 
+; 984  : 	/******************************************************************/
+; 985  : 	/*  Convert the volume numbers from 0 to MAX_VOLUME to 0 to 65535 */
+; 986  : 	/******************************************************************/
+; 987  : 
+; 988  : 	dwRightChannelVolume = EncodeDectalkVolume( dwRightChannelVolume );
+
+  005ac	50		 push	 eax
+  005ad	e8 00 00 00 00	 call	 _EncodeDectalkVolume
+  005b2	83 c4 14	 add	 esp, 20			; 00000014H
+  005b5	8b f0		 mov	 esi, eax
+$L71093:
+
+; 989  :   }
+; 990  : 
+; 991  :   /********************************************************************/
+; 992  :   /*  Set the new volume levels.                                      */
+; 993  :   /********************************************************************/
+; 994  : 
+; 995  :   dwStereoVolume = ( dwRightChannelVolume << 16 ) | dwLeftChannelVolume;
+; 996  : 
+; 997  : /* GL 04/21/1997  change this for OSF build */
+; 998  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 999  :   PA_SetVolume( phTTS->pAudioHandle, dwStereoVolume );
+
+  005b7	8b 44 24 18	 mov	 eax, DWORD PTR _phTTS$[esp+16]
+  005bb	c1 e6 10	 shl	 esi, 16			; 00000010H
+  005be	8b 88 d8 00 00
+	00		 mov	 ecx, DWORD PTR [eax+216]
+  005c4	0b f7		 or	 esi, edi
+  005c6	56		 push	 esi
+  005c7	51		 push	 ecx
+  005c8	89 74 24 18	 mov	 DWORD PTR _dwStereoVolume$[esp+28], esi
+  005cc	e8 00 00 00 00	 call	 _PA_SetVolume
+  005d1	83 c4 08	 add	 esp, 8
+  005d4	5f		 pop	 edi
+  005d5	5e		 pop	 esi
+  005d6	5d		 pop	 ebp
+  005d7	5b		 pop	 ebx
+
+; 1000 : #endif
+; 1001 : 
+; 1002 :   return;
+; 1003 : }
+
+  005d8	59		 pop	 ecx
+  005d9	c3		 ret	 0
+_StereoVolumeControl ENDP
+_dwVolume$ = 8
+_iVolume$ = 12
+_iVolumeType$ = 16
+_ModifyVolume PROC NEAR
+
+; 1045 :   switch( iVolumeType )
+; 1046 :   {
+
+  005e0	8b 44 24 0c	 mov	 eax, DWORD PTR _iVolumeType$[esp-4]
+  005e4	83 e8 00	 sub	 eax, 0
+  005e7	74 28		 je	 SHORT $L71105
+  005e9	48		 dec	 eax
+  005ea	74 10		 je	 SHORT $L71106
+  005ec	48		 dec	 eax
+
+; 1067 : 
+; 1068 : 	break;
+; 1069 : 
+; 1070 :   /********************************************************************/
+; 1071 :   /*  Volume down.                                                    */
+; 1072 :   /********************************************************************/
+; 1073 : 
+; 1074 :   case VOLUME_DOWN:
+; 1075 : 
+; 1076 : 	dwVolume -= (DWORD)iVolume;
+
+  005ed	8b 44 24 04	 mov	 eax, DWORD PTR _dwVolume$[esp-4]
+  005f1	75 22		 jne	 SHORT $L71102
+  005f3	2b 44 24 08	 sub	 eax, DWORD PTR _iVolume$[esp-4]
+
+; 1077 : 
+; 1078 : 	if ((int)dwVolume < 0 )
+
+  005f7	79 1c		 jns	 SHORT $L71102
+
+; 1079 : 	  dwVolume = 0;
+
+  005f9	33 c0		 xor	 eax, eax
+
+; 1088 : }
+
+  005fb	c3		 ret	 0
+$L71106:
+
+; 1047 :   /********************************************************************/
+; 1048 :   /*  Volume set.                                                     */
+; 1049 :   /********************************************************************/
+; 1050 : 
+; 1051 :   case VOLUME_SET:
+; 1052 : 
+; 1053 : 	dwVolume = iVolume;
+; 1054 : 
+; 1055 : 	break;
+; 1056 : 
+; 1057 :   /********************************************************************/
+; 1058 :   /*  Volume up.                                                      */
+; 1059 :   /********************************************************************/
+; 1060 : 
+; 1061 :   case VOLUME_UP:
+; 1062 : 
+; 1063 : 	dwVolume += (DWORD)iVolume;
+
+  005fc	8b 44 24 04	 mov	 eax, DWORD PTR _dwVolume$[esp-4]
+  00600	8b 4c 24 08	 mov	 ecx, DWORD PTR _iVolume$[esp-4]
+  00604	03 c1		 add	 eax, ecx
+
+; 1064 : 
+; 1065 : 	if ( dwVolume > MAX_VOLUME )
+
+  00606	83 f8 63	 cmp	 eax, 99			; 00000063H
+  00609	76 0a		 jbe	 SHORT $L71102
+
+; 1066 : 	  dwVolume = MAX_VOLUME;
+
+  0060b	b8 63 00 00 00	 mov	 eax, 99			; 00000063H
+
+; 1088 : }
+
+  00610	c3		 ret	 0
+$L71105:
+
+; 1080 : 
+; 1081 : 	break;
+; 1082 : 
+; 1083 :   default:
+; 1084 : 	break;
+; 1085 :   }
+; 1086 : 
+; 1087 :   return( dwVolume );
+
+  00611	8b 44 24 08	 mov	 eax, DWORD PTR _iVolume$[esp-4]
+$L71102:
+
+; 1088 : }
+
+  00615	c3		 ret	 0
+_ModifyVolume ENDP
+_TEXT	ENDS
+PUBLIC	_SetStereoVolume
+_TEXT	SEGMENT
+_phTTS$ = 8
+_iLeftVolume$ = 12
+_iRightVolume$ = 16
+_SetStereoVolume PROC NEAR
+
+; 1120 :   DWORD dwStereoVolume;
+; 1121 :   DWORD dwRightChannelVolume;
+; 1122 :   DWORD dwLeftChannelVolume;
+; 1123 :   /*LPTTS_HANDLE_T phTTS;*/
+; 1124 : 
+; 1125 :   if  (( iLeftVolume >= 0 ) && ( iLeftVolume <= MAX_VOLUME )
+; 1126 : 	&& ( iRightVolume >= 0 ) && ( iRightVolume <= MAX_VOLUME ))
+
+  00620	8b 44 24 08	 mov	 eax, DWORD PTR _iLeftVolume$[esp-4]
+  00624	57		 push	 edi
+  00625	85 c0		 test	 eax, eax
+  00627	7c 3b		 jl	 SHORT $L71125
+  00629	83 f8 63	 cmp	 eax, 99			; 00000063H
+  0062c	7f 36		 jg	 SHORT $L71125
+  0062e	8b 7c 24 10	 mov	 edi, DWORD PTR _iRightVolume$[esp]
+  00632	85 ff		 test	 edi, edi
+  00634	7c 2e		 jl	 SHORT $L71125
+  00636	83 ff 63	 cmp	 edi, 99			; 00000063H
+  00639	7f 29		 jg	 SHORT $L71125
+  0063b	56		 push	 esi
+
+; 1127 :   {
+; 1128 : 
+; 1129 : 	/********************************************************************/
+; 1130 : 	/*  Convert the volume numbers from 0 to MAX_VOLUME to 0 to 65535   */
+; 1131 : 	/********************************************************************/
+; 1132 : 
+; 1133 : 	dwLeftChannelVolume = EncodeDectalkVolume((DWORD)iLeftVolume );
+
+  0063c	50		 push	 eax
+  0063d	e8 00 00 00 00	 call	 _EncodeDectalkVolume
+
+; 1134 : 	dwRightChannelVolume = EncodeDectalkVolume((DWORD)iRightVolume );
+
+  00642	57		 push	 edi
+  00643	8b f0		 mov	 esi, eax
+  00645	e8 00 00 00 00	 call	 _EncodeDectalkVolume
+
+; 1135 : 
+; 1136 : 	dwStereoVolume = ( dwRightChannelVolume << 16 ) | dwLeftChannelVolume;
+
+  0064a	c1 e0 10	 shl	 eax, 16			; 00000010H
+  0064d	0b c6		 or	 eax, esi
+
+; 1137 : 
+; 1138 : /* GL 04/21/1997  change this for OSF build */
+; 1139 : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 1140 : 	/*phTTS = TextToSpeechGetHandle();*/
+; 1141 : 	PA_SetVolume( phTTS->pAudioHandle, dwStereoVolume );
+
+  0064f	50		 push	 eax
+  00650	8b 44 24 18	 mov	 eax, DWORD PTR _phTTS$[esp+16]
+  00654	8b 88 d8 00 00
+	00		 mov	 ecx, DWORD PTR [eax+216]
+  0065a	51		 push	 ecx
+  0065b	e8 00 00 00 00	 call	 _PA_SetVolume
+  00660	83 c4 10	 add	 esp, 16			; 00000010H
+  00663	5e		 pop	 esi
+$L71125:
+  00664	5f		 pop	 edi
+
+; 1142 : #endif
+; 1143 : 
+; 1144 :   }
+; 1145 : 
+; 1146 :   return;
+; 1147 : }
+
+  00665	c3		 ret	 0
+_SetStereoVolume ENDP
+_TEXT	ENDS
+END

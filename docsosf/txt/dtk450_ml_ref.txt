@@ -1,0 +1,160 @@
+Multi-lingual DECtalk™ Software
+
+Programmer’s Reference
+
+
+TextToSpeechStartLang
+
+Overview:
+	This function checks for an installed language, and loads it into i
+	the DECtalk ML engine.
+
+Prototype:
+	unsigned int TextToSpeechStartLang(char *lang);
+
+Passed:
+	char *lang	Language being selected, passed as a null-terminated 
+			string containing the two character language ID
+
+Returned:
+	unsigned int	Returns a handle to the loaded language on success or
+			sets the bit TTS_LANG_ERROR on failure
+
+			If the TTS_LANG_ERROR bit is set, the return may equal
+  			one of two values.
+			TTS_NOT_SUPPORTED	The application is not running
+     						DECtalk ML
+			TTS_NOT_AVAILABLE	The language selected is not 
+						installed
+
+Remarks:
+	This function must be called before a language may be selected and 
+	opened in a multi-language application.
+
+Example:
+	BOOL start_us(void) {
+		unsigned int handle;
+
+		handle = TextToSpeechStartLang("us");
+		if (handle & TTS_LANG_ERROR) {
+			if (handle == TTS_NOT_SUPPORTED)
+				printf("DECtalk ML not found.\n");
+			else if (handle == TTS_NOT_AVAILABLE)
+				printf("English is not currently installed\n");
+			else
+				printf("An unknown error has occurred\n");
+			return FALSE;
+		}
+		return TRUE;
+	}
+
+TextToSpeechSelectLang
+
+Overview:
+	This function selects a loaded language for a program thread.
+
+Prototype:
+	BOOL TextToSpeechSelectLang(LPTTS_HANDLE_T reserved, unsigned int lang);
+
+Passed:
+	LPTTS_HANDLE_T reserved	Reserved. Must be NULL
+
+	unsigned int lang	Language handle returned from
+				TextToSpeechStartLang
+
+Returned:
+	BOOL			Returns TRUE on success, FALSE on error
+				No further ERROR information is available at 
+				this time
+
+Remarks:
+	None.
+
+Example:
+	BOOL select_us(unsigned int us_handle) {
+		if (TextToSpeechSelectLang(NULL,us_handle) == FALSE) {
+			printf("Select language failed.\n");
+			return FALSE;
+		}
+		return TRUE;
+	}
+
+TextToSpeechCloseLang
+
+Overview:
+	This function closes an instance for an installed language, and 
+	attempts to unload it from the DECtalk ML engine.
+
+Prototype:
+	BOOL TextToSpeechCloseLang(char *lang);
+
+Passed:
+	char *lang	Language being unloaded, passed as a null-terminated 
+			string containing the two character language ID
+
+Returned:
+	BOOL		Returns TRUE when a language has been completely
+			unloaded, or FALSE when the operation cannot be
+			completed, or more instances have the thread started.
+
+Remarks:
+	Call this application per thread using the selected language, and 
+	when a thread returns TRUE, the language has been freed and may be 
+	uninstalled or upgraded.
+
+	A return of  FALSE may be a bad pass of the lang variable, or more 
+	instances. If there are more instances, the function will still free 
+	the current instance although returning a FALSE flag. After calling 
+	this function, assume the language handle is no longer valid.
+
+Example:
+	BOOL stop_us(void) {
+		if (TextToSpeechCloseLang("us") == FALSE) {
+			printf("Another thread has the language\n");
+			printf("still loaded.\n");
+			return FALSE;
+		}
+		printf("The language has been freed.\n");
+		return TRUE;
+	}
+
+TextToSpeechGetFeatures				UNSUPPORTED
+
+Overview:
+	This function retrieves information in the form of a bitmask about 
+	the features of DECtalk.
+
+Prototype:
+	unsigned long int TextToSpeechGetFeatures(void);
+
+Passed:
+	void
+
+Returned:
+	unsigned long int	A bitmask of features supported by DECtalk, 
+				maskable to the list supplied in the header 
+				file TTSFEAT.H
+
+Remarks:
+	Future implementation may involve calling TextToSpeechSelectLang to 
+	select which language to retrieve information for. DECtalk ML will
+	always set the ML bit to TRUE as well as any feature bits returned 		from DECtalk.
+
+Example:
+	BOOL is_dectalk_ml(unsigned int language_handle) {
+		unsigned long int feats;
+
+		TextToSpeechSelectLang(NULL,language_handle);
+		feats = TextToSpeechGetFeatures();
+		if (feats & TTS_FEATS_MULTILANG) {
+			printf("DECtalk ML installed and running.\n");
+			return TRUE;
+		}
+		printf("Multi-language DECtalk not found.\n");
+		return FALSE;
+	}
+
+
+DECtalk is trademark Digital Equipment Corporation
+Copyright © 1997 by Digital Equipment Corporation. All Rights Reserved.
+

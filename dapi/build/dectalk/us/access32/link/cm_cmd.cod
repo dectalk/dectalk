@@ -1,0 +1,2515 @@
+	TITLE	D:\work\Product\dapi\src\Cmd\cm_cmd.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_cm_cmd_match_comm
+PUBLIC	_cm_cmd_do_command
+PUBLIC	_cm_cmd_build_param
+PUBLIC	_cm_cmd_error_comm
+EXTRN	_total_commands:DWORD
+EXTRN	_command_table:BYTE
+EXTRN	_cm_pars_proc_char:NEAR
+EXTRN	_cm_pars_new_state:NEAR
+EXTRN	_par_lower:BYTE
+_DATA	SEGMENT
+$SG71262 DB	'index', 00H
+	ORG $+2
+$SG71276 DB	'index', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_c$ = 12
+_save_index$ = -8
+_cm_cmd_match_comm PROC NEAR
+
+; 102  : {   
+
+  00000	83 ec 08	 sub	 esp, 8
+
+; 103  : 	int     i;  
+; 104  : 	int		temp;
+; 105  : 	int     save_matches, save_index;
+; 106  : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+; 107  : 	//PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 108  : 
+; 109  : #ifdef DEBUGPARS
+; 110  : 	printf("CMD_PARS: cm_cmd_match_comm:\n");
+; 111  : #endif
+; 112  : 	save_matches = pCmd_t->total_matches;
+; 113  : 	save_index = pCmd_t->cmd_index;
+; 114  : 	pCmd_t->pString[0] = NULL; // mfg initialize to NULL BATS#628
+; 115  : 
+; 116  : 	/*
+; 117  :  	 *  space are either delimitors or are tossed ...
+; 118  :  	 */
+; 119  : 
+; 120  : 	if(c == ' ' || c == '\t' || c == '\r' || c == '\n')
+
+  00003	8b 4c 24 10	 mov	 ecx, DWORD PTR _c$[esp+4]
+  00007	53		 push	 ebx
+  00008	55		 push	 ebp
+  00009	8b 6c 24 14	 mov	 ebp, DWORD PTR _phTTS$[esp+12]
+  0000d	56		 push	 esi
+  0000e	57		 push	 edi
+  0000f	8b 5d 0c	 mov	 ebx, DWORD PTR [ebp+12]
+  00012	33 ff		 xor	 edi, edi
+  00014	83 f9 20	 cmp	 ecx, 32			; 00000020H
+  00017	8b b3 f0 02 00
+	00		 mov	 esi, DWORD PTR [ebx+752]
+  0001d	8b 93 f4 02 00
+	00		 mov	 edx, DWORD PTR [ebx+756]
+  00023	89 74 24 14	 mov	 DWORD PTR -4+[esp+24], esi
+  00027	89 54 24 10	 mov	 DWORD PTR _save_index$[esp+24], edx
+  0002b	89 bb 80 02 00
+	00		 mov	 DWORD PTR [ebx+640], edi
+  00031	0f 84 72 01 00
+	00		 je	 $L71259
+  00037	83 f9 09	 cmp	 ecx, 9
+  0003a	0f 84 69 01 00
+	00		 je	 $L71259
+  00040	83 f9 0d	 cmp	 ecx, 13			; 0000000dH
+  00043	0f 84 60 01 00
+	00		 je	 $L71259
+  00049	83 f9 0a	 cmp	 ecx, 10			; 0000000aH
+  0004c	0f 84 57 01 00
+	00		 je	 $L71259
+
+; 163  : #ifdef DEBUGPARS
+; 164  : 		printf("CMD_PARS: cm_cmd_match_comm: Parse State Switch: STATE_COMMAND->STATE_TOSS\n");
+; 165  : #endif
+; 166  : 			}
+; 167  : 		}
+; 168  : 		return;
+; 169  : 	}
+; 170  : 	(pCmd_t->p_count) += 1;
+
+  00052	8b 83 d4 02 00
+	00		 mov	 eax, DWORD PTR [ebx+724]
+  00058	40		 inc	 eax
+
+; 171  : 
+; 172  : 	/*
+; 173  :  	 *  is this an exit to command mode ...
+; 174  :  	 */
+; 175  : 
+; 176  : 	if(c == ']')
+
+  00059	83 f9 5d	 cmp	 ecx, 93			; 0000005dH
+  0005c	89 83 d4 02 00
+	00		 mov	 DWORD PTR [ebx+724], eax
+  00062	75 43		 jne	 SHORT $L71265
+
+; 177  : 	{
+; 178  : 		/* point 2 for commands single words */
+; 179  : 		/* if it not an index command, force the buffer clause buffer to be cleared */
+; 180  : 		/* by sending a 0x0fff to it*/
+; 181  : #ifdef NEW_INDEXING
+; 182  : //		printf("not index command 3\n");
+; 183  : 	 	temp=pCmd_t->ParseChar;     
+
+  00064	33 f6		 xor	 esi, esi
+
+; 184  : 	 	pCmd_t->ParseChar=0x0fff;
+; 185  : /*	0010	MGS		11/19/1998		BATS #812 fixed say-letter mode extra spaces */
+; 186  : 		pCmd_t->letter_mode_flag=1;
+; 187  : 		cm_pars_proc_char(phTTS,' ');
+
+  00066	6a 20		 push	 32			; 00000020H
+  00068	66 8b b3 28 05
+	00 00		 mov	 si, WORD PTR [ebx+1320]
+  0006f	55		 push	 ebp
+  00070	66 c7 83 28 05
+	00 00 ff 0f	 mov	 WORD PTR [ebx+1320], 4095 ; 00000fffH
+  00079	66 c7 83 98 57
+	00 00 01 00	 mov	 WORD PTR [ebx+22424], 1
+  00082	e8 00 00 00 00	 call	 _cm_pars_proc_char
+
+; 188  : 		pCmd_t->letter_mode_flag=0;
+; 189  : 	 	pCmd_t->ParseChar=temp;
+; 190  : #endif
+; 191  : 		cm_cmd_do_command(phTTS, STATE_NORMAL);
+
+  00087	57		 push	 edi
+  00088	55		 push	 ebp
+  00089	66 89 bb 98 57
+	00 00		 mov	 WORD PTR [ebx+22424], di
+  00090	66 89 b3 28 05
+	00 00		 mov	 WORD PTR [ebx+1320], si
+  00097	e8 00 00 00 00	 call	 _cm_cmd_do_command
+  0009c	83 c4 10	 add	 esp, 16			; 00000010H
+  0009f	5f		 pop	 edi
+  000a0	5e		 pop	 esi
+  000a1	5d		 pop	 ebp
+  000a2	5b		 pop	 ebx
+
+; 262  : #ifdef DEBUGPARS
+; 263  : 		printf("CMD_PARS: cm_cmd_match_comm: Parse State Switch: STATE_COMMAND->STATE_PARAM\n");
+; 264  : #endif
+; 265  : 		}
+; 266  : 	}
+; 267  : }
+
+  000a3	83 c4 08	 add	 esp, 8
+  000a6	c3		 ret	 0
+$L71265:
+
+; 192  : #ifdef DEBUGPARS
+; 193  : 		printf("CMD_PARS: cm_cmd_match_comm: Parse State Switch: STATE_COMMAND->STATE_NORMAL\n");
+; 194  : #endif
+; 195  : 		return;
+; 196  : 	}
+; 197  : 
+; 198  : 	/*
+; 199  : 	 *  if were trying to match up things here ...
+; 200  : 	 */
+; 201  : 
+; 202  : 	for(i = 0; i < total_commands; i++)
+
+  000a7	39 3d 00 00 00
+	00		 cmp	 DWORD PTR _total_commands, edi
+  000ad	7e 67		 jle	 SHORT $L71268
+  000af	c7 44 24 1c 00
+	00 00 00	 mov	 DWORD PTR 8+[esp+20], OFFSET FLAT:_command_table
+$L71266:
+  000b7	8b 83 ec 02 00
+	00		 mov	 eax, DWORD PTR [ebx+748]
+  000bd	8d 34 b8	 lea	 esi, DWORD PTR [eax+edi*4]
+
+; 203  : 	{
+; 204  : 		if(*(pCmd_t->cm +i) != 0xffff)                             
+
+  000c0	8b 04 b8	 mov	 eax, DWORD PTR [eax+edi*4]
+  000c3	3d ff ff 00 00	 cmp	 eax, 65535		; 0000ffffH
+  000c8	74 2f		 je	 SHORT $L71267
+
+; 205  : 		{
+; 206  :             if(CT[i].c_name[*(pCmd_t->cm +i)] == par_lower[c])
+
+  000ca	8b 54 24 1c	 mov	 edx, DWORD PTR 8+[esp+20]
+  000ce	8b 12		 mov	 edx, DWORD PTR [edx]
+  000d0	8a 14 02	 mov	 dl, BYTE PTR [edx+eax]
+  000d3	3a 91 00 00 00
+	00		 cmp	 dl, BYTE PTR _par_lower[ecx]
+  000d9	75 0b		 jne	 SHORT $L71270
+
+; 207  : 			{
+; 208  : 				*(pCmd_t->cm +i) += 1;
+
+  000db	40		 inc	 eax
+  000dc	89 06		 mov	 DWORD PTR [esi], eax
+
+; 209  : 				pCmd_t->cmd_index = i;
+
+  000de	89 bb f4 02 00
+	00		 mov	 DWORD PTR [ebx+756], edi
+
+; 210  : 			}
+; 211  : 			else
+
+  000e4	eb 13		 jmp	 SHORT $L71267
+$L71270:
+
+; 212  : 			{
+; 213  : 				pCmd_t->total_matches -= 1;
+
+  000e6	8b 83 f0 02 00
+	00		 mov	 eax, DWORD PTR [ebx+752]
+  000ec	48		 dec	 eax
+  000ed	89 83 f0 02 00
+	00		 mov	 DWORD PTR [ebx+752], eax
+
+; 214  : 				*(pCmd_t->cm +i) = 0xffff;
+
+  000f3	c7 06 ff ff 00
+	00		 mov	 DWORD PTR [esi], 65535	; 0000ffffH
+$L71267:
+  000f9	8b 54 24 1c	 mov	 edx, DWORD PTR 8+[esp+20]
+  000fd	a1 00 00 00 00	 mov	 eax, DWORD PTR _total_commands
+  00102	47		 inc	 edi
+  00103	83 c2 14	 add	 edx, 20			; 00000014H
+  00106	3b f8		 cmp	 edi, eax
+  00108	89 54 24 1c	 mov	 DWORD PTR 8+[esp+20], edx
+  0010c	7c a9		 jl	 SHORT $L71266
+  0010e	8b 54 24 10	 mov	 edx, DWORD PTR _save_index$[esp+24]
+  00112	8b 74 24 14	 mov	 esi, DWORD PTR -4+[esp+24]
+$L71268:
+
+; 215  : 			}
+; 216  : 		}
+; 217  : 	}
+; 218  : 	if(pCmd_t->total_matches == 0)
+
+  00116	8b 83 f0 02 00
+	00		 mov	 eax, DWORD PTR [ebx+752]
+  0011c	85 c0		 test	 eax, eax
+  0011e	0f 85 fc 00 00
+	00		 jne	 $L71264
+
+; 219  : 	{
+; 220  : 		if(save_matches != 1)
+
+  00124	b8 01 00 00 00	 mov	 eax, 1
+  00129	3b f0		 cmp	 esi, eax
+
+; 221  : 		{
+; 222  : 			/* send 0x0fff to the parser */
+; 223  : 			
+; 224  : #ifdef NEW_INDEXING
+; 225  : //			printf("not index command 4\n");
+; 226  : 		 	temp=pCmd_t->ParseChar; 
+; 227  : 		 	pCmd_t->ParseChar=0x0fff;
+; 228  : /*	0010	MGS		11/19/1998		BATS #812 fixed say-letter mode extra spaces */
+; 229  : 			pCmd_t->letter_mode_flag=1;
+; 230  : 	 		cm_pars_proc_char(phTTS,' ');
+; 231  : 			pCmd_t->letter_mode_flag=0;
+; 232  : 		 	pCmd_t->ParseChar=temp;
+; 233  : #endif
+; 234  : 			cm_cmd_error_comm(phTTS, CMD_bad_command);
+; 235  : 			cm_pars_new_state(pCmd_t, STATE_TOSS);
+; 236  : #ifdef DEBUGPARS
+; 237  : 		printf("CMD_PARS: cm_cmd_match_comm: Parse State Switch: STATE_COMMAND->STATE_TOSS\n");
+; 238  : #endif
+; 239  : 		}
+; 240  : 		else
+
+  0012b	0f 85 ab 00 00
+	00		 jne	 $L71428
+
+; 241  : 		{
+; 242  : 			pCmd_t->total_matches = save_matches;
+; 243  : 			pCmd_t->cmd_index = save_index;    
+
+  00131	89 93 f4 02 00
+	00		 mov	 DWORD PTR [ebx+756], edx
+
+; 244  : 			/* point 3 for index commands */
+; 245  : 			/* if it not an index command, force the buffer clause buffer to be cleared */
+; 246  : 			/* by sending a 0x0fff to it*/
+; 247  : #ifdef NEW_INDEXING
+; 248  : 			if (memcmp(CT[pCmd_t->cmd_index].c_name,"index",5)!=0)
+
+  00137	8d 14 92	 lea	 edx, DWORD PTR [edx+edx*4]
+  0013a	89 83 f0 02 00
+	00		 mov	 DWORD PTR [ebx+752], eax
+  00140	b9 05 00 00 00	 mov	 ecx, 5
+  00145	8b 34 95 00 00
+	00 00		 mov	 esi, DWORD PTR _command_table[edx*4]
+  0014c	bf 00 00 00 00	 mov	 edi, OFFSET FLAT:$SG71276
+  00151	33 d2		 xor	 edx, edx
+  00153	f3 a6		 repe cmpsb
+  00155	74 34		 je	 SHORT $L71261
+$L71429:
+
+; 249  : 			{
+; 250  : //				printf("not index command 5\n");
+; 251  : 			 	temp=pCmd_t->ParseChar; 
+
+  00157	33 f6		 xor	 esi, esi
+
+; 252  : 			 	pCmd_t->ParseChar=0x0fff;
+; 253  : /*	0010	MGS		11/19/1998		BATS #812 fixed say-letter mode extra spaces */
+; 254  : 				pCmd_t->letter_mode_flag=1;
+; 255  : 		 		cm_pars_proc_char(phTTS,' ');
+
+  00159	6a 20		 push	 32			; 00000020H
+  0015b	66 8b b3 28 05
+	00 00		 mov	 si, WORD PTR [ebx+1320]
+  00162	55		 push	 ebp
+  00163	66 c7 83 28 05
+	00 00 ff 0f	 mov	 WORD PTR [ebx+1320], 4095 ; 00000fffH
+  0016c	66 89 83 98 57
+	00 00		 mov	 WORD PTR [ebx+22424], ax
+  00173	e8 00 00 00 00	 call	 _cm_pars_proc_char
+  00178	83 c4 08	 add	 esp, 8
+
+; 256  : 				pCmd_t->letter_mode_flag=0;
+
+  0017b	66 c7 83 98 57
+	00 00 00 00	 mov	 WORD PTR [ebx+22424], 0
+
+; 257  : 			 	pCmd_t->ParseChar=temp;
+
+  00184	66 89 b3 28 05
+	00 00		 mov	 WORD PTR [ebx+1320], si
+$L71261:
+
+; 258  : 			}			 	
+; 259  : #endif
+; 260  : 			cm_pars_new_state(pCmd_t, STATE_PARAM);
+
+  0018b	6a 04		 push	 4
+  0018d	53		 push	 ebx
+  0018e	e8 00 00 00 00	 call	 _cm_pars_new_state
+
+; 261  : 			cm_cmd_build_param(phTTS, c);
+
+  00193	8b 44 24 28	 mov	 eax, DWORD PTR _c$[esp+28]
+  00197	50		 push	 eax
+  00198	55		 push	 ebp
+  00199	e8 00 00 00 00	 call	 _cm_cmd_build_param
+  0019e	83 c4 10	 add	 esp, 16			; 00000010H
+  001a1	5f		 pop	 edi
+  001a2	5e		 pop	 esi
+  001a3	5d		 pop	 ebp
+  001a4	5b		 pop	 ebx
+
+; 262  : #ifdef DEBUGPARS
+; 263  : 		printf("CMD_PARS: cm_cmd_match_comm: Parse State Switch: STATE_COMMAND->STATE_PARAM\n");
+; 264  : #endif
+; 265  : 		}
+; 266  : 	}
+; 267  : }
+
+  001a5	83 c4 08	 add	 esp, 8
+  001a8	c3		 ret	 0
+$L71259:
+
+; 121  : 	{
+; 122  : 		if(pCmd_t->total_matches == 1)
+
+  001a9	b8 01 00 00 00	 mov	 eax, 1
+  001ae	3b f0		 cmp	 esi, eax
+  001b0	75 22		 jne	 SHORT $L71260
+
+; 123  : 		{
+; 124  : 			/* point 1 for the index command */
+; 125  : 			/* if it not an index command, force the buffer clause buffer to be cleared */
+; 126  : 			/* by sending a 0x0fff to it*/     
+; 127  : #ifdef NEW_INDEXING
+; 128  : 			if (memcmp(CT[pCmd_t->cmd_index].c_name,"index",5)!=0)
+
+  001b2	8b 93 f4 02 00
+	00		 mov	 edx, DWORD PTR [ebx+756]
+  001b8	b9 05 00 00 00	 mov	 ecx, 5
+  001bd	bf 00 00 00 00	 mov	 edi, OFFSET FLAT:$SG71262
+  001c2	8d 14 92	 lea	 edx, DWORD PTR [edx+edx*4]
+  001c5	8b 34 95 00 00
+	00 00		 mov	 esi, DWORD PTR _command_table[edx*4]
+  001cc	33 d2		 xor	 edx, edx
+  001ce	f3 a6		 repe cmpsb
+  001d0	74 b9		 je	 SHORT $L71261
+
+; 129  : 			{   
+; 130  : //				printf("not index command 1\n");
+; 131  : 			 	temp=pCmd_t->ParseChar; 
+; 132  : 			 	pCmd_t->ParseChar=0x0fff;
+; 133  : /*	0010	MGS		11/19/1998		BATS #812 fixed say-letter mode extra spaces */
+; 134  : 				pCmd_t->letter_mode_flag=1;
+; 135  : 			 	cm_pars_proc_char(phTTS,' ');
+; 136  : 				pCmd_t->letter_mode_flag=0;
+; 137  : 			 	pCmd_t->ParseChar=temp;
+; 138  : 			}			 	
+; 139  : #endif
+; 140  : 			cm_pars_new_state(pCmd_t, STATE_PARAM);
+; 141  : 			cm_cmd_build_param(phTTS, c);
+; 142  : #ifdef DEBUGPARS
+; 143  : 		printf("CMD_PARS: cm_cmd_match_comm: Parse State Switch: STATE_COMMAND->STATE_PARAM\n");
+; 144  : #endif
+; 145  : 		}
+; 146  : 		else 
+
+  001d2	eb 83		 jmp	 SHORT $L71429
+$L71260:
+
+; 147  : 		{
+; 148  : 			if(pCmd_t->p_count != 0)
+
+  001d4	39 bb d4 02 00
+	00		 cmp	 DWORD PTR [ebx+724], edi
+  001da	74 44		 je	 SHORT $L71264
+$L71428:
+
+; 149  : 			{                       
+; 150  : 				/* send 0x0fff to the parser */
+; 151  : #ifdef NEW_INDEXING
+; 152  : //				printf("not index command 2\n");
+; 153  : 			 	temp=pCmd_t->ParseChar; 
+
+  001dc	33 f6		 xor	 esi, esi
+
+; 154  : 			 	pCmd_t->ParseChar=0x0fff;
+; 155  : /*	0010	MGS		11/19/1998		BATS #812 fixed say-letter mode extra spaces */
+; 156  : 				pCmd_t->letter_mode_flag=1;
+; 157  : 		 		cm_pars_proc_char(phTTS,' ');
+
+  001de	6a 20		 push	 32			; 00000020H
+  001e0	66 8b b3 28 05
+	00 00		 mov	 si, WORD PTR [ebx+1320]
+  001e7	55		 push	 ebp
+  001e8	66 c7 83 28 05
+	00 00 ff 0f	 mov	 WORD PTR [ebx+1320], 4095 ; 00000fffH
+  001f1	66 89 83 98 57
+	00 00		 mov	 WORD PTR [ebx+22424], ax
+  001f8	e8 00 00 00 00	 call	 _cm_pars_proc_char
+
+; 158  : 				pCmd_t->letter_mode_flag=0;
+; 159  : 			 	pCmd_t->ParseChar=temp;
+; 160  : #endif
+; 161  : 				cm_cmd_error_comm(phTTS, CMD_bad_command);
+
+  001fd	6a 03		 push	 3
+  001ff	55		 push	 ebp
+  00200	66 c7 83 98 57
+	00 00 00 00	 mov	 WORD PTR [ebx+22424], 0
+  00209	66 89 b3 28 05
+	00 00		 mov	 WORD PTR [ebx+1320], si
+  00210	e8 00 00 00 00	 call	 _cm_cmd_error_comm
+
+; 162  : 				cm_pars_new_state(pCmd_t, STATE_TOSS);
+
+  00215	6a 05		 push	 5
+  00217	53		 push	 ebx
+  00218	e8 00 00 00 00	 call	 _cm_pars_new_state
+  0021d	83 c4 18	 add	 esp, 24			; 00000018H
+$L71264:
+  00220	5f		 pop	 edi
+  00221	5e		 pop	 esi
+  00222	5d		 pop	 ebp
+  00223	5b		 pop	 ebx
+
+; 262  : #ifdef DEBUGPARS
+; 263  : 		printf("CMD_PARS: cm_cmd_match_comm: Parse State Switch: STATE_COMMAND->STATE_PARAM\n");
+; 264  : #endif
+; 265  : 		}
+; 266  : 	}
+; 267  : }
+
+  00224	83 c4 08	 add	 esp, 8
+  00227	c3		 ret	 0
+_cm_cmd_match_comm ENDP
+_TEXT	ENDS
+PUBLIC	_cm_cmd_reset_comm
+_TEXT	SEGMENT
+_phTTS$ = 8
+_new_state$ = 12
+_cm_cmd_do_command PROC NEAR
+
+; 285  : {
+
+  00230	56		 push	 esi
+  00231	57		 push	 edi
+
+; 286  : 	int err_value;
+; 287  : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+
+  00232	8b 7c 24 0c	 mov	 edi, DWORD PTR _phTTS$[esp+4]
+  00236	8b 77 0c	 mov	 esi, DWORD PTR [edi+12]
+
+; 288  : 	//PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 289  : 	
+; 290  : #ifdef DEBUGPARS
+; 291  : 	printf("CMD_PARS: cm_cmd_do_command:\n");
+; 292  : #endif
+; 293  : 	if(pCmd_t->total_matches == 1)
+
+  00239	83 be f0 02 00
+	00 01		 cmp	 DWORD PTR [esi+752], 1
+  00240	75 4a		 jne	 SHORT $L71288
+
+; 294  : 	{                                   
+; 295  : 		err_value  = CT[pCmd_t->cmd_index].c_routine(phTTS);
+
+  00242	8b 86 f4 02 00
+	00		 mov	 eax, DWORD PTR [esi+756]
+  00248	57		 push	 edi
+  00249	8d 04 80	 lea	 eax, DWORD PTR [eax+eax*4]
+  0024c	ff 14 85 10 00
+	00 00		 call	 DWORD PTR _command_table[eax*4+16]
+  00253	83 c4 04	 add	 esp, 4
+
+; 296  : 		if(err_value == CMD_success)
+
+  00256	85 c0		 test	 eax, eax
+  00258	75 11		 jne	 SHORT $L71285
+
+; 297  : 		{
+; 298  : 			cm_cmd_reset_comm(pCmd_t, new_state);
+
+  0025a	8b 4c 24 10	 mov	 ecx, DWORD PTR _new_state$[esp+4]
+  0025e	51		 push	 ecx
+
+; 333  : 	else
+; 334  : 		cm_cmd_reset_comm(pCmd_t, STATE_TOSS);
+
+  0025f	56		 push	 esi
+  00260	e8 00 00 00 00	 call	 _cm_cmd_reset_comm
+  00265	83 c4 08	 add	 esp, 8
+  00268	5f		 pop	 edi
+  00269	5e		 pop	 esi
+
+; 335  : #ifdef DEBUGPARS
+; 336  : 		printf("CMD_PARS: cm_cmd_do_command: Parse State Switch: STATE_?->STATE_TOSS\n");
+; 337  : #endif
+; 338  : }
+
+  0026a	c3		 ret	 0
+$L71285:
+
+; 299  : #ifdef DEBUGPARS
+; 300  : 		printf("CMD_PARS: cm_cmd_do_command: Parse State Switch: STATE_?->STATE_new?\n");
+; 301  : #endif
+; 302  : 			return;
+; 303  : 		}
+; 304  : 		else 
+; 305  : 		{
+; 306  : 			if(err_value == CMD_flushing)
+
+  0026b	83 f8 0b	 cmp	 eax, 11			; 0000000bH
+  0026e	75 19		 jne	 SHORT $L71287
+
+; 307  : 			{
+; 308  : 				cm_cmd_reset_comm(pCmd_t, STATE_NORMAL);
+
+  00270	6a 00		 push	 0
+  00272	56		 push	 esi
+  00273	e8 00 00 00 00	 call	 _cm_cmd_reset_comm
+
+; 309  : #ifdef DEBUGPARS
+; 310  : 		printf("CMD_PARS: cm_cmd_do_command: Parse State Switch: STATE_?->STATE_NORMAL\n");
+; 311  : #endif
+; 312  : 				pCmd_t->esc_seq->type = 0;
+
+  00278	8b 96 24 05 00
+	00		 mov	 edx, DWORD PTR [esi+1316]
+  0027e	83 c4 08	 add	 esp, 8
+  00281	5f		 pop	 edi
+  00282	66 c7 02 00 00	 mov	 WORD PTR [edx], 0
+  00287	5e		 pop	 esi
+
+; 335  : #ifdef DEBUGPARS
+; 336  : 		printf("CMD_PARS: cm_cmd_do_command: Parse State Switch: STATE_?->STATE_TOSS\n");
+; 337  : #endif
+; 338  : }
+
+  00288	c3		 ret	 0
+$L71287:
+
+; 313  : 				/* ...tek 11/6 this needs a return statement. */
+; 314  : 				return;
+; 315  : 				}
+; 316  : 			else
+; 317  : 			{
+; 318  : 				cm_cmd_error_comm(phTTS, err_value);
+
+  00289	50		 push	 eax
+
+; 319  : 				if (pCmd_t->ParseChar == ']')
+; 320  : 					cm_cmd_reset_comm(pCmd_t, STATE_NORMAL);
+; 321  : 				else
+
+  0028a	eb 02		 jmp	 SHORT $L71432
+$L71288:
+
+; 322  : 					cm_cmd_reset_comm(pCmd_t, STATE_TOSS);
+; 323  : #ifdef DEBUGPARS
+; 324  : 		printf("CMD_PARS: cm_cmd_do_command: Parse State Switch: STATE_?->STATE_TOSS\n");
+; 325  : #endif
+; 326  : 				return;
+; 327  : 			}
+; 328  : 		}
+; 329  : 	}
+; 330  : 	cm_cmd_error_comm(phTTS, CMD_bad_command);
+
+  0028c	6a 03		 push	 3
+$L71432:
+  0028e	57		 push	 edi
+  0028f	e8 00 00 00 00	 call	 _cm_cmd_error_comm
+  00294	83 c4 08	 add	 esp, 8
+
+; 331  : 	if (pCmd_t->ParseChar == ']')
+
+  00297	66 83 be 28 05
+	00 00 5d	 cmp	 WORD PTR [esi+1320], 93	; 0000005dH
+  0029f	75 0e		 jne	 SHORT $L71289
+
+; 332  : 		cm_cmd_reset_comm(pCmd_t, STATE_NORMAL);
+
+  002a1	6a 00		 push	 0
+
+; 333  : 	else
+; 334  : 		cm_cmd_reset_comm(pCmd_t, STATE_TOSS);
+
+  002a3	56		 push	 esi
+  002a4	e8 00 00 00 00	 call	 _cm_cmd_reset_comm
+  002a9	83 c4 08	 add	 esp, 8
+  002ac	5f		 pop	 edi
+  002ad	5e		 pop	 esi
+
+; 335  : #ifdef DEBUGPARS
+; 336  : 		printf("CMD_PARS: cm_cmd_do_command: Parse State Switch: STATE_?->STATE_TOSS\n");
+; 337  : #endif
+; 338  : }
+
+  002ae	c3		 ret	 0
+$L71289:
+
+; 333  : 	else
+; 334  : 		cm_cmd_reset_comm(pCmd_t, STATE_TOSS);
+
+  002af	6a 05		 push	 5
+  002b1	56		 push	 esi
+  002b2	e8 00 00 00 00	 call	 _cm_cmd_reset_comm
+  002b7	83 c4 08	 add	 esp, 8
+  002ba	5f		 pop	 edi
+  002bb	5e		 pop	 esi
+
+; 335  : #ifdef DEBUGPARS
+; 336  : 		printf("CMD_PARS: cm_cmd_do_command: Parse State Switch: STATE_?->STATE_TOSS\n");
+; 337  : #endif
+; 338  : }
+
+  002bc	c3		 ret	 0
+_cm_cmd_do_command ENDP
+_TEXT	ENDS
+_DATA	SEGMENT
+	ORG $+2
+$SG71369 DB	'index', 00H
+	ORG $+2
+$SG71373 DB	'index', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_c$ = 12
+_cm_cmd_build_param PROC NEAR
+
+; 357  : {
+
+  002c0	53		 push	 ebx
+  002c1	55		 push	 ebp
+
+; 358  : #ifdef DEBUGPARS
+; 359  : 	int i,j;
+; 360  : #endif
+; 361  : 	int temp;
+; 362  : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+
+  002c2	8b 6c 24 0c	 mov	 ebp, DWORD PTR _phTTS$[esp+4]
+  002c6	56		 push	 esi
+  002c7	57		 push	 edi
+  002c8	8b 5d 0c	 mov	 ebx, DWORD PTR [ebp+12]
+
+; 363  : 	//PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 364  : 	/*
+; 365  : 	 *  first, if we get here and there are no more parameters needed ...
+; 366  : 	 */
+; 367  : #ifdef DEBUGPARS
+; 368  : 	/* printf("\nbuild_param;cmd_index=%d params[param_index]=%d",pCmd_t->cmd_index,pCmd_t->params[pCmd_t->param_index]);*/
+; 369  :     /* printf("\nbuild_param;param_index=%d format_index=%d ",pCmd_t->param_index,pCmd_t->format_index);*/
+; 370  :     /* printf(".");*/
+; 371  : #endif
+; 372  : 	/*
+; 373  : 	 * FORMAT_PARAM contains the string which is found
+; 374  :      * in the "format_index" entry in the command table.
+; 375  :      */
+; 376  : 	if (FORMAT_PARAM == 0)
+
+  002cb	8b 83 f4 02 00
+	00		 mov	 eax, DWORD PTR [ebx+756]
+  002d1	8b 93 00 05 00
+	00		 mov	 edx, DWORD PTR [ebx+1280]
+  002d7	8d 04 80	 lea	 eax, DWORD PTR [eax+eax*4]
+  002da	8b 0c 85 04 00
+	00 00		 mov	 ecx, DWORD PTR _command_table[eax*4+4]
+  002e1	8a 04 11	 mov	 al, BYTE PTR [ecx+edx]
+  002e4	33 d2		 xor	 edx, edx
+  002e6	3a c2		 cmp	 al, dl
+  002e8	75 10		 jne	 SHORT $L71300
+$L71317:
+
+; 377  : 	{
+; 378  : 		cm_cmd_do_command(phTTS, STATE_BRACKET);
+
+  002ea	6a 01		 push	 1
+  002ec	55		 push	 ebp
+  002ed	e8 00 00 00 00	 call	 _cm_cmd_do_command
+  002f2	83 c4 08	 add	 esp, 8
+  002f5	5f		 pop	 edi
+  002f6	5e		 pop	 esi
+  002f7	5d		 pop	 ebp
+  002f8	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  002f9	c3		 ret	 0
+$L71300:
+
+; 379  : #ifdef DEBUGPARS
+; 380  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_BRACKET\n");
+; 381  : #endif
+; 382  : 		return;
+; 383  : 	}
+; 384  : 
+; 385  : 	/*
+; 386  : 	 *  allow continuous execution of some commands  ...
+; 387  : 	 */
+; 388  : 	if(FORMAT_PARAM == '*')
+
+  002fa	3c 2a		 cmp	 al, 42			; 0000002aH
+  002fc	8b 44 24 18	 mov	 eax, DWORD PTR _c$[esp+12]
+  00300	75 53		 jne	 SHORT $L71301
+
+; 389  : 	{
+; 390  : 		if(c == ':')
+
+  00302	83 f8 3a	 cmp	 eax, 58			; 0000003aH
+  00305	75 10		 jne	 SHORT $L71302
+$L71316:
+
+; 391  : 		{
+; 392  : 			cm_cmd_do_command(phTTS, STATE_COMMAND);
+
+  00307	6a 02		 push	 2
+  00309	55		 push	 ebp
+  0030a	e8 00 00 00 00	 call	 _cm_cmd_do_command
+  0030f	83 c4 08	 add	 esp, 8
+  00312	5f		 pop	 edi
+  00313	5e		 pop	 esi
+  00314	5d		 pop	 ebp
+  00315	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  00316	c3		 ret	 0
+$L71302:
+
+; 393  : #ifdef DEBUGPARS
+; 394  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_COMMAND\n");
+; 395  : #endif
+; 396  : 			return;
+; 397  : 		}
+; 398  : 		if(c == ' ' || c == '\t' || c == '\r' || c == '\n')
+
+  00317	83 f8 20	 cmp	 eax, 32			; 00000020H
+  0031a	0f 84 a3 03 00
+	00		 je	 $L71304
+  00320	83 f8 09	 cmp	 eax, 9
+  00323	0f 84 9a 03 00
+	00		 je	 $L71304
+  00329	83 f8 0d	 cmp	 eax, 13			; 0000000dH
+  0032c	0f 84 91 03 00
+	00		 je	 $L71304
+  00332	83 f8 0a	 cmp	 eax, 10			; 0000000aH
+  00335	0f 84 88 03 00
+	00		 je	 $L71304
+
+; 399  : 		{
+; 400  : 			cm_cmd_do_command(phTTS, STATE_KEEP);
+; 401  : #ifdef DEBUGPARS
+; 402  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_KEEP\n");
+; 403  : #endif
+; 404  : 			return;
+; 405  : 		}
+; 406  : 		if(c == ']')
+
+  0033b	83 f8 5d	 cmp	 eax, 93			; 0000005dH
+  0033e	75 0f		 jne	 SHORT $L71305
+$L71370:
+
+; 407  : 		{
+; 408  : 			cm_cmd_do_command(phTTS, STATE_NORMAL);
+
+  00340	52		 push	 edx
+  00341	55		 push	 ebp
+  00342	e8 00 00 00 00	 call	 _cm_cmd_do_command
+  00347	83 c4 08	 add	 esp, 8
+  0034a	5f		 pop	 edi
+  0034b	5e		 pop	 esi
+  0034c	5d		 pop	 ebp
+  0034d	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  0034e	c3		 ret	 0
+$L71305:
+
+; 409  : #ifdef DEBUGPARS
+; 410  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_NORMAL\n");
+; 411  : #endif
+; 412  : 			return;
+; 413  : 		}
+; 414  : 		(pCmd_t->format_index) = 0;
+
+  0034f	89 93 00 05 00
+	00		 mov	 DWORD PTR [ebx+1280], edx
+$L71301:
+
+; 415  : 	}
+; 416  : 
+; 417  : 	/*
+; 418  :  	 *  on the first character for this paramater, init the value, or squeeze
+; 419  :  	 *  out leading spaces or ...
+; 420  :  	 */
+; 421  : 
+; 422  : 	if(pCmd_t->p_count == 0)
+
+  00355	39 93 d4 02 00
+	00		 cmp	 DWORD PTR [ebx+724], edx
+  0035b	0f 85 a2 00 00
+	00		 jne	 $L71320
+
+; 423  : 	{
+; 424  : 		CURR_PARAM = 0;
+
+  00361	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  00367	89 14 8b	 mov	 DWORD PTR [ebx+ecx*4], edx
+
+; 425  : 		CURR_DEFAULT = TRUE;
+
+  0036a	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  00370	c7 84 8b a8 02
+	00 00 01 00 00
+	00		 mov	 DWORD PTR [ebx+ecx*4+680], 1
+
+; 426  : 		
+; 427  : 		if(pCmd_t->q_flag == 0 || FORMAT_PARAM != 'a')
+
+  0037b	8b bb dc 02 00
+	00		 mov	 edi, DWORD PTR [ebx+732]
+  00381	3b fa		 cmp	 edi, edx
+  00383	74 1c		 je	 SHORT $L71308
+  00385	8b 8b f4 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+756]
+  0038b	8b b3 00 05 00
+	00		 mov	 esi, DWORD PTR [ebx+1280]
+  00391	8d 0c 89	 lea	 ecx, DWORD PTR [ecx+ecx*4]
+  00394	8b 0c 8d 04 00
+	00 00		 mov	 ecx, DWORD PTR _command_table[ecx*4+4]
+  0039b	80 3c 31 61	 cmp	 BYTE PTR [ecx+esi], 97	; 00000061H
+  0039f	74 36		 je	 SHORT $L71310
+$L71308:
+
+; 428  : 		{
+; 429  : 			switch(c)       
+; 430  : 			{
+
+  003a1	8d 70 f7	 lea	 esi, DWORD PTR [eax-9]
+  003a4	83 fe 54	 cmp	 esi, 84			; 00000054H
+  003a7	77 2e		 ja	 SHORT $L71310
+  003a9	33 c9		 xor	 ecx, ecx
+  003ab	8a 8e 00 00 00
+	00		 mov	 cl, BYTE PTR $L71445[esi]
+  003b1	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L71446[ecx*4]
+$L71313:
+
+; 431  : 				case ',':
+; 432  : 					(pCmd_t->param_index) += 1;
+
+  003b8	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+
+; 433  : 					(pCmd_t->format_index) += 1;
+
+  003be	8b 83 00 05 00
+	00		 mov	 eax, DWORD PTR [ebx+1280]
+  003c4	41		 inc	 ecx
+  003c5	40		 inc	 eax
+  003c6	5f		 pop	 edi
+  003c7	5e		 pop	 esi
+  003c8	89 8b d0 02 00
+	00		 mov	 DWORD PTR [ebx+720], ecx
+  003ce	89 83 00 05 00
+	00		 mov	 DWORD PTR [ebx+1280], eax
+  003d4	5d		 pop	 ebp
+  003d5	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  003d6	c3		 ret	 0
+$L71310:
+
+; 434  : 					return;
+; 435  : 
+; 436  : 				case ' ':
+; 437  : 				case '\t':
+; 438  : 				case '\r':
+; 439  : 				case '\n':
+; 440  : 					return;
+; 441  : 
+; 442  : 				case ']':
+; 443  : 					cm_cmd_do_command(phTTS, STATE_NORMAL);
+; 444  : #ifdef DEBUGPARS
+; 445  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_NORMAL\n");
+; 446  : #endif
+; 447  : 					return;
+; 448  : 
+; 449  : 				case ':':
+; 450  : 					cm_cmd_do_command(phTTS, STATE_COMMAND);
+; 451  : #ifdef DEBUGPARS
+; 452  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_COMMAND\n");
+; 453  : #endif
+; 454  : 					return;
+; 455  : 
+; 456  : 				case '.':
+; 457  : 					cm_cmd_do_command(phTTS, STATE_BRACKET);
+; 458  : #ifdef DEBUGPARS
+; 459  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_BRACKET\n");
+; 460  : #endif
+; 461  : 					return;
+; 462  : 				};
+; 463  : 			} /* End of if(pCmd_t->q_flag == 0 || FORMAT_PARAM != 'a') */
+; 464  : 
+; 465  : 		if(pCmd_t->q_flag == 0)
+
+  003d7	3b fa		 cmp	 edi, edx
+  003d9	75 28		 jne	 SHORT $L71320
+
+; 466  : 		{
+; 467  : 			switch(c)       
+; 468  : 			{
+
+  003db	83 f8 22	 cmp	 eax, 34			; 00000022H
+  003de	74 14		 je	 SHORT $L71324
+  003e0	83 f8 3c	 cmp	 eax, 60			; 0000003cH
+  003e3	75 1e		 jne	 SHORT $L71320
+  003e5	5f		 pop	 edi
+  003e6	5e		 pop	 esi
+
+; 469  : 				case '<':
+; 470  : 					pCmd_t->q_flag = '>';
+
+  003e7	c7 83 dc 02 00
+	00 3e 00 00 00	 mov	 DWORD PTR [ebx+732], 62	; 0000003eH
+  003f1	5d		 pop	 ebp
+  003f2	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  003f3	c3		 ret	 0
+$L71324:
+  003f4	5f		 pop	 edi
+  003f5	5e		 pop	 esi
+
+; 471  : 					return;
+; 472  : 
+; 473  : 				case '\"':
+; 474  : 					pCmd_t->q_flag = '\"';
+
+  003f6	c7 83 dc 02 00
+	00 22 00 00 00	 mov	 DWORD PTR [ebx+732], 34	; 00000022H
+  00400	5d		 pop	 ebp
+  00401	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  00402	c3		 ret	 0
+$L71320:
+
+; 475  : 					return;
+; 476  : 				};
+; 477  : 			}
+; 478  : 		}
+; 479  : 	/*
+; 480  : 	 *  now accept the first character and parse it into the param array ...
+; 481  : 	 */
+; 482  : 
+; 483  : 	(pCmd_t->p_count) += 1;
+
+  00403	8b b3 d4 02 00
+	00		 mov	 esi, DWORD PTR [ebx+724]
+
+; 484  : #ifdef __linux__
+; 485  : 	CURR_DEFAULT = FALSE;
+; 486  : #else
+; 487  : 	CURR_DEFAULT = false;
+
+  00409	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  0040f	46		 inc	 esi
+  00410	89 b3 d4 02 00
+	00		 mov	 DWORD PTR [ebx+724], esi
+  00416	89 94 8b a8 02
+	00 00		 mov	 DWORD PTR [ebx+ecx*4+680], edx
+
+; 488  : #endif
+; 489  : 	switch (FORMAT_PARAM) 
+; 490  : 	{
+
+  0041d	8b 8b f4 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+756]
+  00423	8b b3 00 05 00
+	00		 mov	 esi, DWORD PTR [ebx+1280]
+  00429	8d 0c 89	 lea	 ecx, DWORD PTR [ecx+ecx*4]
+  0042c	8b 3c 8d 04 00
+	00 00		 mov	 edi, DWORD PTR _command_table[ecx*4+4]
+  00433	33 c9		 xor	 ecx, ecx
+  00435	8a 0c 37	 mov	 cl, BYTE PTR [edi+esi]
+  00438	8d 71 9f	 lea	 esi, DWORD PTR [ecx-97]
+  0043b	83 fe 0e	 cmp	 esi, 14			; 0000000eH
+  0043e	0f 87 ba 01 00
+	00		 ja	 $L71438
+  00444	33 c9		 xor	 ecx, ecx
+  00446	8a 8e 00 00 00
+	00		 mov	 cl, BYTE PTR $L71447[esi]
+  0044c	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L71448[ecx*4]
+$L71329:
+
+; 491  : 
+; 492  : 		/*
+; 493  : 		 *  binary conversion ...
+; 494  : 		 */
+; 495  : 
+; 496  : 		case 'b':
+; 497  : 			if(c == '0' || c == '1')
+
+  00453	83 f8 30	 cmp	 eax, 48			; 00000030H
+  00456	74 09		 je	 SHORT $L71331
+  00458	83 f8 31	 cmp	 eax, 49			; 00000031H
+  0045b	0f 85 9d 01 00
+	00		 jne	 $L71438
+$L71331:
+
+; 498  : 			{
+; 499  : 				CURR_PARAM = CURR_PARAM*2 + c - '0';
+
+  00461	8b 93 d0 02 00
+	00		 mov	 edx, DWORD PTR [ebx+720]
+  00467	5f		 pop	 edi
+  00468	5e		 pop	 esi
+  00469	5d		 pop	 ebp
+  0046a	8d 0c 93	 lea	 ecx, DWORD PTR [ebx+edx*4]
+  0046d	5b		 pop	 ebx
+  0046e	8b 11		 mov	 edx, DWORD PTR [ecx]
+  00470	8d 44 50 d0	 lea	 eax, DWORD PTR [eax+edx*2-48]
+  00474	89 01		 mov	 DWORD PTR [ecx], eax
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  00476	c3		 ret	 0
+$L71332:
+
+; 500  : 				return;
+; 501  : 			}
+; 502  : 			break;
+; 503  : 		/*
+; 504  : 		 *  octal conversion ...
+; 505  : 		 */
+; 506  : 
+; 507  : 		case 'o':
+; 508  : 			if(c >= '0' && c <= '7')
+
+  00477	83 f8 30	 cmp	 eax, 48			; 00000030H
+  0047a	0f 82 7e 01 00
+	00		 jb	 $L71438
+  00480	83 f8 37	 cmp	 eax, 55			; 00000037H
+  00483	0f 87 75 01 00
+	00		 ja	 $L71438
+
+; 509  : 			{
+; 510  : 				CURR_PARAM = CURR_PARAM*8 + c - '0';
+
+  00489	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  0048f	5f		 pop	 edi
+  00490	5e		 pop	 esi
+  00491	5d		 pop	 ebp
+  00492	8b 14 8b	 mov	 edx, DWORD PTR [ebx+ecx*4]
+  00495	8d 0c 8b	 lea	 ecx, DWORD PTR [ebx+ecx*4]
+  00498	5b		 pop	 ebx
+  00499	8d 44 d0 d0	 lea	 eax, DWORD PTR [eax+edx*8-48]
+  0049d	89 01		 mov	 DWORD PTR [ecx], eax
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  0049f	c3		 ret	 0
+$L71334:
+
+; 511  : 				return;
+; 512  : 			}
+; 513  : 			break;
+; 514  : 		/*
+; 515  : 		 *  signed decimal conversion ...
+; 516  : 		 */
+; 517  : 
+; 518  : 		case 'd':
+; 519  : 			if(pCmd_t->p_count == 1 && c == '-')
+
+  004a0	8b 8b d4 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+724]
+  004a6	be 01 00 00 00	 mov	 esi, 1
+  004ab	3b ce		 cmp	 ecx, esi
+  004ad	75 10		 jne	 SHORT $L71335
+  004af	83 f8 2d	 cmp	 eax, 45			; 0000002dH
+  004b2	75 0b		 jne	 SHORT $L71335
+
+; 520  : 			{   
+; 521  : 				/* 
+; 522  : 				 * a minus is found; set pCmd_t->cmd_p_flag to TRUE to signal
+; 523  : 				 * that the value of the phonemic info. should be negated. 
+; 524  : 				 */
+; 525  : 				pCmd_t->cmd_p_flag = TRUE;
+
+  004b4	89 b3 d8 02 00
+	00		 mov	 DWORD PTR [ebx+728], esi
+  004ba	5f		 pop	 edi
+  004bb	5e		 pop	 esi
+  004bc	5d		 pop	 ebp
+  004bd	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  004be	c3		 ret	 0
+$L71335:
+
+; 526  : 			}
+; 527  : 			else 
+; 528  : 			{
+; 529  : 				if(c >= '0' &&  c <= '9')
+
+  004bf	83 f8 30	 cmp	 eax, 48			; 00000030H
+  004c2	0f 82 3b 01 00
+	00		 jb	 $L71326
+  004c8	83 f8 39	 cmp	 eax, 57			; 00000039H
+  004cb	0f 87 32 01 00
+	00		 ja	 $L71326
+
+; 530  : 				{
+; 531  : 					CURR_PARAM = CURR_PARAM*10 + c - '0';
+
+  004d1	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  004d7	5f		 pop	 edi
+  004d8	5e		 pop	 esi
+  004d9	5d		 pop	 ebp
+  004da	8b 14 8b	 mov	 edx, DWORD PTR [ebx+ecx*4]
+  004dd	8d 0c 8b	 lea	 ecx, DWORD PTR [ebx+ecx*4]
+  004e0	5b		 pop	 ebx
+  004e1	8d 14 92	 lea	 edx, DWORD PTR [edx+edx*4]
+  004e4	8d 44 50 d0	 lea	 eax, DWORD PTR [eax+edx*2-48]
+  004e8	89 01		 mov	 DWORD PTR [ecx], eax
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  004ea	c3		 ret	 0
+$L71339:
+
+; 532  : 				}
+; 533  : 				else
+; 534  : 				{
+; 535  : 					break;
+; 536  : 				}      
+; 537  : 			}
+; 538  : 			return;                         
+; 539  : 		/*
+; 540  : 		 *  hex conversion ...
+; 541  : 		 */
+; 542  : 
+; 543  : 		case 'h':
+; 544  : 
+; 545  : 			if(c >= '0' && c <= '9')
+
+  004eb	83 f8 30	 cmp	 eax, 48			; 00000030H
+  004ee	72 23		 jb	 SHORT $L71340
+  004f0	83 f8 39	 cmp	 eax, 57			; 00000039H
+  004f3	77 1e		 ja	 SHORT $L71340
+
+; 546  : 			{
+; 547  : 				CURR_PARAM = CURR_PARAM*16 + c - '0'; 
+
+  004f5	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  004fb	5f		 pop	 edi
+  004fc	5e		 pop	 esi
+  004fd	5d		 pop	 ebp
+  004fe	8b 14 8b	 mov	 edx, DWORD PTR [ebx+ecx*4]
+  00501	8d 0c 8b	 lea	 ecx, DWORD PTR [ebx+ecx*4]
+  00504	81 c2 fd ff ff
+	0f		 add	 edx, 268435453		; 0ffffffdH
+  0050a	5b		 pop	 ebx
+  0050b	c1 e2 04	 shl	 edx, 4
+  0050e	03 d0		 add	 edx, eax
+  00510	89 11		 mov	 DWORD PTR [ecx], edx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  00512	c3		 ret	 0
+$L71340:
+
+; 548  : 			}
+; 549  : 			else
+; 550  : 			{   
+; 551  : 				/* Convert c to lowercase */
+; 552  :                 c = par_lower[c];
+
+  00513	33 c9		 xor	 ecx, ecx
+  00515	8a 88 00 00 00
+	00		 mov	 cl, BYTE PTR _par_lower[eax]
+  0051b	8b c1		 mov	 eax, ecx
+
+; 553  : 				if(c >= 'a' && c <= 'f')
+
+  0051d	83 f8 61	 cmp	 eax, 97			; 00000061H
+  00520	0f 82 d8 00 00
+	00		 jb	 $L71438
+  00526	83 f8 66	 cmp	 eax, 102		; 00000066H
+  00529	0f 87 cf 00 00
+	00		 ja	 $L71438
+
+; 554  : 				{
+; 555  : 					CURR_PARAM = CURR_PARAM*16 + c - 'a' + 10;
+
+  0052f	8b 93 d0 02 00
+	00		 mov	 edx, DWORD PTR [ebx+720]
+  00535	5f		 pop	 edi
+  00536	5e		 pop	 esi
+  00537	5d		 pop	 ebp
+  00538	8d 0c 93	 lea	 ecx, DWORD PTR [ebx+edx*4]
+  0053b	5b		 pop	 ebx
+  0053c	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0053e	c1 e2 04	 shl	 edx, 4
+  00541	8d 44 02 a9	 lea	 eax, DWORD PTR [edx+eax-87]
+  00545	89 01		 mov	 DWORD PTR [ecx], eax
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  00547	c3		 ret	 0
+$L71344:
+
+; 556  : 				}
+; 557  : 				else
+; 558  : 				{
+; 559  : 					break;
+; 560  : 				}
+; 561  : 			}
+; 562  : 			return;
+; 563  : 		/*
+; 564  : 		 *  ascii strings ... the param value is an index into the string buffer.
+; 565  : 		 *  Delimitors are "" or <> or simple white space if no delimator is needed.
+; 566  : 		 */
+; 567  : 
+; 568  : 		
+; 569  : 		case 'a':			
+; 570  : 			if (pCmd_t->p_count == 1)
+
+  00548	8b 8b d4 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+724]
+  0054e	be 01 00 00 00	 mov	 esi, 1
+  00553	3b ce		 cmp	 ecx, esi
+  00555	75 2d		 jne	 SHORT $L71345
+
+; 571  : 			{
+; 572  : 				pCmd_t->pString[pCmd_t->param_index] = &(pCmd_t->string_buff[pCmd_t->next_char]);                               
+
+  00557	8b 8b fc 04 00
+	00		 mov	 ecx, DWORD PTR [ebx+1276]
+  0055d	8b bb d0 02 00
+	00		 mov	 edi, DWORD PTR [ebx+720]
+  00563	8d 8c 19 fc 02
+	00 00		 lea	 ecx, DWORD PTR [ecx+ebx+764]
+  0056a	89 8c bb 80 02
+	00 00		 mov	 DWORD PTR [ebx+edi*4+640], ecx
+
+; 573  : 				pCmd_t->string_buff[pCmd_t->next_char & STRING_MASK] = 0;
+
+  00571	8b 8b fc 04 00
+	00		 mov	 ecx, DWORD PTR [ebx+1276]
+  00577	81 e1 ff 01 00
+	00		 and	 ecx, 511		; 000001ffH
+  0057d	88 94 19 fc 02
+	00 00		 mov	 BYTE PTR [ecx+ebx+764], dl
+$L71345:
+
+; 574  : 			}
+; 575  : 			if(pCmd_t->q_flag && c != (unsigned int)pCmd_t->q_flag) // NAL warning removal
+
+  00584	8b 8b dc 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+732]
+  0058a	3b ca		 cmp	 ecx, edx
+  0058c	74 3b		 je	 SHORT $L71440
+  0058e	3b c1		 cmp	 eax, ecx
+  00590	74 33		 je	 SHORT $L71347
+$L71444:
+
+; 576  : 			{
+; 577  : 				pCmd_t->string_buff[pCmd_t->next_char++ & STRING_MASK] = c;
+
+  00592	8b 8b fc 04 00
+	00		 mov	 ecx, DWORD PTR [ebx+1276]
+  00598	5f		 pop	 edi
+  00599	81 e1 ff 01 00
+	00		 and	 ecx, 511		; 000001ffH
+  0059f	88 84 19 fc 02
+	00 00		 mov	 BYTE PTR [ecx+ebx+764], al
+  005a6	8b b3 fc 04 00
+	00		 mov	 esi, DWORD PTR [ebx+1276]
+  005ac	46		 inc	 esi
+  005ad	8b c6		 mov	 eax, esi
+  005af	89 b3 fc 04 00
+	00		 mov	 DWORD PTR [ebx+1276], esi
+
+; 578  : 				pCmd_t->string_buff[pCmd_t->next_char & STRING_MASK] = 0;
+
+  005b5	25 ff 01 00 00	 and	 eax, 511		; 000001ffH
+  005ba	5e		 pop	 esi
+  005bb	5d		 pop	 ebp
+  005bc	88 94 18 fc 02
+	00 00		 mov	 BYTE PTR [eax+ebx+764], dl
+  005c3	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  005c4	c3		 ret	 0
+$L71347:
+
+; 579  : 				return;
+; 580  : 			}
+; 581  : 			if ((pCmd_t->q_flag == 0) && (c != ' ') && (c != '\t') && (c != ']') && (c != ','))
+
+  005c5	3b ca		 cmp	 ecx, edx
+  005c7	75 18		 jne	 SHORT $L71442
+$L71440:
+  005c9	83 f8 20	 cmp	 eax, 32			; 00000020H
+  005cc	74 0f		 je	 SHORT $L71348
+  005ce	83 f8 09	 cmp	 eax, 9
+  005d1	74 0a		 je	 SHORT $L71348
+  005d3	83 f8 5d	 cmp	 eax, 93			; 0000005dH
+  005d6	74 05		 je	 SHORT $L71348
+  005d8	83 f8 2c	 cmp	 eax, 44			; 0000002cH
+
+; 582  : 			{
+; 583  : 				pCmd_t->string_buff[pCmd_t->next_char++ & STRING_MASK] = c;
+; 584  : 				pCmd_t->string_buff[pCmd_t->next_char & STRING_MASK] = 0;
+; 585  : 				return;
+
+  005db	75 b5		 jne	 SHORT $L71444
+$L71348:
+
+; 586  : 			}
+; 587  : 			if(pCmd_t->q_flag)
+
+  005dd	3b ca		 cmp	 ecx, edx
+  005df	74 0b		 je	 SHORT $L71349
+$L71442:
+  005e1	5f		 pop	 edi
+  005e2	5e		 pop	 esi
+
+; 588  : 			{
+; 589  : 				pCmd_t->q_flag = 0;
+
+  005e3	89 93 dc 02 00
+	00		 mov	 DWORD PTR [ebx+732], edx
+  005e9	5d		 pop	 ebp
+  005ea	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  005eb	c3		 ret	 0
+$L71349:
+
+; 590  : 				return;
+; 591  : 			}
+; 592  : 			if(c != ']')
+
+  005ec	83 f8 5d	 cmp	 eax, 93			; 0000005dH
+  005ef	74 05		 je	 SHORT $L71350
+
+; 593  : 			{
+; 594  : 				c = ' ';
+
+  005f1	b8 20 00 00 00	 mov	 eax, 32			; 00000020H
+$L71350:
+
+; 595  : 			}
+; 596  : 			pCmd_t->next_char += 1;
+
+  005f6	ff 83 fc 04 00
+	00		 inc	 DWORD PTR [ebx+1276]
+  005fc	eb 05		 jmp	 SHORT $L71326
+$L71438:
+  005fe	be 01 00 00 00	 mov	 esi, 1
+$L71326:
+
+; 597  : 			break;
+; 598  : 		}       /* End switch (FORMAT_PARAM) */
+; 599  : 
+; 600  : 	/*
+; 601  : 	 *  now, pCmd_t->cmd_p_flag may be set to cause a negation, if so do it ...
+; 602  : 	 */
+; 603  : 
+; 604  : 	if(pCmd_t->cmd_p_flag == TRUE)
+
+  00603	39 b3 d8 02 00
+	00		 cmp	 DWORD PTR [ebx+728], esi
+  00609	75 10		 jne	 SHORT $L71351
+
+; 605  : 	{
+; 606  : 	    /* why we assign "sign" to a unsigned int ???  GL 4/3/1996 */
+; 607  : 		/* The reason is that although it's declared an unsinged int it is
+; 608  : 		really a signed int masquerading as an unsigned int and doind this 
+; 609  : 		creates the correct value IF it really had been a signed int
+; 610  : 		EAB 3/3/00 */
+; 611  : 		CURR_PARAM = -(int)CURR_PARAM; // NAL warning removal
+
+  0060b	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  00611	8b 3c 8b	 mov	 edi, DWORD PTR [ebx+ecx*4]
+  00614	8d 0c 8b	 lea	 ecx, DWORD PTR [ebx+ecx*4]
+  00617	f7 df		 neg	 edi
+  00619	89 39		 mov	 DWORD PTR [ecx], edi
+$L71351:
+
+; 612  : 		
+; 613  :     }
+; 614  : 
+; 615  : 	/*
+; 616  : 	 *  if we have taken in something, bump the indexes and reset the
+; 617  : 	 *  counts ...
+; 618  : 	 */
+; 619  : 
+; 620  : 	if(pCmd_t->q_flag && (c == (unsigned int)pCmd_t->q_flag))
+
+  0061b	8b 8b dc 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+732]
+  00621	3b ca		 cmp	 ecx, edx
+  00623	74 21		 je	 SHORT $L71354
+  00625	3b c1		 cmp	 eax, ecx
+  00627	75 1d		 jne	 SHORT $L71354
+
+; 621  : 	{
+; 622  : 		if(pCmd_t->p_count != 1)
+
+  00629	39 b3 d4 02 00
+	00		 cmp	 DWORD PTR [ebx+724], esi
+  0062f	74 06		 je	 SHORT $L71355
+
+; 623  : 		{
+; 624  : 			(pCmd_t->param_index) += 1;
+
+  00631	ff 83 d0 02 00
+	00		 inc	 DWORD PTR [ebx+720]
+$L71355:
+
+; 625  : 		}
+; 626  : 		cm_cmd_do_command(phTTS, STATE_BRACKET);
+
+  00637	56		 push	 esi
+  00638	55		 push	 ebp
+  00639	e8 00 00 00 00	 call	 _cm_cmd_do_command
+  0063e	83 c4 08	 add	 esp, 8
+  00641	5f		 pop	 edi
+  00642	5e		 pop	 esi
+  00643	5d		 pop	 ebp
+  00644	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  00645	c3		 ret	 0
+$L71354:
+
+; 627  : #ifdef DEBUGPARS
+; 628  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_BRACKET\n");
+; 629  : #endif
+; 630  : 		return;
+; 631  : 	}
+; 632  : 
+; 633  : 	if(pCmd_t->p_count != 1)
+
+  00646	39 b3 d4 02 00
+	00		 cmp	 DWORD PTR [ebx+724], esi
+  0064c	74 1a		 je	 SHORT $L71356
+
+; 634  : 	{
+; 635  : 		(pCmd_t->format_index) += 1;
+
+  0064e	8b bb 00 05 00
+	00		 mov	 edi, DWORD PTR [ebx+1280]
+
+; 636  : 		pCmd_t->param_index += 1;
+
+  00654	8b 8b d0 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+720]
+  0065a	47		 inc	 edi
+  0065b	41		 inc	 ecx
+  0065c	89 bb 00 05 00
+	00		 mov	 DWORD PTR [ebx+1280], edi
+  00662	89 8b d0 02 00
+	00		 mov	 DWORD PTR [ebx+720], ecx
+$L71356:
+
+; 637  : 	}
+; 638  : 	pCmd_t->p_count = 0;
+; 639  : 	pCmd_t->cmd_p_flag = 0;
+; 640  : 
+; 641  : 
+; 642  : 	/*
+; 643  : 	 *  legal seperators are white space and commas ... note that leading
+; 644  : 	 *  commas cause the pCmd_t->defaults to be preselected ...  white space is
+; 645  : 	 *  allowed to start execution but comma implies another parameter ...
+; 646  : 	 */
+; 647  : 
+; 648  : 
+; 649  : 	switch (c)       
+; 650  : 	{
+
+  00668	83 c0 f7	 add	 eax, -9			; fffffff7H
+  0066b	89 93 d4 02 00
+	00		 mov	 DWORD PTR [ebx+724], edx
+  00671	83 f8 54	 cmp	 eax, 84			; 00000054H
+  00674	89 93 d8 02 00
+	00		 mov	 DWORD PTR [ebx+728], edx
+  0067a	0f 87 8f 00 00
+	00		 ja	 $L71371
+  00680	33 c9		 xor	 ecx, ecx
+  00682	8a 88 00 00 00
+	00		 mov	 cl, BYTE PTR $L71449[eax]
+  00688	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L71450[ecx*4]
+$L71361:
+
+; 651  : 		case ' ':
+; 652  : 		case '\t':
+; 653  :         case '\r':
+; 654  : 		case '\n':
+; 655  : 			if(FORMAT_PARAM == '\0')
+
+  0068f	8b 83 f4 02 00
+	00		 mov	 eax, DWORD PTR [ebx+756]
+  00695	8d 04 80	 lea	 eax, DWORD PTR [eax+eax*4]
+  00698	8b 0c 85 04 00
+	00 00		 mov	 ecx, DWORD PTR _command_table[eax*4+4]
+  0069f	8b 83 00 05 00
+	00		 mov	 eax, DWORD PTR [ebx+1280]
+  006a5	8a 04 01	 mov	 al, BYTE PTR [ecx+eax]
+  006a8	3a c2		 cmp	 al, dl
+  006aa	75 0f		 jne	 SHORT $L71362
+
+; 656  : 			{
+; 657  : 				cm_cmd_do_command(phTTS, STATE_BRACKET);
+
+  006ac	56		 push	 esi
+  006ad	55		 push	 ebp
+  006ae	e8 00 00 00 00	 call	 _cm_cmd_do_command
+  006b3	83 c4 08	 add	 esp, 8
+  006b6	5f		 pop	 edi
+  006b7	5e		 pop	 esi
+  006b8	5d		 pop	 ebp
+  006b9	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  006ba	c3		 ret	 0
+$L71362:
+
+; 658  : #ifdef DEBUGPARS
+; 659  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_BRACKET\n");
+; 660  : #endif
+; 661  : 			}
+; 662  : 			else if(FORMAT_PARAM == '*')
+
+  006bb	3c 2a		 cmp	 al, 42			; 0000002aH
+  006bd	0f 85 a3 00 00
+	00		 jne	 $L71358
+$L71304:
+
+; 663  : 			{
+; 664  : 				cm_cmd_do_command(phTTS, STATE_KEEP);
+
+  006c3	6a 06		 push	 6
+  006c5	55		 push	 ebp
+  006c6	e8 00 00 00 00	 call	 _cm_cmd_do_command
+  006cb	83 c4 08	 add	 esp, 8
+  006ce	5f		 pop	 edi
+  006cf	5e		 pop	 esi
+  006d0	5d		 pop	 ebp
+  006d1	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  006d2	c3		 ret	 0
+$L71365:
+
+; 665  : #ifdef DEBUGPARS
+; 666  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_KEEP\n");
+; 667  : #endif
+; 668  : 			}
+; 669  : 			break;
+; 670  : 
+; 671  : 		case ',':
+; 672  : 
+; 673  : 			if(FORMAT_PARAM == '\0' || FORMAT_PARAM == '*')
+
+  006d3	8b 83 f4 02 00
+	00		 mov	 eax, DWORD PTR [ebx+756]
+  006d9	8b b3 00 05 00
+	00		 mov	 esi, DWORD PTR [ebx+1280]
+  006df	8d 04 80	 lea	 eax, DWORD PTR [eax+eax*4]
+  006e2	c1 e0 02	 shl	 eax, 2
+  006e5	8b 88 04 00 00
+	00		 mov	 ecx, DWORD PTR _command_table[eax+4]
+  006eb	8a 0c 31	 mov	 cl, BYTE PTR [ecx+esi]
+  006ee	3a ca		 cmp	 cl, dl
+  006f0	74 05		 je	 SHORT $L71367
+  006f2	80 f9 2a	 cmp	 cl, 42			; 0000002aH
+  006f5	75 6f		 jne	 SHORT $L71358
+$L71367:
+
+; 674  : 			{
+; 675  : 				/* if this is an index command, it must be flushed now */
+; 676  : #ifdef NEW_INDEXING
+; 677  : 				if (memcmp(CT[pCmd_t->cmd_index].c_name,"index",5)==0)
+
+  006f7	8b b0 00 00 00
+	00		 mov	 esi, DWORD PTR _command_table[eax]
+  006fd	b9 05 00 00 00	 mov	 ecx, 5
+  00702	bf 00 00 00 00	 mov	 edi, OFFSET FLAT:$SG71369
+  00707	33 d2		 xor	 edx, edx
+  00709	f3 a6		 repe cmpsb
+  0070b	75 46		 jne	 SHORT $L71368
+
+; 678  : 				{
+; 679  : 				 	temp=pCmd_t->ParseChar; 
+; 680  : 				 	pCmd_t->ParseChar=0x0fff;
+; 681  : 			 		cm_pars_proc_char(phTTS,' ');
+; 682  : 				 	pCmd_t->ParseChar=temp;
+; 683  : 				}			 	
+; 684  : #endif
+; 685  : 				cm_cmd_error_comm(phTTS, CMD_bad_param);
+; 686  : 				cm_pars_new_state(pCmd_t, STATE_TOSS);
+; 687  : #ifdef DEBUGPARS
+; 688  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 689  : #endif
+; 690  : 			}
+; 691  : 			break;
+
+  0070d	eb 20		 jmp	 SHORT $L71443
+$L71371:
+
+; 692  : 
+; 693  : 		case ']':
+; 694  : 			cm_cmd_do_command(phTTS, STATE_NORMAL);
+; 695  : #ifdef DEBUGPARS
+; 696  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_NORMAL\n");
+; 697  : #endif
+; 698  : 			break;
+; 699  : 
+; 700  : 		default :
+; 701  : #ifdef NEW_INDEXING
+; 702  : 			/* if this is an index command, it must be flushed now */
+; 703  : 			if (memcmp(CT[pCmd_t->cmd_index].c_name,"index",5)==0)
+
+  0070f	8b 83 f4 02 00
+	00		 mov	 eax, DWORD PTR [ebx+756]
+  00715	b9 05 00 00 00	 mov	 ecx, 5
+  0071a	bf 00 00 00 00	 mov	 edi, OFFSET FLAT:$SG71373
+  0071f	33 d2		 xor	 edx, edx
+  00721	8d 04 80	 lea	 eax, DWORD PTR [eax+eax*4]
+  00724	8b 34 85 00 00
+	00 00		 mov	 esi, DWORD PTR _command_table[eax*4]
+  0072b	f3 a6		 repe cmpsb
+  0072d	75 24		 jne	 SHORT $L71368
+$L71443:
+
+; 704  : 			{
+; 705  : 			 	temp=pCmd_t->ParseChar; 
+
+  0072f	33 f6		 xor	 esi, esi
+
+; 706  : 			 	pCmd_t->ParseChar=0x0fff;
+; 707  : 		 		cm_pars_proc_char(phTTS,' ');
+
+  00731	6a 20		 push	 32			; 00000020H
+  00733	66 8b b3 28 05
+	00 00		 mov	 si, WORD PTR [ebx+1320]
+  0073a	55		 push	 ebp
+  0073b	66 c7 83 28 05
+	00 00 ff 0f	 mov	 WORD PTR [ebx+1320], 4095 ; 00000fffH
+  00744	e8 00 00 00 00	 call	 _cm_pars_proc_char
+  00749	83 c4 08	 add	 esp, 8
+
+; 708  : 			 	pCmd_t->ParseChar=temp;
+
+  0074c	66 89 b3 28 05
+	00 00		 mov	 WORD PTR [ebx+1320], si
+$L71368:
+
+; 709  : 			}			 	
+; 710  : #endif
+; 711  : 			cm_cmd_error_comm(phTTS, CMD_bad_param);
+
+  00753	6a 04		 push	 4
+  00755	55		 push	 ebp
+  00756	e8 00 00 00 00	 call	 _cm_cmd_error_comm
+
+; 712  : 			cm_pars_new_state(pCmd_t, STATE_TOSS);
+
+  0075b	6a 05		 push	 5
+  0075d	53		 push	 ebx
+  0075e	e8 00 00 00 00	 call	 _cm_pars_new_state
+  00763	83 c4 10	 add	 esp, 16			; 00000010H
+$L71358:
+  00766	5f		 pop	 edi
+  00767	5e		 pop	 esi
+  00768	5d		 pop	 ebp
+  00769	5b		 pop	 ebx
+
+; 713  : #ifdef DEBUGPARS                                     
+; 714  : 		printf("CMD_PARS: cm_cmd_build_param: Parse State Switch: STATE_PARAM->STATE_TOSS\n");
+; 715  : #endif
+; 716  : 			break;
+; 717  : 	}       /* End switch (c) */
+; 718  : }
+
+  0076a	c3		 ret	 0
+  0076b	90		 npad	 1
+$L71446:
+  0076c	00 00 00 00	 DD	 $L71358
+  00770	00 00 00 00	 DD	 $L71313
+  00774	00 00 00 00	 DD	 $L71317
+  00778	00 00 00 00	 DD	 $L71316
+  0077c	00 00 00 00	 DD	 $L71370
+  00780	00 00 00 00	 DD	 $L71310
+$L71445:
+  00784	00		 DB	 0
+  00785	00		 DB	 0
+  00786	05		 DB	 5
+  00787	05		 DB	 5
+  00788	00		 DB	 0
+  00789	05		 DB	 5
+  0078a	05		 DB	 5
+  0078b	05		 DB	 5
+  0078c	05		 DB	 5
+  0078d	05		 DB	 5
+  0078e	05		 DB	 5
+  0078f	05		 DB	 5
+  00790	05		 DB	 5
+  00791	05		 DB	 5
+  00792	05		 DB	 5
+  00793	05		 DB	 5
+  00794	05		 DB	 5
+  00795	05		 DB	 5
+  00796	05		 DB	 5
+  00797	05		 DB	 5
+  00798	05		 DB	 5
+  00799	05		 DB	 5
+  0079a	05		 DB	 5
+  0079b	00		 DB	 0
+  0079c	05		 DB	 5
+  0079d	05		 DB	 5
+  0079e	05		 DB	 5
+  0079f	05		 DB	 5
+  007a0	05		 DB	 5
+  007a1	05		 DB	 5
+  007a2	05		 DB	 5
+  007a3	05		 DB	 5
+  007a4	05		 DB	 5
+  007a5	05		 DB	 5
+  007a6	05		 DB	 5
+  007a7	01		 DB	 1
+  007a8	05		 DB	 5
+  007a9	02		 DB	 2
+  007aa	05		 DB	 5
+  007ab	05		 DB	 5
+  007ac	05		 DB	 5
+  007ad	05		 DB	 5
+  007ae	05		 DB	 5
+  007af	05		 DB	 5
+  007b0	05		 DB	 5
+  007b1	05		 DB	 5
+  007b2	05		 DB	 5
+  007b3	05		 DB	 5
+  007b4	05		 DB	 5
+  007b5	03		 DB	 3
+  007b6	05		 DB	 5
+  007b7	05		 DB	 5
+  007b8	05		 DB	 5
+  007b9	05		 DB	 5
+  007ba	05		 DB	 5
+  007bb	05		 DB	 5
+  007bc	05		 DB	 5
+  007bd	05		 DB	 5
+  007be	05		 DB	 5
+  007bf	05		 DB	 5
+  007c0	05		 DB	 5
+  007c1	05		 DB	 5
+  007c2	05		 DB	 5
+  007c3	05		 DB	 5
+  007c4	05		 DB	 5
+  007c5	05		 DB	 5
+  007c6	05		 DB	 5
+  007c7	05		 DB	 5
+  007c8	05		 DB	 5
+  007c9	05		 DB	 5
+  007ca	05		 DB	 5
+  007cb	05		 DB	 5
+  007cc	05		 DB	 5
+  007cd	05		 DB	 5
+  007ce	05		 DB	 5
+  007cf	05		 DB	 5
+  007d0	05		 DB	 5
+  007d1	05		 DB	 5
+  007d2	05		 DB	 5
+  007d3	05		 DB	 5
+  007d4	05		 DB	 5
+  007d5	05		 DB	 5
+  007d6	05		 DB	 5
+  007d7	05		 DB	 5
+  007d8	04		 DB	 4
+  007d9	8d 49 00	 npad	 3
+$L71448:
+  007dc	00 00 00 00	 DD	 $L71344
+  007e0	00 00 00 00	 DD	 $L71329
+  007e4	00 00 00 00	 DD	 $L71334
+  007e8	00 00 00 00	 DD	 $L71339
+  007ec	00 00 00 00	 DD	 $L71332
+  007f0	00 00 00 00	 DD	 $L71438
+$L71447:
+  007f4	00		 DB	 0
+  007f5	01		 DB	 1
+  007f6	05		 DB	 5
+  007f7	02		 DB	 2
+  007f8	05		 DB	 5
+  007f9	05		 DB	 5
+  007fa	05		 DB	 5
+  007fb	03		 DB	 3
+  007fc	05		 DB	 5
+  007fd	05		 DB	 5
+  007fe	05		 DB	 5
+  007ff	05		 DB	 5
+  00800	05		 DB	 5
+  00801	05		 DB	 5
+  00802	04		 DB	 4
+  00803	90		 npad	 1
+$L71450:
+  00804	00 00 00 00	 DD	 $L71361
+  00808	00 00 00 00	 DD	 $L71365
+  0080c	00 00 00 00	 DD	 $L71370
+  00810	00 00 00 00	 DD	 $L71371
+$L71449:
+  00814	00		 DB	 0
+  00815	00		 DB	 0
+  00816	03		 DB	 3
+  00817	03		 DB	 3
+  00818	00		 DB	 0
+  00819	03		 DB	 3
+  0081a	03		 DB	 3
+  0081b	03		 DB	 3
+  0081c	03		 DB	 3
+  0081d	03		 DB	 3
+  0081e	03		 DB	 3
+  0081f	03		 DB	 3
+  00820	03		 DB	 3
+  00821	03		 DB	 3
+  00822	03		 DB	 3
+  00823	03		 DB	 3
+  00824	03		 DB	 3
+  00825	03		 DB	 3
+  00826	03		 DB	 3
+  00827	03		 DB	 3
+  00828	03		 DB	 3
+  00829	03		 DB	 3
+  0082a	03		 DB	 3
+  0082b	00		 DB	 0
+  0082c	03		 DB	 3
+  0082d	03		 DB	 3
+  0082e	03		 DB	 3
+  0082f	03		 DB	 3
+  00830	03		 DB	 3
+  00831	03		 DB	 3
+  00832	03		 DB	 3
+  00833	03		 DB	 3
+  00834	03		 DB	 3
+  00835	03		 DB	 3
+  00836	03		 DB	 3
+  00837	01		 DB	 1
+  00838	03		 DB	 3
+  00839	03		 DB	 3
+  0083a	03		 DB	 3
+  0083b	03		 DB	 3
+  0083c	03		 DB	 3
+  0083d	03		 DB	 3
+  0083e	03		 DB	 3
+  0083f	03		 DB	 3
+  00840	03		 DB	 3
+  00841	03		 DB	 3
+  00842	03		 DB	 3
+  00843	03		 DB	 3
+  00844	03		 DB	 3
+  00845	03		 DB	 3
+  00846	03		 DB	 3
+  00847	03		 DB	 3
+  00848	03		 DB	 3
+  00849	03		 DB	 3
+  0084a	03		 DB	 3
+  0084b	03		 DB	 3
+  0084c	03		 DB	 3
+  0084d	03		 DB	 3
+  0084e	03		 DB	 3
+  0084f	03		 DB	 3
+  00850	03		 DB	 3
+  00851	03		 DB	 3
+  00852	03		 DB	 3
+  00853	03		 DB	 3
+  00854	03		 DB	 3
+  00855	03		 DB	 3
+  00856	03		 DB	 3
+  00857	03		 DB	 3
+  00858	03		 DB	 3
+  00859	03		 DB	 3
+  0085a	03		 DB	 3
+  0085b	03		 DB	 3
+  0085c	03		 DB	 3
+  0085d	03		 DB	 3
+  0085e	03		 DB	 3
+  0085f	03		 DB	 3
+  00860	03		 DB	 3
+  00861	03		 DB	 3
+  00862	03		 DB	 3
+  00863	03		 DB	 3
+  00864	03		 DB	 3
+  00865	03		 DB	 3
+  00866	03		 DB	 3
+  00867	03		 DB	 3
+  00868	02		 DB	 2
+_cm_cmd_build_param ENDP
+_pCmd_t$ = 8
+_state$ = 12
+_cm_cmd_reset_comm PROC NEAR
+
+; 736  : 	int     i;
+; 737  : 
+; 738  : #ifdef DEBUGPARS
+; 739  : 	printf("CMD_PARS: cm_cmd_reset_comm:\n");
+; 740  : #endif
+; 741  : 	if(state != STATE_KEEP)
+
+  00870	8b 54 24 08	 mov	 edx, DWORD PTR _state$[esp-4]
+  00874	53		 push	 ebx
+  00875	33 db		 xor	 ebx, ebx
+  00877	56		 push	 esi
+  00878	8b 74 24 0c	 mov	 esi, DWORD PTR _pCmd_t$[esp+4]
+  0087c	83 fa 06	 cmp	 edx, 6
+  0087f	74 4b		 je	 SHORT $L71380
+  00881	57		 push	 edi
+
+; 742  : 	{
+; 743  : 		for(i=0;i<NPARAM;i++)
+
+  00882	8d be a8 02 00
+	00		 lea	 edi, DWORD PTR [esi+680]
+
+; 744  : 		{
+; 745  : 			pCmd_t->defaults[i] = TRUE;
+
+  00888	b9 0a 00 00 00	 mov	 ecx, 10			; 0000000aH
+  0088d	b8 01 00 00 00	 mov	 eax, 1
+  00892	f3 ab		 rep stosd
+
+; 746  : 		}
+; 747  : 		for(i=0; i<total_commands; i++)
+
+  00894	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _total_commands
+  0089a	33 c0		 xor	 eax, eax
+  0089c	3b cb		 cmp	 ecx, ebx
+  0089e	5f		 pop	 edi
+  0089f	7e 15		 jle	 SHORT $L71386
+$L71384:
+
+; 748  : 		{
+; 749  : 			*((pCmd_t->cm) + i) = 0;
+
+  008a1	8b 8e ec 02 00
+	00		 mov	 ecx, DWORD PTR [esi+748]
+  008a7	40		 inc	 eax
+  008a8	89 5c 81 fc	 mov	 DWORD PTR [ecx+eax*4-4], ebx
+  008ac	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _total_commands
+  008b2	3b c1		 cmp	 eax, ecx
+  008b4	7c eb		 jl	 SHORT $L71384
+$L71386:
+
+; 750  : 		}
+; 751  : 		pCmd_t->total_matches = total_commands;
+; 752  : 		cm_pars_new_state(pCmd_t, state);
+
+  008b6	52		 push	 edx
+  008b7	56		 push	 esi
+  008b8	89 8e f0 02 00
+	00		 mov	 DWORD PTR [esi+752], ecx
+  008be	e8 00 00 00 00	 call	 _cm_pars_new_state
+  008c3	83 c4 08	 add	 esp, 8
+
+; 753  : 		(pCmd_t->format_index) = 0;
+
+  008c6	89 9e 00 05 00
+	00		 mov	 DWORD PTR [esi+1280], ebx
+$L71380:
+
+; 754  : 	}
+; 755  : 	pCmd_t->next_char = 0;
+; 756  : 	pCmd_t->param_index = 0;
+; 757  : 	pCmd_t->cmd_p_flag = 0;
+; 758  : 	pCmd_t->q_flag = 0;
+; 759  : 	pCmd_t->p_count = 0;
+; 760  : 	pCmd_t->international_flag=-1;
+
+  008cc	83 c8 ff	 or	 eax, -1
+  008cf	89 9e fc 04 00
+	00		 mov	 DWORD PTR [esi+1276], ebx
+  008d5	89 9e d0 02 00
+	00		 mov	 DWORD PTR [esi+720], ebx
+  008db	89 9e d8 02 00
+	00		 mov	 DWORD PTR [esi+728], ebx
+  008e1	89 9e dc 02 00
+	00		 mov	 DWORD PTR [esi+732], ebx
+  008e7	89 9e d4 02 00
+	00		 mov	 DWORD PTR [esi+724], ebx
+  008ed	89 86 e0 02 00
+	00		 mov	 DWORD PTR [esi+736], eax
+
+; 761  : 	pCmd_t->international_temp=0;
+
+  008f3	89 9e e4 02 00
+	00		 mov	 DWORD PTR [esi+740], ebx
+
+; 762  : 	pCmd_t->international_phon_lang=-1;
+
+  008f9	89 86 e8 02 00
+	00		 mov	 DWORD PTR [esi+744], eax
+  008ff	5e		 pop	 esi
+  00900	5b		 pop	 ebx
+
+; 763  : }
+
+  00901	c3		 ret	 0
+_cm_cmd_reset_comm ENDP
+_TEXT	ENDS
+EXTRN	_TextToSpeechErrorHandler:NEAR
+EXTRN	_cm_cmd_sync:NEAR
+EXTRN	__imp__fprintf:NEAR
+EXTRN	_OpenLogFile:NEAR
+EXTRN	_CloseLogFile:NEAR
+EXTRN	_cm_util_dtpc_tones:NEAR
+EXTRN	_cm_util_dtpc_tones_reset:NEAR
+EXTRN	_cm_util_write_pipe:NEAR
+_DATA	SEGMENT
+	ORG $+2
+$SG71409 DB	0aH, '[:error %Fs]', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_type$ = 12
+_pipe_value$ = -8
+_cm_cmd_error_comm PROC NEAR
+
+; 781  : {
+
+  00910	83 ec 08	 sub	 esp, 8
+
+; 782  : 	DT_PIPE_T pipe_value[3];
+; 783  : 	char _far *es;
+; 784  : #ifdef MSDOS
+; 785  : 	SEQ     seq;
+; 786  : #endif
+; 787  :     PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 788  : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+; 789  : 
+; 790  : 
+; 791  : 	es = (unsigned char _far *)pKsd_t->error_table[type];
+
+  00913	8b 4c 24 10	 mov	 ecx, DWORD PTR _type$[esp+4]
+  00917	53		 push	 ebx
+  00918	56		 push	 esi
+  00919	57		 push	 edi
+  0091a	8b 7c 24 18	 mov	 edi, DWORD PTR _phTTS$[esp+16]
+  0091e	8b 77 08	 mov	 esi, DWORD PTR [edi+8]
+
+; 792  : 	switch(pCmd_t->error_mode)
+; 793  : 	{
+
+  00921	8b 57 0c	 mov	 edx, DWORD PTR [edi+12]
+  00924	8b 86 3c 06 00
+	00		 mov	 eax, DWORD PTR [esi+1596]
+  0092a	8b 1c 88	 mov	 ebx, DWORD PTR [eax+ecx*4]
+  0092d	8b 82 08 05 00
+	00		 mov	 eax, DWORD PTR [edx+1288]
+  00933	83 f8 04	 cmp	 eax, 4
+  00936	0f 87 38 01 00
+	00		 ja	 $L71418
+  0093c	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71462[eax*4]
+$L71401:
+
+; 794  : 		case    ERROR_ignore    :
+; 795  : #ifndef MSDOS
+; 796  : 			/* ETT 11/04/98 BATS#345 
+; 797  : 				if we are not in [:log text on] and 
+; 798  : 				the file is still open then close */
+; 799  : 			if((pKsd_t->logflag & LOG_TEXT) != LOG_TEXT)
+
+  00943	8b 86 c4 03 00
+	00		 mov	 eax, DWORD PTR [esi+964]
+  00949	83 e0 01	 and	 eax, 1
+  0094c	3c 01		 cmp	 al, 1
+
+; 800  : 				if(phTTS->dwOutputState == STATE_OUTPUT_LOG_FILE)
+; 801  : 					CloseLogFile(phTTS);		
+; 802  : #endif
+; 803  : 			break;
+
+  0094e	e9 c9 00 00 00	 jmp	 $L71461
+$L71404:
+
+; 804  : 
+; 805  : 		case    ERROR_text:
+; 806  : #ifdef MSDOS
+; 807  : 			WAIT_PRINT;
+; 808  : 			/* 09/09/1996 SIK Changed %s to %Fs */
+; 809  : 			/* GL 11/06/1997 for BATS#345 write to file for [:error text] command */
+; 810  : 			printf("\n[:error %Fs]",es);
+; 811  : 			SIGNAL_PRINT;
+; 812  : #else   
+; 813  : 		/* ETT: 11/04/98 BATS#345
+; 814  : 			we need to check if we are in [:log text on]
+; 815  : 			if we are not then open log file 
+; 816  : 			then put output state back to use audio so we can still 
+; 817  : 			hear. and don't close log.txt until
+; 818  : 			[:log text off] or [:error *]
+; 819  : 		*/
+; 820  : 			if((pKsd_t->logflag & LOG_TEXT) != LOG_TEXT){	
+
+  00953	8b 8e c4 03 00
+	00		 mov	 ecx, DWORD PTR [esi+964]
+  00959	83 e1 01	 and	 ecx, 1
+  0095c	80 f9 01	 cmp	 cl, 1
+  0095f	74 29		 je	 SHORT $L71407
+
+; 821  : 				OpenLogFile(phTTS);
+
+  00961	57		 push	 edi
+  00962	e8 00 00 00 00	 call	 _OpenLogFile
+
+; 822  : 				if (( phTTS->dwDeviceOptions & DO_NOT_USE_AUDIO_DEVICE ) == 0 )
+
+  00967	8b 47 78	 mov	 eax, DWORD PTR [edi+120]
+  0096a	83 c4 04	 add	 esp, 4
+  0096d	a9 00 00 00 80	 test	 eax, -2147483648	; 80000000H
+  00972	75 0c		 jne	 SHORT $L71406
+
+; 823  : 					phTTS->dwOutputState = STATE_OUTPUT_AUDIO;
+
+  00974	c7 87 88 00 00
+	00 00 00 00 00	 mov	 DWORD PTR [edi+136], 0
+
+; 824  : 				else
+
+  0097e	eb 0a		 jmp	 SHORT $L71407
+$L71406:
+
+; 825  : 					phTTS->dwOutputState = STATE_OUTPUT_NULL;
+
+  00980	c7 87 88 00 00
+	00 04 00 00 00	 mov	 DWORD PTR [edi+136], 4
+$L71407:
+
+; 826  : 			}
+; 827  : 			if (fprintf (phTTS->pLogFile,
+; 828  : #ifdef __linux__
+; 829  : 				 "\n[:error %s]", es) < 0)
+; 830  : #else
+; 831  : 				 "\n[:error %Fs]", es) < 0)
+
+  0098a	8b 97 9c 00 00
+	00		 mov	 edx, DWORD PTR [edi+156]
+  00990	53		 push	 ebx
+  00991	68 00 00 00 00	 push	 OFFSET FLAT:$SG71409
+  00996	52		 push	 edx
+  00997	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  0099d	83 c4 0c	 add	 esp, 12			; 0000000cH
+  009a0	85 c0		 test	 eax, eax
+  009a2	0f 8d cc 00 00
+	00		 jge	 $L71418
+
+; 832  : #endif
+; 833  : 			{
+; 834  : 				TextToSpeechErrorHandler (phTTS,
+; 835  : 										  ERROR_WRITING_FILE,
+; 836  : 										  0L);
+
+  009a8	6a 00		 push	 0
+  009aa	6a 05		 push	 5
+  009ac	57		 push	 edi
+  009ad	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  009b2	83 c4 0c	 add	 esp, 12			; 0000000cH
+  009b5	5f		 pop	 edi
+  009b6	5e		 pop	 esi
+  009b7	5b		 pop	 ebx
+
+; 871  : #endif
+; 872  : 			break;
+; 873  : 		};
+; 874  : }
+
+  009b8	83 c4 08	 add	 esp, 8
+  009bb	c3		 ret	 0
+$L71410:
+
+; 837  : 			} 
+; 838  : #endif //MSDOS
+; 839  : 			break;
+; 840  :                   
+; 841  : 		case    ERROR_speak:
+; 842  : 			cm_cmd_sync(phTTS);
+
+  009bc	57		 push	 edi
+  009bd	e8 00 00 00 00	 call	 _cm_cmd_sync
+
+; 843  : 			while(*es)
+
+  009c2	8a 03		 mov	 al, BYTE PTR [ebx]
+  009c4	83 c4 04	 add	 esp, 4
+  009c7	84 c0		 test	 al, al
+  009c9	74 27		 je	 SHORT $L71413
+$L71412:
+
+; 844  : 			{
+; 845  : 				pipe_value[0] = (PFASCII<<PSFONT) + *es++;
+
+  009cb	66 0f be c0	 movsx	 ax, al
+  009cf	66 89 44 24 0c	 mov	 WORD PTR _pipe_value$[esp+20], ax
+
+; 846  :                                 cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,pipe_value,1);
+
+  009d4	8b 96 90 02 00
+	00		 mov	 edx, DWORD PTR [esi+656]
+  009da	8d 4c 24 0c	 lea	 ecx, DWORD PTR _pipe_value$[esp+20]
+  009de	6a 01		 push	 1
+  009e0	51		 push	 ecx
+  009e1	52		 push	 edx
+  009e2	56		 push	 esi
+  009e3	43		 inc	 ebx
+  009e4	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  009e9	8a 03		 mov	 al, BYTE PTR [ebx]
+  009eb	83 c4 10	 add	 esp, 16			; 00000010H
+  009ee	84 c0		 test	 al, al
+  009f0	75 d9		 jne	 SHORT $L71412
+$L71413:
+
+; 847  : 			}
+; 848  : 			pipe_value[0] = (PFASCII<<PSFONT) + 0xb;
+
+  009f2	66 c7 44 24 0c
+	0b 00		 mov	 WORD PTR _pipe_value$[esp+20], 11 ; 0000000bH
+
+; 849  :                         cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,pipe_value,1);
+
+  009f9	8b 8e 90 02 00
+	00		 mov	 ecx, DWORD PTR [esi+656]
+  009ff	8d 44 24 0c	 lea	 eax, DWORD PTR _pipe_value$[esp+20]
+  00a03	6a 01		 push	 1
+  00a05	50		 push	 eax
+  00a06	51		 push	 ecx
+  00a07	56		 push	 esi
+  00a08	e8 00 00 00 00	 call	 _cm_util_write_pipe
+
+; 850  : #ifndef MSDOS
+; 851  : 			/* ETT 11/04/98 BATS#345 
+; 852  : 				if we are not in [:log text on] and 
+; 853  : 				the file is still open then close */
+; 854  : 			if((pKsd_t->logflag & LOG_TEXT) != LOG_TEXT)
+
+  00a0d	8b 96 c4 03 00
+	00		 mov	 edx, DWORD PTR [esi+964]
+  00a13	83 c4 10	 add	 esp, 16			; 00000010H
+  00a16	83 e2 01	 and	 edx, 1
+  00a19	80 fa 01	 cmp	 dl, 1
+$L71461:
+  00a1c	74 56		 je	 SHORT $L71418
+
+; 855  : 				if(phTTS->dwOutputState == STATE_OUTPUT_LOG_FILE)
+
+  00a1e	83 bf 88 00 00
+	00 03		 cmp	 DWORD PTR [edi+136], 3
+  00a25	75 4d		 jne	 SHORT $L71418
+
+; 870  : 					CloseLogFile(phTTS);		
+
+  00a27	57		 push	 edi
+  00a28	e8 00 00 00 00	 call	 _CloseLogFile
+  00a2d	83 c4 04	 add	 esp, 4
+  00a30	5f		 pop	 edi
+  00a31	5e		 pop	 esi
+  00a32	5b		 pop	 ebx
+
+; 871  : #endif
+; 872  : 			break;
+; 873  : 		};
+; 874  : }
+
+  00a33	83 c4 08	 add	 esp, 8
+  00a36	c3		 ret	 0
+$L71416:
+
+; 856  : 					CloseLogFile(phTTS);		
+; 857  : #endif
+; 858  : 			break;
+; 859  : 
+; 860  : 		case    ERROR_tone:
+; 861  : 			cm_cmd_sync(phTTS);
+
+  00a37	57		 push	 edi
+  00a38	e8 00 00 00 00	 call	 _cm_cmd_sync
+
+; 862  : 			cm_util_dtpc_tones(phTTS,0,697,100);
+
+  00a3d	6a 64		 push	 100			; 00000064H
+  00a3f	68 b9 02 00 00	 push	 697			; 000002b9H
+  00a44	6a 00		 push	 0
+  00a46	57		 push	 edi
+  00a47	e8 00 00 00 00	 call	 _cm_util_dtpc_tones
+
+; 863  : 			cm_util_dtpc_tones_reset(phTTS);
+
+  00a4c	57		 push	 edi
+  00a4d	e8 00 00 00 00	 call	 _cm_util_dtpc_tones_reset
+
+; 864  : #ifndef MSDOS
+; 865  : 			/* ETT 11/04/98 BATS#345 
+; 866  : 				if we are not in [:log text on] and 
+; 867  : 				the file is still open then close */
+; 868  : 			if((pKsd_t->logflag & LOG_TEXT) != LOG_TEXT)
+
+  00a52	8b 86 c4 03 00
+	00		 mov	 eax, DWORD PTR [esi+964]
+  00a58	83 c4 18	 add	 esp, 24			; 00000018H
+  00a5b	83 e0 01	 and	 eax, 1
+  00a5e	3c 01		 cmp	 al, 1
+  00a60	74 12		 je	 SHORT $L71418
+
+; 869  : 				if(phTTS->dwOutputState == STATE_OUTPUT_LOG_FILE)
+
+  00a62	83 bf 88 00 00
+	00 03		 cmp	 DWORD PTR [edi+136], 3
+  00a69	75 09		 jne	 SHORT $L71418
+
+; 870  : 					CloseLogFile(phTTS);		
+
+  00a6b	57		 push	 edi
+  00a6c	e8 00 00 00 00	 call	 _CloseLogFile
+  00a71	83 c4 04	 add	 esp, 4
+$L71418:
+  00a74	5f		 pop	 edi
+  00a75	5e		 pop	 esi
+  00a76	5b		 pop	 ebx
+
+; 871  : #endif
+; 872  : 			break;
+; 873  : 		};
+; 874  : }
+
+  00a77	83 c4 08	 add	 esp, 8
+  00a7a	c3		 ret	 0
+  00a7b	90		 npad	 1
+$L71462:
+  00a7c	00 00 00 00	 DD	 $L71401
+  00a80	00 00 00 00	 DD	 $L71404
+  00a84	00 00 00 00	 DD	 $L71418
+  00a88	00 00 00 00	 DD	 $L71410
+  00a8c	00 00 00 00	 DD	 $L71416
+_cm_cmd_error_comm ENDP
+_TEXT	ENDS
+END

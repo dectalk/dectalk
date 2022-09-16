@@ -1,0 +1,697 @@
+#
+# @DEC_COPYRIGHT@
+#
+# HISTORY
+# MGS 11/20/1997	Added code for UK
+# Revision 1.1.2.17  1996/02/26  21:03:54  Krishna_Mangipudi
+# 	Updated copyright to 1996
+# 	[1996/02/26  21:03:01  Krishna_Mangipudi]
+#
+# Revision 1.1.2.16  1996/02/15  16:14:44  Krishna_Mangipudi
+# 	added check for librt.so
+# 	[1996/02/15  16:14:36  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.15  1996/02/01  21:36:35  Krishna_Mangipudi
+# 	moved kit location
+# 	[1996/02/01  21:35:48  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.14  1996/01/19  18:33:35  Krishna_Mangipudi
+# 	Redirected stderr to null
+# 	[1996/01/19  18:33:12  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.13  1996/01/10  18:13:48  Krishna_Mangipudi
+# 	Added full path name check for dtsamples
+# 	[1996/01/10  18:13:36  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.12  1995/12/04  19:36:44  Krishna_Mangipudi
+# 	Remove dtklock in delete phase
+# 	[1995/12/04  19:36:33  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.11  1995/12/04  18:50:36  Krishna_Mangipudi
+# 	Create /dtk/dtsamples directory
+# 	[1995/12/04  18:50:25  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.10  1995/11/21  21:35:39  Krishna_Mangipudi
+# 	use -f with ln
+# 	[1995/11/21  21:34:47  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.9  1995/11/15  22:50:59  Krishna_Mangipudi
+# 	Deleted README.txt
+# 	[1995/11/15  22:50:50  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.8  1995/09/25  20:33:49  Krishna_Mangipudi
+# 	Corrected version numbers
+# 	[1995/09/25  20:33:06  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.7  1995/09/22  21:23:36  Krishna_Mangipudi
+# 	Updated with V4.3 string and cleaned up messages
+# 	[1995/09/22  21:22:49  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.6  1995/07/06  20:18:12  Krishna_Mangipudi
+# 	Updated to V4.3
+# 	[1995/07/06  20:17:24  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.5  1995/04/20  12:51:28  Krishna_Mangipudi
+# 	Delete aclock from /usr/bin/aclock
+# 	[1995/04/20  12:51:18  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.4  1995/04/18  19:11:18  Krishna_Mangipudi
+# 	Removed xmsay and dtmemory from RT kit
+# 	[1995/04/18  19:11:06  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.3  1995/04/17  16:27:20  Krishna_Mangipudi
+# 	Edited for RT/DEV splitup
+# 	[1995/04/17  16:26:44  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.2  1995/04/12  15:26:39  Krishna_Mangipudi
+# 	Initial creation and checkin
+# 	[1995/04/12  15:26:02  Krishna_Mangipudi]
+# 
+# $EndLog$
+#
+#
+#  Copyright (c) Digital Equipment Corporation, 1996 All Rights Reserved.
+#  Unpublished rights reserved under the copyright laws of the United States.
+#  The software contained on this media is proprietary to and embodies the
+#  confidential technology of Digital Equipment Corporation.  Possession, use,
+#  duplication or dissemination of the software and media is authorized only
+#  pursuant to a valid written license from Digital Equipment Corporation.
+#
+#  RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the U.S.
+#  Government is subject to restrictions as set forth in Subparagraph
+#  (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, as applicable.
+#
+#
+
+. /usr/share/lib/shell/libscp
+
+##############################
+#      LMF Particulars
+##############################
+
+product=DECTALK-SW97-USER
+producer=DEC
+prod_version=4.4
+prod_date=15-OCT-1997
+
+# Subset check flags
+
+SUBSETS_PRESENT=0
+VERSION_MISMATCH=0
+
+RT_FLAG=0
+DELRT_FLAG=0
+
+SUBSETNAME=`basename $0`
+SUBSETNAME=`expr "$SUBSETNAME" : '^\(.*\)\.scp'`
+SUBSETVER=`expr "$SUBSETNAME" : '^\DTKRT*\(.*\)'`
+
+
+CheckPreRequisteConfig()
+{
+        ###################################################################
+        #
+        # check the architecture type
+        #
+        ###################################################################
+        MACH=vax
+        [ -f /bin/machine ] && MACH=`/bin/machine`
+        [ $MACH = alpha ] ||
+        {
+            cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKRT461.
+
+        This version of DECtalk Software may be installed on Alpha AXP only.
+                                                                           
+   ***********************************************************************
+
+EOF
+            exit 1
+        }
+
+        ###################################################################
+        #
+        # Check if MME is installed  
+        #
+        ###################################################################
+        [ ! -f /usr/.smdb./MMERT[0-9][0-9][0-9].lk ] &&
+        {
+           cat <<EOF
+
+   ***********************************************************************
+
+     Error installing DECtalk Software V4.61 subset DTKRT461.
+
+       DECtalk Software installation has detected that MME, the Multimedia
+       Services  for Digital UNIX, is not installed.  If you wish to run 
+       DECtalk Software applets you will need to install MME after you 
+       install DECtalk Software.
+
+   ***********************************************************************
+
+EOF
+        }
+
+
+        ###################################################################
+       #
+        # Check if MME is installed
+        #
+        ###################################################################
+       [ ! -f /usr/shlib/librt.so ] &&
+        {
+           cat <<EOF
+
+   ***********************************************************************
+
+     Error installing DECtalk Software V4.61 subset DTKRT461.
+
+       DECtalk Software installation has detected that the Realtime 
+       Software Development library has not been installed. If you wish 
+       to run DECtalk Software you will need to install this library.
+
+   ***********************************************************************
+
+EOF
+            exit 1
+        }
+}
+
+CheckIfRtIsAlreadyInstalled() 
+{
+   ###################################################################
+   #
+   # Check for currently installed DTK kits 
+   #
+   ###################################################################
+   [ -f /usr/.smdb./DTKRT[0-9][0-9][0-9].lk ] &&
+   {
+      SUBSETS_PRESENT=1
+      RT_FLAG=1
+      DtkRt=`ls /usr/.smdb./DTKRT[0-9][0-9][0-9].lk | sed "s/\/usr\/.smdb.\///" | sed s/.lk//`
+      cat <<EOF
+
+      $DtkRt is currently installed.
+EOF
+   }
+}
+
+CheckVersions()
+{
+   VERSION_MISMATCH=0
+
+   # Check DTKRT version
+
+   if [ "$RT_FLAG" = "1" ]
+   then
+      ThisVer=`expr "$DtkRt" : '^\DTKRT*\(.*\)'`
+      if [ ! "$ThisVer" = "$SUBSETVER" ]
+      then
+         VERSION_MISMATCH=1  
+      fi
+   fi
+}
+
+DeleteSubset()
+{
+   if [ "$RT_FLAG" = "1" ]
+   then
+      while :
+         do echo "
+Do you wish to delete subset $DtkRt at this time? (y/n) [y]: \c"
+            read ANS
+            ANS=`echo $ANS`
+
+            case $ANS in
+               "" | [yY]* )
+                  DELRT_FLAG=1
+                  break
+               ;;
+                  [nN]* )
+                  DELRT_FLAG=0
+                  break
+               ;;
+            esac
+      done
+   fi
+
+  if [ "$DELRT_FLAG" = "1" ]
+  then
+     /usr/sbin/setld -d $DtkRt
+     RT_FLAG=0
+     DELRT_FLAG=0
+  fi
+}
+
+CopyrightMsg ()
+{
+	cat <<EOF
+
+   ***********************************************************************
+   *                                                                     *
+   * DECtalk Software Application Services V4.61                          *
+   * Runtime Subset                                                      *
+   *                                                                     *
+   * Copyright(c)Digital Equipment Corporation, 1996 All Rights Reserved *
+   *                                                                     *
+   * Unpublished rights reserved under the copyright laws of the United  *
+   * States.   The software contained on this media is proprietary to    *
+   * and embodies the confidential technology of Digital Equipment       *
+   * Corporation.  Possession, use, duplication or dissemination of the  *
+   * software and media is authorized only pursuant to a valid written   *
+   * license from Digital Equipment Corporation.                         *
+   *                                                                     *
+   * RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the   *
+   * U.S. Government is subject to restrictions as set forth in          *
+   * Subparagraph (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, *
+   * or in FAR 52.227-14 Alt. III as applicable.                         *
+   *                                                                     *
+   ***********************************************************************
+
+EOF
+}
+
+    #######################################################################
+    #
+    # Start main case statement for this module
+    #
+    #######################################################################
+
+case $ACT in
+    #######################################################################
+    #
+    # Before presenting subset menu: check dependencies and display
+    # copyright information.
+    #
+    #######################################################################
+    M)
+
+       CheckPreRequisteConfig
+       CheckIfRtIsAlreadyInstalled 
+
+       if [ "$SUBSETS_PRESENT" = "1" ]
+       then
+          DeleteSubset
+          CheckVersions
+          if [ "$VERSION_MISMATCH" = "1" ] 
+          then
+             cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.61 subset DTKRT461.
+
+        You may not mix different versions of DECtalk Software, please
+        delete the installed version of DECtalk Software before installing 
+        the current version.
+
+   ***********************************************************************
+EOF
+             DeleteSubset
+          fi
+       fi
+
+    #######################################################################
+    #
+    # If DTKRT subset is still present, then do not prompt for it
+    # in the installation menu
+    #
+    #######################################################################
+  
+        [ -f /usr/.smdb./DTKRT[0-9][0-9][0-9].lk ] &&
+        {
+           exit 1
+        }
+   ;;
+
+   ###########################################################
+   #
+   #    Subset verification
+   #
+   ###########################################################
+   V)
+     cd ./usr/opt/DTKRT461/ivp
+     chmod +x DTKRT461.ivp
+     ./$SUBSETNAME.ivp
+   ;;
+
+   #######################################################################
+   #
+   # Pre-installation : check to make sure any prerequisites are met.
+   #
+   #######################################################################
+   PRE_L)
+        CopyrightMsg
+	;;
+
+   ###########################################################
+   #
+   #    After loading a subset
+   #
+   ###########################################################
+   POST_L)
+       cat <<EOF
+
+   ***********************************************************************
+                                                                       
+      DECtalk Software V4.61 runtime subset (DTKRT461) installation completed 
+      successfully.     
+
+      To verify that the kit installed properly please run the Installation 
+      Verification Program by typing:                      
+                                                                       
+                   /usr/sbin/setld -v DTKRT461                                 
+                                                                        
+   ***********************************************************************
+
+EOF
+        ;;
+
+    ###########################################################
+    #
+    #	Setup/Cleanup Phase
+    #   (used by both install and delete )
+    #
+    ###########################################################
+    C)
+        case $1 in
+            INSTALL)
+                ###########################################################
+                #
+                # create /usr/lib/dtk/dtklock file to limit the number of
+                # DECtalk applications that are run when there is no license
+                # installed on a system.
+                #
+                ###########################################################
+                touch /usr/lib/dtk/dtklock
+                chmod 444 /usr/lib/dtk/dtklock
+                chown bin /usr/lib/dtk/dtklock
+                chgrp bin /usr/lib/dtk/dtklock
+                ###########################################################
+                #
+                # create soft links to the shareables, tools and dictonary
+                #
+                ###########################################################
+                ln -fs /usr/opt/DTKRT461/tools/windict_us \
+			./usr/bin/windict
+                ln -fs /usr/opt/DTKRT461/tools/windict_us \
+			./usr/bin/windict_us
+                ln -fs /usr/opt/DTKRT461/tools/windict_uk \
+			./usr/bin/windict_uk
+                ln -fs /usr/opt/DTKRT461/tools/windict_sp \
+			./usr/bin/windict_sp 
+                ln -fs /usr/opt/DTKRT461/tools/windict_fr \
+			./usr/bin/windict_fr 
+                ln -fs /usr/opt/DTKRT461/tools/windict_gr \
+			./usr/bin/windict_gr 
+                ln -fs /usr/opt/DTKRT461/tools/windict_la\
+			./usr/bin/windict_la
+                ln -fs /usr/opt/DTKRT461/tools/windict.uid \
+			./usr/lib/X11/uid/windict.uid
+                ln -fs /usr/opt/DTKRT461/tools/userdict_us \
+			./usr/bin/userdict
+                ln -fs /usr/opt/DTKRT461/shlib/libtts.so ./usr/shlib/libtts.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libtts.so
+                ln -fs /usr/opt/DTKRT461/shlib/libtts_us.so ./usr/shlib/libtts_us.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libtts_us.so
+                ln -fs /usr/opt/DTKRT461/shlib/libtts_uk.so ./usr/shlib/libtts_uk.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libtts_uk.so
+                ln -fs /usr/opt/DTKRT461/shlib/libtts_sp.so ./usr/shlib/libtts_sp.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libtts_sp.so
+                ln -fs /usr/opt/DTKRT461/shlib/libtts_fr.so ./usr/shlib/libtts_fr.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libtts_fr.so
+                ln -fs /usr/opt/DTKRT461/shlib/libtts_gr.so ./usr/shlib/libtts_gr.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libtts_gr.so
+                ln -fs /usr/opt/DTKRT461/shlib/libtts_la.so ./usr/shlib/libtts_la.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libtts_la.so
+                ln -fs /usr/opt/DTKRT461/shlib/libttsmme.so \
+                        ./usr/shlib/libttsmme.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libttsmme.so
+                ln -fs /usr/opt/DTKRT461/shlib/libttsmme_us.so \
+                        ./usr/shlib/libttsmme_us.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libttsmme_us.so
+                ln -fs /usr/opt/DTKRT461/shlib/libttsmme_uk.so \
+                        ./usr/shlib/libttsmme_uk.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libttsmme_uk.so
+                ln -fs /usr/opt/DTKRT461/shlib/libttsmme_sp.so \
+                        ./usr/shlib/libttsmme_sp.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libttsmme_sp.so
+                ln -fs /usr/opt/DTKRT461/shlib/libttsmme_fr.so \
+                        ./usr/shlib/libttsmme_fr.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libttsmme_fr.so
+                ln -fs /usr/opt/DTKRT461/shlib/libttsmme_gr.so \
+                        ./usr/shlib/libttsmme_gr.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libttsmme_gr.so
+                ln -fs /usr/opt/DTKRT461/shlib/libttsmme_la.so \
+                        ./usr/shlib/libttsmme_la.so
+                chmod 755 /usr/opt/DTKRT461/shlib/libttsmme_la.so
+		ln -fs /usr/opt/DTKRT461/lib/dtk/dtalk_us.dic \
+			./usr/lib/dtk/dectalk.dic
+		ln -fs /usr/opt/DTKRT461/lib/dtk/dtalk_us.dic \
+			./usr/lib/dtk/dtalk_us.dic
+                chmod 666 /usr/opt/DTKRT461/lib/dtk/dtalk_us.dic
+		ln -fs /usr/opt/DTKRT461/lib/dtk/dtalk_uk.dic \
+			./usr/lib/dtk/dtalk_uk.dic
+                chmod 666 /usr/opt/DTKRT461/lib/dtk/dtalk_uk.dic
+		ln -fs /usr/opt/DTKRT461/lib/dtk/dtalk_sp.dic \
+			./usr/lib/dtk/dtalk_sp.dic
+                chmod 666 /usr/opt/DTKRT461/lib/dtk/dtalk_sp.dic
+		ln -fs /usr/opt/DTKRT461/lib/dtk/dtalk_fr.dic \
+			./usr/lib/dtk/dtalk_fr.dic
+                chmod 666 /usr/opt/DTKRT461/lib/dtk/dtalk_fr.dic
+		ln -fs /usr/opt/DTKRT461/lib/dtk/dtalk_gr.dic \
+			./usr/lib/dtk/dtalk_gr.dic
+                chmod 666 /usr/opt/DTKRT461/lib/dtk/dtalk_gr.dic
+		ln -fs /usr/opt/DTKRT461/lib/dtk/dtalk_la.dic \
+			./usr/lib/dtk/dtalk_la.dic
+                chmod 666 /usr/opt/DTKRT461/lib/dtk/dtalk_la.dic
+
+                ###########################################################
+                #
+                # create soft links to the examples
+                #
+                ###########################################################
+                
+                ###########################################################
+                # speak in the bin area
+                ###########################################################
+
+                ln -fs /usr/opt/DTKRT461/examples/dtk/speak/speak.uid \
+			./usr/lib/X11/uid/speak.uid
+                ln -fs /usr/opt/DTKRT461/examples/dtk/speak/speak \
+                        ./usr/bin/X11/speak
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/dtk.gif \
+                        ./usr/include/X11/bitmaps/dtk/dtk.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/windict.gif \
+                        ./usr/include/X11/bitmaps/dtk/windict.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/bet16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/bet16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/bet16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/bet16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/den16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/den16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/den16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/den16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/fra16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/fra16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/fra16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/fra16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/har16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/har16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/har16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/har16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/kid16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/kid16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/kid16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/kid16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/pau16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/pau16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/pau16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/pau16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/rit16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/rit16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/rit16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/rit16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/urs16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/urs16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/urs16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/urs16b.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/wen16a.gif \
+                        ./usr/include/X11/bitmaps/dtk/wen16a.gif
+                ln -fs \
+		/usr/opt/DTKRT461/examples/dtk/speak/bitmaps/wen16b.gif \
+                        ./usr/include/X11/bitmaps/dtk/wen16b.gif
+
+                chmod 666 /usr/opt/DTKRT461/examples/dtk/speak/bitmaps/*.gif 
+
+                ###########################################################
+                # Softlinks to aclock
+                ###########################################################
+                #
+                # create soft links to Multimedia directory
+                #
+                if [ ! -f /usr/examples/dtk/dtsamples ]
+                then
+                    mkdir -p /usr/examples/dtk/dtsamples 2> /dev/null
+                fi
+                                             
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/aclock \
+                        ./usr/examples/dtk/dtsamples/aclock
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/aclock \
+                        ./usr/bin/aclock
+                ###########################################################
+                # Softlinks to speak.c
+                ###########################################################
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/say \
+                        ./usr/examples/dtk/dtsamples/say
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/say \
+                        ./usr/bin/say
+                ###########################################################
+                # Softlinks to user dictionary files
+                ###########################################################
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/user.tab \
+                        ./usr/examples/dtk/dtsamples/user.tab
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/user.dic \
+                        ./usr/examples/dtk/dtsamples/user.dic
+                ###########################################################
+                # Softlinks to sample data files 
+                ###########################################################
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/birthday.txt \
+			./usr/examples/dtk/dtsamples/birthday.txt
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/demo.txt \
+			./usr/examples/dtk/dtsamples/demo.txt
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/noglass.txt \
+			./usr/examples/dtk/dtsamples/noglass.txt
+                ln -fs /usr/opt/DTKRT461/examples/dtk/dtsamples/startup.txt \
+			./usr/examples/dtk/dtsamples/startup.txt
+                exit 0
+                ;;
+
+            DELETE)
+                ###########################################################
+                #
+                # delete the soft link shareables and tools 
+                #
+                ###########################################################
+                rm -f ./usr/lib/dtk/dtklock
+                rm -f ./usr/bin/userdict
+                rm -f ./usr/bin/windict
+                rm -f ./usr/bin/windict_us
+                rm -f ./usr/bin/windict_uk
+                rm -f ./usr/bin/windict_sp
+                rm -f ./usr/bin/windict_fr
+                rm -f ./usr/bin/windict_gr
+                rm -f ./usr/bin/windict_la
+		rm -f ./usr/shlib/libtts.so
+		rm -f ./usr/shlib/libtts_us.so
+		rm -f ./usr/shlib/libtts_uk.so
+		rm -f ./usr/shlib/libtts_sp.so
+		rm -f ./usr/shlib/libtts_gr.so
+		rm -f ./usr/shlib/libtts_fr.so
+		rm -f ./usr/shlib/libtts_la.so
+		rm -f ./usr/shlib/libttsmme.so
+		rm -f ./usr/shlib/libttsmme_us.so
+		rm -f ./usr/shlib/libttsmme_uk.so
+		rm -f ./usr/shlib/libttsmme_sp.so
+		rm -f ./usr/shlib/libttsmme_gr.so
+		rm -f ./usr/shlib/libttsmme_fr.so
+		rm -f ./usr/shlib/libttsmme_la.so
+                rm -f ./usr/lib/X11/uid/windict.uid
+                ###########################################################
+                #
+                # delete the soft link examples
+                #
+                ###########################################################
+                rm -f ./usr/examples/dtk/dtsamples/aclock
+                rm -f ./usr/bin/aclock
+                rm -f ./usr/examples/dtk/dtsamples/say
+                rm -f ./usr/bin/say
+                rm -f ./usr/examples/dtk/dtsamples/user.tab
+                rm -f ./usr/examples/dtk/dtsamples/user.dic
+		rm -f ./usr/examples/dtk/dtsamples/birthday.txt
+		rm -f ./usr/examples/dtk/dtsamples/demo.txt
+		rm -f ./usr/examples/dtk/dtsamples/noglass.txt
+		rm -f ./usr/examples/dtk/dtsamples/startup.txt
+                ###########################################################
+                #
+                # Delete executables of example programs
+                # if they exist.
+                #
+                ###########################################################
+                rm -f ./usr/bin/X11/speak
+                rm -f ./usr/lib/X11/uid/speak.uid
+
+                ###########################################################
+                #  Remove the bitmap files
+                ###########################################################
+                rm -f ./usr/include/X11/bitmaps/dtk/*
+
+                ###########################################################
+		#  Make sure that there are no other dependencies on
+		#  these files before you delete them.
+                ###########################################################
+		rm -f ./usr/lib/dtk/dectalk.dic
+		rm -f ./usr/lib/dtk/dtalk_us.dic
+		rm -f ./usr/lib/dtk/dtalk_uk.dic
+		rm -f ./usr/lib/dtk/dtalk_sp.dic
+		rm -f ./usr/lib/dtk/dtalk_gr.dic
+		rm -f ./usr/lib/dtk/dtalk_fr.dic
+		rm -f ./usr/lib/dtk/dtalk_la.dic
+                ;;
+
+        esac
+        ;;
+                               
+    ###########################################################
+    #
+    # Post-deletion : unlock dependencies
+    #
+    ###########################################################
+    POST_D)
+        STL_LockInit
+        ###########################################################
+        #
+        # delete the directories
+        #
+        ###########################################################
+        rmdir /usr/opt/DTKRT461/examples/dtk/speak/bitmaps 2> /dev/null
+        rmdir /usr/opt/DTKRT461/examples/dtk/speak 2> /dev/null
+        rmdir /usr/opt/DTKRT461/examples/dtk/dtsamples  2> /dev/null
+        rmdir /usr/opt/DTKRT461/examples/dtk 	2> /dev/null
+        rmdir /usr/opt/DTKRT461/examples 		2> /dev/null
+	rmdir /usr/opt/DTKRT461/shlib 		2> /dev/null
+	rmdir /usr/opt/DTKRT461/lib/dtk 	2> /dev/null
+	rmdir /usr/opt/DTKRT461/lib 		2> /dev/null
+	rmdir /usr/opt/DTKRT461/ivp             2> /dev/null
+        rmdir /usr/opt/DTKRT461/tools 		2> /dev/null
+        rmdir /usr/opt/DTKRT461 		2> /dev/null
+        rmdir /usr/include/X11/bitmaps/dtk 	2> /dev/null
+        rmdir /usr/examples/dtk/dtsamples   2> /dev/null
+        rmdir /usr/examples/dtk 		2> /dev/null
+        rmdir /usr/lib/dtk 			2> /dev/null
+        ;;
+esac
+
+exit 0

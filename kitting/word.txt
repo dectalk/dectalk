@@ -1,0 +1,82 @@
+Sub MAIN
+If AppIsRunning("TTSsrv") = 0 Then
+    Shell "TTSSRV.EXE", 0
+    rightNow = Now()
+    diffTime = 0
+    Print "Starting DECtalk Server"
+    WaitCursor 1
+    While diffTime < 0.00003
+        diffTime = Now() - rightNow
+    Wend
+    WaitCursor 0
+    Print " "
+
+    If AppIsRunning("TTSsrv") = 0 Then
+        MsgBox("Cannot find TTSSRV.EXE in the path", "Speak", 0)
+        Goto FINIS
+    End If
+End If
+
+    channel = DDEInitiate("TTSserver", "Speak")
+    If channel = 0 Then
+        MsgBox("Unable to connect to TTSSRV.EXE", "Speak", 0)
+        Goto FINIS
+    Else
+        DDEPoke channel, "Speak", Selection$()
+        DDETerminate channel
+    End If
+
+FINIS:
+End Sub
+
+
+Sub DECtalkTTSmacro()
+
+' DECtalkTTSmacro Macro
+' Macro created 08/08/97 by Nick Shin
+' This section of code is for the MS Word7 Application.
+
+' Variable declaration
+Dim Response, rightNow, diffTime, chan
+
+' There should be only one TTSsrv running.
+' Then that server program can be left running thus eliminating
+' the constant loading and exiting of the server when running Speak.
+If Tasks.Exists("TTSsrv") = 0 Then
+    ' Starting the DECtalk Server program since none is running
+    StatusBar = "Starting DECtalk Server"
+    System.Cursor = wdCursorWait
+    Response = Shell("TTSSRV.EXE", 0)
+
+    ' Wait until the CPU is done loading the program
+    rightNow = Now()
+    diffTime = 0
+    While diffTime < 0.00003
+        diffTime = Now() - rightNow
+    Wend
+    
+    StatusBar = " "
+    System.Cursor = wdCursorNormal
+    If Response = 0 Then
+        ' The program did not get loaded
+        Response = MsgBox("Cannot find TTSSRV.EXE in the path", vbYesNo, "Speak")
+        GoTo FINIS
+    End If
+End If
+
+' Open (a channel) with the program Speak
+chan = DDEInitiate(App:="TTSserver", Topic:="Speak")
+
+If chan = 0 Then
+    ' Failed to connect to the server
+    Response = MsgBox("Unable to connect to TTSSRV.EXE", vbYesNo, "Speak")
+    GoTo FINIS
+Else
+    ' All is well, so play Speak with the selected text and then close the channel
+    DDEPoke channel:=chan, Item:="Speak", Data:=Selection.Text
+    DDETerminate channel:=chan
+End If
+
+FINIS:
+End Sub
+

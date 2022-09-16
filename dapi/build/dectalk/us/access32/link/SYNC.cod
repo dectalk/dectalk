@@ -1,0 +1,1143 @@
+	TITLE	D:\work\Product\dapi\src\vtm\SYNC.C
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_sync_main@4
+EXTRN	__imp__free:NEAR
+EXTRN	_Report_TTS_Status:NEAR
+EXTRN	__imp__SetEvent@4:NEAR
+EXTRN	_read_pipe:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_control$ = -16
+_dwSyncParams$ = -12
+_pAudioHandle$ = -20
+_ptTag$71504 = 8
+_sync_main@4 PROC NEAR
+
+; 157  : {
+
+  00000	83 ec 14	 sub	 esp, 20			; 00000014H
+  00003	53		 push	 ebx
+  00004	55		 push	 ebp
+  00005	56		 push	 esi
+
+; 158  :   DWORD control;
+; 159  :   DWORD	dwSampleToWaitFor=0;	//tek 07aug97 sapi notifications
+; 160  : //#ifdef WIN32 // this is for visual notifications.  we may want to turn these on for UNIX
+; 161  :   DWORD dwTimeSamplePlayed=0;	// tek 08jan98 bats 546
+; 162  : //#endif
+; 163  :   DWORD dwSyncParams[3];
+; 164  :   LPAUDIO_HANDLE_T pAudioHandle;
+; 165  :   /*MVP : Get the instance kernel_share data structure,instance VTM thread data */
+; 166  :   PKSD_T pKsd_t = phTTS->pKernelShareData;
+
+  00006	8b 74 24 24	 mov	 esi, DWORD PTR _phTTS$[esp+28]
+  0000a	57		 push	 edi
+  0000b	33 db		 xor	 ebx, ebx
+
+; 167  :   //PVTM_T pVtm_t = phTTS->pVTMThreadData; // MGS warning removal
+; 168  :   LPARAM	lparmIndexValue=0; // 01aug97 bats 404 et al
+; 169  :   
+; 170  : #if defined (__osf__) || defined (__linux__)
+; 171  :   /* Initialize thread error field to no error */
+; 172  :   phTTS->uiThreadError = MMSYSERR_NOERROR;
+; 173  : #endif
+; 174  :   
+; 175  :   /********************************************************************/
+; 176  :   /*  Get the Audio Handle.                                           */
+; 177  :   /********************************************************************/
+; 178  : 
+; 179  :   pAudioHandle = phTTS->pAudioHandle;
+
+  0000d	8b 86 d8 00 00
+	00		 mov	 eax, DWORD PTR [esi+216]
+  00013	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  00016	89 44 24 10	 mov	 DWORD PTR _pAudioHandle$[esp+36], eax
+$L71483:
+
+; 180  : 
+; 181  :   /********************************************************************/
+; 182  :   /*  Loop and process parameter blocks.                              */
+; 183  :   /********************************************************************/
+; 184  : 
+; 185  : 
+; 186  :   for(;;)
+; 187  :   {
+; 188  : 	read_pipe( pKsd_t->sync_pipe, &control, 1 );
+
+  0001a	8b 95 a0 02 00
+	00		 mov	 edx, DWORD PTR [ebp+672]
+  00020	8d 4c 24 14	 lea	 ecx, DWORD PTR _control$[esp+36]
+  00024	6a 01		 push	 1
+  00026	51		 push	 ecx
+  00027	52		 push	 edx
+  00028	e8 00 00 00 00	 call	 _read_pipe
+
+; 189  : 
+; 190  : 	switch ( control )
+; 191  : 	{
+
+  0002d	8b 44 24 20	 mov	 eax, DWORD PTR _control$[esp+48]
+  00031	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00034	3d 07 02 00 00	 cmp	 eax, 519		; 00000207H
+  00039	0f 87 24 01 00
+	00		 ja	 $L71578
+  0003f	0f 84 37 01 00
+	00		 je	 $L71508
+  00045	3d 80 00 00 00	 cmp	 eax, 128		; 00000080H
+  0004a	0f 87 07 01 00
+	00		 ja	 $L71579
+  00050	74 64		 je	 SHORT $L71493
+  00052	83 e8 07	 sub	 eax, 7
+  00055	0f 84 21 01 00
+	00		 je	 $L71508
+  0005b	48		 dec	 eax
+  0005c	75 bc		 jne	 SHORT $L71483
+
+; 192  : 	case SPC_type_sync:
+; 193  : 
+; 194  : 	read_pipe( pKsd_t->sync_pipe, dwSyncParams, 1 );
+
+  0005e	8b 8d a0 02 00
+	00		 mov	 ecx, DWORD PTR [ebp+672]
+  00064	8d 44 24 18	 lea	 eax, DWORD PTR _dwSyncParams$[esp+36]
+  00068	6a 01		 push	 1
+  0006a	50		 push	 eax
+  0006b	51		 push	 ecx
+  0006c	e8 00 00 00 00	 call	 _read_pipe
+
+; 195  : 
+; 196  : #ifdef TYPING_MODE
+; 197  : 	// never wait for the sample to play when we're in typing mode..
+; 198  : 	if (!phTTS->bInTypingMode)
+
+  00071	8b 86 dc 00 00
+	00		 mov	 eax, DWORD PTR [esi+220]
+  00077	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0007a	85 c0		 test	 eax, eax
+  0007c	75 29		 jne	 SHORT $L71492
+
+; 199  : #endif //TYPING_MODE
+; 200  : 
+; 201  : 	if ( ! pKsd_t->halting )
+
+  0007e	8b 85 34 03 00
+	00		 mov	 eax, DWORD PTR [ebp+820]
+  00084	85 c0		 test	 eax, eax
+  00086	75 1f		 jne	 SHORT $L71492
+
+; 202  : 	{
+; 203  : 	  /************************************************************/
+; 204  : 	  /*  If the audio device is being used then wait for the     */
+; 205  : 	  /*  specified audio sample to play.                         */
+; 206  : 	  /************************************************************/
+; 207  : 
+; 208  : 	  if (( phTTS->dwDeviceOptions & DO_NOT_USE_AUDIO_DEVICE ) == 0 )
+
+  00088	f7 46 78 00 00
+	00 80		 test	 DWORD PTR [esi+120], -2147483648 ; 80000000H
+  0008f	75 16		 jne	 SHORT $L71492
+
+; 209  : 	  {
+; 210  : 
+; 211  : 		WaitForAudioSampleToPlay( phTTS->pKernelShareData,
+; 212  : 							  pAudioHandle,
+; 213  : 					  dwSyncParams[0]
+; 214  : 					);
+
+  00091	8b 54 24 18	 mov	 edx, DWORD PTR _dwSyncParams$[esp+36]
+  00095	8b 44 24 10	 mov	 eax, DWORD PTR _pAudioHandle$[esp+36]
+  00099	8b 4e 08	 mov	 ecx, DWORD PTR [esi+8]
+  0009c	52		 push	 edx
+  0009d	50		 push	 eax
+  0009e	51		 push	 ecx
+  0009f	e8 00 00 00 00	 call	 _WaitForAudioSampleToPlay
+  000a4	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71492:
+
+; 215  : 	  }
+; 216  : 	}
+; 217  : 
+; 218  : /* GL 04/21/1997  change this for OSF build */
+; 219  : #ifdef WIN32
+; 220  : 	SetEvent( phTTS->hSyncEvent );
+
+  000a7	8b 56 38	 mov	 edx, DWORD PTR [esi+56]
+  000aa	52		 push	 edx
+  000ab	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 221  : #endif
+; 222  : #if defined (__osf__) || defined (__linux__)
+; 223  : 	OP_SetEvent( phTTS->hSyncEvent );
+; 224  : #endif
+; 225  : 	break;	// end of the basic SPC_type_sync
+
+  000b1	e9 64 ff ff ff	 jmp	 $L71483
+$L71493:
+
+; 226  : 
+; 227  : 	case SPC_type_visual: // tek 27aug97
+; 228  : 		// this is a lot like the index types below, but that was getting so 
+; 229  : 		// cluttered that I put it in a separate case arm. 
+; 230  : 		read_pipe( pKsd_t->sync_pipe, dwSyncParams, 3 );  // get the rest of the pkt
+
+  000b6	8b 8d a0 02 00
+	00		 mov	 ecx, DWORD PTR [ebp+672]
+  000bc	8d 44 24 18	 lea	 eax, DWORD PTR _dwSyncParams$[esp+36]
+  000c0	6a 03		 push	 3
+  000c2	50		 push	 eax
+  000c3	51		 push	 ecx
+  000c4	e8 00 00 00 00	 call	 _read_pipe
+
+; 231  : //#ifdef WIN32 // tek 08jan98 we only process these for WIN32 for now.
+; 232  : 		// wait for it to play
+; 233  : 		if (dwSyncParams[2]) //toss nulls
+
+  000c9	8b 7c 24 2c	 mov	 edi, DWORD PTR _dwSyncParams$[esp+56]
+  000cd	83 c4 0c	 add	 esp, 12			; 0000000cH
+  000d0	85 ff		 test	 edi, edi
+  000d2	0f 84 42 ff ff
+	ff		 je	 $L71483
+
+; 234  : 		{
+; 235  : #ifdef __osf__ 
+; 236  : 			PVISUAL_DATA pvdData = (PVISUAL_DATA)((((long)(dwSyncParams[1])) << 32) | (long)(dwSyncParams[2])); // tek 21sep98
+; 237  : #else
+; 238  : 			PVISUAL_DATA pvdData = (PVISUAL_DATA)(dwSyncParams[2]); // tek 21sep98
+; 239  : #endif
+; 240  : 			dwSampleToWaitFor = (DWORD)((PVISUAL_DATA)(pvdData))->qTimeStamp&0x00000000FFFFFFFF; // NAL warning removal
+
+  000d8	8b 07		 mov	 eax, DWORD PTR [edi]
+
+; 241  : 			// tek 03sep97 note that we always get a visual notification before we send any samples, 
+; 242  : 			// so we need to bump this by one so that this first notification doesn't happen
+; 243  : 			// before we catually start playing audio..
+; 244  : 			if (dwSampleToWaitFor == 0)
+
+  000da	85 c0		 test	 eax, eax
+  000dc	75 05		 jne	 SHORT $L71499
+
+; 245  : 				dwSampleToWaitFor = 1;
+
+  000de	b8 01 00 00 00	 mov	 eax, 1
+$L71499:
+
+; 246  : 
+; 247  : #ifdef VTM_DEBUG //tek 17aug97
+; 248  : 			{
+; 249  : 				char szTemp[256]="";
+; 250  : 				sprintf(szTemp,"sync: should wait for %lu at %lu\n",
+; 251  : 					dwSampleToWaitFor,
+; 252  : 					timeGetTime());
+; 253  : 				OutputDebugString(szTemp);
+; 254  : 			}
+; 255  : #endif //VTM_DEBUG
+; 256  : 
+; 257  : 		 	if (   (( phTTS->dwDeviceOptions & DO_NOT_USE_AUDIO_DEVICE ) == 0 )
+; 258  : 				 &&(!pKsd_t->halting)
+; 259  : 			   )
+
+  000e3	f7 46 78 00 00
+	00 80		 test	 DWORD PTR [esi+120], -2147483648 ; 80000000H
+  000ea	75 1e		 jne	 SHORT $L71500
+  000ec	8b 8d 34 03 00
+	00		 mov	 ecx, DWORD PTR [ebp+820]
+  000f2	85 c9		 test	 ecx, ecx
+  000f4	75 14		 jne	 SHORT $L71500
+
+; 260  : 			  {
+; 261  : 				dwTimeSamplePlayed = WaitForAudioSampleToPlay( phTTS->pKernelShareData,
+; 262  : 									  pAudioHandle,
+; 263  : 									  dwSampleToWaitFor
+; 264  : 							);
+
+  000f6	8b 54 24 10	 mov	 edx, DWORD PTR _pAudioHandle$[esp+36]
+  000fa	50		 push	 eax
+  000fb	8b 46 08	 mov	 eax, DWORD PTR [esi+8]
+  000fe	52		 push	 edx
+  000ff	50		 push	 eax
+  00100	e8 00 00 00 00	 call	 _WaitForAudioSampleToPlay
+  00105	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00108	8b d8		 mov	 ebx, eax
+$L71500:
+
+; 265  : 			  }
+; 266  : 			else
+; 267  : 			{
+; 268  : #ifdef VTM_DEBUG
+; 269  : 				{
+; 270  : 				char szTemp[256]="";
+; 271  : 				sprintf(szTemp,"sync: did not wait?\n");
+; 272  : 				OutputDebugString(szTemp);
+; 273  : 				}
+; 274  : #endif //VTM_DEBUG
+; 275  : 
+; 276  : 			}
+; 277  : #ifdef VTM_DEBUG //tek 17aug97
+; 278  : 			{
+; 279  : 				char szTemp[256]="";
+; 280  : 				sprintf(szTemp,"sync: VisMes=%u, pMarkData=0x%08lx exactSamp:%ld at %lu\n",
+; 281  : 					phTTS->uiID_Visual_Message,
+; 282  : 					dwSyncParams[2],
+; 283  : 					dwSampleToWaitFor,
+; 284  : 					timeGetTime());
+; 285  : 				OutputDebugString(szTemp);
+; 286  : 			}
+; 287  : #endif //VTM_DEBUG
+; 288  : 
+; 289  : 			// tek 07jan98 bats 546
+; 290  : 			// the report format is different for DAPI and SAPI;
+; 291  : 			// SAPI takes the Visual_Data and unpacks it in the 
+; 292  : 			// API code (which receives the Report_TTS_Status),
+; 293  : 			// but DAPI needs to pack up the data and free the
+; 294  : 			// structure because the user may be ignoring this
+; 295  : 			// (which would be a memory leak if we passed back the
+; 296  : 			// pvd pointer..).
+; 297  : 			// the DAPI wparam is the time (compatible with timeGetTime())
+; 298  : 			// that the phoneme actually started to play)
+; 299  : 			
+; 300  : 			//tek 21sep98 toss any visual marks if we're halting.
+; 301  : 			if (pKsd_t->halting)
+
+  0010a	8b 85 34 03 00
+	00		 mov	 eax, DWORD PTR [ebp+820]
+  00110	85 c0		 test	 eax, eax
+  00112	74 0f		 je	 SHORT $L71502
+
+; 302  : 			{
+; 303  : #ifdef VTM_DEBUG
+; 304  : 				char szTemp[256];
+; 305  : 				sprintf(szTemp, "sync freeing %08lx due to halting at %lu\n",
+; 306  : 					pvdData, timeGetTime());
+; 307  : 				OutputDebugString(szTemp);
+; 308  : #endif //VTM_DEBUG
+; 309  : 				free(pvdData);
+
+  00114	57		 push	 edi
+  00115	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__free
+  0011b	83 c4 04	 add	 esp, 4
+
+; 310  : 			}
+; 311  : 			else
+
+  0011e	e9 f7 fe ff ff	 jmp	 $L71483
+$L71502:
+
+; 312  : 			{
+; 313  : #ifdef OLEDECTALK // the SAPI version..
+; 314  : 			  Report_TTS_Status(  phTTS,
+; 315  : 								phTTS->uiID_Visual_Message,
+; 316  : 								(WPARAM)0,
+; 317  : 								(LPARAM)dwSyncParams[2]);
+; 318  : #else // !OLEDECTALK, the DAPI version
+; 319  : 			  {
+; 320  : 				  PHONEME_TAG ptTag;
+; 321  : 				  // fill in the fields..
+; 322  : 				  ptTag.pmData.cThisPhoneme = pvdData->cEnginePhoneme;
+
+  00123	8a 4f 14	 mov	 cl, BYTE PTR [edi+20]
+
+; 323  : 				  ptTag.pmData.cNextPhoneme = '\0'; // NAL warning removal
+; 324  : 				  ptTag.pmData.wDuration = (WORD)(pvdData->dwDuration);
+
+  00126	66 8b 57 0c	 mov	 dx, WORD PTR [edi+12]
+  0012a	88 4c 24 28	 mov	 BYTE PTR _ptTag$71504[esp+32], cl
+
+; 325  : 
+; 326  : #if defined __osf__ || defined __linux__
+; 327  : 				if (phTTS->uiID_Visual_Message!=0xDEADC0DE)
+; 328  : #endif
+; 329  : 				  Report_TTS_Status(  phTTS,
+; 330  : 								phTTS->uiID_Visual_Message,
+; 331  : 								(WPARAM)dwTimeSamplePlayed,
+; 332  : 								(LPARAM)ptTag.dwData);				  
+
+  0012e	8b 4e 70	 mov	 ecx, DWORD PTR [esi+112]
+  00131	c6 44 24 29 00	 mov	 BYTE PTR _ptTag$71504[esp+33], 0
+  00136	66 89 54 24 2a	 mov	 WORD PTR _ptTag$71504[esp+34], dx
+  0013b	8b 44 24 28	 mov	 eax, DWORD PTR _ptTag$71504[esp+32]
+  0013f	50		 push	 eax
+  00140	53		 push	 ebx
+  00141	51		 push	 ecx
+  00142	56		 push	 esi
+  00143	e8 00 00 00 00	 call	 _Report_TTS_Status
+
+; 333  : 				  // free the holder of the data..
+; 334  : 				  free(pvdData);
+
+  00148	57		 push	 edi
+  00149	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__free
+  0014f	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 335  : 
+; 336  : 			  }
+; 337  : #endif //OLEDECTALK
+; 338  : 			}
+; 339  : 		}
+; 340  : //#endif //WIN32
+; 341  : 
+; 342  : 	break; // end of SPC_type_visual
+
+  00152	e9 c3 fe ff ff	 jmp	 $L71483
+$L71579:
+
+; 189  : 
+; 190  : 	switch ( control )
+; 191  : 	{
+
+  00157	3d 07 01 00 00	 cmp	 eax, 263		; 00000107H
+  0015c	74 1e		 je	 SHORT $L71508
+  0015e	e9 b7 fe ff ff	 jmp	 $L71483
+$L71578:
+  00163	3d 07 03 00 00	 cmp	 eax, 775		; 00000307H
+  00168	74 12		 je	 SHORT $L71508
+  0016a	3d 07 04 00 00	 cmp	 eax, 1031		; 00000407H
+  0016f	74 0b		 je	 SHORT $L71508
+  00171	3d 07 06 00 00	 cmp	 eax, 1543		; 00000607H
+
+; 445  : 		  } // switch
+; 446  : 
+; 447  : 	  }	// (  ! pKsd_t->halting )
+; 448  : 	  else
+; 449  : 	  {
+; 450  : #ifdef OLEDECTALK
+; 451  : 		  // free the memory
+; 452  : #ifdef VTM_DEBUG
+; 453  : 		{
+; 454  : 			char szTemp[256]="";
+; 455  : 			sprintf(szTemp,"Sync freeing %08lx at %lu\n",
+; 456  : 				dwSyncParams[2],timeGetTime());
+; 457  : 			OutputDebugString(szTemp);
+; 458  : 		}
+; 459  : #endif //VTM_DEBUG
+; 460  : 
+; 461  : 		  free((void *)(dwSyncParams[2]));
+; 462  : #endif //OLEDECTALK
+; 463  : 	  }
+; 464  : 	break;  //end of special subtypes
+; 465  : 
+; 466  : 	default:
+; 467  : 	  break;
+
+  00176	0f 85 9e fe ff
+	ff		 jne	 $L71483
+$L71508:
+
+; 343  : 
+; 344  : 
+; 345  : 	case SPC_type_index:
+; 346  : 	case (SPC_type_index|SPC_subtype_bookmark):	//tek 01aug97 bats 404
+; 347  : 	case (SPC_type_index|SPC_subtype_wordpos):
+; 348  : 	case (SPC_type_index|SPC_subtype_start):
+; 349  : 	case (SPC_type_index|SPC_subtype_stop):
+; 350  : 	case (SPC_type_index|SPC_subtype_volume):
+; 351  : 	// tek 15aug97 these are now all changed to always either process the
+; 352  : 	// mark or free the contained memory,
+; 353  : 
+; 354  : 	read_pipe( pKsd_t->sync_pipe, dwSyncParams, 3 );
+
+  0017c	8b 85 a0 02 00
+	00		 mov	 eax, DWORD PTR [ebp+672]
+  00182	8d 54 24 18	 lea	 edx, DWORD PTR _dwSyncParams$[esp+36]
+  00186	6a 03		 push	 3
+  00188	52		 push	 edx
+  00189	50		 push	 eax
+  0018a	e8 00 00 00 00	 call	 _read_pipe
+
+; 355  : 
+; 356  : 
+; 357  : 	  /************************************************************/
+; 358  : 	  /*  If the audio device is being used then wait for the     */
+; 359  : 	  /*  specified audio sample to play.                         */
+; 360  : 	  /************************************************************/
+; 361  : #ifdef OLEDECTALK
+; 362  : 		// the sample to wait for is now tucked inside a MARK_DATA structure
+; 363  : 		// within the vtm task.. unpack it.
+; 364  : 		dwSampleToWaitFor = ((PMARK_DATA)(dwSyncParams[2]))->qTimeStamp&0x00000000FFFFFFFF;
+; 365  : #else //OLEDECTALK
+; 366  : 		dwSampleToWaitFor = dwSyncParams[2];
+; 367  : #endif //OLEDECTALK
+; 368  : 	  //tek 07aug97
+; 369  : #ifdef VTM_DEBUG
+; 370  : 		{
+; 371  : 			char szTemp[256]="";
+; 372  : 			sprintf(szTemp,"Sync (type %x) waiting for sample %08lx at %lu\n",
+; 373  : 				(int)control,dwSampleToWaitFor,timeGetTime());
+; 374  : 			OutputDebugString(szTemp);
+; 375  : 		}
+; 376  : #endif //VTM_DEBUG
+; 377  : 
+; 378  : 	  if (   (( phTTS->dwDeviceOptions & DO_NOT_USE_AUDIO_DEVICE ) == 0 )
+; 379  : 		   &&(!pKsd_t->halting)
+; 380  : 		 )
+
+  0018f	8b 46 78	 mov	 eax, DWORD PTR [esi+120]
+  00192	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00195	a9 00 00 00 80	 test	 eax, -2147483648	; 80000000H
+  0019a	75 24		 jne	 SHORT $L71509
+  0019c	8b 85 34 03 00
+	00		 mov	 eax, DWORD PTR [ebp+820]
+  001a2	85 c0		 test	 eax, eax
+  001a4	0f 85 70 fe ff
+	ff		 jne	 $L71483
+
+; 381  : 	  {
+; 382  : 		WaitForAudioSampleToPlay( phTTS->pKernelShareData,
+; 383  : 							  pAudioHandle,
+; 384  : 							  dwSampleToWaitFor
+; 385  : 					);
+
+  001aa	8b 4c 24 20	 mov	 ecx, DWORD PTR _dwSyncParams$[esp+44]
+  001ae	8b 54 24 10	 mov	 edx, DWORD PTR _pAudioHandle$[esp+36]
+  001b2	8b 46 08	 mov	 eax, DWORD PTR [esi+8]
+  001b5	51		 push	 ecx
+  001b6	52		 push	 edx
+  001b7	50		 push	 eax
+  001b8	e8 00 00 00 00	 call	 _WaitForAudioSampleToPlay
+  001bd	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71509:
+
+; 386  : 	  }
+; 387  : 
+; 388  : 	  if ( ! pKsd_t->halting ) // we have to look again after sleeping
+
+  001c0	8b 85 34 03 00
+	00		 mov	 eax, DWORD PTR [ebp+820]
+  001c6	85 c0		 test	 eax, eax
+  001c8	0f 85 4c fe ff
+	ff		 jne	 $L71483
+
+; 389  : 	  {
+; 390  : 		  // tek 01aug97 bats404 
+; 391  : 
+; 392  : 		  // glue together the two halves of the index value..
+; 393  : 		  lparmIndexValue =  (LPARAM)( (dwSyncParams[0]<<16) | (dwSyncParams[1]&0xFFFF));
+
+  001ce	8b 54 24 18	 mov	 edx, DWORD PTR _dwSyncParams$[esp+36]
+  001d2	8b 44 24 1c	 mov	 eax, DWORD PTR _dwSyncParams$[esp+40]
+  001d6	8b ca		 mov	 ecx, edx
+  001d8	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  001dd	c1 e1 10	 shl	 ecx, 16			; 00000010H
+  001e0	0b c1		 or	 eax, ecx
+
+; 394  : #ifdef VTM_DEBUG
+; 395  : 		{
+; 396  : 			char szTemp[256]="";
+; 397  : 			sprintf(szTemp,"Sync type %d param[2]=%08lx at %lu\n",
+; 398  : 				control, dwSyncParams[2],timeGetTime());
+; 399  : 			OutputDebugString(szTemp);
+; 400  : 		}
+; 401  : #endif //VTM_DEBUG
+; 402  : 
+; 403  : 
+; 404  : 		  // report the event..
+; 405  : 
+; 406  : 		  switch(control)
+; 407  : 		  {
+
+  001e2	8b 4c 24 14	 mov	 ecx, DWORD PTR _control$[esp+36]
+  001e6	81 f9 07 03 00
+	00		 cmp	 ecx, 775		; 00000307H
+  001ec	77 51		 ja	 SHORT $L71577
+  001ee	74 3a		 je	 SHORT $L71520
+  001f0	81 f9 07 01 00
+	00		 cmp	 ecx, 263		; 00000107H
+  001f6	74 1d		 je	 SHORT $L71516
+  001f8	81 f9 07 02 00
+	00		 cmp	 ecx, 519		; 00000207H
+  001fe	75 47		 jne	 SHORT $L71524
+
+; 415  : 		  case (SPC_type_index|SPC_subtype_wordpos):
+; 416  : #ifdef OLEDECTALK
+; 417  : 		    lparmIndexValue = (LPARAM)(dwSyncParams[2]);
+; 418  : 			if (lparmIndexValue) //toss nulls
+; 419  : #endif //OLEDECTALK
+; 420  :  				Report_TTS_Status(phTTS,phTTS->uiID_Wordpos_Message,(WPARAM)TTS_INDEX_WORDPOS,lparmIndexValue);
+
+  00200	8b 56 64	 mov	 edx, DWORD PTR [esi+100]
+  00203	50		 push	 eax
+  00204	6a 10		 push	 16			; 00000010H
+  00206	52		 push	 edx
+  00207	56		 push	 esi
+  00208	e8 00 00 00 00	 call	 _Report_TTS_Status
+  0020d	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 421  : 			break;
+
+  00210	e9 05 fe ff ff	 jmp	 $L71483
+$L71516:
+
+; 408  : 		  case (SPC_type_index|SPC_subtype_bookmark):
+; 409  : #ifdef OLEDECTALK
+; 410  : 		    lparmIndexValue = (LPARAM)(dwSyncParams[2]);
+; 411  : 			if (lparmIndexValue) //toss nulls
+; 412  : #endif //OLEDECTALK
+; 413  : 				Report_TTS_Status(phTTS,phTTS->uiID_Bookmark_Message,(WPARAM)TTS_INDEX_BOOKMARK,lparmIndexValue);
+
+  00215	50		 push	 eax
+  00216	8b 46 60	 mov	 eax, DWORD PTR [esi+96]
+  00219	6a 0f		 push	 15			; 0000000fH
+  0021b	50		 push	 eax
+  0021c	56		 push	 esi
+  0021d	e8 00 00 00 00	 call	 _Report_TTS_Status
+  00222	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 414  : 			break;
+
+  00225	e9 f0 fd ff ff	 jmp	 $L71483
+$L71520:
+
+; 422  : 		  case (SPC_type_index|SPC_subtype_start):
+; 423  : #ifdef OLEDECTALK
+; 424  : 		    lparmIndexValue = (LPARAM)(dwSyncParams[2]);
+; 425  : 			if (lparmIndexValue) //toss nulls
+; 426  : #endif //OLEDECTALK
+; 427  :  				Report_TTS_Status(phTTS,phTTS->uiID_Start_Message,(WPARAM)TTS_INDEX_START,lparmIndexValue);
+
+  0022a	8b 4e 68	 mov	 ecx, DWORD PTR [esi+104]
+  0022d	50		 push	 eax
+  0022e	6a 11		 push	 17			; 00000011H
+  00230	51		 push	 ecx
+  00231	56		 push	 esi
+  00232	e8 00 00 00 00	 call	 _Report_TTS_Status
+  00237	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 428  : 			break;
+
+  0023a	e9 db fd ff ff	 jmp	 $L71483
+$L71577:
+
+; 394  : #ifdef VTM_DEBUG
+; 395  : 		{
+; 396  : 			char szTemp[256]="";
+; 397  : 			sprintf(szTemp,"Sync type %d param[2]=%08lx at %lu\n",
+; 398  : 				control, dwSyncParams[2],timeGetTime());
+; 399  : 			OutputDebugString(szTemp);
+; 400  : 		}
+; 401  : #endif //VTM_DEBUG
+; 402  : 
+; 403  : 
+; 404  : 		  // report the event..
+; 405  : 
+; 406  : 		  switch(control)
+; 407  : 		  {
+
+  0023f	81 f9 07 04 00
+	00		 cmp	 ecx, 1031		; 00000407H
+  00245	74 15		 je	 SHORT $L71522
+$L71524:
+
+; 440  : 			break;
+; 441  : 
+; 442  : 		  default:
+; 443  :  			Report_TTS_Status(phTTS,phTTS->uiID_Index_Message,(WPARAM)TTS_INDEX_MARK,(LPARAM)dwSyncParams[0]);
+
+  00247	52		 push	 edx
+  00248	8b 56 58	 mov	 edx, DWORD PTR [esi+88]
+  0024b	6a 0e		 push	 14			; 0000000eH
+  0024d	52		 push	 edx
+  0024e	56		 push	 esi
+  0024f	e8 00 00 00 00	 call	 _Report_TTS_Status
+  00254	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 444  : 			break;
+
+  00257	e9 be fd ff ff	 jmp	 $L71483
+$L71522:
+
+; 429  : 		  case (SPC_type_index|SPC_subtype_stop):
+; 430  : #ifdef OLEDECTALK
+; 431  : #ifdef VTM_DEBUG
+; 432  : 			  {
+; 433  : 				  OutputDebugString("SPC_subtype_stop being reported.\n");
+; 434  : 			  }
+; 435  : #endif //VTM_DEBUG
+; 436  : 		    lparmIndexValue = (LPARAM)(dwSyncParams[2]);
+; 437  : 			if (lparmIndexValue) //toss nulls
+; 438  : #endif //OLEDECTALK
+; 439  :  				Report_TTS_Status(phTTS,phTTS->uiID_Stop_Message,(WPARAM)TTS_INDEX_STOP,lparmIndexValue);
+
+  0025c	50		 push	 eax
+  0025d	8b 46 6c	 mov	 eax, DWORD PTR [esi+108]
+  00260	6a 12		 push	 18			; 00000012H
+  00262	50		 push	 eax
+  00263	56		 push	 esi
+  00264	e8 00 00 00 00	 call	 _Report_TTS_Status
+  00269	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 468  : 	}
+; 469  :   }
+
+  0026c	e9 a9 fd ff ff	 jmp	 $L71483
+_sync_main@4 ENDP
+_TEXT	ENDS
+PUBLIC	__real@8@00000000000000000000
+EXTRN	__imp__Sleep@4:NEAR
+EXTRN	_pipe_count:NEAR
+EXTRN	_PA_GetPosition:NEAR
+EXTRN	__imp__timeGetTime@0:NEAR
+EXTRN	_PumpModeMessage:NEAR
+EXTRN	__ftol:NEAR
+EXTRN	__fltused:NEAR
+;	COMDAT __real@8@00000000000000000000
+; File D:\work\Product\dapi\src\vtm\SYNC.C
+CONST	SEGMENT
+__real@8@00000000000000000000 DQ 00000000000000000r ; 0
+CONST	ENDS
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_pAudioHandle$ = 12
+_dwSampleNumber$ = 16
+_dwPosition$ = -20
+_dMsecPerSample$ = -16
+_dwTime$ = 12
+_WaitForAudioSampleToPlay PROC NEAR
+
+; 527  : {
+
+  00280	83 ec 14	 sub	 esp, 20			; 00000014H
+  00283	53		 push	 ebx
+  00284	55		 push	 ebp
+
+; 528  : 	UINT uiVtmCount;
+; 529  : 	UINT uiPhCount;
+; 530  : 	UINT uiLtsCount;
+; 531  : 	int	iQueueCount;
+; 532  : 	DWORD dwPosition=0;
+; 533  : 	int iSleepTimeInMsec;
+; 534  : 	MMRESULT mmStatus;
+; 535  : 	double		dMsecPerSample=0;	//22may97 tek
+; 536  : 	DWORD	dwTime=0;	// tek 08jan98 bats 546 this generally
+; 537  : 	// holds the current system time, but is
+; 538  : 	// not used for OSF.
+; 539  : #if defined __osf__ || defined __linux__
+; 540  : 	struct timeval tv;
+; 541  : #endif
+; 542  : 
+; 543  : #ifndef OLEDECTALK // tek 30jun97 not used in SAPI
+; 544  : 	//WAVEFORMATEX	wfexWaveFormat;	//22may97 tek // NAL warning removal
+; 545  : #endif //OLEDECTALK
+; 546  : 	
+; 547  : 	//22may97 tek calculate the factor we use to figure our sleeps
+; 548  : 	// 01aug97 tek bats 423
+; 549  : 	// this is now precalculated when the format is set.
+; 550  : 	
+; 551  : 	if (  (pAudioHandle)
+; 552  : 		&&(pAudioHandle->dMsecPerSample)
+; 553  : 		)
+
+  00285	8b 6c 24 24	 mov	 ebp, DWORD PTR _pAudioHandle$[esp+24]
+  00289	33 c9		 xor	 ecx, ecx
+  0028b	56		 push	 esi
+  0028c	3b e9		 cmp	 ebp, ecx
+  0028e	57		 push	 edi
+  0028f	89 4c 24 10	 mov	 DWORD PTR _dwPosition$[esp+36], ecx
+  00293	74 29		 je	 SHORT $L71545
+  00295	dd 85 b0 00 00
+	00		 fld	 QWORD PTR [ebp+176]
+  0029b	dc 1d 00 00 00
+	00		 fcomp	 QWORD PTR __real@8@00000000000000000000
+  002a1	df e0		 fnstsw	 ax
+  002a3	f6 c4 40	 test	 ah, 64			; 00000040H
+  002a6	75 16		 jne	 SHORT $L71545
+
+; 554  : 	{
+; 555  : 		dMsecPerSample = pAudioHandle->dMsecPerSample;
+
+  002a8	8b 85 b0 00 00
+	00		 mov	 eax, DWORD PTR [ebp+176]
+  002ae	8b 95 b4 00 00
+	00		 mov	 edx, DWORD PTR [ebp+180]
+  002b4	89 44 24 14	 mov	 DWORD PTR _dMsecPerSample$[esp+36], eax
+  002b8	89 54 24 18	 mov	 DWORD PTR _dMsecPerSample$[esp+40], edx
+
+; 556  : 	}
+; 557  : 	else
+
+  002bc	eb 10		 jmp	 SHORT $L71591
+$L71545:
+
+; 558  : 	{
+; 559  : 		dMsecPerSample = 0.01; // dummy in case we're not fully init'd
+
+  002be	c7 44 24 14 7b
+	14 ae 47	 mov	 DWORD PTR _dMsecPerSample$[esp+36], 1202590843 ; 47ae147bH
+  002c6	c7 44 24 18 e1
+	7a 84 3f	 mov	 DWORD PTR _dMsecPerSample$[esp+40], 1065646817 ; 3f847ae1H
+$L71591:
+
+; 560  : 	}
+; 561  : 	
+; 562  : 	
+; 563  : 	while ( TRUE )
+; 564  : 	{
+; 565  : 		/******************************************************************/
+; 566  : 		/*  If halting then return.                                       */
+; 567  : 		/******************************************************************/
+; 568  : 		
+; 569  : 		if ( pKsd_t->halting )
+
+  002ce	8b 5c 24 28	 mov	 ebx, DWORD PTR _pKsd_t$[esp+32]
+$L71548:
+  002d2	8b 83 34 03 00
+	00		 mov	 eax, DWORD PTR [ebx+820]
+  002d8	85 c0		 test	 eax, eax
+  002da	0f 85 14 01 00
+	00		 jne	 $L71587
+
+; 570  : 			return dwTime;
+; 571  : 		
+; 572  : 		// tek 31jul97 bats 422
+; 573  : 		// if we were asked to wait for sample "-1", just return,
+; 574  : 		if (dwSampleNumber >= 0xFFFFFFFE)
+
+  002e0	83 7c 24 30 fe	 cmp	 DWORD PTR _dwSampleNumber$[esp+32], -2 ; fffffffeH
+  002e5	0f 83 09 01 00
+	00		 jae	 $L71587
+
+; 575  : 			return dwTime;
+; 576  : 		
+; 577  : 		/******************************************************************/
+; 578  : 		/*  When the audio sample "dwSampleNumber" plays then             */
+; 579  : 		/*  synchronization has been achieved.                            */
+; 580  : 		/******************************************************************/
+; 581  : 		
+; 582  : 		mmStatus = PA_GetPosition( pAudioHandle, &dwPosition, FALSE );
+
+  002eb	8d 44 24 10	 lea	 eax, DWORD PTR _dwPosition$[esp+36]
+  002ef	6a 00		 push	 0
+  002f1	50		 push	 eax
+  002f2	55		 push	 ebp
+  002f3	e8 00 00 00 00	 call	 _PA_GetPosition
+  002f8	83 c4 0c	 add	 esp, 12			; 0000000cH
+  002fb	8b f0		 mov	 esi, eax
+
+; 583  : #ifdef WIN32
+; 584  : 		// we only keep track of time on windows systems
+; 585  : 		dwTime = timeGetTime();
+
+  002fd	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__timeGetTime@0
+
+; 586  : #endif //WIN32
+; 587  : #if defined __osf__ || defined __linux__
+; 588  : 		gettimeofday(&tv,NULL);
+; 589  : 		dwTime=(tv.tv_sec%1000000)*1000 + (tv.tv_usec/1000);
+; 590  : #endif
+; 591  : 		
+; 592  : #ifdef VTM_DEBUG
+; 593  : 		{
+; 594  : 			char szTemp[256]="";
+; 595  : 			sprintf(szTemp,"WFASTP: waiting for %08lx, now=%08lx\n",
+; 596  : 				dwSampleNumber, dwPosition);
+; 597  : 			OutputDebugString(szTemp);
+; 598  : 		}
+; 599  : #endif //VTM_DEBUG
+; 600  : 		
+; 601  : 		if ( mmStatus == MMSYSERR_NOERROR )
+
+  00303	85 f6		 test	 esi, esi
+  00305	89 44 24 2c	 mov	 DWORD PTR _dwTime$[esp+32], eax
+  00309	0f 85 e7 00 00
+	00		 jne	 $L71535
+
+; 602  : 		{
+; 603  : 			if ( dwPosition < dwSampleNumber )
+
+  0030f	8b 7c 24 10	 mov	 edi, DWORD PTR _dwPosition$[esp+36]
+  00313	8b 4c 24 30	 mov	 ecx, DWORD PTR _dwSampleNumber$[esp+32]
+  00317	3b f9		 cmp	 edi, ecx
+  00319	0f 83 ba 00 00
+	00		 jae	 $L71549
+
+; 604  : 			{
+; 605  : 				/******************************************************************/
+; 606  : 				/*  If halting then return.                                       */
+; 607  : 				/******************************************************************/
+; 608  : 				
+; 609  : 				if ( pKsd_t->halting )
+
+  0031f	8b 8b 34 03 00
+	00		 mov	 ecx, DWORD PTR [ebx+820]
+  00325	85 c9		 test	 ecx, ecx
+  00327	0f 85 c9 00 00
+	00		 jne	 $L71535
+
+; 610  : 					return dwTime;	// tek 14sep98 abort if halting..
+; 611  : 				
+; 612  : 				if ( dwPosition == 0 )
+
+  0032d	85 ff		 test	 edi, edi
+  0032f	75 48		 jne	 SHORT $L71556
+
+; 613  : 				{
+; 614  : 					/************************************************************/
+; 615  : 					/*  If the current audio position is zero then one of two   */
+; 616  : 					/*  conditions is possible. Either the audio has not        */
+; 617  : 					/*  started playing yet, or the wave output device has      */
+; 618  : 					/*  closed. If the position is zero then check to see if    */
+; 619  : 					/*  the pipes that are read in the lts, ph and vtm threads  */
+; 620  : 					/*  are empty. If they are empty, then exit this function.  */
+; 621  : 					/************************************************************/
+; 622  : 					// tek 03sep97
+; 623  : 					// I don't think that is a good indicator of whether the audio has
+; 624  : 					// started to play. In the case of a short block of text to speak,
+; 625  : 					// these pipes could empty before the audio device actually
+; 626  : 					// gets around to playing samples. What we need to do is make
+; 627  : 					// sure that there isn't anything waiting to send (in addition 
+; 628  : 					// to these tests..) I suspect, however, that we only have to 
+; 629  : 					// worry about this for SAPI, because the startup path is long
+; 630  : 					// in that case.
+; 631  : 					
+; 632  : 					// tek 12feb98 fixed: we use PA_GetQWPosition to get the sum of the
+; 633  : 					// samples in the queue and those already sent.
+; 634  : 					
+; 635  : 					uiVtmCount = pipe_count( pKsd_t->vtm_pipe );
+
+  00331	8b 8b 9c 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+668]
+  00337	51		 push	 ecx
+  00338	e8 00 00 00 00	 call	 _pipe_count
+
+; 636  : 					uiPhCount = pipe_count( pKsd_t->ph_pipe );
+
+  0033d	8b 93 94 02 00
+	00		 mov	 edx, DWORD PTR [ebx+660]
+  00343	8b f0		 mov	 esi, eax
+  00345	52		 push	 edx
+  00346	e8 00 00 00 00	 call	 _pipe_count
+  0034b	8b f8		 mov	 edi, eax
+
+; 637  : 					uiLtsCount = pipe_count( pKsd_t->lts_pipe );
+
+  0034d	8b 83 90 02 00
+	00		 mov	 eax, DWORD PTR [ebx+656]
+  00353	50		 push	 eax
+  00354	e8 00 00 00 00	 call	 _pipe_count
+
+; 638  : #ifdef OLEDECTALK
+; 639  : 					{
+; 640  : 						// tek 12feb98 do this correctly.
+; 641  : 						QWORD qwCount=0;
+; 642  : 						PA_GetQWPosition(pAudioHandle, &qwCount);
+; 643  : 						iQueueCount = (qwCount>0) ? 1:0;
+; 644  : 					}
+; 645  : #else //OLEDECTALK
+; 646  : #ifdef SAPI5DECTALK
+; 647  : 					iQueueCount = pAudioHandle->pAudioQueue->iQueueCount; // tek 07apr99 DAPI needs this too, at least on CE
+; 648  : #else
+; 649  : 					iQueueCount = pAudioHandle->pPlayAudioRing->iQueueCount; // tek 07apr99 DAPI needs this too, at least on CE
+; 650  : #endif
+; 651  : 
+; 652  : #endif //OLEDECTALK
+; 653  : 					
+; 654  : #ifdef VTM_DEBUG
+; 655  : 					{
+; 656  : 						char szTemp[256]="";
+; 657  : 						sprintf(szTemp,"WFASTP: pos=0; vtm=%u ph=%u lts=%u q= %d\n",
+; 658  : 							uiVtmCount, uiPhCount, uiLtsCount, iQueueCount );
+; 659  : 						OutputDebugString(szTemp);
+; 660  : 					}
+; 661  : #endif //VTM_DEBUG
+; 662  : 					
+; 663  : 					if ( (iQueueCount == 0) 
+; 664  : 						&& ( uiVtmCount == 0 )
+; 665  : 						&& ( uiPhCount == 0 )
+; 666  : 						&& ( uiLtsCount == 0 ))
+
+  00359	8b 8d 98 00 00
+	00		 mov	 ecx, DWORD PTR [ebp+152]
+  0035f	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00362	8b 51 18	 mov	 edx, DWORD PTR [ecx+24]
+  00365	85 d2		 test	 edx, edx
+  00367	75 0c		 jne	 SHORT $L71597
+  00369	85 f6		 test	 esi, esi
+  0036b	75 08		 jne	 SHORT $L71597
+  0036d	85 ff		 test	 edi, edi
+  0036f	75 04		 jne	 SHORT $L71597
+  00371	85 c0		 test	 eax, eax
+  00373	74 60		 je	 SHORT $L71598
+$L71597:
+  00375	8b 7c 24 10	 mov	 edi, DWORD PTR _dwPosition$[esp+36]
+$L71556:
+
+; 667  : 						break;
+; 668  : 				}
+; 669  : 				
+; 670  : 				// 22may97 tek  this calculation needs to account for 
+; 671  : 				// the fact taht we get position reports in "bytes", but
+; 672  : 				// need to calculate time.
+; 673  : 				iSleepTimeInMsec =
+; 674  : 					(int)( dMsecPerSample * (double)( dwSampleNumber - dwPosition) );
+
+  00379	8b 54 24 30	 mov	 edx, DWORD PTR _dwSampleNumber$[esp+32]
+  0037d	c7 44 24 20 00
+	00 00 00	 mov	 DWORD PTR -8+[esp+40], 0
+  00385	2b d7		 sub	 edx, edi
+  00387	89 54 24 1c	 mov	 DWORD PTR -8+[esp+36], edx
+  0038b	df 6c 24 1c	 fild	 QWORD PTR -8+[esp+36]
+  0038f	dc 4c 24 14	 fmul	 QWORD PTR _dMsecPerSample$[esp+36]
+  00393	e8 00 00 00 00	 call	 __ftol
+  00398	8b f0		 mov	 esi, eax
+
+; 675  : 				
+; 676  : #ifdef TYPING_MODE
+; 677  : 				//22may97 tek
+; 678  : 				// apply the bias and margin to the calculated sleep to return
+; 679  : 				// with more precision
+; 680  : 				if (   (iSleepTimeInMsec < SLEEP_TIME_MARGIN)
+; 681  : 					&& (dwPosition != 0) ) // tek 13apr99 never play "close enough" if not started!
+
+  0039a	83 fe 0a	 cmp	 esi, 10			; 0000000aH
+  0039d	7d 04		 jge	 SHORT $L71559
+  0039f	85 ff		 test	 edi, edi
+  003a1	75 36		 jne	 SHORT $L71549
+$L71559:
+
+; 682  : 				{
+; 683  : 					break;
+; 684  : 				}
+; 685  : 				iSleepTimeInMsec -= SLEEP_TIME_BIAS; // try to wake up early
+
+  003a3	83 ee 32	 sub	 esi, 50			; 00000032H
+
+; 686  : 				
+; 687  : #endif //TYPING_MODE
+; 688  : 				
+; 689  : 				if ( iSleepTimeInMsec > MAXIMUM_SLEEP_TIME_IN_MSEC )
+
+  003a6	83 fe 1e	 cmp	 esi, 30			; 0000001eH
+  003a9	7e 07		 jle	 SHORT $L71560
+
+; 690  : 				{
+; 691  : 					iSleepTimeInMsec = MAXIMUM_SLEEP_TIME_IN_MSEC;
+
+  003ab	be 1e 00 00 00	 mov	 esi, 30			; 0000001eH
+
+; 692  : 				}
+; 693  : 				else
+
+  003b0	eb 0a		 jmp	 SHORT $L71562
+$L71560:
+
+; 694  : 				{
+; 695  : 					// tek 22may97 sleep very little when we get close in
+; 696  : 					if ( iSleepTimeInMsec < MINIMUM_SLEEP_TIME_IN_MSEC )
+
+  003b2	83 fe 14	 cmp	 esi, 20			; 00000014H
+  003b5	7d 05		 jge	 SHORT $L71562
+
+; 697  : 						iSleepTimeInMsec = 1;
+
+  003b7	be 01 00 00 00	 mov	 esi, 1
+$L71562:
+
+; 698  : 				}
+; 699  : 				
+; 700  : 				/* GL 04/21/1997  change this for OSF build */
+; 701  : #ifdef WIN32
+; 702  : 
+; 703  : 			PumpModeMessage(pAudioHandle);
+
+  003bc	55		 push	 ebp
+  003bd	e8 00 00 00 00	 call	 _PumpModeMessage
+  003c2	83 c4 04	 add	 esp, 4
+
+; 704  : 				Sleep((DWORD)iSleepTimeInMsec );
+
+  003c5	56		 push	 esi
+  003c6	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__Sleep@4
+  003cc	8b 4c 24 2c	 mov	 ecx, DWORD PTR _dwTime$[esp+32]
+  003d0	e9 fd fe ff ff	 jmp	 $L71548
+$L71598:
+
+; 705  : #endif
+; 706  : #if defined (__osf__) || defined (__linux__)
+; 707  : 				OP_Sleep((DWORD)iSleepTimeInMsec );
+; 708  : #endif
+; 709  : 			}
+; 710  : 			else
+; 711  : 			{
+; 712  : 				break;
+; 713  : 			}
+; 714  : 	}
+; 715  : 	else
+; 716  : 	{
+; 717  : 		return dwTime; // panic exit?
+
+  003d5	8b 7c 24 10	 mov	 edi, DWORD PTR _dwPosition$[esp+36]
+$L71549:
+
+; 718  : 	}
+; 719  :   }
+; 720  :   // normal exit; if this is a WIN32 system, we calculate the actual
+; 721  :   // time that the sample played. (tek 08jan98 bats 546)
+; 722  : #ifdef WIN32
+; 723  :   {
+; 724  : 	  long lTemp=0;
+; 725  : #ifdef VTM_DEBUG
+; 726  : 	  {
+; 727  : 		  char szTemp[256]="";
+; 728  : 		  sprintf(szTemp,"WFASTP: done! now=%ld, pos=%ld, num=%ld, ",
+; 729  : 			  dwTime, dwPosition, dwSampleNumber);
+; 730  : 		  OutputDebugString(szTemp);
+; 731  : 	  }
+; 732  : #endif //VTM_DEBUG  
+; 733  : 	  lTemp = (long)( ((long)dwPosition-(long)dwSampleNumber) * dMsecPerSample ); // NAL warning removal
+
+  003d9	2b 7c 24 30	 sub	 edi, DWORD PTR _dwSampleNumber$[esp+32]
+
+; 734  : 	  dwTime  = dwTime - lTemp;
+; 735  : #ifdef VTM_DEBUG
+; 736  : 	  {
+; 737  : 		  char szTemp[256]="";
+; 738  : 		  sprintf(szTemp,"act=%ld [%08lx] (temp=%ld)\n",
+; 739  : 			  dwTime, dwTime, lTemp);
+; 740  : 		  OutputDebugString(szTemp);
+; 741  : 	  }
+; 742  : #endif //VTM_DEBUG  
+; 743  :   }
+; 744  : #endif //WIN32
+; 745  :   return dwTime;
+
+  003dd	89 7c 24 30	 mov	 DWORD PTR 16+[esp+32], edi
+  003e1	db 44 24 30	 fild	 DWORD PTR 16+[esp+32]
+  003e5	dc 4c 24 14	 fmul	 QWORD PTR _dMsecPerSample$[esp+36]
+  003e9	e8 00 00 00 00	 call	 __ftol
+  003ee	8b 4c 24 2c	 mov	 ecx, DWORD PTR _dwTime$[esp+32]
+  003f2	2b c8		 sub	 ecx, eax
+$L71587:
+  003f4	8b c1		 mov	 eax, ecx
+$L71535:
+  003f6	5f		 pop	 edi
+  003f7	5e		 pop	 esi
+  003f8	5d		 pop	 ebp
+  003f9	5b		 pop	 ebx
+
+; 746  : }
+
+  003fa	83 c4 14	 add	 esp, 20			; 00000014H
+  003fd	c3		 ret	 0
+_WaitForAudioSampleToPlay ENDP
+_TEXT	ENDS
+END

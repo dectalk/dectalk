@@ -1,0 +1,582 @@
+
+The following file lists all known changes to port DECtalk 4.1c to Alpha
+OSF/1 and Alpha NT. A file called port.h was created to contain all
+platform specific type definitions and symbols. This file was included
+in files cmd_main.c, lsmain.c, phmain.c, and kernel.h.
+
+A new type definition is declared for the inter-thread pipes. It is called
+DT_PIPE_T is declared in include file "port.h"
+
+All occurences of 'long' and 'unsigned long' are typedef'd infile port.h
+to S32 and U32.
+
+A new file named services.c was created which contains the following
+kernel services;
+
+The static functions are only called inside of services.c and may be
+eliminated as the some of the stub files currently in services.c are
+completed.
+
+
+void vol_up(int count)
+void vol_down(int count)
+void vol_set(int count)
+void save_index(sym,type,value,how)
+void check_index(which_phone)
+void adjust_index(which,direction)
+void set_index_phone(nsym,nphone)
+void set_index_allo(nphone,nallo)
+void send_index( int how, int value )
+void start_flush(serial_mode)
+void reset_spc()
+void default_lang(lang_code,ready_code)
+void flush_done()
+unsigned int kernel_disable()
+void kernel_enable(flags)
+void wait_semaphore( int * semaphore )
+void signal_semaphore( int * semaphore )
+void set_gpio( int dummy )
+void clr_gpio( int dummy )
+void sleep( int dummy )
+int putseq( struct SEQ_struct __far *sp)
+static void status_set(bits)
+static void status_clear(bits)
+static void status_abs(bits)
+static void status_toggle(bits)
+static void status_set_update(bits)
+static void status_clear_update(bits)
+static void status_abs_update(bits)
+static void status_toggle_update(bits)
+static void serial_update()
+
+
+In the comments below, if a function is specified as XXXXXX function(),
+it generally means the the function was cast as type XXXXXX. The function
+arguments may not be specified, this does NOT necessarily mean that the
+function has no arguments.
+
+kernel.h
+         File kernel.h has many #ifdef's. See the ported file.
+
+cmd_main.c
+         File port.h included.
+         void cmd_resume()
+
+         #ifdef's added to make either NT, OSF, or MSDOS task. See file.
+
+         Added definition of array pString which stores character pointers.
+         (Immediately follows definition of array params).
+         unsigned char * pString[NPARAM];
+
+cmd_pars.c
+         "i", "j" and "pipe_value" removed from argument list.
+         void reset_command()
+         void dtpc_cmd()
+         int process_char()
+             variable declaration changed to DT_PIPE_T pipe_value;
+         int load_default()
+         string_match() ANSI arguments
+         string_match() arguments changed to char
+         load_defaults() deleted because nothing calls it.
+
+         In function build_params() variable "save_index" deleted because
+         it is never used.
+
+         All occurences of 0xffff changed to -1.
+
+         params[param_index] = &string_buff[next_char];
+           REPLACED with
+         pString[param_index] = &string_buff[next_char];
+
+cmd_phon.c
+         void flush_phone()
+         int lookup_ascky()
+         int lookup_arpabet()
+         int param_check()
+
+         Function flush_phone() calls function write_pipe() with array
+         params[] as the buffer to write. Since this is no longer a 16 bit
+         array, but the pipes are 16 bits, array params[] values are
+         copied to a 16 bit array which is then used as the argument to
+         function write_pipe().
+
+cmd_cmd.c
+         int cmd_phoneme()
+         int cmd_log()
+         int cmd_break()
+         int cmd_say()
+
+         Variable declaration for flag_mask deleted in function cmd_say()
+         because it is never used.
+
+         int cmd_error()
+         void cmd_resume()
+         int cmd_flush()
+         int cmd_sync()
+             variable declaration changed to DT_PIPE_T pipe_value;
+         int cmd_enable()
+             variable declaration changed to DT_PIPE_T pipe_value;
+         int cmd_punct()
+         int cmd_timeout()
+         int cmd_volume()
+         int cmd_language()
+             variable declaration changed to DT_PIPE_T pipe_value;
+         int cmd_remove()
+             variable declaration changed to DT_PIPE_T pipe_value;
+
+         cmd_pause(), cmd_resume() and other functions have #ifdefs for
+         Windows NT and/or OSF/1. See the ported code.
+
+         All arguments in calls to function string_match() changed
+         from (unsigned char *)params[X]   to  pString[X] where X is equal
+         to either 0 or i.
+
+cmd_err.c
+         cmd_error()
+         variable declaration changed to DT_PIPE_T pipe_value[3];
+
+cmd_get.c
+         A number of complicated #ifdef statements. See the file.
+         There is also one declaration of DT_PIPE_T.
+
+cmd_lts.c
+         int cmd_mode()
+         int cmd_pronounce()
+         variable declaration changed to DT_PIPE_T pipe_value[3];
+         cmd_pronounce()
+         variable declaration changed to DT_PIPE_T pipe_value[2];
+
+         All arguments in calls to function string_match() changed
+         from (unsigned char *)params[X]   to  pString[X] where X is equal
+         to either 0 or i.
+
+cmd_ph.c
+         int cmd_rate()
+         variable declaration changed to DT_PIPE_T pipe_value[2];
+         int cmd_name()
+         variable declaration changed to DT_PIPE_T pipe_value[2];
+         int cmd_comma()
+         variable declaration changed to DT_PIPE_T pipe_value[2];
+         int cmd_period()
+         variable declaration changed to DT_PIPE_T pipe_value[2];
+         int cmd_mark()
+         variable declaration changed to DT_PIPE_T pipe_value[3];
+         int cmd_define()
+         variable declaration changed to DT_PIPE_T pipe_value[3];
+
+         All arguments in calls to function string_match() changed
+         from (unsigned char *)params[X]   to  pString[X] where X is equal
+         to either 0 or i.
+
+cmd_type.c
+         int cmd_type()
+         int cmd_stress()
+         In function type_out() variable declaration changed to
+             DT_PIPE_T phone;
+
+cmd_tone.c
+         int cmd_tone()
+         int cmd_dial()
+         int dtpc_tones()
+         int dtpc_tones_reset()
+         variable declaration changed to DT_PIPE_T pipe_value;
+
+cmd_wav.c
+         int cmd_digitized()
+         variable declaration changed to DT_PIPE_T pipe_value;
+
+cmd_def.h
+         NO_STRING_MATCH changed from 0xffff to -1.
+
+         For Windows NT Added #include "ttsapi.h" to include definitions
+         needed by API function used in file cmd_cmd.c
+
+         Added the following line:
+         extern unsigned char * pString[];
+
+lsmain.c
+         File port.h included.
+         extern void far lstask()
+         #ifdef's added to make either NT, OSF, or MSDOS task. See file.
+
+ls1.c
+         The function prototypes for functions 'parsenumber' and 'isordinal'
+         were added to the top of ls1.c
+
+         NOTE: Good coding practice which I believe we should eventually
+               implement:
+
+              Structures and functions which are ONLY used within a certain
+         file should be declared in that file (although it is permissible
+         to use an include file to declare them). The functions should
+         be declared 'static'. This will prevent the compiler from making them
+         accesible as external (and will speed up link the link time). They
+         also will not be included in the automatic prototyping performed
+         by Microsoft C 7.0 is they are declared static.
+              Structures and functions which are used by more than one file
+         should be declared in include files.
+
+         int iskrmspell()
+         int isordinal()
+         int isyear()
+         void copyword()
+         void spell()
+         int spellspeed()
+         void sendlist()
+              sendlist arguments changed to unsigned char
+         void sendphone()
+         void readword()
+         int ismight()
+         int isindex()
+         int iswhite()
+         void readitem()
+         void writeitem()
+
+         In function nextitem() variable declaration changed to
+             DT_PIPE_T pipe_value[3];
+
+         Functions sendlist and wlookup had their arguments changed from
+         'unsigned char' in version 4.0 to 'char' in version 4.1c.
+
+         U32 fc_struct[]
+
+ls2.c
+         void dosign()
+         void dopartnumber()
+         int isapart()
+         void do2digits()
+         void do3digits()
+         void do4digits()
+         int donumber()
+         int nz()
+         int istime()
+         int isampm()
+         void dotime()
+         int isdate()
+             isdate() variable *cp changed to unsigned char
+         void dodate()
+              dodate() variable *cp changed to unsigned char
+         int isfrac()
+         void dofrac()
+         int alpha()
+         int digit()
+         dogroup() argument buf[3] changed to unsigned char
+
+ls4.c
+         void lts()
+         void ltsout() ???
+         void wphone()
+         void wcrlf()
+         void wputs()
+         void wputc()
+         int addgraph()
+         int isvowel()
+         void addphone()
+         void pfree()
+
+ls5.c
+         void sylables()
+         int iscons()
+         int isvoc()
+         int cluster()
+         int unstressed()
+         int suffixscan()
+         int prefixscan()
+         void bestdefault()
+         void finalfixes()
+
+ls6.c
+         void delgemphone()
+         int isobs()
+         int insphone()
+         void delphone()
+
+ls7.c
+         int lookup()
+         void pluralize()
+
+lsdic.c
+         where_to_ulook() argument changed to unsigned char pivot char;
+
+         U32 fc_struct[]
+
+lshomo.c
+         U32 fc_struct[]
+
+lssuff.c
+         int suffix_find()
+         void append_pron()
+         void print_fc()
+
+         U32 fc_struct[]
+
+         S32 fc_mask;
+
+lsmath.c
+         flush_ascky argument changed to char
+         Structure ASCKY_TAB defined as shown below.
+
+         typedef struct ascky_table
+         {
+           char p_graph;                  /* Graphic code.                */
+           DT_PIPE_T p_phone;             /* Phonemic pipe code.          */
+         } ASCKY_TAB;
+
+
+sufftab.c
+         The supplied version of this file caused the application to crash.
+         No doubt this was a 16 / 32 bit problem. I used the previously ported
+         DECtalk 4.0 version and the problem went away.
+
+         6/15/95 I received a new version of of sufftab.tab from ATG and
+         I used this file to build a new sufftab.c.
+
+dict.h
+         S32  fc;
+         S32  fc;   (two places)
+
+homo.h
+         S32  h_suffix;
+         S32  h_context;
+         S32  h_select;
+         S32  h_elim;
+
+phdefs.h
+         This include file has function prototype file php.h included
+         near the beginning and at the end ! The first include fails
+         because structure PARAMETER used in file php.h is declared
+         later in phdefs.h. I removed the first include.
+
+         The following section was added at the end of the file (just
+         before #include "php.h"
+
+         #ifdef MSDOS
+         S32 klrmul(S32,S32);
+         S32 kllmul(S32, S32 *);
+         S32 klrdiv(S32,S32);
+         S32 klldiv(S32,S32 *);
+         short muldv();
+         short mulsh1();
+         short mulsh2();
+         short mulsh3();
+         short frac1mul();
+         short frac4mul();
+         #else
+
+         /* !! These definitions need to be checked to make sure they are right */
+
+         #define klrmul(x,y)	(x * y)
+         #define kllmul(x,y)	(x * (*y))
+         #define klrdiv(x,y)	(x / y)
+         #define klldiv(x,y)	(x / *y)
+         #define muldv()		((arg1*arg2) / arg3)
+         #define mlsh1()		((arg1*arg2) >> 14)
+         /*
+         #define mlsh2()		((arg1*arg2) << 3)
+         #define mlsh3()		((arg1*arg2) << 4)
+          */
+         #define  frac4mul(x,y)  (((x)*(S32)(y))>>12)
+         #define  frac1mul(x,y)  (((x)*(S32)(y))>>15)
+
+         #endif	/* #ifdef MSDOS */
+
+phmain.c
+         File port.h included.
+         void kltask()
+         int deadstop()
+         int mstofr()
+         #ifdef's added to make either NT, OSF, or MSDOS task.
+         In function kltask() variable declaration changed to
+             register DT_PIPE_T buf[4];
+         In function readphone() variable declaration changed to
+             register DT_PIPE_T buf[];
+         #ifdef's added to make either NT, OSF, or MSDOS task. See file.
+         readphone() arguments made ANSI compliant.
+
+phalloph.c
+         void phalloph()
+         void prphonol()
+
+         All functions made ANSI compliant
+
+         There is a call to function set_index_allo which is unresolved.
+         I commented this call out. I believe it is debug code based on the
+         comment blocks above and below it.
+
+phclause
+         void phclause()
+         void init_clause()
+         void init_phclause()
+         void init_pars()
+         int exit_if_done()
+         Several #ifdef's arounf function spcwrite(). See the file.
+         (Search for all #ifdef's)
+
+         if (phsort() == FALSE)
+           return(FALSE)
+
+         was changed to
+
+         if (phsort() == FALSE)
+           return;
+
+
+phdraw.c
+         void phdraw()
+
+         The following code was commented out for debug purposes.
+         I uncommented it. The value 20 below was changed to 31 to match
+         the July 1992 version of DECtalk.
+
+         /*   Source tilt can't be more than 31 dB */
+         /*     if (*parp > 31) {*/
+                    *parp = 20;
+         /*      } */
+	         if (*parp < 0) {
+	             *parp = 0;
+	         }
+
+         Variable del_av was commented out because it is never used.
+
+phdrawt0.c
+         void phdrawt0()
+         void set_user_target()
+         void set_tglst()
+         void filter_commands()
+         void linear_interp()
+         int getcosine()
+
+         The July 1992 version of phdrawt0.c contained the following
+         section of code.
+
+                if (f0command < 0) {    /* Cancel previous impulse if step */
+                    if (tarimp > 0)    tarimp = 0;  /* is of opposite sign */
+                }
+                else {
+                    if (tarimp < 0)    tarimp = 0;
+                }
+
+         This had been changed to:
+
+                tarimp = 0;
+
+         I changed it to:
+
+                if ( f0command < 0 )    /* Cancel previous impulse if step */
+                  tarimp = 0;
+
+phinton.c
+         void phinton()
+         int firstfeature()
+         void make_f0_command()
+         void logscrewup()
+
+phsettar.c
+         void phsettar()
+         void make_dip()
+         void vv_coartic_across_c()
+         void forw_smooth_rules()
+         void back_smooth_rules()
+         void special_rules()
+         int get_phone()
+         int shrdur()
+         void debugforward()
+         void debugbackward()
+         void init_variables()
+         void debug1()
+
+phsort.c
+         int phsort()
+         void interp_user_f0()
+         int is_wboundary()
+         Initialize 'locbeg' to zero at start of function find_syll_to_stress().
+
+phtiming.c
+         void phtiming()
+         void init_timing()
+         void prdurs()
+         void prphdurs()
+
+phvset.c
+         void usevoice()
+         void printvoice()
+         void saveval()
+         void setspdef()
+
+         The start of function setspdef() is modified as shown below:
+
+         void setspdef()
+         {
+           register S32  nlong;
+           SP_CHIP  far *spdef;
+           int  i;
+
+         #ifdef SEPARATE_PROCESSES
+           spdef = (SP_CHIP far *)malloc( SPDEF_PARS * sizeof(short) );
+         #else
+           spdef = (SP_CHIP far *)spcget(SPC_type_speaker);
+         #endif
+
+         The end of function setspdef() is modified as shown below:
+
+         #ifdef SEPARATE_PROCESSES
+           fwrite(&sd, sizeof(short), 1, stdout );
+           fwrite(spdef, sizeof(short), SPDEF_PARS, stdout );
+           fflush(stdout);
+           free(spdef);
+         #else
+           spcwrite((unsigned int _far *)spdef);
+         #endif
+         }
+
+
+
+phsyl.c
+         int syl_find_vowel()
+         int ph_syllab()
+         void logascky()
+         void syl_clause_init()
+         void speak_syllable()
+
+phrom.c
+         This file had substantially different frequency and bandwidth
+         values than the July 1992 version. They caused the synthesizer
+         to pronounce words incorrectly. The best example is betty speaking
+         her own name. When the July 1992 (DECtalk 4.0) version of phrom was
+         linked in the synthesizer sounded much better. There was still a
+         lot of hiss and noise that was not in the earlier version.
+
+         6/15/95 I received a new (correct) version of phrom.c from ATG.
+
+         6/16/93 The hiss and noise problem was fixed in phdraw.
+                 See above.
+
+
+lsm_acna.c
+         extern void far lstask()
+         #ifdef's added to make either NT, OSF, or MSDOS task.
+         void do_lts()
+
+ls1_acna.c
+         The function prototypes for functions isordinal(), parsenumber(),
+         and isordinal() were added to the top of ls1_acna.c
+
+         void far lstask()
+         int iskrmspell()
+         int isdot()
+         int isyear()
+         void copyword()
+         void spell()
+         int spellspeed()
+         void sendlist()
+         void sendphone()
+         void readword()
+         int ismight()
+         int isindex()
+         int iswhite()
+         void readitem()
+         void nextitem()
+         void writeitem()
+
+lst_acna.c
+         Included file "port.h" to define 'far' as nothing.

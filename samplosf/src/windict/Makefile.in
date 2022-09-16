@@ -1,0 +1,94 @@
+# Makefile for samplosf/src/windict/ for Dectalk software for @target@ 
+#
+# 001 MGS 05/22/1998 added include for dectalkf.h
+# 002 ETT 10/22/1998 moved to autoconf system. 
+# 003 MGS 05/26/2000 added windic for Linux
+#
+
+#### Start of system configuration section. ####  
+# where is the standard include dir? (cross compile critical)
+STD_INCLUDE=@STD_INCLUDE@
+# which compiler do we use?
+CC=@CC@
+RANLIB=@RANLIB@
+# support for symbolic links?
+LN_S=@LN_S@
+# to debug or not to debug?
+DEBUG_FLAGS=@DEBUG_FLAGS@
+# how much optomization do we use?
+OPTO_FLAGS=@OPTO_FLAGS@
+# how many silly compile warnings do we want?
+WARN_FLAGS=@WARN_FLAGS@
+OS_VERSION=@OS_VERSION@
+DT_LIB=@SAMPLE_DTLIB@
+LIBS=@LIBS@
+DEFINES=@DEFINES@
+MMELIBS=@MMELIBS@
+MME_DIR=@MME_DIR@
+LINKFLAGS=@SAMPLE_LINKFLAGS@
+WINDICT_ALL=@WINDICT_ALL@
+GTK_LIBS = @GTK_LIBS@
+GTK_DEFINES = @GTK_DEFINES@
+#### End of system configuration section. #### 
+
+RM=rm -f
+LD=ld
+
+INLCUDE_DIR=../../../dapi/src/include
+API_DIR=    ../../../dapi/src/api
+NT_DIR=     ../../../dapi/src/nt
+OSF_DIR=    ../../../dapi/src/osf
+DECTALKF_DIR = ../../../
+
+INCLUDES= -I$(INLCUDE_DIR) -I$(API_DIR) -I$(NT_DIR) -I$(MME_DIR) -I$(DECTALKF_DIR) -I$(OSF_DIR)
+
+CDEBUGFLAGS = $(DEBUG_FLAGS) -std0 -threads
+LINKFLAGS=  $(DEBUG_FLAGS) -threads
+
+CFLAGS= $(INCLUDES) $(CDEBUGFLAGS) -D$(LANGUAGE)
+
+
+#DT_LIB= -lttsmme
+
+LIBS=-lmme -ldnet_stub -lpthreads -lc_r -lmach -lrt -llmf
+
+XLIBS= -lMrm -lXm -lXt -lXext -lX11 
+
+
+WINDICT_SRCS = windict.c loadgif.o compile_dict.c
+
+WINDICT_OBJS= $(OUTPUT_DIR)/link/windict.o $(OUTPUT_DIR)/link/loadgif.o \
+              $(OUTPUT_DIR)/link/compile_dict.o
+
+#all: $(OUTPUT_DIR)/windict $(OUTPUT_DIR)/windict.uid
+all: $(WINDICT_ALL)
+
+$(OUTPUT_DIR)/windict:$(WINDICT_OBJS) $(DT_LIB_DIR)/libttsmme_$(LANG_CODE).so
+	$(RM) $@
+	$(CC) -o $@ $(WINDICT_OBJS) $(LINKFLAGS) $(XLIBS) $(DT_LIB) $(LIBS)
+
+$(OUTPUT_DIR)/windict.uid:windict.uil
+	/usr/bin/X11/uil -o $@ $?
+
+$(OUTPUT_DIR)/link/windict.o:windict.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/link/loadgif.o:../speak/loadgif.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/link/compile_dict.o:compile_dict.c
+	$(CC) -c $(CFLAGS) -o $@ $? $(GTK_DEFINES)
+
+
+$(OUTPUT_DIR)/windic : $(OUTPUT_DIR)/link/windic.o $(OUTPUT_DIR)/link/compile_dict.o
+	$(CC) -o $(OUTPUT_DIR)/windic $(OUTPUT_DIR)/link/windic.o $(OUTPUT_DIR)/link/compile_dict.o -ltts -lpthread -ldl $(GTK_LIBS)
+
+$(OUTPUT_DIR)/link/windic.o : windic.c
+	$(CC) -c $(CFLAGS) -o $@ $? $(GTK_DEFINES)
+
+
+clean:
+	$(RM) $(OUTPUT_DIR)/link/*.o
+	$(RM) $(OUTPUT_DIR)/windict
+	$(RM) $(OUTPUT_DIR)/core
+	$(RM) core *~

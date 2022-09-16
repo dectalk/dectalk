@@ -1,0 +1,1787 @@
+/*----------------------------------------------------------------------------*\
+ *
+ *  IIIIIII SSSSSS
+ *    II    SS                          InstallShield (R)
+ *    II    SSSSSS          (c) 1990-1995, Stirling Technologies, Inc.
+ *    II        SS                     All Rights Reserved.
+ *  IIIIIII SSSSSS
+ *
+ *
+ *  This code is intended as a supplement to InstallShield documentation
+ *  and is provided AS IS.
+ *
+ *
+ *    File Name:  SETUP.RUL
+ *
+ *  Description:  InstallShield Professional Edition
+ *                32-bit Template One script.
+ *
+ *
+ *       Author:  Stirling Technologies, Inc.       Date: 10-20-95
+ *
+ *     Comments:  This template script performs a basic installation to a
+ *                Windows 95 or Windows NT platform.  The installation
+ *                includes components: Application Program Files, Sample and
+ *                Template Files, Online Help Files, and Multimedia Tutorial
+ *                Files.  With minor modifications, this template can be
+ *                adapted to create new, customized installations.
+ *
+ *
+ *
+\*----------------------------------------------------------------------------*/
+// 10jul96  tek   fix info passed to speak for readme.
+// 29jul96  tek   only one help file now.
+// 01aug96  tek   remove references to mail apps
+// 21oct96  tek   back to three help files, sort of.. also
+//                change key values.
+// 15nov96  sik   conversion to production 4.4 area
+// 07jan97  cjl   add install of dectalk.lib in \lib area.
+// 09jan97  cjl   OS checking changed & ttstst -> ttstest
+// 06feb97  ncs   Fixed this file to make the start menu file PROPERLY
+// 07apr97  cjl   Add install of ttsapi.h & tts.h in \include area. BATS #342
+//                Add Appendix1 & Appendix2.txt added BATS #338.
+// 09apr97  cjl   Verified TTS.H is not explicitly in this file.
+// 23jun97  ncs   Consolidating EVERYTHING (regular, access32, and
+//                Willowpond setup scripts).
+// 02jul97  ncs   Supporting for the Multi-Lang Process
+// 29jul97  cjl   Update License values in registry (new encrption key)
+// 01aug97  ncs   Streamlining the scripts for easier maintainence
+// 15aug97  ncs   Add more static build changes.
+// 22oct97  cjl   Add Appendix3.txt to the sdk disk1.
+// 23oct97  ncs   Fix ML Installs.
+// 24dec97  cjl   Fix UK Installs.
+// 03feb98  cjl   Moved Multi-language intials
+// 23feb98  mgs   Add SAPI MULTILANGUAGE support.
+// 11mar98  cjl/mgs Corrected Logic in Ifdefs.
+// 18mar98  cjl   Corrected MULIT_ to MULTI_ for SAPI multi langauge support.
+// 20mar98  cjl/mgs For SAPI_MULTI_LANGUAGE_SUPPORT, InstallShield Compiler broken.
+// 22May98  cjl   Add Appendix4.txt to the sdk disk1.
+//			Change V4.50 to V4.60.
+// 28May98  cjl   Add DeleteFile() just before each RenameFile() call.
+// 01Jun98  cjl   Make sure dectalk.dll is put in windows directory.
+// 29Oct98  cjl   Change V4.51 to V4.60.
+// 15jan99  mfg   added Windows CE support using _WINDOWS_CE define 
+// 21jan99  mfg   changed help call from Winhelp.exe to Winhlp32 ,for Windows NT
+// 16apr99  mfg   added Multilang for CE support
+// 23aug99	MGS	  Changed DigitalEquipmentCorporation to SMART Modular Technologies
+// 23aug99	mfg	  Changed SMART Modular Technologies to DECtalk Software
+// 15dec99	mfg	  Omitted dectalk.dll extraction for Willow pond build
+// 31may00	mfg	  Removed set2xx for install
+// 15AUG00	CAB	  Changed smart logo to force
+// 21nov00  CAB	  Changed from 4.60 TO 4.61
+// 26feb01	CAB	  Added French and removed speech for it
+// 27FEB01  cab	  Added missing #endif
+// 18apr01  cab	  Removed appendix1.txt
+//******************************************************************
+//      Hand edit in feature symbols from dectalkf.h HERE
+//******************************************************************
+
+//******************************************************************
+
+#ifdef _MULTI_LANG
+
+#define TOTAL_DISK_SPACE_REQUIRED               1000000
+#define WINSYSDIR_DISK_SPACE_NEEDED              400000
+#define DECTALK_APP_SPACE_NEEDED                 600000
+
+#else
+
+// Constant declarations.
+// Total Disk space in bytes:WINSYSDIR_DISK_SPACE_NEEDED +
+//                           DECTALK_APP_SPACE_NEEDED
+//                           (Extra space is taken care in each Constants)
+
+#define TOTAL_DISK_SPACE_REQUIRED               5000000
+
+// The disk space required for System Drive:
+// The space required to copy files from Sprogram and Speech sub Dirs
+// under "Data" Dir of Install program Directory structure.
+// For ALPHA-NT size Reqd : 2115584  For Intel-NT/95 : 1343488
+// So fixed at 2.2M  (84K extra to take care of TEMP Dirs etc..)
+
+#define WINSYSDIR_DISK_SPACE_NEEDED             2200000
+
+// The disk space required for Target Drive:
+// The space required for the rest of the DECtalk software,
+// i.e sample programs,Help files,Applets,Text files,Main Dictionary etc..
+// For ALPHA-NT size Reqd : 2540690  For Intel-NT/95 : 2532115
+// So fixed at 2.8M  (259K extra space)
+
+#define DECTALK_APP_SPACE_NEEDED                2800000
+
+#endif // _MULTI_LANG
+
+/*---------------------------------------------------------------------------*\
+\*---------------------------------------------------------------------------*/
+
+// Insert ISHIELD_DEF here
+//--------------------------------------------------------------
+#ifdef    _WILLOWPOND
+
+#define APP_NAME                "wpDECtalk"
+#define APPBASE_PATH            "Program Files\\wpDECtalk\\"
+#define PRODUCT_NAME            "wpDECtalk"
+#define DEINSTALL_KEY           "wpDECtalkDeinstKey"
+#define PRODUCT_KEY             "wttstest.exe"
+#define PROGRAM_FOLDER_NAME     "wpDECtalk t4.61"
+#define UNINSTALL_NAME          "wpDECtalk v4.61"
+
+//--------------------------------------------------------------
+#elif    _WINDOWS_CE
+
+#define APP_NAME                "DECtalk for Windows CE(tm)"
+#define APPBASE_PATH            "Program Files\\DECtalk\\"
+#define PRODUCT_NAME            "DECtalk"
+#define DEINSTALL_KEY           "DECtalkDeinstKey"
+#define PRODUCT_KEY             "windic_us.exe"
+#define PROGRAM_FOLDER_NAME     "DECtalk V4.61"
+#define UNINSTALL_NAME          "DECtalk V4.61"
+
+//--------------------------------------------------------------
+#else // default WIN95 NT  
+
+#define APP_NAME                "DECtalk"
+#define APPBASE_PATH            "Program Files\\DECtalk\\"
+#define PRODUCT_NAME            "DECtalk"
+#define DEINSTALL_KEY           "DECtalkDeinstKey"
+#define PRODUCT_KEY             "speak.exe;dtsample.exe;windic.exe;vercheck.exe;ttssrv.exe;ttstest.exe"
+#define PROGRAM_FOLDER_NAME     "DECtalk V4.61"
+#define UNINSTALL_NAME          "DECtalk V4.61"
+
+#endif
+
+//--------------------------------------------------------------
+#define COMPANY_NAME            "DECtalk Software"
+#define DEC_LOGO_BMP            100
+#define COPYRIGHT_BMP           200
+
+//--------------------------------------------------------------
+#define PRODUCT_VERSION         "4.61"
+
+#ifdef _WILLOW_POND
+#ifdef _MULTI_LANG
+// Set the count to 4 using the keys noted on the top of this file:
+#define LIC_COUNT				"vBB0yf20?k10"
+#else
+// Set the count to 1 using the keys noted on the top of this file:
+#define LIC_COUNT				"BX20Dl?0kt80"
+#endif
+
+#define INSTALL_PASSWORD			"pg40TLg0nbCAE8@Q0eZe"
+#else // _WILLOWPOND
+
+#ifdef _MULTI_LANG
+// Set the count to 4 using the keys noted on the top of this file:
+#define LIC_COUNT                               "H350Md50bCq0"
+#else
+// Set the count to 1 using the keys noted on the top of this file:
+#define LIC_COUNT                               "vx@00lB0bhh1"
+#endif
+
+#define INSTALL_PASSWORD                        "lv90She0jOeOJ9sV3RRB"
+#endif // _WILLOWPOND
+
+//--------------------------------------------------------------
+#ifdef ENGLISH_US
+#define LANGUAGE_INITIALS       "US"
+#define LANGUAGE_NAME           "ENGLISH, US"
+#elif  ENGLISH_UK
+#define LANGUAGE_INITIALS       "UK"
+#define LANGUAGE_NAME           "ENGLISH, UK"
+#elif  GERMAN
+#define LANGUAGE_INITIALS       "GR"
+#define LANGUAGE_NAME           "GERMAN"
+#elif  SPANISH
+#define LANGUAGE_INITIALS       "SP"
+#define LANGUAGE_NAME           "SPANISH"
+#elif  SPANISH_LA
+#define LANGUAGE_INITIALS       "LA"
+#define LANGUAGE_NAME           "LATIN AMERICAN"
+#elif  FRENCH
+#define LANGUAGE_INITIALS       "FR"
+#define LANGUAGE_NAME           "FRENCH"
+// Put more languages here in alphabetical order
+#elif  _MULTI_LANG
+#define LANGUAGE_INITIALS	"MultLang"
+#define LANGUAGE_NAME		"MULTI LANGUAGE"
+#endif
+
+//--------------------------------------------------------------
+// Standard DECtalk REG entries
+#ifdef ENGLISH_US
+#define szLocalMachineDECtalk "\\SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\US"
+#elif ENGLISH_UK
+#define szLocalMachineDECtalk "\\SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\UK"
+#elif  SPANISH
+#define szLocalMachineDECtalk "\\SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\SP"
+#elif  SPANISH_LA
+#define szLocalMachineDECtalk "\\SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\LA"
+#elif  GERMAN
+#define szLocalMachineDECtalk "\\SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\GR"
+#elif  FRENCH
+#define szLocalMachineDECtalk "\\SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\FR"
+#else // _MULTI_LANG
+#define szLocalMachineDECtalk "\\SOFTWARE\\DECtalk Software\\DECtalk\\4.61\\ML"
+#endif // LANGUAGES 
+
+#define szLocalMachineDTlangs "\\SOFTWARE\\DECtalk Software\\DECtalk\\Langs"
+#define szLicenseKey "SOFTWARE\\DECtalk Software\\DECtalk\\4.61"
+
+#ifdef ENGLISH_US
+#define szMainDictDef "DTALK_US.DIC"
+#define szUserDictDef "USER_US.DIC"
+#elif ENGLISH_UK
+#define szMainDictDef "DTALK_UK.DIC"
+#define szUserDictDef "USER_UK.DIC"
+#elif SPANISH
+#define szMainDictDef "DTALK_SP.DIC"
+#define szUserDictDef "USER_SP.DIC"
+#elif SPANISH_LA
+#define szMainDictDef "DTALK_LA.DIC"
+#define szUserDictDef "USER_LA.DIC"
+#elif GERMAN
+#define szMainDictDef "DTALK_GR.DIC"
+#define szUserDictDef "USER_GR.DIC"
+#elif FRENCH
+#define szMainDictDef "DTALK_FR.DIC"
+#define szUserDictDef "USER_FR.DIC"
+#endif // LANGUAGES
+
+#ifndef FRENCH
+//--------------------------------------------------------------
+// Microsoft Speech SDK specific GUIDs and DECtalk speech engine GUID
+#define MS_TTS_ENUM_GUID        "{D67C0280-C743-11cd-80E5-00AA003E4B50}"
+#define MS_AUDIO_DEST_GUID      "{CB96B400-C743-11cd-80E5-00AA003E4B50}"
+#endif // FRENCH
+
+#ifdef SAPI_MULTI_LANGUAGE_SUPPORT
+#ifndef FRENCH
+#ifdef _WILLOWPOND
+
+#ifdef ENGLISH_US
+#define DECTALK_TTS_ENGINE_GUID "{655789E1-0FD9-11d0-B026-0020AF26D014}"
+#elif ENGLISH_UK
+#define DECTALK_TTS_ENGINE_GUID "{612FF710-A6DF-11d1-BEB2-0060083E8376}"
+#elif SPANISH_LA
+#define DECTALK_TTS_ENGINE_GUID "{612FF720-A6DF-11d1-BEB2-0060083E8376}"
+#elif SPANISH
+#define DECTALK_TTS_ENGINE_GUID "{612FF730-A6DF-11d1-BEB2-0060083E8376}"
+#elif GERMAN
+#define DECTALK_TTS_ENGINE_GUID "{612FF740-A6DF-11d1-BEB2-0060083E8376}"
+#endif // english_us
+
+#else  // _WILLOWPOND
+
+#ifdef ENGLISH_US
+#define DECTALK_TTS_ENGINE_GUID "{ED737300-8FCB-11ce-AB5D-00AA00590F2B}"
+#elif ENGLISH_UK
+#define DECTALK_TTS_ENGINE_GUID "{99EE9540-A4A6-11d1-BEB2-0060083E8376}"
+#elif SPANISH_LA
+#define DECTALK_TTS_ENGINE_GUID "{99EE9550-A4A6-11d1-BEB2-0060083E8376}"
+#elif SPANISH
+#define DECTALK_TTS_ENGINE_GUID "{99EE9560-A4A6-11d1-BEB2-0060083E8376}"
+#elif GERMAN
+#define DECTALK_TTS_ENGINE_GUID "{99EE9570-A4A6-11d1-BEB2-0060083E8376}"
+#endif  // english_us
+
+#endif // _willowpond
+#endif // FRENCH
+
+// 20-mar-1998 cjl/mgs
+// You CAN NOT remove this #endif and #ifndef for SAPI_MULTI_LANGUAGE_SUPPORT
+// The InstallShield Compiler is broken too?
+#endif
+#ifndef SAPI_MULTI_LANGUAGE_SUPPORT
+
+#ifndef _WILLOWPOND
+#define DECTALK_TTS_ENGINE_GUID "{ED737300-8FCB-11ce-AB5D-00AA00590F2B}"
+#else  // _WILLOWPOND
+#define DECTALK_TTS_ENGINE_GUID "{655789E1-0FD9-11d0-B026-0020AF26D014}"
+#endif // _WILLOWPOND
+
+#endif // SAPI_MULTI_LANGUAGE_SUPPORT
+
+
+/*---------------------------------------------------------------------------*\
+\*---------------------------------------------------------------------------*/
+
+/*---------------------------------------------------------------------------*\
+ *
+ * The start install shield scripts
+ * 
+\*---------------------------------------------------------------------------*/
+declare
+
+#include "sddialog.h"     // Include script dialog definitions
+
+    // Global variable declarations.
+    STRING  svFolder, svDir, szMsg, szFileSet, szTitle, svUninstLogFile;
+    STRING  svTarget, szProgram, szParam, szTemp, szAppPath, svName, svCompany;
+    BOOL    bSpaceOk, bWinNT, bWin32s, bWin32c, bIsShellExplorer;
+    NUMBER  nResult;
+    
+    STRING szDigitalLogo;
+    //STRING szCopyright;
+    STRING szAppHelpDir,svTargetDisk;
+    NUMBER nSystemDriveLessSpace,nFlag,nIcon;
+    STRING szProgramFolder,szItemName,szCommandLine,szLinkDirectory;
+    STRING szWorkingDir,szShortCutKey,szIconPath;
+    STRING szLicenseFile,szQuestion,szWinStartMenu;
+    // Function declarations.
+    prototype SetupScreen();
+    prototype CheckRequirements();
+    prototype SetupFileTransfer(STRING);
+    prototype EnoughSpace(STRING);
+    prototype DisplayDiskInfo(LIST);
+    prototype PerformFileTransfer(STRING);
+    prototype FixMultiLangFiles();
+    prototype CreateRegDBEntries();
+    prototype CreateKeyAndSetValue(STRING,STRING,NUMBER,STRING,NUMBER);
+
+program
+
+/*---------------------------------------------------------------------------*\
+ * 
+\*---------------------------------------------------------------------------*/
+
+StartHere:
+    Disable( BACKGROUND );
+
+    // Set installation info., which is required for registry entries.
+    InstallationInfo( COMPANY_NAME, PRODUCT_NAME, PRODUCT_VERSION, PRODUCT_KEY );
+
+    // Set up the installation screen.
+    SetupScreen();
+    Enable( DIALOGCACHE );
+
+
+// Create a Welcome dialog.
+WelcomeDlg:
+    Disable( BACKBUTTON );
+    SdProductName( PRODUCT_NAME);
+#ifdef _MULTI_LANG
+    szMsg = "Welcome to the DECtalk software setup program.\n" +
+	    "This program will install the DECtalk software Multi-Language component " +
+            "on your Computer.";
+#elif _WINDOWS_CE
+    szMsg = "Welcome to the DECtalk software setup Program.\n" +
+            "This program will install the DECtalk software Windows CE(tm) component " +
+            "on your Computer.";
+#else
+    szMsg = "Welcome to the DECtalk software setup Program.\n" +
+	    "This program will install DECtalk software on your Computer.";            
+#endif
+    SdWelcome( "", szMsg);
+    Enable( BACKBUTTON );
+
+// Bring up the license dialog box
+LicenseDlg:
+    szTitle = "DECtalk Software License Agreement";
+    szMsg = "Please read the following license agreement. Use" +
+            " the scroll bar to view\nthe rest of this agreement";
+    szQuestion = "Do you accept all the terms of the preceding license"+
+                 " agreement?  if so,\nclick on the Yes push button."+
+                 " If you select No, Setup will close.";
+    szLicenseFile = SUPPORTDIR ^ "License.txt";
+    Disable(BACKBUTTON);
+    SdLicense(szTitle,szMsg,szQuestion,szLicenseFile);
+    Enable(BACKBUTTON);
+
+// Get User and Company Name
+RegisterUserName:
+    nResult = SdRegisterUser("","",svName,svCompany);
+    if(nResult = BACK) then goto WelcomeDlg; endif;
+    szMsg ="";
+
+// Test target system for proper configuration.
+    CheckRequirements();
+    // MVP: If the OS is Win32s exit with a message.
+    if(bWin32s) then
+        szMsg = "The DECtalk software works on either\n" +
+                 "Windows NT or Windows'95 Operating System";
+        MessageBox(szMsg,INFORMATION);
+        exit;
+    endif;
+
+// Ask user for a destination location for the installation.--
+GetTargetDirectory:
+    svTarget = TARGETDISK ^ APPBASE_PATH;
+    if ( AskDestPath( "", szMsg, svTarget, 0 ) = 12 ) then
+        goto WelcomeDlg;
+    endif;
+
+    // Check for disk space to install the software
+    if(EnoughSpace(svTarget) = FALSE) goto GetTargetDirectory;
+
+    //Set the various Dir strings used in copying the files     
+    szAppHelpDir = svTarget ^ "Help";
+
+// Prepare InstallShield to record deinstallation information.
+SetupRegAndUninstall:
+    DeinstallStart( svTarget, svUninstLogFile, DEINSTALL_KEY, 0 );
+    RegDBSetItem( REGDB_UNINSTALL_NAME, UNINSTALL_NAME );
+
+    // Set the App Paths key for the main program.
+    szAppPath = svTarget + ";" + szAppHelpDir;
+    RegDBSetItem( REGDB_APPPATH, szAppPath );
+#ifndef _WINDOWS_CE
+#ifndef _WILLOWPOND
+    szProgram = svTarget ^ "speak.exe";
+    RegDBSetItem( REGDB_APPPATH_DEFAULT, szProgram );
+#endif // _WILLOWPOND
+#endif // _WINDOWS_CE
+
+#ifdef _WINDOWS_CE
+    szProgram = svTarget ^ "windic_us.exe";
+    RegDBSetItem( REGDB_APPPATH_DEFAULT, szProgram );
+#endif // _WINDOWS_CE
+
+SetupAndDecompFiles:
+    szFileSet = "General";
+    SetupFileTransfer(szFileSet);
+
+    // Set up progress indicator and information gauge.
+    Disable( DIALOGCACHE );
+    Enable( STATUSDLG );
+    StatusUpdate( ON, 90 );
+
+    // Transfer files to the target system.
+    PerformFileTransfer(szFileSet);
+
+    FixMultiLangFiles();
+
+SetupRegistryEntries:
+// You must run FixMultiLangFiles() first before CreateRegDBEntries()
+    CreateRegDBEntries();
+
+    // Set up progress indicator and information gauge.
+    Delay( 2 );
+    Disable( STATUS );
+
+// Create program folders and icons.
+InstallProgramItems:
+    SetStatusWindow( 95, "Creating Program Folder and Icons...." );
+
+    if ((bWinNT || bWin32c) && !bIsShellExplorer ) then
+        AppCommand( PROGMAN, CMD_RESTORE );
+        svFolder = PROGRAM_FOLDER_NAME;
+        ProgDefGroupType(COMMON);
+        if(CreateProgramFolder( svFolder ) < 0 ) then
+            MessageBox("Failed to Create program folder!",SEVERE);
+            exit;
+        endif;
+        ShowProgramFolder( svFolder, 0 );
+        LongPathToShortPath( svTarget );
+        Delay(1);
+    endif;
+
+    // ToBeDone: Need to allow other shell besides Explorer 1/9/97 cjl
+    if ((bWinNT || bWin32c) && !bIsShellExplorer ) then
+
+
+
+#ifdef _WINDOWS_CE
+    // Icon for Dictionary Tool
+        szProgram   = svTarget ^ "WINDIC_" + LANGUAGE_INITIALS + ".EXE";        
+        AddFolderIcon( svFolder, "Dictionary Build Tool (" + "US" + ")", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif // _WINDOWS_CE
+
+#ifndef _WINDOWS_CE
+#ifndef _WILLOWPOND
+        szProgram = svTarget ^ "SPEAK.EXE";
+        AddFolderIcon( svFolder, "Speak", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+
+#ifdef _MULTI_LANG
+    // Icon for MLDEMO 
+        szProgram = svTarget ^ "MLDEMO.EXE";
+        AddFolderIcon( svFolder, "DECtalk Sample Application", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#else
+    // Icon for DTSAMPLE 
+        szProgram = svTarget ^ "DTSAMPLE.EXE";
+        AddFolderIcon( svFolder, "DECtalk Sample Application", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif
+
+#ifdef _ACCESS32
+    // Icon for DTACCESS
+        szProgram = svTarget ^ "DTACCESS.EXE";
+        AddFolderIcon( svFolder, "DECtalk ACCESS32 Sample Application", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif
+
+
+#ifndef _MULTI_LANG
+    // Icon for Dictionary Tool       
+	    szProgram = svTarget ^ "WINDIC.EXE";
+        AddFolderIcon( svFolder, "Dictionary Build Tool", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif // _MULTI_LANG
+
+#endif // _WILLOWPOND
+
+    // Icon for VerCheck Tool
+        szProgram = svTarget ^ "VERCHECK.EXE";
+        AddFolderIcon( svFolder, "Version Check Tool", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+
+#ifndef _MULTI_LANG
+#ifndef _WILLOWPOND
+    // Icon for TTSServer 
+        szProgram = WINDIR ^ "TTSSRV.EXE";
+        AddFolderIcon( svFolder, "Text-To-Speech DDE Server", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif // _WILLOWPOND
+
+    // Icon for sample OLE application
+#ifdef _WILLOWPOND
+        szProgram = svTarget ^ "wTTSTEST.EXE";
+#else // _WILLOWPOND
+        szProgram = svTarget ^ "TTSTEST.EXE";
+#endif // _WILLOWPOND
+        AddFolderIcon( svFolder, "Text-To-Speech Test-ANSI", szProgram,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif // _MULTI_LANG
+#endif // _WINDOWS_CE
+
+#ifndef _WILLOWPOND
+    // Adding the Readme File
+        szParam   = svTarget ^ "README.TXT";
+        AddFolderIcon( svFolder, "Readme ", "NOTEPAD.EXE " + szParam,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+
+#ifndef _MULTI_LANG
+
+
+    // Adding the Appendix1 File
+    // szParam   = svTarget ^ "APPENDIX1.TXT";
+    // AddFolderIcon( svFolder, "Appendix1 ", "NOTEPAD.EXE " + szParam,
+    //                svTarget,
+    //                "", 0, "", REPLACE );
+    // Delay( 1 );
+
+    // Adding the Appendix2 File
+        szParam   = svTarget ^ "APPENDIX2.TXT";
+        AddFolderIcon( svFolder, "Appendix2 ", "NOTEPAD.EXE " + szParam,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+    // 22oct97  cjl   Add Appendix3.txt to the sdk disk1.
+    // Adding the Appendix3 File
+        szParam   = svTarget ^ "APPENDIX3.TXT";
+        AddFolderIcon( svFolder, "Appendix3 ", "NOTEPAD.EXE " + szParam,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+    // 22may98  cjl   Add Appendix4.txt to the sdk disk1.
+    // Adding the Appendix4 File
+        szParam   = svTarget ^ "APPENDIX4.TXT";
+        AddFolderIcon( svFolder, "Appendix4 ", "NOTEPAD.EXE " + szParam,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif // _MULTI_LANG
+#endif // _WILLOWPOND
+
+#ifndef _MULTI_LANG
+#ifndef _WINDOWS_CE
+    // Adding the SWITCHING LANGUAGE BAT File (SET2xx.BAT)
+    //mfg    szProgram   = svTarget ^ "PATCH" ^ "SET2" + LANGUAGE_INITIALS + ".BAT";
+    //    szItemName = "SET2" + LANGUAGE_INITIALS;
+    //    AddFolderIcon( svFolder, szItemName,
+    //                   szProgram, svTarget,
+    //                   "", 0, "", REPLACE );
+        Delay( 1 );
+
+    // Adding the SWAPLANG TXT File
+        szParam   = svTarget ^ "PATCH" ^ "SWAPLANG.TXT";
+        AddFolderIcon( svFolder, "SWAPLANG ", "NOTEPAD.EXE" + szParam,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif // _WINDOWS_CE
+#ifndef _WILLOWPOND
+#ifndef _WINDOWS_CE   
+	// MVP: Version information ICON
+        szParam   = svTarget ^ "DTALKVER.TXT";
+        AddFolderIcon( svFolder, "Dtalkver ", "NOTEPAD.EXE " + szParam,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+#endif // _WINDOWS_CE
+
+       // Adding in the DECtalk Help File
+        szParam   = szAppHelpDir ^ "dectalk.HLP";
+        AddFolderIcon( svFolder, "DECtalk Help", "WINHLP32.EXE " + szParam,
+                       svTarget,
+                       "", 0, "", REPLACE );
+        Delay( 1 );
+
+#endif // _WILLOWPOND
+#endif // _MULTI_LANG
+
+    // Global variable UNINST stores the name and location of the
+    // uninstaller file.
+        szProgram = UNINST;
+        LongPathToShortPath( szProgram );
+        LongPathToShortPath( svUninstLogFile );
+        szProgram = szProgram + " -f" + svUninstLogFile;
+#ifdef    _WILLOWPOND
+        szTemp = "Uninstall\nwpDECtalk\nv" + PRODUCT_VERSION;
+        AddFolderIcon( svFolder, szTemp, szProgram,
+                       WINDIR, "", 0, "", REPLACE );
+#else  // _WILLOWPOND
+        szTemp = "Uninstall\nDECtalk\nv" + PRODUCT_VERSION;
+        AddFolderIcon( svFolder, "", szProgram,
+                       WINDIR, "", 0, "", REPLACE );
+#endif // _WILLOWPOND
+
+    else // SHELL IF STATEMENT
+
+    // *****************************************************
+    // Creating Folders fo Windows'95
+    // Places a Program Folder in the StartUp Menu of Windows'95
+    // for the DECtalk applications.
+    // *****************************************************
+
+    // Variables used in the parameter field of AddFolderIcon or
+    // AddProgItemEx functions
+        szProgramFolder = PROGRAM_FOLDER_NAME;
+        szWorkingDir = svTarget;
+        szIconPath = "";
+        nIcon = 0;
+        szShortCutKey = "";
+        nFlag = REPLACE;
+
+        szTitle = "Select Program Folder";
+        szMsg   = "Setup will add items to the folder in the Program " +
+                  "Folders field.\nYou can type a new folder name or " +
+                  "select one from the Existing Folders list.";
+        Disable(BACKBUTTON);
+        SdSelectFolder( szTitle, szMsg, szProgramFolder );
+        Enable(BACKBUTTON);
+        szWinStartMenu = WINDIR ^ "start menu\\programs" ;
+	CreateProgGroupEx( szProgramFolder, "szWinStartMenu" );
+        ShowProgramFolder(svTarget,SW_SHOW);
+
+
+	
+#ifdef _WINDOWS_CE
+#ifndef _MULTI_LANG
+   // Adds WINDIC Icon to the LinkFolder
+        szProgram   = svTarget ^ "WINDIC_" + LANGUAGE_INITIALS + ".EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Build Dictionary Tool (" + LANGUAGE_NAME + ")";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif //_MULTI_LANG
+#endif
+
+
+#ifndef _WILLOWPOND
+#ifndef _WINDOWS_CE
+    // Adds SPEAK Icon to the LinkFolder
+        szProgram = svTarget ^ "SPEAK.EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Speak";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+
+#ifdef _MULTI_LANG
+    // Adds MLDEMO Icon to the LinkFolder
+        szProgram = svTarget ^ "MLDEMO.EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "MLDemo";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#else
+    // Adds DTSAMPLE Icon to the LinkFolder
+        szProgram = svTarget ^ "DTSAMPLE.EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "DTSample";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif 
+#endif // _WINDOWS_CE
+
+
+#ifdef _ACCESS32
+    // Adds DTACCESS Icon to the LinkFolder
+        szProgram = svTarget ^ "DTACCESS.EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "DTAccess";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif
+
+#ifndef _MULTI_LANG
+    // adds User's Guide Icon
+        szProgram = WINDIR ^ "WINHLP32.EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "DECtalk Help";
+        szParam = szAppHelpDir ^ "dectalk.HLP";
+        LongPathToShortPath(szParam);
+        szCommandLine = szProgram + " " + szParam;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#ifndef _WINDOWS_CE
+    // Adds WINDIC Icon to the LinkFolder
+        szProgram = svTarget ^ "WINDIC.EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Build Dictionary Tool";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+
+    // Adds VERCHECK Icon to the LinkFolder
+        szProgram = svTarget ^ "VERCHECK.EXE";
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Version Check Tool";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+
+    // Adds TTSSRVR Icon to the LinkFolder
+        szProgram = WINDIR ^ "TTSSRV.EXE";
+//        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Text-To-Speech DDE Server";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif // _WINDOWS_CE
+#endif // _MULTI_LANG
+#endif // _WILLOWPOND
+
+
+
+#ifndef _WINDOWS_CE
+#ifndef _MULTI_LANG
+    // Add TTSTEST OLE Application Icon to the link folder.
+#ifdef _WILLOWPOND
+        szProgram = svTarget ^ "wTTSTEST.EXE";
+#else // _WILLOWPOND
+        szProgram = svTarget ^ "TTSTEST.EXE";
+#endif // _WILLOWPOND
+        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Text-To-Speech Test- ANSI";
+        szCommandLine = szProgram;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif // _MULTI_LANG
+#endif // _WINDOWS_CE
+
+#ifndef _WILLOWPOND
+#ifndef _WINDOWS_CE
+#ifndef _MULTI_LANG
+    // Add DTALKVER Icon to the link folder.
+        szProgram = "NOTEPAD.EXE";
+//        LongPathToQuote(szProgram,TRUE);
+        szItemName = "VersionInfo";
+        szParam = svTarget ^ "DTALKVER.TXT";
+        LongPathToShortPath(szParam);
+        szCommandLine = szProgram + " " + szParam;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif // _MULTI_LANG
+#endif //_WINDOWS_CE
+
+    // Add Readme Icon to the link folder.
+        szProgram = "NOTEPAD.EXE";
+//        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Readme";
+        szParam = svTarget ^ "README.TXT";
+        LongPathToShortPath(szParam);
+        szCommandLine = szProgram + " " + szParam;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+
+#ifndef _MULTI_LANG
+    // Add Appendix1 Icon to the link folder.
+    //  szProgram = "NOTEPAD.EXE";
+//      LongPathToQuote(szProgram,TRUE);
+    //  szItemName = "Appendix1";
+    //  szParam = svTarget ^ "APPENDIX1.TXT";
+    //  LongPathToShortPath(szParam);
+    //  szCommandLine = szProgram + " " + szParam;
+    //  AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+    //                 szWorkingDir,szIconPath,nIcon,szShortCutKey,
+    //                 nFlag);
+
+    // Add Appendix2 Icon to the link folder.
+        szProgram = "NOTEPAD.EXE";
+//        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Appendix2";
+        szParam = svTarget ^ "APPENDIX2.TXT";
+        LongPathToShortPath(szParam);
+        szCommandLine = szProgram + " " + szParam;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+    // 22oct97  cjl   Add Appendix3.txt to the sdk disk1.
+    // Add Appendix3 Icon to the link folder.
+        szProgram = "NOTEPAD.EXE";
+//        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Appendix3";
+        szParam = svTarget ^ "APPENDIX3.TXT";
+        LongPathToShortPath(szParam);
+        szCommandLine = szProgram + " " + szParam;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+    // 22may98  cjl   Add Appendix4.txt to the sdk disk1.
+    // Add Appendix4 Icon to the link folder.
+        szProgram = "NOTEPAD.EXE";
+//        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Appendix4";
+        szParam = svTarget ^ "APPENDIX4.TXT";
+        LongPathToShortPath(szParam);
+        szCommandLine = szProgram + " " + szParam;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif // _MULTI_LANG
+
+#endif // _WILLOWPOND
+
+#ifndef _WINDOWS_CE
+#ifndef _MULTI_LANG
+    // Adding the SWITCHING LANGUAGE BAT File (SET2xx.BAT)
+//        szProgram = svTarget ^ "PATCH" ^ "SET2" + LANGUAGE_INITIALS + ".BAT";
+//        LongPathToQuote(szProgram,TRUE);
+//        szItemName = "SET2" + LANGUAGE_INITIALS;
+//        LongPathToShortPath(szProgram);
+//        szCommandLine = szProgram;
+//        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+//                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+//                       nFlag);
+
+    // Adding the SWAPLANG TXT File
+        szProgram = "NOTEPAD.EXE";
+//        LongPathToQuote(szProgram,TRUE);
+        szItemName = "Switching Language";
+        szParam = svTarget ^ "PATCH" ^ "SWAPLANG.TXT";
+        LongPathToShortPath(szParam);
+        szCommandLine = szProgram + " " + szParam;
+        AddProgItemEx( szProgramFolder, szItemName, szCommandLine,
+                       szWorkingDir,szIconPath,nIcon,szShortCutKey,
+                       nFlag);
+#endif // _MULTI_LANG
+#endif // _WINDOWS_CE
+
+    // Add UnInstallShield Icon
+    // Global variable UNINST stores the name and location of the
+    // uninstaller file.
+        szProgram = UNINST;
+        LongPathToShortPath( szProgram );
+        LongPathToShortPath( svUninstLogFile );
+        szProgram = szProgram + " -f" + svUninstLogFile;
+#ifdef    _WILLOWPOND
+        szTemp = "Uninstall wpDECtalk V" + PRODUCT_VERSION;
+        AddProgItemEx( szProgramFolder, szTemp,
+                       szProgram, WINDIR, "", 0, "", REPLACE );
+        AddProgItemEx( svTarget, szTemp,
+                       szProgram, WINDIR, "", 0, "", REPLACE );
+#else  // _WILLOWPOND
+        szTemp = "Uninstall DECtalk V" + PRODUCT_VERSION;
+        AddProgItemEx( szProgramFolder, szTemp,
+                       szProgram, WINDIR, "", 0, "", REPLACE );
+        AddProgItemEx( svTarget, szTemp,
+                       szProgram, WINDIR, "", 0, "", REPLACE );
+#endif // _WILLOWPOND
+
+    endif; // SHELL IF STATEMENT
+
+    Delay( 1 );
+
+// Announce setup complete and offer to read README file.e
+FinalInstallProcess:
+#ifdef _WILLOWPOND
+    szMsg = "wpDECtalk installation is complete.\n\n";
+#elif _WINDOWS_CE
+#ifdef _MULTI_LANG
+    szMsg = "DECtalk (tm) For Windows CE installation is complete.\n\n";
+#else
+    szMsg = "DECtalk (tm) For Windows CE installation is complete.\n\n" +
+	    "Starting WINDIC for " + LANGUAGE_NAME + " application.";
+#endif //_MULTILANG
+#else
+    szMsg = "DECtalk (tm) installation is complete.\n\n" +
+            "Starting SPEAK application.";
+#endif // _WILLOWPOND
+    MessageBox( szMsg, INFORMATION);
+
+#ifdef _WILLOWPOND
+    SetStatusWindow( 100, "Installation complete." );
+#else // _WILLOWPOND
+    SetStatusWindow( 100, "Installation complete.Starting SPEAK application to view README.TXT file.." );
+#endif // _WILLOWPOND
+    Delay(3);
+    Disable(STATUS);
+
+
+#ifdef _WINDOWS_CE
+#ifndef _MULTI_LANG
+    szProgram   = svTarget ^ "WINDIC_" + LANGUAGE_INITIALS + ".EXE";
+    szParam = svTarget ^ "README.TXT";
+    LongPathToQuote(szProgram,TRUE);
+    LongPathToShortPath(szParam);
+	ChangeDirectory(svTarget);
+    LaunchAppAndWait(szProgram, szParam, NOWAIT);
+#endif //_MULTILANG
+#endif //_WINDOWS_CE
+
+ 
+#ifndef _WINDOWS_CE
+#ifndef _WILLOWPOND
+    szProgram = svTarget ^ "SPEAK.EXE ";
+    szParam = svTarget ^ "README.TXT";
+//    LongPathToQuote(szParam,TRUE);
+    LongPathToQuote(szProgram,TRUE);
+    LongPathToShortPath(szParam);
+//    SprintfBox(INFORMATION,"Speak parameters", "%s %s", szProgram, szParam);
+
+    LaunchAppAndWait(szProgram, szParam, NOWAIT);
+#endif // _WILLOWPOND
+#endif // _WINDOWS_CE
+exit;
+
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:  SetupScreen
+ *
+ *  Purpose:  This function will set up the screen look.  This includes
+ *            colors, fonts, text to be displayed, etc.
+ *
+ *
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+
+function SetupScreen()
+    number nDx, nDy;
+    STRING szTitle;
+begin
+
+    GetExtents( nDx, nDy );
+
+    Enable( FULLWINDOWMODE );
+    Enable( INDVFILESTATUS );
+    Enable( BITMAP256COLORS );
+
+
+#ifdef _ACCESS32
+    szTitle = "Installing " + LANGUAGE_NAME + "\n" +
+              APP_NAME + " ACCESS32 Software\nVersion " +
+              PRODUCT_VERSION;
+#elif _WILLOWPOND
+#ifdef _MULTI_LANG
+    szTitle = "Installing " + APP_NAME + " Software t\n" +
+              "Multi-Language Component\nVersion " + PRODUCT_VERSION;
+#else
+    szTitle = "Installing " + LANGUAGE_NAME + "\n" +
+              APP_NAME + " Software t\nVersion " + PRODUCT_VERSION;
+#endif // _MULTI_LANG
+
+#else // WILLOWPOND
+
+#ifdef _MULTI_LANG
+    szTitle = "Installing " + APP_NAME + " Software\n" +
+              "Multi-Language Component\nVersion " + PRODUCT_VERSION;
+#else // _MULTI_LANG
+    szTitle = "Installing " + LANGUAGE_NAME + "\n" +
+              APP_NAME + " Software\nVersion " + PRODUCT_VERSION;
+#endif // _MULTI_LANG
+#endif // WILLOWPOND
+
+    SetTitle( szTitle, 24, WHITE );
+
+    SetColor( BACKGROUND, BK_BLUE ); // Dark blue.
+    SetColor( STATUSBAR, BLUE );     // Bright blue.
+    SetTitle( "Setup", 0, BACKGROUNDCAPTION ); // Caption bar text.
+
+    // Display Bitmaps here
+    szDigitalLogo = SUPPORTDIR^"FORCE.BMP";
+    //szCopyright = SUPPORTDIR^"COPYRIGH.BMP";
+
+    Enable(BACKGROUND);
+    Enable(BITMAPFADE);
+
+    PlaceBitmap(szDigitalLogo,DEC_LOGO_BMP,20,20,UPPER_RIGHT);
+
+    //PlaceBitmap(szCopyright,COPYRIGHT_BMP,20,20,LOWER_LEFT);
+    Disable(BITMAPFADE);
+    Delay( 2 );
+
+end;
+
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:  CheckRequirements
+ *
+ *  Purpose:  This function will check all minimum requirements for the
+ *            application being installed.  If any fail, then the user
+ *            is informed and the installation is terminated.
+ *
+ *
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function CheckRequirements()
+number nvDx, nvDy;
+number nvResult;
+STRING svResult;
+
+begin
+
+    // Check screen resolution.
+    GetExtents( nvDx, nvDy );
+    if (nvDy < 480) then
+        MessageBox( "This program requires VGA or better resolution.", WARNING );
+        exit;
+    endif;
+
+    // Determine the target system's operating system.
+    GetSystemInfo( OS, nvResult, svResult );
+    bWinNT  = FALSE;        // OS Windows NT
+    bWin32s = FALSE;        // OS Windows 3.1x (Subset)
+    bWin32c = FALSE;        // OS Windows 95 (Chicago)
+    bIsShellExplorer = FALSE;
+    
+    if (nvResult =  IS_WINDOWSNT) then
+        bWinNT = TRUE;  // Running Windows NT.
+
+    else if (nvResult =  IS_WIN32S) then
+             bWin32s = TRUE; // Running Win32s.
+
+         else
+             bWin32c = TRUE; // Running Win32c.
+
+         endif;
+    endif;
+
+    // Check to see if using EXPLORER Shell
+    if( QueryShellMgr( svResult ) = 0 ) then
+        if( StrCompare( svResult, "EXPLORER.EXE" ) = 0 ) then
+            bIsShellExplorer = TRUE;
+        endif;
+    endif;
+end;
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:  SetupFileTransfer
+ *
+ *  Purpose:  This function defines the file set based on the user's
+ *            choice of componenets and then it performs the file set.
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function SetupFileTransfer(szFileSet)
+
+begin
+//Define the file set
+    TARGETDIR = svTarget;
+
+    FileSetBeginDefine(szFileSet);
+
+        TARGETDIR = svTarget;
+        Enable(LOGGING);
+
+#ifdef _MULTI_LANG
+#ifndef _WINDOWS_CE
+        SetStatusWindow( -1, "Copying MultiLangugage DEMO files..." );
+        CompressGet( "DECTALK.Z", "as_is\\*.*", INCLUDE_SUBDIR | COMP_NORMAL );
+        CompressGet( "DECTALK.Z", "program\\*.*", COMP_NORMAL );
+        TARGETDIR = svTarget ^ LANGUAGE_INITIALS;
+        SetStatusWindow( -1, "Storing Langauge Specific Files..." );
+        CompressGet( "DECTALK.Z", "Sprogram\\dectalk.dll", COMP_UPDATE_VERSION );
+#else
+        SetStatusWindow( -1, "Copying SDK files..." );
+        CompressGet( "DECTALK.Z", "as_is\\*.*", INCLUDE_SUBDIR | COMP_NORMAL );       
+//	    CompressGet( "DECTALK.Z", "program\\*.*", COMP_NORMAL );
+
+    // Backing up dectalk.dic, user.tab, dectalk.dll, (w)dtlkttse.dll
+        TARGETDIR = svTarget ^ LANGUAGE_INITIALS;
+        SetStatusWindow( -1, "Storing Langauge Specific Files..." );
+#endif // _WINDOWS_CE
+#else
+        SetStatusWindow( -1, "Copying SDK files..." );
+        CompressGet( "DECTALK.Z", "as_is\\*.*", INCLUDE_SUBDIR | COMP_NORMAL );       
+	    CompressGet( "DECTALK.Z", "program\\*.*", COMP_NORMAL );
+
+    // Backing up dectalk.dic, user.tab, dectalk.dll, (w)dtlkttse.dll
+        TARGETDIR = svTarget ^ LANGUAGE_INITIALS;
+        SetStatusWindow( -1, "Storing Langauge Specific Files..." );
+#ifndef _WINDOWS_CE
+        CompressGet( "DECTALK.Z", "as_is\\DECTALK.DIC", COMP_UPDATE_VERSION );
+        CompressGet( "DECTALK.Z", "as_is\\USER.TAB", COMP_NORMAL );
+#ifndef _WILLOWPOND
+        CompressGet( "DECTALK.Z", "Sprogram\\dectalk.dll", COMP_UPDATE_VERSION);
+#endif // _WILLOWPOND
+#endif // _WINDOWS_CE
+
+#ifndef _WINDOWS_CE
+#ifndef FRENCH
+#ifdef    _WILLOWPOND
+        CompressGet( "DECTALK.Z", "speech\\wtlkttse.dll", COMP_UPDATE_VERSION);
+#else  // _WILLOWPOND
+        CompressGet( "DECTALK.Z", "speech\\dtlkttse.dll", COMP_UPDATE_VERSION);
+#endif // _WILLOWPOND
+#endif   // FRENCH
+#endif // _WINDOWS_CE
+
+    // SPROGRAM STUFF
+
+#ifndef _WILLOWPOND
+#ifndef _WINDOWS_CE
+        TARGETDIR = WINDIR;
+        // Copy SAY.EXE and plain DECTALK.DLL into Windows Dir,Windows System
+        // Directory respectively,as they are system-wide shared files.
+        SetStatusWindow( -1, "Copying Command line DECtalk software Application..." );
+        CompressGet( "DECTALK.Z", "Sprogram\\SAY.EXE", COMP_NORMAL );
+        SetStatusWindow( -1, "Copying TTS DDE Server application..." );
+        CompressGet( "DECTALK.Z", "Sprogram\\TTSSRV.EXE", COMP_NORMAL );
+    // Backing up say.exe and ttssrv.exe
+        TARGETDIR = svTarget ^ LANGUAGE_INITIALS;
+        SetStatusWindow( -1, "Storing Langauge Specific Files..." );
+        CompressGet( "DECTALK.Z", "Sprogram\\SAY.EXE", COMP_NORMAL );
+        CompressGet( "DECTALK.Z", "Sprogram\\TTSSRV.EXE", COMP_NORMAL );
+#endif // _WINDOWS_CE
+
+        TARGETDIR = WINSYSDIR;
+        SetStatusWindow( -1, "Copying Dynamic link library file..." );
+        CompressGet( "DECTALK.Z", "Sprogram\\msvcrt.dll", COMP_UPDATE_VERSION|SHAREDFILE);
+#endif // _WILLOWPOND
+
+
+    // SPEECH STUFF
+#ifndef _WINDOWS_CE
+#ifndef FRENCH
+        // No need to back up SAPI components yet.  MultiLanguage Sapi is not yet developed
+        TARGETDIR = WINDIR ^"Speech";
+        // Copy Speech SDK specific DLLs  and OLE version of DECtalk speech engine DLL.
+        SetStatusWindow( -1, "Copying Microsoft Speech SDK specific DLL..." );
+        CompressGet( "DECTALK.Z", "speech\\speech.dll", COMP_UPDATE_VERSION|SHAREDFILE);
+#ifdef    _WILLOWPOND
+        SetStatusWindow( -1, "Copying OLE version of wpDECtalk Speech Engine DLL..." );
+        CompressGet( "DECTALK.Z", "speech\\wtlkttse.dll", COMP_UPDATE_VERSION);
+#else  // _WILLOWPOND
+        SetStatusWindow( -1, "Copying OLE version of DECtalk Speech Engine DLL..." );
+        CompressGet( "DECTALK.Z", "speech\\dtlkttse.dll", COMP_UPDATE_VERSION);
+#endif // _WILLOWPOND
+#endif // FRENCH
+#endif // _WINDOWS_CE
+
+#endif // _MULTILANG
+    FileSetEndDefine(szFileSet);
+end;
+
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:  PerformFileTransfer
+ *
+ *  Purpose:  This function will perform the file transfer and
+ *            handle any error that may occur during the file transfer.
+ *            
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function PerformFileTransfer(szFileSet)
+NUMBER nDisk,bDone;
+STRING szFileBase,szTagFile,szText,szExt;
+begin
+
+    nDisk = 1;
+    bDone = FALSE;
+    szFileBase = "DECTALK.";
+
+    while(!bDone)
+        // Perform the file set.
+        nResult = FileSetPerformEz( szFileSet, 0 );
+
+        switch (nResult)
+
+        case FS_TONEXTDISK:
+            // Construct the correct tag file filename for EnterDisk
+            NumToStr(szExt,nDisk);
+            szTagFile = szFileBase + szExt;
+            szText = " Please enter disk #" + szExt;
+            EnterDisk(szText,szTagFile);
+
+        case FS_DONE: // Successful completion.
+            bDone = TRUE;
+        
+        case FS_OPERROR :
+            MessageBox( "Error Occured in the copy process.",SEVERE);
+            bDone =TRUE;
+        
+        case FS_INCORRECTDISK:
+            MessageBox("Please insert the requested disk.",SEVERE);
+            bDone = TRUE;
+
+        case FS_OUTOFSPACE:
+            MessageBox("Please verify there is enough space" +
+                        " on the target drive", SEVERE);
+            bDone = TRUE;
+
+        case FS_CREATEDIR: // Create directory error.
+            MessageBox( "Unable to create a directory under " + TARGETDIR + "."+
+                        "Please check write access to this directory.", SEVERE );
+            exit;
+
+        default: // Group all other errors under default label.
+            NumToStr( szTemp, nResult );
+            SprintfBox(SEVERE,"General file transfer error.",
+                       "Please check your target location and try again."+
+                       "\n\n Error Number: %s\n Related File : %s\n",szTemp, 
+                       TARGETDIR ^ ERRORFILENAME);
+             bDone = TRUE;
+             exit;
+        endswitch;
+    endwhile;
+end;
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:      FixMultiLangFiles
+ *
+ *  Purpose:  This function will correct the naming scheme for the multi-lang
+ *            project.
+ *             
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function     FixMultiLangFiles()
+    STRING svMultiLang;
+    STRING szKeyPath[255], szKeyName;
+    NUMBER nKeyValType, nKeySize;
+
+begin
+
+#ifndef _WINDOWS_CE
+#ifdef _MULTI_LANG
+    // Backing up Speak2.exe
+        TARGETDIR = svTarget ^ LANGUAGE_INITIALS;
+        CompressGet( "DECTALK.Z", "speak2.exe", COMP_NORMAL );
+    // Moving the msvcrt.dll to the windows system directory
+        TARGETDIR = WINSYSDIR;
+        SRCDIR = svTarget ^ LANGUAGE_INITIALS;
+        CopyFile("dectalk.dll","dectalk.dll");
+        TARGETDIR = svTarget;
+#else
+    // Copy SPEAK.EXE to SPEAK_<lang><lang>.EXE in the language backup directory
+        TARGETDIR = svTarget ^ LANGUAGE_INITIALS;
+        SRCDIR = svTarget;
+        szTemp = "speak_" + LANGUAGE_INITIALS + ".exe";
+        CopyFile("speak.exe", szTemp);
+
+    // Copy DECTALK.DLL to DTALK_<lang><lang>.DLL in the windows system directory
+        TARGETDIR = WINSYSDIR;
+        SRCDIR = svTarget ^ LANGUAGE_INITIALS;
+        szTemp = "dtalk_" + LANGUAGE_INITIALS + ".dll";
+        CopyFile("dectalk.dll", szTemp);
+
+    // For non-multi-language ONLY
+    // Moving the dectalk.dll to the windows system directory
+        CopyFile("dectalk.dll","dectalk.dll");
+
+    // Checking for the MultiLang Bit from the registry
+        RegDBSetDefaultRoot(HKEY_LOCAL_MACHINE);
+	// szLicenseKey is defined in COOP.H -- we use the szLicenseKey path since
+	// the MultiLang key is also on that path
+        szKeyPath = szLicenseKey;
+        szKeyName = "MultiLang";
+        nKeyValType = REGDB_STRING;
+        nKeySize = -1;
+        RegDBGetKeyValueEx(szKeyPath, szKeyName, nKeyValType, svMultiLang, nKeySize);
+        if (svMultiLang != "1") then
+             CopyFile("dectalk.dll", "dectalk.dll");
+        endif;
+
+    // DECTALK.DIC to DTALK_<lang><lang>.DIC in the installed directory
+        TARGETDIR = svTarget;
+        SRCDIR = TARGETDIR;
+        szTemp = "dtalk_" + LANGUAGE_INITIALS + ".dic";
+        DeleteFile(szTemp);
+        RenameFile("dectalk.dic", szTemp);
+
+    // DECTALK.DIC to DTALK_<lang><lang>.DIC in the language backup directory
+        TARGETDIR = svTarget ^ LANGUAGE_INITIALS;
+        SRCDIR = TARGETDIR;
+        szTemp = "dtalk_" + LANGUAGE_INITIALS + ".dic";
+        DeleteFile(szTemp);
+        RenameFile("dectalk.dic", szTemp);
+
+    // USER.TAB to USER_<lang><lang>.TAB in the language backup directory
+        szTemp = "user_" + LANGUAGE_INITIALS + ".tab";
+        DeleteFile(szTemp);
+        RenameFile("user.tab", szTemp);
+
+#ifdef SAPI_MULTI_LANGUAGE_SUPPORT
+#ifndef FRENCH
+    // DECTALK.DIC to DTALK_<lang><lang>.DIC in the language backup directory
+        TARGETDIR = WINDIR ^ "Speech";
+        SRCDIR = WINDIR ^ "Speech";
+#ifdef _WILLIOPOND
+        szTemp = "wtlkttse_" + LANGUAGE_INITIALS + ".dll";
+        DeleteFile(szTemp);
+        RenameFile("wtlkttse.dll", szTemp);
+#else
+        szTemp = "dtlkttse_" + LANGUAGE_INITIALS + ".dll";
+        DeleteFile(szTemp);
+        RenameFile("dtlkttse.dll", szTemp);
+
+     // MessageBox( "DEBUG: Copying File:" + szTemp,INFORMATION);
+
+#endif // _WILLIOPOND
+#endif // FRENCH
+#endif // SAPI_MULTI_LANGUAGE_SUPPORT
+#endif // _MULTI_LANG
+#endif // _WINDOWS_CE
+end;
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:  CreateRegDBEntries
+ *
+ *  Purpose:  This function will create necessary keys and values 
+ *            in the Registry for the DECtalk software,Microsoft Speech SDK,
+ *            and for OLE-version of DECtalk speech engine.
+ *            
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function CreateRegDBEntries()
+    STRING szKey[255], szValue,szValueName;
+    NUMBER nValType,nSize;
+
+begin
+    // Registry Entries for the plain-DECtalk 
+    // Register Application specific information here..and Main dictionary entry
+    // The call made to InstallationInfo in the begining creates the  
+    // application information key (i.e the key: 
+    //   CompanyName\productName\product_Version under HKEY_LOCAL_MACHINE\Software
+    
+    // Set the application information key values here...
+    RegDBSetAppInfo("Company",REGDB_STRING,svCompany,-1);
+    RegDBSetAppInfo("Installer",REGDB_STRING,svName,-1);
+    
+#ifdef _MULTI_LANG
+    szValue = "1";
+    RegDBSetAppInfo("MultiLang",REGDB_STRING,szValue,-1);
+// Moved Multi-language intials to below 02/03/98 ksb
+#endif 
+
+// Checking to see if the Licenses Key is already set in the registry
+// szLicenseKey and LIC_COUNT are defined in COOP.H
+    szValue = INSTALL_PASSWORD;
+    RegDBSetAppInfo("LicUpdPwd",REGDB_STRING,szValue,-1);
+
+// Checking to see if the Licenses Key is already set in the registry
+// szLicenseKey and LIC_COUNT are defined in COOP.H
+    szKey = szLicenseKey;
+    szValueName = "Lock_MGR";
+    nValType = REGDB_STRING;
+    nSize = -1;
+    RegDBGetKeyValueEx(szKey, szValueName, nValType, szValue, nSize);
+
+	if (szValue = "3") then
+    // The Licenses Key was modified by the Lock_MGR.
+	// Therefore don't touch the Licenses Key
+	elseif (szValue  = "2") then
+    // The Multi-Language kit WAS previously installed.
+	// Therefore don't touch the Licenses Key
+	elseif (szValue  = "1") then
+	// Only individual languages were installed
+#ifdef _MULTI_LANG
+    // If here: set the up the reg as a MULTI-LANG system
+		RegDBSetAppInfo("Lock_MGR",REGDB_STRING,"2",-1);
+		szValue = LIC_COUNT;
+		RegDBSetAppInfo("Licenses",REGDB_STRING,szValue,-1);
+#else
+    // If here there was a kit already installed
+	// Therefore don't touch the Licenses Key
+#endif
+    else
+	// If we are here then there was NO PREVIOUSLY installed dectalk.
+	// Setting the license count
+#ifdef _MULTI_LANG 
+    	RegDBSetAppInfo("Lock_MGR",REGDB_STRING,"2",-1);
+#else
+    	RegDBSetAppInfo("Lock_MGR",REGDB_STRING,"1",-1);
+#endif
+		szValue = LIC_COUNT;
+		RegDBSetAppInfo("Licenses",REGDB_STRING,szValue,-1);
+	endif;
+
+// See coop.h for the szKey locations
+    szKey = szLocalMachineDECtalk;
+    szValue = PRODUCT_NAME + " " + LANGUAGE_INITIALS +" version " + PRODUCT_VERSION;
+    CreateKeyAndSetValue(szKey,"Version",REGDB_STRING,szValue,-1);
+
+    szValue = LANGUAGE_NAME;
+    CreateKeyAndSetValue(szKey,"Language",REGDB_STRING,szValue,-1);
+
+#ifndef _MULTI_LANG
+// dectalk.dic Reg entry.  szMainDictDef is defined in COOP.H
+    szValue = svTarget ^ LANGUAGE_INITIALS ^ szMainDictDef;
+    CreateKeyAndSetValue(szKey,"MainDict",REGDB_STRING,szValue,-1);
+
+    szKey =szLocalMachineDTlangs;
+    szValue = LANGUAGE_NAME;
+    CreateKeyAndSetValue(szKey,LANGUAGE_INITIALS,REGDB_STRING,szValue,-1);
+
+// Moved Multi-language intials from above 02/03/98 ksb
+    szValue = LANGUAGE_INITIALS;
+    CreateKeyAndSetValue(szKey, "DefaultLang",REGDB_STRING,szValue,-1);
+
+    nValType = REGDB_STRING;
+    nSize = -1;
+
+// Register User dictionary entry -- user.dic.  szUserDictDef is defined in COOP.H
+    RegDBSetDefaultRoot(HKEY_CURRENT_USER);
+    szKey = szLocalMachineDECtalk;
+    szValue = svTarget ^ LANGUAGE_INITIALS ^ szUserDictDef;
+    CreateKeyAndSetValue(szKey,"UserDict",nValType,szValue,nSize);
+
+#ifndef FRENCH
+    // Registry Entries for Microsoft Speech SDK 
+    // Don't log the below information so that UnInstall should not
+    // delete Microsoft Speech SDK entries.
+    Disable(LOGGING);
+    RegDBSetDefaultRoot(HKEY_CLASSES_ROOT);
+
+    // Register key for TTS-Enumerator GUID
+    szKey = "\\CLSID" ^ MS_TTS_ENUM_GUID ;
+    szValueName = "";
+    szValue = "Text To Speech Enumerator";
+    CreateKeyAndSetValue(szKey,szValueName,nValType,szValue,nSize);
+
+    // Register TTS-enumerator DLL under InprocServer32 (speech.dll)
+    szKey = "\\CLSID" ^ MS_TTS_ENUM_GUID ^ "InprocServer32";
+    szValueName = "";
+    szValue = WINDIR ^ "Speech" ^ "speech.dll";
+    CreateKeyAndSetValue(szKey,szValueName,nValType,szValue,nSize);
+
+    szValueName = "ThreadingModel";
+    szValue = "Apartment";
+    RegDBSetKeyValueEx(szKey,szValueName,REGDB_STRING,szValue,-1);
+
+    //Register key for Audio destination object GUID
+    szKey = "\\CLSID" ^ MS_AUDIO_DEST_GUID ;
+    szValueName = "";
+    szValue = "Audio Destination Object";
+    CreateKeyAndSetValue(szKey,szValueName,nValType,szValue,nSize);
+
+    szKey = "\\CLSID" ^ MS_AUDIO_DEST_GUID ^ "InprocServer32";
+    szValueName = "";
+    szValue = WINDIR ^ "Speech" ^ "speech.dll";
+    CreateKeyAndSetValue(szKey,szValueName,nValType,szValue,nSize);
+
+    szValueName = "ThreadingModel";
+    szValue = "Apartment";
+    RegDBSetKeyValueEx(szKey,szValueName,REGDB_STRING,szValue,-1);
+
+    // Registry Entry for OLE-DECtalk speech engine under
+    // HKEY_LOCAL_MACHINE
+    RegDBSetDefaultRoot(HKEY_LOCAL_MACHINE);
+
+    szKey = "\\Software" ^ "Voice" ^"TextToSpeech" ^ "Engine";
+#ifdef SAPI_MULTI_LANGUAGE_SUPPORT
+#ifdef _WILLOWPOND
+    szValueName = "wpDECtalk_" + LANGUAGE_INITIALS;
+    szValue = "wpDECtalk TTS Engine " + LANGUAGE_INITIALS;
+#else // _WILLOWPOND
+    szValueName = "DECtalk_" + LANGUAGE_INITIALS;
+    szValue = "DECtalk TTS Engine " + LANGUAGE_INITIALS;
+#endif // _WILLOWPOND
+#else
+#ifdef _WILLOWPOND
+    szValueName = "wpDECtalk";
+#else // _WILLOWPOND
+    szValueName = "DECtalk";
+#endif // _WILLOWPOND
+#endif 
+    szValue = DECTALK_TTS_ENGINE_GUID;
+    CreateKeyAndSetValue(szKey,szValueName,nValType,szValue,nSize);
+
+    Enable(LOGGING);
+
+    // Registry Entries for OLE-DECtalk speech engine under
+    // HKEY_CLASSES_ROOT 
+    RegDBSetDefaultRoot(HKEY_CLASSES_ROOT);
+
+    szKey = "\\CLSID" ^ DECTALK_TTS_ENGINE_GUID ;
+#ifdef SAPI_MULTI_LANGUAGE_SUPPORT
+#ifdef _WILLOWPOND
+    szValueName = "wpDECtalk_" + LANGUAGE_INITIALS;
+    szValue = "wpDECtalk TTS Engine " + LANGUAGE_INITIALS;
+#else // _WILLOWPOND
+    szValueName = "DECtalk_" + LANGUAGE_INITIALS;
+    szValue = "DECtalk TTS Engine " + LANGUAGE_INITIALS;
+#endif // _WILLOWPOND
+#else 
+#ifdef _WILLOWPOND
+    szValueName = "wpDECtalk";
+    szValue = "wpDECtalk TTS Engine";
+#else // _WILLOWPOND
+    szValueName = "DECtalk";
+    szValue = "DECtalk TTS Engine";
+#endif // _WILLOWPOND
+#endif
+
+    CreateKeyAndSetValue(szKey,szValueName,nValType,szValue,nSize);
+
+    szKey = "\\CLSID" ^ DECTALK_TTS_ENGINE_GUID ^ "InprocServer32";
+    szValueName = "";
+#ifdef SAPI_MULTI_LANGUAGE_SUPPORT
+#ifdef _WILLOWPOND
+    szValue = WINDIR ^ "Speech" ^ "wtlkttse_" + LANGUAGE_INITIALS + ".dll";
+#else // _WILLOWPOND
+    szValue = WINDIR ^ "Speech" ^ "dtlkttse_" + LANGUAGE_INITIALS + ".dll";
+#endif // _WILLOWPOND
+#else
+#ifdef _WILLOWPOND
+    szValue = WINDIR ^ "Speech" ^ "wtlkttse.dll";
+#else // _WILLOWPOND
+    szValue = WINDIR ^ "Speech" ^ "dtlkttse.dll";
+#endif // _WILLOWPOND
+#endif
+    CreateKeyAndSetValue(szKey,szValueName,nValType,szValue,nSize);
+#endif // FRENCH
+#endif // _MULTI_LANG
+
+end;
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function: CreateKeyAndSetValue
+ *
+ *  Purpose:  This function will create the Key and sets the value in registry 
+ *
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function CreateKeyAndSetValue(szKey,szValName,nValType,szValue,nSize)
+
+begin
+    if(RegDBCreateKeyEx(szKey,"") <0) then
+        SprintfBox(WARNING,"status","Failed to create the key:%s",szKey);
+        exit;
+    endif;
+
+    RegDBSetKeyValueEx(szKey,szValName,nValType,szValue,nSize);
+end;
+
+
+
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:  EnoughSpace
+ *
+ *  Purpose:  This function will determine the space requirements to install the 
+ *            software.This function checks the target drive whether it is same as
+ *            the disk that contains the Windows Operating system. 
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function EnoughSpace(svTarget)
+STRING svTargetDisk,szInfo;
+STRING svWindowsDiskU,svTargetDiskU;
+NUMBER nDiskSpaceReq,nFreeSpace,nError;
+LIST   listInfo;
+
+begin
+    // Create list
+    listInfo = ListCreate(STRINGLIST);
+    StrToUpper(svWindowsDiskU,WINDISK);
+    GetDisk(svTarget,svTargetDisk);
+    StrToUpper(svTargetDiskU,svTargetDisk);
+
+    szInfo = "The DECtalk software copies the files";
+    ListAddString(listInfo,szInfo,AFTER);
+    szInfo = "onto the target drive" +" as well as on to the"; 
+    ListAddString(listInfo,szInfo,AFTER);
+    szInfo = "disk that has Windows Operating system.(System drive)"; 
+    ListAddString(listInfo,szInfo,AFTER);
+    ListAddString(listInfo,"",AFTER);
+
+    szInfo = "Disk space details :";
+    ListAddString(listInfo,szInfo,AFTER);
+    Sprintf(szInfo,"Target Directory : %s",svTarget);
+    ListAddString(listInfo,szInfo,AFTER);
+    ListAddString(listInfo,"",AFTER);
+
+    nError = FALSE;
+    nSystemDriveLessSpace = FALSE;
+
+    // Check for target drive and windows system drive
+    if(svTargetDiskU = svWindowsDiskU) then
+        nFreeSpace = GetDiskSpace(svTarget);
+        nDiskSpaceReq = TOTAL_DISK_SPACE_REQUIRED;
+        if (nFreeSpace < nDiskSpaceReq) then
+            Sprintf(szInfo,"   Space available on %s  %ld",svTargetDiskU,nFreeSpace);
+            ListAddString(listInfo,szInfo,AFTER);
+            ListAddString(listInfo,"",AFTER);
+            Sprintf(szInfo,"   Space required  on %s  %ld",svWindowsDiskU,nDiskSpaceReq);
+            ListAddString(listInfo,szInfo,AFTER);
+            nError =TRUE;
+        endif;
+
+    else
+        // Check Disk space on WINDISK 
+        // Disk space on WINDISK to copy DECTALK DLLs,Speech SDK files,SAY.EXE.
+        nDiskSpaceReq = WINSYSDIR_DISK_SPACE_NEEDED;
+        nFreeSpace = GetDiskSpace(WINDISK);
+        if (nFreeSpace < nDiskSpaceReq) then
+            Sprintf(szInfo,"   Space available on System drive %s  %ld",svWindowsDiskU,nFreeSpace);
+            ListAddString(listInfo,szInfo,AFTER);
+            ListAddString(listInfo,"",AFTER);
+            Sprintf(szInfo,"   Space required  on System drive %s  %ld",svWindowsDiskU,nDiskSpaceReq);
+            ListAddString(listInfo,szInfo,AFTER);
+            nError = TRUE;
+            nSystemDriveLessSpace = TRUE;
+        endif;
+
+        // Check Disk space on Target Disk to copy DECTALK software
+        nDiskSpaceReq = DECTALK_APP_SPACE_NEEDED;
+        nFreeSpace = GetDiskSpace(svTarget);
+        if (nFreeSpace < nDiskSpaceReq) then
+            if(nError =TRUE) then
+                ListAddString(listInfo,"",AFTER);
+            endif;
+
+            Sprintf(szInfo,"   Space available on Target drive %s  %ld",svTargetDiskU,nFreeSpace);
+            ListAddString(listInfo,szInfo,AFTER);
+            ListAddString(listInfo,"",AFTER);
+            Sprintf(szInfo,"   Space required  on Target drive %s  %ld",svTargetDiskU,nDiskSpaceReq);
+            ListAddString(listInfo,szInfo,AFTER);
+            nError = TRUE;
+        endif;
+    endif;
+
+    if(nError =TRUE) then
+        DisplayDiskInfo(listInfo);
+        return FALSE;
+    endif;
+
+    return TRUE;
+end;
+
+/*---------------------------------------------------------------------------*\
+ *
+ * Function:  DisplayDiskInfo
+ *
+ *  Purpose:  This function will dispaly to the user about disk space
+ *            information.
+ *             
+ *    Input:
+ *
+ *  Returns:
+ *
+ * Comments:
+\*---------------------------------------------------------------------------*/
+function DisplayDiskInfo(listInfo)
+STRING szTitle,szMsg;
+
+begin
+    if(nSystemDriveLessSpace = FALSE) then
+        ListAddString(listInfo,"",AFTER);
+        szMsg = "Click on Next or Back push button to select";
+        ListAddString(listInfo,szMsg,AFTER);
+        szMsg = "different target directory or click on";
+        ListAddString(listInfo,szMsg,AFTER);
+        szMsg = "cancel to exit setup program";
+        ListAddString(listInfo,szMsg,AFTER);
+    else
+        ListAddString(listInfo,"",AFTER);
+        szMsg = "Please free up disk space on System drive";
+        ListAddString(listInfo,szMsg,AFTER);
+        szMsg = "Click on Cancel push button to exit setup program";
+        ListAddString(listInfo,szMsg,AFTER);
+        Disable(BACKBUTTON);
+        Disable(NEXTBUTTON);
+        Disable(DIALOGCACHE);
+    endif;
+
+    szTitle = "In Sufficient Disk Space"; 
+    szMsg   = "DECtalk software disk space requirement details:"; 
+    SdShowInfoList(szTitle,szMsg,listInfo); 
+
+    ListDestroy(listInfo);
+    if(nSystemDriveLessSpace =TRUE) then
+        Enable(BACKBUTTON);
+        Enable(NEXTBUTTON);
+        Enable(DIALOGCACHE);
+        nSystemDriveLessSpace = FALSE;
+    endif;
+end;
+
+#include "sddialog.rul"

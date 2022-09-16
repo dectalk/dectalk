@@ -1,0 +1,483 @@
+! 
+! @DEC_COPYRIGHT@
+!
+! HISTORY
+! Revision 1.1.2.2  1995/07/05  18:22:24  Krishna_Mangipudi
+! 	Moved from ./src/clients
+! 	[1995/07/05  18:21:57  Krishna_Mangipudi]
+!
+! Revision 1.2.2.2  1994/11/07  22:42:52  Krishna_Mangipudi
+! 	Initial Check-in
+! 	[1994/11/07  21:49:14  Krishna_Mangipudi]
+! 
+! Revision 1.2  1994/11/04  18:33:29  root
+! 	Initial load of project
+! 
+! $EndLog$
+! 
+!**********************************************************************
+!*                                                                    
+!*  Copyright Digital Equipment Corporation, 1994,                    
+!*  All rights reserved.                                              
+!*                                                                    
+!*  This software is proprietary to and embodies the confidential     
+!*  technology of Digital Equipment Corporation. Possession, use,     
+!*  or copying of this software and media is authorized only pursuant 
+!*  to a valid written license from Digital or an authorized          
+!*  sublicensor.                                                      
+!*                                                                    
+!*  Restricted Rights: Use, duplication, or disclosure by the         
+!*  U.S. Government is subject to restrictions as set forth in        
+!*  subparagraph (c) (1) (ii) of DFARS 252.227-7013, or in            
+!*  FAR 52.227-19, or in FAR 52.227-14 Alt. III as applicable.        
+!*                                                                    
+!*  The name of Digital Equipment Corporation may not be used to      
+!*  endorse or promote products derived from this software without    
+!*  specific prior written permission. All other rights reserved.     
+!*                                                                    
+!*  This software is provided "as is" and without any express or      
+!*  implied warranties, including, without limitation, implied        
+!*  warranties of non-infringement, merchantibility or fitness        
+!*  for a particular purpose. Digital assumes no responsibility AT    
+!*  ALL for the use or reliability of this software.                  
+!*                                                                    
+!*********************************************************************
+!**************************************************************************
+!**  PROGRAM:
+!**    xmsay.uil
+!**
+!**  ABSTRACT:
+!**     
+!**     This is the UIL file that goes with xmsay.c.  It contains a 
+!**     description of the widgets used and the callback routines 
+!**     associated with them.
+!**
+!**  ENVIRONMENT:
+!**
+!**      OSF/1 AXP
+!**
+!**  AUTHOR(S):
+!**
+!**     DAVE (Dectalk Audio Visual Engineer)
+!**
+!**
+!***************************************************************************
+module xmsay
+	names = case_sensitive
+	objects = {
+!		XmPushButton = gadget;
+!		XmToggleButton = gadget;
+	}
+
+procedure
+	ChangeState();
+	ProcessName(integer);
+	FileMenuSelect(integer);
+	PauseButtonSelect(integer);
+	SpeakerMenuSelect(integer);
+	CancelPrompt();
+	ContinuePrompt();
+	WidgetCreate(integer);
+	UpdateSpeakingRate();
+value
+	file_label_text : "File";
+	open_button_text : "Open Text File...";
+        save_button_text : "Save To Waveout File...";
+	quit_button_text : "Quit";
+	speaker_label_text : "Speaking Voice";
+	open_error_text : "Can't Open Specified File.";
+        save_error_text : "Can't Open Specified File.";
+	speaking_rate_title : "Speaking Rate";
+	pause_dialog_text : "DECtalk paused";
+	index_dialog_text : "Index Callback";
+	default_speaker_label_text : "Current Settings: Paul speaking at 180 words per minute";
+
+value
+	perfect_paul_text : "Paul";
+	beautiful_betty_text : "Betty";
+	huge_harry_text : "Harry";
+	frail_frank_text : "Frank";
+	doctor_dennis_text : "Dennis";
+	kit_the_kid_text : "Kit";
+	uppity_ursula_text : "Ursula";
+	rough_rita_text : "Rita";
+	whispering_wendy_text : "Wendy";
+	variable_val_text : "Val";
+
+value
+	menu_open : 1;
+        menu_save : 2;
+	menu_quit : 3;
+
+value
+	STOP  : 0;
+	PLAY  : 1;
+	PAUSE : 2;
+	SRATE : 3;
+	TEXT  : 4;
+	SLABL : 5;
+
+value
+	PERFECT_PAUL       : 0;
+	BEAUTIFUL_BETTY    : 1;
+	HUGE_HARRY         : 2;
+	FRAIL_FRANK        : 3;
+	DOCTOR_DENNIS      : 4;
+	KIT_THE_KID        : 5;
+	UPPITY_URSULA      : 6;
+	ROUGH_RITA         : 7;
+	WHISPERING_WENDY   : 8;
+	VARIABLE_VAL       : 9;
+
+object play_main : XmPanedWindow {
+	controls {
+		XmForm form;
+	};
+};
+
+object form : XmForm {
+	controls {
+		XmMenuBar menu_bar;
+		XmScale speaking_rate;
+		XmLabel speaker_label;
+		XmPushButton stop_button;
+		XmPushButton play_button;
+		XmPushButton pause_button;
+		XmScrolledText text_1;
+	};
+};
+
+object menu_bar : XmMenuBar {
+	arguments {
+		XmNleftAttachment = XmATTACH_FORM;
+		XmNrightAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_FORM;
+		XmNshadowThickness = 3;
+                XmNspacing = 20; 
+	};
+	controls {
+		XmCascadeButton file_button;
+		XmCascadeButton speaker_button;
+	};
+};
+
+object file_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = file_label_text;
+	};
+	controls {
+		XmPulldownMenu file_menu;
+	};
+};
+
+object file_menu : XmPulldownMenu {
+	controls {
+		XmPushButton open_button;
+                XmPushButton save_button;
+		XmPushButton quit_button;
+	};
+};
+
+object open_button : XmPushButton {
+	arguments {
+		XmNlabelString = open_button_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_open);
+	};
+};
+
+object save_button : XmPushButton {
+        arguments {
+                XmNlabelString = save_button_text;
+        };
+        callbacks {
+                XmNactivateCallback = procedure FileMenuSelect(menu_save);
+        };
+};
+
+object quit_button : XmPushButton {
+	arguments {
+		XmNlabelString = quit_button_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_quit);
+	};
+};
+
+object speaker_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = speaker_label_text;
+	};
+	controls {
+		XmPulldownMenu speaker_menu;
+	};
+};
+
+object speaker_menu : XmPulldownMenu {
+	controls {
+		XmPushButton paul_button;
+		XmPushButton betty_button;
+		XmPushButton harry_button;
+		XmPushButton frank_button;
+		XmPushButton dennis_button;
+		XmPushButton kit_button;
+		XmPushButton ursula_button;
+		XmPushButton rita_button;
+		XmPushButton wendy_button;
+!XmPushButton val_button;
+	};
+};
+
+object paul_button : XmPushButton {
+	arguments {
+		XmNlabelString = perfect_paul_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( PERFECT_PAUL );
+	};
+};
+
+object betty_button : XmPushButton {
+	arguments {
+		XmNlabelString = beautiful_betty_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( BEAUTIFUL_BETTY );
+	};
+};
+
+object harry_button : XmPushButton {
+	arguments {
+		XmNlabelString = huge_harry_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( HUGE_HARRY );
+	};
+};
+
+object frank_button : XmPushButton {
+	arguments {
+		XmNlabelString = frail_frank_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( FRAIL_FRANK );
+	};
+};
+
+object dennis_button : XmPushButton {
+	arguments {
+		XmNlabelString = doctor_dennis_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( DOCTOR_DENNIS );
+	};
+};
+
+object kit_button : XmPushButton {
+	arguments {
+		XmNlabelString = kit_the_kid_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( KIT_THE_KID );
+	};
+};
+
+object ursula_button : XmPushButton {
+	arguments {
+		XmNlabelString = uppity_ursula_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( UPPITY_URSULA );
+	};
+};
+
+object rita_button : XmPushButton {
+	arguments {
+		XmNlabelString = rough_rita_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( ROUGH_RITA );
+	};
+};
+
+object wendy_button : XmPushButton {
+	arguments {
+		XmNlabelString = whispering_wendy_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( WHISPERING_WENDY );
+	};
+};
+
+object val_button : XmPushButton {
+	arguments {
+		XmNlabelString = variable_val_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure SpeakerMenuSelect( VARIABLE_VAL );
+	};
+};
+
+object speaker_label : XmLabel {
+	arguments {
+		XmNleftAttachment = XmATTACH_FORM;
+!		XmNrightAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNtopWidget = menu_bar;
+		XmNlabelString = default_speaker_label_text;
+	};
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(SLABL);
+	};
+};
+
+object speaking_rate : XmScale {
+	arguments {
+                XmNleftAttachment = XmATTACH_FORM;
+                XmNrightAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNtopWidget = speaker_label;
+		XmNorientation = XmHORIZONTAL;
+		XmNtitleString = speaking_rate_title;
+		XmNhighlightThickness = 0;
+		XmNminimum = 75;
+		XmNmaximum = 600;
+		XmNvalue = 180;
+		XmNshowValue = true;
+		XmNshadowThickness = 3;
+		XmNscaleHeight = 25;
+	};
+	callbacks {
+		XmNvalueChangedCallback = procedure UpdateSpeakingRate();
+		MrmNcreateCallback = procedure WidgetCreate(SRATE);
+	};
+};
+
+object stop_button : XmPushButton {
+	arguments {
+		XmNleftAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNtopWidget = speaking_rate;
+		XmNlabelString = "STOP";
+		XmNforeground = color('steelblue');
+		XmNbackground = color('wheat');
+		XmNtopShadowColor = color('lightblue');
+		XmNbottomShadowColor = color('steelblue');
+		XmNshadowThickness = 3;
+		XmNhighlightThickness = 0;
+		XmNmarginWidth = 90;
+	};
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(STOP);
+		XmNactivateCallback = procedure ChangeState();
+	};
+};
+
+object play_button : XmPushButton {
+	arguments {
+		XmNleftAttachment = XmATTACH_WIDGET;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNrightAttachment = XmATTACH_WIDGET;
+		XmNleftWidget = stop_button;
+		XmNtopWidget = speaking_rate;
+		XmNrightWidget = pause_button;
+		XmNlabelString = "PLAY";
+		XmNforeground = color('steelblue');
+		XmNbackground = color('wheat');
+		XmNtopShadowColor = color('lightblue');
+		XmNbottomShadowColor = color('steelblue');
+		XmNshadowThickness = 3;
+		XmNhighlightThickness = 0;
+	};
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(PLAY);
+		XmNactivateCallback = procedure ChangeState();
+	};
+};
+
+object pause_button : XmPushButton {
+	arguments {
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNrightAttachment = XmATTACH_FORM;
+		XmNtopWidget = speaking_rate;
+		XmNlabelString = "PAUSE";
+		XmNforeground = color('steelblue');
+		XmNbackground = color('wheat');
+		XmNtopShadowColor = color('lightblue');
+		XmNbottomShadowColor = color('steelblue');
+		XmNshadowThickness = 3;
+		XmNmarginWidth = 90;
+		XmNhighlightThickness = 0;
+	};
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(PAUSE);
+		XmNactivateCallback = procedure PauseButtonSelect(PAUSE);
+	};
+};
+
+object    text_1 : XmScrolledText {
+        arguments {
+		XmNleftAttachment = XmATTACH_FORM;
+		XmNrightAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNtopWidget = stop_button;
+		XmNcolumns = 80;
+		XmNrows = 24;
+		XmNvalue = "DECtalk text-to-speech synthesizer.\n";
+		XmNresizeWidth = false;
+		XmNresizeHeight = false;
+		XmNeditMode = XmMULTI_LINE_EDIT;
+		XmNshadowThickness = 3;
+        };
+	callbacks {
+		MrmNcreateCallback = procedure WidgetCreate(TEXT);
+	};
+    };
+
+/* Popups */
+
+object open_fs_box : XmFileSelectionDialog {
+	callbacks {
+		XmNcancelCallback = procedure CancelPrompt();
+		XmNokCallback = procedure ProcessName(menu_open);
+	};
+};
+
+object save_fs_box : XmFileSelectionDialog {
+        callbacks {
+                XmNcancelCallback = procedure CancelPrompt();
+                XmNokCallback = procedure ProcessName(menu_save);
+        };
+};
+
+object pause_dialog : XmMessageDialog {
+	arguments {
+		XmNmessageString = pause_dialog_text;
+		XmNokLabelString = "Continue";
+	};
+	callbacks {
+		XmNokCallback = procedure ContinuePrompt();
+	};
+};
+
+object index_CB_dialog : XmMessageDialog {
+        arguments {
+                XmNmessageString = index_dialog_text;
+                XmNokLabelString = "Continue";
+        };
+};
+ 
+object open_error : XmErrorDialog {
+	arguments {
+		XmNmessageString = open_error_text;
+	};
+};
+
+object save_error : XmErrorDialog {
+        arguments {
+                XmNmessageString = save_error_text;
+        };
+};
+
+end module;

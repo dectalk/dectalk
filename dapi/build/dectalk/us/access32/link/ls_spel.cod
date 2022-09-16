@@ -1,0 +1,616 @@
+	TITLE	D:\work\Product\dapi\src\Lts\ls_spel.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_ls_spel_say_it
+EXTRN	_spell_it:BYTE
+EXTRN	_ls_char_feat:BYTE
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_ls_spel_say_it PROC NEAR
+
+; 61   : {
+
+  00000	55		 push	 ebp
+
+; 62   : 
+; 63   : 	LETTER	*tlp;
+; 64   : 	unsigned int	size;
+; 65   : 	int	all_vowels;
+; 66   : 
+; 67   : 	/*
+; 68   : 	 *  first, make sure the thing is all upper and 4 or fewer characters
+; 69   : 	 */
+; 70   : 	size = 0;
+; 71   : 	all_vowels = true;
+; 72   : 	for(tlp = llp; tlp < rlp ; tlp++)
+
+  00001	8b 6c 24 08	 mov	 ebp, DWORD PTR _llp$[esp]
+  00005	56		 push	 esi
+  00006	57		 push	 edi
+  00007	8b 7c 24 14	 mov	 edi, DWORD PTR _rlp$[esp+8]
+  0000b	33 f6		 xor	 esi, esi
+  0000d	3b ef		 cmp	 ebp, edi
+  0000f	ba 01 00 00 00	 mov	 edx, 1
+  00014	8b cd		 mov	 ecx, ebp
+  00016	73 2e		 jae	 SHORT $L71835
+$L71777:
+
+; 73   : 	{
+; 74   : 		if (TC < 'A' || TC > 'Z')
+
+  00018	66 8b 01	 mov	 ax, WORD PTR [ecx]
+  0001b	66 3d 41 00	 cmp	 ax, 65			; 00000041H
+  0001f	7c 25		 jl	 SHORT $L71835
+  00021	66 3d 5a 00	 cmp	 ax, 90			; 0000005aH
+  00025	7f 1f		 jg	 SHORT $L71835
+
+; 75   : 			return (TRUE);
+; 76   : 		size += 1;
+
+  00027	46		 inc	 esi
+
+; 77   : 		if(all_vowels && !IS_VOWEL(TC))
+
+  00028	85 d2		 test	 edx, edx
+  0002a	74 0e		 je	 SHORT $L71778
+  0002c	0f bf c0	 movsx	 eax, ax
+  0002f	f6 80 00 00 00
+	00 40		 test	 BYTE PTR _ls_char_feat[eax], 64 ; 00000040H
+  00036	75 02		 jne	 SHORT $L71778
+
+; 78   : 			all_vowels = false;
+
+  00038	33 d2		 xor	 edx, edx
+$L71778:
+
+; 62   : 
+; 63   : 	LETTER	*tlp;
+; 64   : 	unsigned int	size;
+; 65   : 	int	all_vowels;
+; 66   : 
+; 67   : 	/*
+; 68   : 	 *  first, make sure the thing is all upper and 4 or fewer characters
+; 69   : 	 */
+; 70   : 	size = 0;
+; 71   : 	all_vowels = true;
+; 72   : 	for(tlp = llp; tlp < rlp ; tlp++)
+
+  0003a	83 c1 02	 add	 ecx, 2
+  0003d	3b cf		 cmp	 ecx, edi
+  0003f	72 d7		 jb	 SHORT $L71777
+
+; 79   : 	}
+; 80   : 	if(size <= 1)
+
+  00041	83 fe 01	 cmp	 esi, 1
+  00044	77 09		 ja	 SHORT $L71783
+$L71835:
+  00046	5f		 pop	 edi
+  00047	5e		 pop	 esi
+
+; 81   : 		return(TRUE);
+
+  00048	b8 01 00 00 00	 mov	 eax, 1
+  0004d	5d		 pop	 ebp
+
+; 98   : 		return(FALSE);
+; 99   : 	return(TRUE);
+; 100  : }
+
+  0004e	c3		 ret	 0
+$L71783:
+
+; 82   : 	/*
+; 83   : 	 * spell if all vowels or say size is greater than 4 ..
+; 84   : 	 */
+; 85   : 
+; 86   : 	if(all_vowels)
+
+  0004f	85 d2		 test	 edx, edx
+  00051	74 06		 je	 SHORT $L71784
+  00053	5f		 pop	 edi
+  00054	5e		 pop	 esi
+
+; 87   : 		return(FALSE);
+
+  00055	33 c0		 xor	 eax, eax
+  00057	5d		 pop	 ebp
+
+; 98   : 		return(FALSE);
+; 99   : 	return(TRUE);
+; 100  : }
+
+  00058	c3		 ret	 0
+$L71784:
+
+; 88   : 	if(size > 4)
+
+  00059	83 fe 04	 cmp	 esi, 4
+  0005c	76 09		 jbe	 SHORT $L71785
+  0005e	5f		 pop	 edi
+  0005f	5e		 pop	 esi
+
+; 89   : 		return(TRUE);
+
+  00060	b8 01 00 00 00	 mov	 eax, 1
+  00065	5d		 pop	 ebp
+
+; 98   : 		return(FALSE);
+; 99   : 	return(TRUE);
+; 100  : }
+
+  00066	c3		 ret	 0
+$L71785:
+
+; 90   : 
+; 91   : 	/*
+; 92   : 	 *  4 or less and there is a non-vowel in the string ...
+; 93   : 	 */ 
+; 94   :  
+; 95   : 	if(spell_it[BC1][BC2] & SPELL_BEGIN)
+
+  00067	0f bf 45 00	 movsx	 eax, WORD PTR [ebp]
+  0006b	8d 0c 40	 lea	 ecx, DWORD PTR [eax+eax*2]
+  0006e	8d 14 88	 lea	 edx, DWORD PTR [eax+ecx*4]
+  00071	0f bf 45 02	 movsx	 eax, WORD PTR [ebp+2]
+  00075	f6 84 50 25 f9
+	ff ff 02	 test	 BYTE PTR _spell_it[eax+edx*2-1755], 2
+  0007d	74 06		 je	 SHORT $L71786
+  0007f	5f		 pop	 edi
+  00080	5e		 pop	 esi
+
+; 96   : 		return(FALSE);
+
+  00081	33 c0		 xor	 eax, eax
+  00083	5d		 pop	 ebp
+
+; 98   : 		return(FALSE);
+; 99   : 	return(TRUE);
+; 100  : }
+
+  00084	c3		 ret	 0
+$L71786:
+
+; 97   : 	if(spell_it[EC1][EC2] &	SPELL_END)
+
+  00085	0f bf 47 fe	 movsx	 eax, WORD PTR [edi-2]
+  00089	8d 0c 40	 lea	 ecx, DWORD PTR [eax+eax*2]
+  0008c	8d 14 88	 lea	 edx, DWORD PTR [eax+ecx*4]
+  0008f	0f bf 47 fc	 movsx	 eax, WORD PTR [edi-4]
+  00093	5f		 pop	 edi
+  00094	5e		 pop	 esi
+  00095	8a 84 50 25 f9
+	ff ff		 mov	 al, BYTE PTR _spell_it[eax+edx*2-1755]
+  0009c	5d		 pop	 ebp
+  0009d	f6 d0		 not	 al
+  0009f	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  000a4	83 e0 01	 and	 eax, 1
+
+; 98   : 		return(FALSE);
+; 99   : 	return(TRUE);
+; 100  : }
+
+  000a7	c3		 ret	 0
+_ls_spel_say_it ENDP
+_TEXT	ENDS
+PUBLIC	_ls_spel_spell
+EXTRN	_punits:BYTE
+EXTRN	_ls_lower:BYTE
+EXTRN	_ls_math_do_math:NEAR
+EXTRN	_ls_util_send_phone_list:NEAR
+EXTRN	_ls_util_send_phone:NEAR
+EXTRN	_ls_util_write_pipe:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_lp1$ = 12
+_lp2$ = 16
+_phone$ = 8
+_ls_spel_spell PROC NEAR
+
+; 78   : {
+
+  000b0	53		 push	 ebx
+
+; 79   : 	LETTER  lbuf[2];
+; 80   : 	unsigned char _far *tp;
+; 81   : 	unsigned int phone;           
+; 82   : 	PKSD_T pKsd_t;
+; 83   : 	
+; 84   : 	pKsd_t = phTTS->pKernelShareData;
+; 85   : 
+; 86   : 	/* 
+; 87   : 	 * if (how != FAST)
+; 88   : 	 * ls_util_send_phone(phTTS,COMMA); eab out-I don't think this does anything
+; 89   : 	 */
+; 90   : 
+; 91   : 
+; 92   : 	while (lp1 < lp2)
+
+  000b1	8b 5c 24 0c	 mov	 ebx, DWORD PTR _lp1$[esp]
+  000b5	55		 push	 ebp
+  000b6	8b 6c 24 0c	 mov	 ebp, DWORD PTR _phTTS$[esp+4]
+  000ba	56		 push	 esi
+  000bb	8b 74 24 18	 mov	 esi, DWORD PTR _lp2$[esp+8]
+  000bf	57		 push	 edi
+  000c0	8b 7d 08	 mov	 edi, DWORD PTR [ebp+8]
+  000c3	3b de		 cmp	 ebx, esi
+  000c5	0f 83 b6 00 00
+	00		 jae	 $L71801
+$L71800:
+
+; 93   : 	{
+; 94   : 			/*
+; 95   : 			 * eab kludge becuase at this level we don't presently know
+; 96   : 			 * what punc is on so dash will normally not be spelled except
+; 97   : 			 * if it occurs in the enviroment space-dash-space in which
+; 98   : 			 * case it comes from gok: with dashnfast on
+; 99   : 			 * where it should be pronounced   
+; 100  : 			 *
+; 101  : 			 * if(lp1->l_ch == '-' )
+; 102  : 			 * {
+; 103  : 			 *	lp1->l_ch=' ';
+; 104  : 			 * }                         
+; 105  : 			 * eab-out-now handled in cmd_pars
+; 106  : 			 */
+; 107  : 							
+; 108  : 
+; 109  : 		if(ls_math_do_math(pKsd_t,(unsigned char)lp1->l_ch) == false)
+
+  000cb	8a 03		 mov	 al, BYTE PTR [ebx]
+  000cd	50		 push	 eax
+  000ce	57		 push	 edi
+  000cf	e8 00 00 00 00	 call	 _ls_math_do_math
+  000d4	83 c4 08	 add	 esp, 8
+  000d7	85 c0		 test	 eax, eax
+  000d9	0f 85 88 00 00
+	00		 jne	 $L71811
+
+; 110  : 		{
+; 111  : 			lbuf[0].l_ch = lp1->l_ch;
+; 112  : 								
+; 113  : 			/*
+; 114  : 			 * All upper case letters are mapped to
+; 115  : 			 * lower case. This makes it unnecessary to have
+; 116  : 			 * the letters in the dictionary twice. The funny
+; 117  : 			 * letters in the multinational set are in the
+; 118  : 			 * dictionary twice, because it (effectively) puts
+; 119  : 			 * a case folding table into the dictionary.
+; 120  : 			 */
+; 121  : 			
+; 122  : 			lbuf[0].l_ch=ls_lower[lbuf[0].l_ch]; /* case folding for all characters now */	
+
+  000df	0f bf 0b	 movsx	 ecx, WORD PTR [ebx]
+  000e2	66 0f b6 81 00
+	00 00 00	 movzx	 ax, BYTE PTR _ls_lower[ecx]
+
+; 123  : 												 /* why are we folding the case anyway */
+; 124  : //			lbuf[0].l_ip = NULL;
+; 125  : #ifdef ENGLISH_US
+; 126  : 			if(lbuf[0].l_ch == 'a')
+
+  000ea	66 3d 61 00	 cmp	 ax, 97			; 00000061H
+  000ee	75 15		 jne	 SHORT $L71804
+
+; 127  : 			{
+; 128  : 				ls_util_send_phone(phTTS,S1);
+
+  000f0	6a 67		 push	 103			; 00000067H
+  000f2	55		 push	 ebp
+  000f3	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 129  : 				ls_util_send_phone(phTTS,US_EY);
+
+  000f8	6a 03		 push	 3
+  000fa	55		 push	 ebp
+  000fb	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00100	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 130  : 			}
+; 131  : 			else
+
+  00103	eb 62		 jmp	 SHORT $L71811
+$L71804:
+
+; 132  : #endif
+; 133  : #ifdef ENGLISH_UK
+; 134  : 			if(lbuf[0].l_ch == 'a')
+; 135  : 			{
+; 136  : 				ls_util_send_phone(phTTS,S1);
+; 137  : 				ls_util_send_phone(phTTS,UK_EY);
+; 138  : 			}
+; 139  : 			else
+; 140  : #endif
+; 141  : #if (defined SPANISH) || (defined GERMAN)
+; 142  : 			if(1)
+; 143  : #endif
+; 144  : #ifdef FRENCH
+; 145  : 			if(1)
+; 146  : 
+; 147  : #endif
+; 148  : 			{
+; 149  : 				if (lbuf[0].l_ch>='0' && lbuf[0].l_ch<='9')
+
+  00105	66 3d 30 00	 cmp	 ax, 48			; 00000030H
+  00109	7c 1c		 jl	 SHORT $L71806
+  0010b	66 3d 39 00	 cmp	 ax, 57			; 00000039H
+  0010f	7f 16		 jg	 SHORT $L71806
+
+; 150  : 				{
+; 151  : 
+; 152  : #ifdef NWS_US
+; 153  : 					ls_util_send_phone_list(phTTS,OHpunits[(lbuf[0].l_ch-'0')]);
+; 154  : #else
+; 155  : 					ls_util_send_phone_list(phTTS,punits[(lbuf[0].l_ch-'0')]);
+
+  00111	0f bf d0	 movsx	 edx, ax
+  00114	8b 04 95 40 ff
+	ff ff		 mov	 eax, DWORD PTR _punits[edx*4-192]
+  0011b	50		 push	 eax
+  0011c	55		 push	 ebp
+  0011d	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00122	83 c4 08	 add	 esp, 8
+
+; 156  : #endif
+; 157  : 					/* ls_util_send_phone(phTTS,SIL); */
+; 158  : 				}
+; 159  : 				else
+
+  00125	eb 40		 jmp	 SHORT $L71811
+$L71806:
+
+; 160  : 				{
+; 161  :                 	
+; 162  : 					for(tp = (unsigned char _far *)pKsd_t->typing_table[lbuf[0].l_ch];*tp;tp++)
+
+  00127	8b 97 38 06 00
+	00		 mov	 edx, DWORD PTR [edi+1592]
+  0012d	0f bf c8	 movsx	 ecx, ax
+  00130	8b 34 8a	 mov	 esi, DWORD PTR [edx+ecx*4]
+  00133	8a 06		 mov	 al, BYTE PTR [esi]
+  00135	84 c0		 test	 al, al
+  00137	74 2a		 je	 SHORT $L71842
+$L71809:
+
+; 163  : 					{
+; 164  : 						phone = pKsd_t->reverse_ascky[*tp];
+
+  00139	8b 8f 28 06 00
+	00		 mov	 ecx, DWORD PTR [edi+1576]
+  0013f	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+
+; 165  : 						/* printf("lbuf = %02x, tp= %02x,phone %04x\n",lbuf[0].l_ch,*tp,phone);  */
+; 166  : 						ls_util_write_pipe(pKsd_t,(short *)&phone,1);
+
+  00144	6a 01		 push	 1
+  00146	8b 14 81	 mov	 edx, DWORD PTR [ecx+eax*4]
+  00149	8d 44 24 18	 lea	 eax, DWORD PTR _phone$[esp+16]
+  0014d	50		 push	 eax
+  0014e	57		 push	 edi
+  0014f	89 54 24 20	 mov	 DWORD PTR _phone$[esp+24], edx
+  00153	e8 00 00 00 00	 call	 _ls_util_write_pipe
+  00158	8a 46 01	 mov	 al, BYTE PTR [esi+1]
+  0015b	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0015e	46		 inc	 esi
+  0015f	84 c0		 test	 al, al
+  00161	75 d6		 jne	 SHORT $L71809
+$L71842:
+
+; 160  : 				{
+; 161  :                 	
+; 162  : 					for(tp = (unsigned char _far *)pKsd_t->typing_table[lbuf[0].l_ch];*tp;tp++)
+
+  00163	8b 74 24 1c	 mov	 esi, DWORD PTR _lp2$[esp+12]
+$L71811:
+
+; 167  : 					}
+; 168  : 
+; 169  : 				 		/* if (ls_dict_blook(&lbuf[0], &lbuf[1], SINGLE_CHAR) == MISS) */
+; 170  : 						/* ls_util_send_phone(phTTS,EY);*/
+; 171  : 				}
+; 172  : 			}
+; 173  : 		}
+; 174  : 		++lp1;
+
+  00167	83 c3 02	 add	 ebx, 2
+
+; 175  : 		if (lp1 != lp2)
+
+  0016a	3b de		 cmp	 ebx, esi
+  0016c	74 13		 je	 SHORT $L71801
+
+; 176  : 		{
+; 177  : #if defined (ENGLISH) || defined (GERMAN) || defined (FRENCH)
+; 178  : 			ls_util_send_phone(phTTS,WBOUND);
+
+  0016e	6a 6f		 push	 111			; 0000006fH
+  00170	55		 push	 ebp
+  00171	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00176	83 c4 08	 add	 esp, 8
+  00179	3b de		 cmp	 ebx, esi
+  0017b	0f 82 4a ff ff
+	ff		 jb	 $L71800
+$L71801:
+  00181	5f		 pop	 edi
+  00182	5e		 pop	 esi
+  00183	5d		 pop	 ebp
+  00184	5b		 pop	 ebx
+
+; 179  : #endif
+; 180  : #ifdef SPANISH
+; 181  : 			ls_util_send_phone(phTTS, COMMA);
+; 182  : #endif
+; 183  : 		
+; 184  : 		}
+; 185  : 	}
+; 186  : }
+
+  00185	c3		 ret	 0
+_ls_spel_spell ENDP
+_TEXT	ENDS
+PUBLIC	_ls_spel_spell_speed
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_ls_spel_spell_speed PROC NEAR
+
+; 215  : 	  int   c;
+; 216  : 	  int   nchar;
+; 217  : 	  int   namper;
+; 218  : 
+; 219  : 	if (llp+1 == rlp)                       /* 1 letter words are   */
+
+  00190	8b 44 24 04	 mov	 eax, DWORD PTR _llp$[esp-4]
+  00194	53		 push	 ebx
+  00195	55		 push	 ebp
+  00196	56		 push	 esi
+  00197	57		 push	 edi
+  00198	8b 7c 24 18	 mov	 edi, DWORD PTR _rlp$[esp+12]
+  0019c	8d 48 02	 lea	 ecx, DWORD PTR [eax+2]
+  0019f	3b cf		 cmp	 ecx, edi
+  001a1	75 07		 jne	 SHORT $L71822
+  001a3	5f		 pop	 edi
+  001a4	5e		 pop	 esi
+  001a5	5d		 pop	 ebp
+
+; 220  : 		return (FAST);                  	/* always fast.         */
+
+  001a6	33 c0		 xor	 eax, eax
+  001a8	5b		 pop	 ebx
+
+; 245  : }
+
+  001a9	c3		 ret	 0
+$L71822:
+
+; 221  : 	nchar  = 0;
+
+  001aa	33 f6		 xor	 esi, esi
+
+; 222  : 	namper = 0;
+
+  001ac	33 ed		 xor	 ebp, ebp
+
+; 223  : 	while (llp != rlp) 
+
+  001ae	3b c7		 cmp	 eax, edi
+  001b0	74 2a		 je	 SHORT $L71847
+  001b2	b2 03		 mov	 dl, 3
+$L71824:
+
+; 224  : 	{
+; 225  : 		c = (llp++)->l_ch;
+
+  001b4	0f bf 08	 movsx	 ecx, WORD PTR [eax]
+  001b7	83 c0 02	 add	 eax, 2
+
+; 226  : 		++nchar;
+
+  001ba	46		 inc	 esi
+
+; 227  : 		if (c == '&')                   /* Count "&"            */
+
+  001bb	83 f9 26	 cmp	 ecx, 38			; 00000026H
+  001be	75 03		 jne	 SHORT $L71826
+
+; 228  : 			++namper;
+
+  001c0	45		 inc	 ebp
+
+; 229  : 		else 
+
+  001c1	eb 10		 jmp	 SHORT $L71828
+$L71826:
+
+; 230  : 		{
+; 231  : 			/* if (c>='A' && c<='Z')   / * Fold case.           * /
+; 232  : 				c += 'a'-'A'; */
+; 233  : 			c = ls_lower[c];		/* fold case using the case table */
+; 234  : 			/* if (c<'a' || c>'z')     / * Slow if not alpha.   * /
+; 235  : 				return (SLOW); */
+; 236  : 			if (!IS_ALPHA(c))		/* use the macro to lookup in table */ 
+
+  001c3	33 db		 xor	 ebx, ebx
+  001c5	8a 99 00 00 00
+	00		 mov	 bl, BYTE PTR _ls_lower[ecx]
+  001cb	84 93 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[ebx], dl
+  001d1	74 1e		 je	 SHORT $L71846
+$L71828:
+
+; 223  : 	while (llp != rlp) 
+
+  001d3	3b c7		 cmp	 eax, edi
+  001d5	75 dd		 jne	 SHORT $L71824
+
+; 237  : 				return(SLOW);
+; 238  : 		}
+; 239  : 	}
+; 240  : 	if (nchar < 4)                          /* Short word.          */
+
+  001d7	83 fe 04	 cmp	 esi, 4
+  001da	7d 07		 jge	 SHORT $L71848
+$L71847:
+  001dc	5f		 pop	 edi
+  001dd	5e		 pop	 esi
+  001de	5d		 pop	 ebp
+
+; 241  : 		return (FAST);
+
+  001df	33 c0		 xor	 eax, eax
+  001e1	5b		 pop	 ebx
+
+; 245  : }
+
+  001e2	c3		 ret	 0
+$L71848:
+
+; 242  : 	if (nchar==4 && namper==1)              /* "FA&T"               */
+
+  001e3	75 0c		 jne	 SHORT $L71846
+  001e5	83 fd 01	 cmp	 ebp, 1
+  001e8	75 07		 jne	 SHORT $L71846
+  001ea	5f		 pop	 edi
+  001eb	5e		 pop	 esi
+  001ec	5d		 pop	 ebp
+
+; 243  : 		return (FAST);
+
+  001ed	33 c0		 xor	 eax, eax
+  001ef	5b		 pop	 ebx
+
+; 245  : }
+
+  001f0	c3		 ret	 0
+$L71846:
+  001f1	5f		 pop	 edi
+  001f2	5e		 pop	 esi
+  001f3	5d		 pop	 ebp
+
+; 244  : 	return (SLOW);
+
+  001f4	b8 01 00 00 00	 mov	 eax, 1
+  001f9	5b		 pop	 ebx
+
+; 245  : }
+
+  001fa	c3		 ret	 0
+_ls_spel_spell_speed ENDP
+_TEXT	ENDS
+END

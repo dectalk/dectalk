@@ -1,0 +1,611 @@
+#
+# @DEC_COPYRIGHT@
+#
+# HISTORY
+# Revision 1.1.2.19  1996/03/25  20:25:44  Krishna_Mangipudi
+# 	Deleted bookreader dependencies
+# 	[1996/03/25  20:25:27  Krishna_Mangipudi]
+#
+# Revision 1.1.2.18  1996/03/18  15:39:15  Krishna_Mangipudi
+# 	Changed ref to Bookreader to HTML
+# 	[1996/03/18  15:39:08  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.17  1996/02/26  21:03:49  Krishna_Mangipudi
+# 	Updated copyright to 1996
+# 	[1996/02/26  21:02:51  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.16  1996/02/20  21:49:49  Krishna_Mangipudi
+# 	Remove tabs from end of line
+# 	[1996/02/20  21:49:40  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.15  1996/02/20  17:12:05  Krishna_Mangipudi
+# 	Delete html during cleanup
+# 	[1996/02/20  17:11:44  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.14  1996/02/19  18:10:56  Krishna_Mangipudi
+# 	Moved call to whatis routines
+# 	[1996/02/19  18:10:41  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.13  1996/02/19  00:36:47  Krishna_Mangipudi
+# 	Added proper defs for whatis
+# 	[1996/02/19  00:36:32  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.12  1996/02/16  22:24:11  Krishna_Mangipudi
+# 	Corrected a typo
+# 	[1996/02/16  22:24:02  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.11  1996/02/16  21:53:10  Krishna_Mangipudi
+# 	Fix typo add / to WHATISDIR
+# 	[1996/02/16  21:52:56  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.10  1996/02/16  21:22:47  Krishna_Mangipudi
+# 	Added whatis
+# 	[1996/02/16  21:22:30  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.9  1996/02/15  14:57:10  Krishna_Mangipudi
+# 	More explicit instructions after installation
+# 	[1996/02/15  14:56:47  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.8  1996/02/05  11:27:49  Krishna_Mangipudi
+# 	Install in a single /usr/opt dir
+# 	[1996/02/05  11:27:23  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.7  1995/11/21  21:35:41  Krishna_Mangipudi
+# 	use -f with ln
+# 	[1995/11/21  21:34:43  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.6  1995/09/25  20:33:46  Krishna_Mangipudi
+# 	Corrected version numbers
+# 	[1995/09/25  20:33:02  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.5  1995/09/22  21:23:33  Krishna_Mangipudi
+# 	Updated with V4.3 string and cleaned up messages
+# 	[1995/09/22  21:22:44  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.4  1995/07/06  20:18:06  Krishna_Mangipudi
+# 	Updated to V4.3
+# 	[1995/07/06  20:17:19  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.3  1995/04/19  14:20:21  Krishna_Mangipudi
+# 	check in DTKRT430 for dectalk.dic
+# 	[1995/04/19  14:20:07  Krishna_Mangipudi]
+# 
+# Revision 1.1.2.2  1995/04/17  16:27:18  Krishna_Mangipudi
+# 	Edited for RT/DEV splitup
+# 	[1995/04/17  16:26:40  Krishna_Mangipudi]
+# 
+# $EndLog$
+#
+#
+#  Copyright (c) Digital Equipment Corporation, 1996 All Rights Reserved.
+#  Unpublished rights reserved under the copyright laws of the United States.
+#  The software contained on this media is proprietary to and embodies the
+#  confidential technology of Digital Equipment Corporation.  Possession, use,
+#  duplication or dissemination of the software and media is authorized only
+#  pursuant to a valid written license from Digital Equipment Corporation.
+#
+#  RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the U.S.
+#  Government is subject to restrictions as set forth in Subparagraph
+#  (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, as applicable.
+#
+#
+
+. /usr/share/lib/shell/libscp
+
+##############################
+#      LMF Particulars
+##############################
+
+product=DECTALK-SW97-USER
+producer=DEC
+prod_version=4.4
+prod_date=15-OCT-1997
+
+# Subset check flags
+
+SUBSETS_PRESENT=0
+VERSION_MISMATCH=0
+
+DOC_FLAG=0
+DELDOC_FLAG=0
+
+SUBSETNAME=`basename $0`
+SUBSETNAME=`expr "$SUBSETNAME" : '^\(.*\)\.scp'`
+SUBSETVER=`expr "$SUBSETNAME" : '^\DTKDEVDOC*\(.*\)'`
+
+SUBSETLOC=usr/opt/DTKDEV450
+MAN3=man/man3
+SHARE=share/man/man3
+
+WHATISDIR=/usr/share/man
+WHATIS=$WHATISDIR/whatis
+WHATISFILE=DTKMANDEV450
+
+############################################################
+#
+# Merge the whatis database in this subset with the system
+# database.
+#
+############################################################
+MergeWhatis()
+{
+    ############################################
+    #
+    # If /usr/share/man/whatis exists, concatenate it with this
+    # subset's SUBSET.whatis file, and sort unique the result.  If
+    # /usr/share/man/whatis does not exist, copy only this subset's
+    # SUBSET.whatis file onto /usr/share/man/whatis.
+    #
+    ############################################
+
+    if [ -f $WHATIS ]; then
+        sort -u $WHATIS $WHATISDIR/.$WHATISFILE.whatis > $WHATIS.tmp
+        mv $WHATIS.tmp $WHATIS
+    else
+        cp $WHATISDIR/.$WHATISFILE.whatis $WHATIS
+    fi
+}
+############################################################
+#
+# Remove the whatis entries from this product from the
+# system database. This takes all the .whatis files
+# after this subset's has been removed and generates a new
+# whatis database file.
+#
+############################################################
+RemoveWhatis()
+{
+    ############################################
+    #
+    # If this subset's SUBSET.whatis file exists, concatenate it with
+    # /usr/share/man/whatis, then sort | unique to retain only the
+    # unique entries.  If the SUBSET.whatis file does not exist, just
+    # display an error message.
+    #
+    ############################################
+
+    if [ -f $WHATIS ]; then
+        sort $WHATISDIR/.$WHATISFILE.whatis $WHATIS > $WHATIS.tmp
+        uniq -u $WHATIS.tmp > $WHATIS
+        rm -f $WHATIS.tmp
+        rm -f $WHATISDIR/.$WHATISFILE.whatis
+    else
+        echo "
+*****
+     Cannot update the whatis database automatically.  Run \"catman -w\"
+     to refresh the whatis database.
+"
+    fi
+}
+
+CheckPreRequisteConfig()
+{
+        ###################################################################
+        #
+        # check the architecture type
+        #
+        ###################################################################
+        MACH=vax
+        [ -f /bin/machine ] && MACH=`/bin/machine`
+        [ $MACH = alpha ] ||
+        {
+            cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.5 subset DTKDEVDOC450.
+
+        This version of DECtalk may be installed on Alpha AXP only.
+
+   ***********************************************************************
+
+EOF
+            exit 1
+        }
+
+        ###################################################################
+        #
+        # Check if MME is installed  
+        #
+        ###################################################################
+        [ ! -f /usr/.smdb./MMERT[0-9][0-9][0-9].lk ] &&
+        {
+           cat <<EOF
+
+   ***********************************************************************
+
+      Error installing DECtalk Software V4.5 subset DTKDEVDOC450.
+
+        DECtalk Software installation has detected that MME, the Multimedia
+        Services  for Digital UNIX, is not installed.  If you wish to run 
+        DECtalk Software applets you will need to install MME after you 
+        install DECtalk Software.
+
+   ***********************************************************************
+
+EOF
+        }
+
+
+}
+
+CheckIfDocIsAlreadyInstalled() 
+{
+   ###################################################################
+   #
+   # Check for currently installed DTK kits 
+   #
+   ###################################################################
+   [ -f /usr/.smdb./DTKDEVDOC[0-9][0-9][0-9].lk ] &&
+   {
+      SUBSETS_PRESENT=1
+      DOC_FLAG=1
+      DtkDoc=`ls /usr/.smdb./DTKDEVDOC[0-9][0-9][0-9].lk | sed "s/\/usr\/.smdb.\///" | sed s/.lk//`
+      cat <<EOF
+
+      $DtkDoc is currently installed.
+EOF
+   }
+}
+
+CheckVersions()
+{
+   VERSION_MISMATCH=0
+
+   # Check DTKDEVDOC version
+
+   if [ "$DOC_FLAG" = "1" ]
+   then
+      ThisVer=`expr "$DtkDoc" : '^\DTKDEVDOC*\(.*\)'`
+      if [ ! "$ThisVer" = "$SUBSETVER" ]
+      then
+         VERSION_MISMATCH=1  
+      fi
+   fi
+}
+
+DeleteSubset()
+{
+   if [ "$DOC_FLAG" = "1" ]
+   then
+      while :
+         do echo "
+Do you wish to delete subset $DtkDoc at this time? (y/n) [y]: \c"
+            read ANS
+            ANS=`echo $ANS`
+
+            case $ANS in
+               "" | [yY]* )
+                  DELDOC_FLAG=1
+                  break
+               ;;
+                  [nN]* )
+                  DELDOC_FLAG=0
+                  break
+               ;;
+            esac
+      done
+   fi
+
+  if [ "$DELDOC_FLAG" = "1" ]
+  then
+     /usr/sbin/setld -d $DtkDoc
+     DOC_FLAG=0
+     DELDOC_FLAG=0
+  fi
+}
+
+CopyrightMsg ()
+{
+	cat <<EOF
+
+   ***********************************************************************
+   *                                                                     *
+   * DECtalk Software Application Services V4.5                          *
+   * Development Documentation Subset                                    *
+   *                                                                     *
+   * Copyright(c)Digital Equipment Corporation, 1996 All Rights Reserved *
+   *                                                                     *
+   * Unpublished rights reserved under the copyright laws of the United  *
+   * States.   The software contained on this media is proprietary to    *
+   * and embodies the confidential technology of Digital Equipment       *
+   * Corporation.  Possession, use, duplication or dissemination of the  *
+   * software and media is authorized only pursuant to a valid written   *
+   * license from Digital Equipment Corporation.                         *
+   *                                                                     *
+   * RESTRICTED RIGHTS LEGEND   Use, duplication, or disclosure by the   *
+   * U.S. Government is subject to restrictions as set forth in          *
+   * Subparagraph (c)(1)(ii) of DFARS 252.227-7013, or in FAR 52.227-19, *
+   * or in FAR 52.227-14 Alt. III as applicable.                         *
+   *                                                                     *
+   ***********************************************************************
+
+EOF
+}
+
+    #######################################################################
+    #
+    # Start main case statement for this module
+    #
+    #######################################################################
+
+case $ACT in
+    #######################################################################
+    #
+    # Before presenting subset menu: check dependencies and display
+    # copyright information.
+    #
+    #######################################################################
+    M)
+
+       CheckPreRequisteConfig
+       CheckIfDocIsAlreadyInstalled 
+
+       if [ "$SUBSETS_PRESENT" = "1" ]
+       then
+          DeleteSubset
+          CheckVersions
+          if [ "$VERSION_MISMATCH" = "1" ] 
+          then
+             cat <<EOF
+
+    ***********************************************************************
+
+       Error installing DECtalk Software V4.5 subset DTKDEVDOC450.
+
+         You may not mix different versions of DECtalk Software, please
+         delete the installed version of DECtalk Software before installing 
+         the current version.
+
+    ***********************************************************************
+EOF
+             DeleteSubset
+          fi
+       fi
+
+    #######################################################################
+    #
+    # If DTKDEVDOC subset is still present, then do not prompt for it
+    # in the installation menu
+    #
+    #######################################################################
+  
+      [ -f /usr/.smdb./DTKDEVDOC[0-9][0-9][0-9].lk ] &&
+      {
+         exit 1
+      }
+   ;;
+
+   #######################################################################
+   #
+   # Pre-installation : check to make sure any prerequisites are met.
+   #
+   #######################################################################
+   PRE_L)
+   ;;
+                            
+   POST_L)
+
+       cat <<EOF
+
+  ***********************************************************************
+  
+     DECtalk Software V4.5 development documentation subset (DTKDEVDOC450) 
+     installation completed successfully. This installation put DECtalk 
+     Software development documents in HTML format in the following 
+     directory /usr/opt/DTKDEV450/docs/html.  
+
+     You can use the Netscape(TM) browser to view the documents.  Start
+     by opening the file:
+
+                  /usr/opt/DTKRT450/docs/html/DtkDevGuide.html
+                                                                        
+  ***********************************************************************
+
+EOF
+    ;;
+
+    C)
+        case $1 in
+            INSTALL)
+		#
+		# create necessary soft links
+		#
+                #
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechLoadUserDictionary.3 \
+		./usr/$MAN3/TextToSpeechLoadUserDictionary.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechStartup.3 \
+		./usr/$MAN3/TextToSpeechStartup.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechShutdown.3 \
+		./usr/$MAN3/TextToSpeechShutdown.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechGetCaps.3 \
+		./usr/$MAN3/TextToSpeechGetCaps.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechGetStatus.3 \
+		./usr/$MAN3/TextToSpeechGetStatus.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechReset.3 \
+		./usr/$MAN3/TextToSpeechReset.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechSync.3 \
+		./usr/$MAN3/TextToSpeechSync.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechSpeak.3 \
+		./usr/$MAN3/TextToSpeechSpeak.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechPause.3 \
+		./usr/$MAN3/TextToSpeechPause.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechResume.3 \
+		./usr/$MAN3/TextToSpeechResume.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechSetSpeaker.3 \
+		./usr/$MAN3/TextToSpeechSetSpeaker.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechGetSpeaker.3 \
+		./usr/$MAN3/TextToSpeechGetSpeaker.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechSetRate.3 \
+		./usr/$MAN3/TextToSpeechSetRate.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechGetRate.3 \
+		./usr/$MAN3/TextToSpeechGetRate.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechSetLanguage.3 \
+		./usr/$MAN3/TextToSpeechSetLanguage.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechGetLanguage.3 \
+		./usr/$MAN3/TextToSpeechGetLanguage.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechOpenWaveOutFile.3 \
+		./usr/$MAN3/TextToSpeechOpenWaveOutFile.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechCloseWaveOutFile.3 \
+		./usr/$MAN3/TextToSpeechCloseWaveOutFile.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechOpenLogFile.3 \
+		./usr/$MAN3/TextToSpeechOpenLogFile.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechCloseLogFile.3 \
+		./usr/$MAN3/TextToSpeechCloseLogFile.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechOpenInMemory.3 \
+		./usr/$MAN3/TextToSpeechOpenInMemory.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechCloseInMemory.3 \
+		./usr/$MAN3/TextToSpeechCloseInMemory.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechAddBuffer.3 \
+		./usr/$MAN3/TextToSpeechAddBuffer.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechReturnBuffer.3 \
+		./usr/$MAN3/TextToSpeechReturnBuffer.3
+	ln -fs /$SUBSETLOC/docs/$MAN3/TextToSpeechUnloadUserDictionary.3 \
+		./usr/$MAN3/TextToSpeechUnloadUserDictionary.3
+
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechLoadUserDictionary.3dtk  \
+		./usr/$SHARE/TextToSpeechLoadUserDictionary.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/echStartup.3dtk \
+		./usr/$SHARE/TextToSpeechStartup.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechShutdown.3dtk \
+		./usr/$SHARE/TextToSpeechShutdown.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechGetCaps.3dtk \
+		./usr/$SHARE/TextToSpeechGetCaps.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechGetStatus.3dtk \
+		./usr/$SHARE/TextToSpeechGetStatus.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechReset.3dtk  \
+		./usr/$SHARE/TextToSpeechReset.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechSync.3dtk  \
+		./usr/$SHARE/TextToSpeechSync.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechSpeak.3dtk \
+		./usr/$SHARE/TextToSpeechSpeak.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechPause.3dtk \
+		./usr/$SHARE/TextToSpeechPause.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechResume.3dtk \
+		./usr/$SHARE/TextToSpeechResume.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechSetSpeaker.3dtk  \
+		./usr/$SHARE/TextToSpeechSetSpeaker.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechGetSpeaker.3dtk  \
+		./usr/$SHARE/TextToSpeechGetSpeaker.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechSetRate.3dtk  \
+		./usr/$SHARE/TextToSpeechSetRate.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechGetRate.3dtk  \
+		./usr/$SHARE/TextToSpeechGetRate.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechSetLanguage.3dtk \
+		./usr/$SHARE/TextToSpeechSetLanguage.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechGetLanguage.3dtk \
+		./usr/$SHARE/TextToSpeechGetLanguage.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechOpenWaveOutFile.3dtk \
+		./usr/$SHARE/TextToSpeechOpenWaveOutFile.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechCloseWaveOutFile.3dtk \
+		./usr/$SHARE/TextToSpeechCloseWaveOutFile.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechOpenLogFile.3dtk \
+		./usr/$SHARE/TextToSpeechOpenLogFile.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechCloseLogFile.3dtk \
+		./usr/$SHARE/TextToSpeechCloseLogFile.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechOpenInMemory.3dtk \
+		./usr/$SHARE/TextToSpeechOpenInMemory.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechCloseInMemory.3dtk \
+		./usr/$SHARE/TextToSpeechCloseInMemory.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechAddBuffer.3dtk \
+		./usr/$SHARE/TextToSpeechAddBuffer.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechReturnBuffer.3dtk \
+		./usr/$SHARE/TextToSpeechReturnBuffer.3dtk
+	ln -fs /$SUBSETLOC/$SHARE/TextToSpeechUnloadUserDictionary.3dtk \
+		./usr/$SHARE/TextToSpeechUnloadUserDictionary.3dtk
+
+	ln -fs /$SUBSETLOC/share/man/.DTKMANDEV450.whatis \
+		./usr/share/man/.DTKMANDEV450.whatis
+             ############################################
+             # Update the whatis database if we have
+             # man pages
+             ############################################
+             MergeWhatis
+                ;;
+
+            DELETE)
+                #
+                # delete the soft links
+                #
+	     	rm -f ./usr/man/man3/TextToSpeechLoadUserDictionary.3 
+	     	rm -f ./usr/man/man3/TextToSpeechStartup.3
+	     	rm -f ./usr/man/man3/TextToSpeechShutdown.3
+	     	rm -f ./usr/man/man3/TextToSpeechGetCaps.3
+	     	rm -f ./usr/man/man3/TextToSpeechGetStatus.3
+	     	rm -f ./usr/man/man3/TextToSpeechReset.3
+	     	rm -f ./usr/man/man3/TextToSpeechSync.3
+	     	rm -f ./usr/man/man3/TextToSpeechSpeak.3
+	     	rm -f ./usr/man/man3/TextToSpeechPause.3
+	     	rm -f ./usr/man/man3/TextToSpeechResume.3
+	     	rm -f ./usr/man/man3/TextToSpeechSetSpeaker.3
+	     	rm -f ./usr/man/man3/TextToSpeechGetSpeaker.3
+	     	rm -f ./usr/man/man3/TextToSpeechSetRate.3
+	     	rm -f ./usr/man/man3/TextToSpeechGetRate.3
+	     	rm -f ./usr/man/man3/TextToSpeechSetLanguage.3
+	     	rm -f ./usr/man/man3/TextToSpeechGetLanguage.3
+	     	rm -f ./usr/man/man3/TextToSpeechOpenWaveOutFile.3
+	     	rm -f ./usr/man/man3/TextToSpeechCloseWaveOutFile.3
+	     	rm -f ./usr/man/man3/TextToSpeechOpenLogFile.3
+	     	rm -f ./usr/man/man3/TextToSpeechCloseLogFile.3
+	     	rm -f ./usr/man/man3/TextToSpeechOpenInMemory.3
+	     	rm -f ./usr/man/man3/TextToSpeechCloseInMemory.3
+	     	rm -f ./usr/man/man3/TextToSpeechAddBuffer.3
+	     	rm -f ./usr/man/man3/TextToSpeechReturnBuffer.3
+	     	rm -f ./usr/man/man3/TextToSpeechUnloadUserDictionary.3
+ 		rm -f  ./usr/share/man/man3/TextToSpeechLoadUserDictionary.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechStartup.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechShutdown.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechGetCaps.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechGetStatus.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechReset.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechSync.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechSpeak.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechPause.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechResume.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechSetSpeaker.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechGetSpeaker.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechSetRate.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechGetRate.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechSetLanguage.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechGetLanguage.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechOpenWaveOutFile.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechCloseWaveOutFile.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechOpenLogFile.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechCloseLogFile.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechOpenInMemory.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechCloseInMemory.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechAddBuffer.3dtk
+ 		rm -f  ./usr/share/man/man3/TextToSpeechReturnBuffer.3dtk
+               rm -f  ./usr/share/man/man3/TextToSpeechUnloadUserDictionary.3dtk
+                ############################################
+                # Update the whatis database if we have
+                # man pages
+                ############################################
+                RemoveWhatis
+               ;;
+
+        esac
+        ;;
+                               
+    #
+    # Post-deletion : unlock dependencies
+    #
+    POST_D)
+        STL_LockInit
+        #
+        # delete the directories
+        #
+        rmdir /usr/opt/DTKDEV450/docs/man/man3	2> /dev/null
+        rmdir /usr/opt/DTKDEV450/docs/man 	2> /dev/null
+        rmdir /usr/opt/DTKDEV450/docs/ascii	2> /dev/null
+        rmdir /usr/opt/DTKDEV450/docs/html	2> /dev/null
+        rmdir /usr/opt/DTKDEV450/docs/postscript	2> /dev/null
+        rmdir /usr/opt/DTKDEV450/docs	        2> /dev/null
+        rmdir /usr/opt/DTKDEV450/share/man/man3 2> /dev/null
+        rmdir /usr/opt/DTKDEV450/share/man      2> /dev/null
+        rmdir /usr/opt/DTKDEV450/share          2> /dev/null
+        rmdir /usr/opt/DTKDEV450 		2> /dev/null
+        ;;
+esac
+
+exit 0

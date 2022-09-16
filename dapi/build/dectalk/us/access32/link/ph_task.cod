@@ -1,0 +1,4668 @@
+	TITLE	D:\work\Product\dapi\src\Ph\ph_task.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_kltask
+PUBLIC	_deadstop
+PUBLIC	_mstofr
+PUBLIC	_readphone
+PUBLIC	_speak_now
+EXTRN	__imp__printf:NEAR
+EXTRN	_write_pipe:NEAR
+EXTRN	_save_index:NEAR
+EXTRN	_logitem:NEAR
+EXTRN	_init_phclause:NEAR
+EXTRN	_setparam:NEAR
+EXTRN	_usevoice:NEAR
+EXTRN	_saveval:NEAR
+_DATA	SEGMENT
+$SG71336 DB	'PH debug switch description:', 0aH, 00H
+	ORG $+2
+$SG71337 DB	'2001 -- Incoming PH code      2002 -- log phonemes', 0aH
+	DB	00H
+$SG71338 DB	'2004 -- log syllable          2008 -- log outphone', 0aH
+	DB	00H
+$SG71339 DB	'2010 -- log inton commands    2020 -- not used', 0aH, 00H
+$SG71340 DB	'2040 -- not used              2080 -- not used', 0aH, 00H
+$SG71341 DB	'2100 -- not used              2200 -- not used', 0aH, 00H
+$SG71342 DB	'2400 -- not used              2800 -- no voice output', 0aH
+	DB	00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_buf$ = -8
+_kltask	PROC NEAR
+
+; 185  : {
+
+  00000	83 ec 08	 sub	 esp, 8
+  00003	53		 push	 ebx
+
+; 186  : 	register int            nextra;
+; 187  : 	register short         *workp;
+; 188  : 
+; 189  : 	short                   buf[4];
+; 190  : 	int                     new_phone;
+; 191  : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+
+  00004	8b 5c 24 10	 mov	 ebx, DWORD PTR _phTTS$[esp+8]
+  00008	55		 push	 ebp
+  00009	56		 push	 esi
+
+; 192  : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+
+  0000a	8b 73 18	 mov	 esi, DWORD PTR [ebx+24]
+  0000d	57		 push	 edi
+  0000e	8b 7b 08	 mov	 edi, DWORD PTR [ebx+8]
+
+; 193  : 
+; 194  : 	/* 
+; 195  :  	 *  ph initialization ...
+; 196  :  	 */
+; 197  :     /* speaking rate set to 180 as default */
+; 198  : 
+; 199  : 	pKsd_t->sprate = 180;
+; 200  : #ifdef WITHOUT_CALLOC
+; 201  : 	pDph_t->perpause = 0;
+; 202  : 	pDph_t->compause = 0;
+; 203  : #endif
+; 204  : 
+; 205  : 	pDph_t->number_verbs=0;
+
+  00011	33 ed		 xor	 ebp, ebp
+
+; 206  : 	pDph_t->promote_helper_verb = 0;
+; 207  : 
+; 208  : 	pDph_t->param[F0].outp = &(pDph_t->parstochip[OUT_T0]);
+
+  00013	8d 86 b0 03 00
+	00		 lea	 eax, DWORD PTR [esi+944]
+
+; 209  : 	pDph_t->param[F1].outp = &(pDph_t->parstochip[OUT_F1]);
+
+  00019	8d 8e a0 03 00
+	00		 lea	 ecx, DWORD PTR [esi+928]
+  0001f	66 c7 87 e6 03
+	00 00 b4 00	 mov	 WORD PTR [edi+998], 180	; 000000b4H
+  00028	66 89 ae 30 20
+	00 00		 mov	 WORD PTR [esi+8240], bp
+  0002f	66 89 ae e4 14
+	00 00		 mov	 WORD PTR [esi+5348], bp
+  00036	89 46 20	 mov	 DWORD PTR [esi+32], eax
+  00039	89 4e 44	 mov	 DWORD PTR [esi+68], ecx
+
+; 210  : 	pDph_t->param[F2].outp = &(pDph_t->parstochip[OUT_F2]);
+
+  0003c	8d 96 b4 03 00
+	00		 lea	 edx, DWORD PTR [esi+948]
+
+; 211  : 	pDph_t->param[F3].outp = &(pDph_t->parstochip[OUT_F3]);
+
+  00042	8d 86 b6 03 00
+	00		 lea	 eax, DWORD PTR [esi+950]
+
+; 212  : 	pDph_t->param[FZ].outp = &(pDph_t->parstochip[OUT_FZ]);
+
+  00048	8d 8e b8 03 00
+	00		 lea	 ecx, DWORD PTR [esi+952]
+  0004e	89 56 68	 mov	 DWORD PTR [esi+104], edx
+  00051	89 86 8c 00 00
+	00		 mov	 DWORD PTR [esi+140], eax
+  00057	89 8e b0 00 00
+	00		 mov	 DWORD PTR [esi+176], ecx
+
+; 213  : 	pDph_t->param[B1].outp = &(pDph_t->parstochip[OUT_B1]);
+
+  0005d	8d 96 ba 03 00
+	00		 lea	 edx, DWORD PTR [esi+954]
+
+; 214  : 	pDph_t->param[B2].outp = &(pDph_t->parstochip[OUT_B2]);
+
+  00063	8d 86 bc 03 00
+	00		 lea	 eax, DWORD PTR [esi+956]
+
+; 215  : 	pDph_t->param[B3].outp = &(pDph_t->parstochip[OUT_B3]);
+
+  00069	8d 8e be 03 00
+	00		 lea	 ecx, DWORD PTR [esi+958]
+  0006f	89 96 d4 00 00
+	00		 mov	 DWORD PTR [esi+212], edx
+  00075	89 86 f8 00 00
+	00		 mov	 DWORD PTR [esi+248], eax
+  0007b	89 8e 1c 01 00
+	00		 mov	 DWORD PTR [esi+284], ecx
+
+; 216  : 	pDph_t->param[AV].outp = &(pDph_t->parstochip[OUT_AV]);
+
+  00081	8d 96 b2 03 00
+	00		 lea	 edx, DWORD PTR [esi+946]
+
+; 217  : 	pDph_t->param[AP].outp = &(pDph_t->parstochip[OUT_AP]);
+
+  00087	8d 86 9e 03 00
+	00		 lea	 eax, DWORD PTR [esi+926]
+
+; 218  : 	pDph_t->param[A2].outp = &(pDph_t->parstochip[OUT_A2]);
+
+  0008d	8d 8e a2 03 00
+	00		 lea	 ecx, DWORD PTR [esi+930]
+  00093	89 96 40 01 00
+	00		 mov	 DWORD PTR [esi+320], edx
+  00099	89 86 64 01 00
+	00		 mov	 DWORD PTR [esi+356], eax
+  0009f	89 8e 88 01 00
+	00		 mov	 DWORD PTR [esi+392], ecx
+
+; 219  : 	pDph_t->param[A3].outp = &(pDph_t->parstochip[OUT_A3]);
+
+  000a5	8d 96 a4 03 00
+	00		 lea	 edx, DWORD PTR [esi+932]
+
+; 220  : 	pDph_t->param[A4].outp = &(pDph_t->parstochip[OUT_A4]);
+
+  000ab	8d 86 a6 03 00
+	00		 lea	 eax, DWORD PTR [esi+934]
+
+; 221  : 	pDph_t->param[A5].outp = &(pDph_t->parstochip[OUT_A5]);
+
+  000b1	8d 8e a8 03 00
+	00		 lea	 ecx, DWORD PTR [esi+936]
+  000b7	89 96 ac 01 00
+	00		 mov	 DWORD PTR [esi+428], edx
+  000bd	89 86 d0 01 00
+	00		 mov	 DWORD PTR [esi+464], eax
+  000c3	89 8e f4 01 00
+	00		 mov	 DWORD PTR [esi+500], ecx
+
+; 222  : 	pDph_t->param[A6].outp = &(pDph_t->parstochip[OUT_A6]);
+
+  000c9	8d 96 aa 03 00
+	00		 lea	 edx, DWORD PTR [esi+938]
+
+; 223  : 	pDph_t->param[AB].outp = &(pDph_t->parstochip[OUT_AB]);
+
+  000cf	8d 86 ac 03 00
+	00		 lea	 eax, DWORD PTR [esi+940]
+
+; 224  : 	pDph_t->param[TILT].outp = &(pDph_t->parstochip[OUT_TLT]);
+
+  000d5	8d 8e ae 03 00
+	00		 lea	 ecx, DWORD PTR [esi+942]
+
+; 225  : 
+; 226  : 	init_phclause (pDph_t);
+
+  000db	56		 push	 esi
+  000dc	89 96 18 02 00
+	00		 mov	 DWORD PTR [esi+536], edx
+  000e2	89 86 3c 02 00
+	00		 mov	 DWORD PTR [esi+572], eax
+  000e8	89 8e 60 02 00
+	00		 mov	 DWORD PTR [esi+608], ecx
+  000ee	e8 00 00 00 00	 call	 _init_phclause
+
+; 227  : #ifdef SPANISH
+; 228  : 
+; 229  : 	pKsd_t->async_voice =HUGE_HARRY;
+; 230  : 	usevoice (phTTS, HUGE_HARRY);//redundant for 16 bits eab 4/12/00
+; 231  : 
+; 232  : #else
+; 233  : 	pKsd_t->async_voice =PERFECT_PAUL;
+; 234  : 	usevoice (phTTS, PERFECT_PAUL);
+
+  000f3	55		 push	 ebp
+  000f4	53		 push	 ebx
+  000f5	89 af 04 04 00
+	00		 mov	 DWORD PTR [edi+1028], ebp
+  000fb	e8 00 00 00 00	 call	 _usevoice
+
+; 235  : #endif
+; 236  : 	saveval (pDph_t);
+
+  00100	56		 push	 esi
+  00101	e8 00 00 00 00	 call	 _saveval
+
+; 237  : 	new_phone = TRUE;
+; 238  : 	pDph_t->reset_pitch = FALSE;
+; 239  : 	pKsd_t->speaker = (int _far *) &(pDph_t->curspdef[0]);
+; 240  : 	pDph_t->symbols[0] = GEN_SIL;
+; 241  : 	pDph_t->bound = COMMA;
+; 242  : 	pDph_t->nsymbtot = 1;
+; 243  : 	pDph_t->sentstruc [0] = 0; // FRENCH : important for French
+; 244  : 
+; 245  : #ifdef WITHOUT_CALLOC
+; 246  : 	pDph_t->lastoffs = 0;
+; 247  : 	pDph_t->nphone = 0;
+; 248  : 	pDph_t->asperation = 0;
+; 249  : 	pDph_t->ph_init = 0;			   /* MVP:03/18/96 */
+; 250  : #endif
+; 251  : 
+; 252  : 	while (TRUE)
+; 253  : 	{
+; 254  : 
+; 255  : 		nextra = readphone (pKsd_t, buf);
+; 256  : 		/* display debug switch manual once */
+; 257  : 		if (pKsd_t->debug_switch == 0x2fff)
+; 258  : 		{
+; 259  : 			printf("PH debug switch description:\n");
+; 260  : 			printf("2001 -- Incoming PH code      2002 -- log phonemes\n");
+; 261  : 			printf("2004 -- log syllable          2008 -- log outphone\n");
+; 262  : 			printf("2010 -- log inton commands    2020 -- not used\n");
+; 263  : 			printf("2040 -- not used              2080 -- not used\n");
+; 264  : 			printf("2100 -- not used              2200 -- not used\n");
+; 265  :             printf("2400 -- not used              2800 -- no voice output\n");
+; 266  : 						
+; 267  : 			/* reset to 0 again */
+; 268  : 			pKsd_t->debug_switch = 0;
+; 269  : 		}
+; 270  : 		
+; 271  : 
+; 272  : 		if (pKsd_t->halting)
+
+  00106	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__printf
+  0010c	8d 96 a2 17 00
+	00		 lea	 edx, DWORD PTR [esi+6050]
+  00112	89 ae c8 23 00
+	00		 mov	 DWORD PTR [esi+9160], ebp
+  00118	89 97 14 04 00
+	00		 mov	 DWORD PTR [edi+1044], edx
+  0011e	8b 86 94 17 00
+	00		 mov	 eax, DWORD PTR [esi+6036]
+  00124	66 c7 86 26 15
+	00 00 00 1e	 mov	 WORD PTR [esi+5414], 7680 ; 00001e00H
+  0012d	c7 86 cc 23 00
+	00 73 00 00 00	 mov	 DWORD PTR [esi+9164], 115 ; 00000073H
+  00137	66 c7 86 82 17
+	00 00 01 00	 mov	 WORD PTR [esi+6018], 1
+  00140	83 c4 10	 add	 esp, 16			; 00000010H
+  00143	89 28		 mov	 DWORD PTR [eax], ebp
+$L71333:
+  00145	8d 4c 24 10	 lea	 ecx, DWORD PTR _buf$[esp+24]
+  00149	51		 push	 ecx
+  0014a	57		 push	 edi
+  0014b	e8 00 00 00 00	 call	 _readphone
+  00150	83 c4 08	 add	 esp, 8
+  00153	66 81 bf 40 06
+	00 00 ff 2f	 cmp	 WORD PTR [edi+1600], 12287 ; 00002fffH
+  0015c	8b e8		 mov	 ebp, eax
+  0015e	75 3d		 jne	 SHORT $L71335
+  00160	68 00 00 00 00	 push	 OFFSET FLAT:$SG71336
+  00165	ff d3		 call	 ebx
+  00167	68 00 00 00 00	 push	 OFFSET FLAT:$SG71337
+  0016c	ff d3		 call	 ebx
+  0016e	68 00 00 00 00	 push	 OFFSET FLAT:$SG71338
+  00173	ff d3		 call	 ebx
+  00175	68 00 00 00 00	 push	 OFFSET FLAT:$SG71339
+  0017a	ff d3		 call	 ebx
+  0017c	68 00 00 00 00	 push	 OFFSET FLAT:$SG71340
+  00181	ff d3		 call	 ebx
+  00183	68 00 00 00 00	 push	 OFFSET FLAT:$SG71341
+  00188	ff d3		 call	 ebx
+  0018a	68 00 00 00 00	 push	 OFFSET FLAT:$SG71342
+  0018f	ff d3		 call	 ebx
+  00191	83 c4 1c	 add	 esp, 28			; 0000001cH
+  00194	66 c7 87 40 06
+	00 00 00 00	 mov	 WORD PTR [edi+1600], 0
+$L71335:
+  0019d	8b 87 34 03 00
+	00		 mov	 eax, DWORD PTR [edi+820]
+  001a3	85 c0		 test	 eax, eax
+  001a5	74 6c		 je	 SHORT $L71345
+
+; 273  : 		{
+; 274  : 			speak_now (phTTS);
+
+  001a7	8b 6c 24 1c	 mov	 ebp, DWORD PTR _phTTS$[esp+20]
+  001ab	55		 push	 ebp
+  001ac	e8 00 00 00 00	 call	 _speak_now
+
+; 275  : 			if (pDph_t->reset_pitch)
+
+  001b1	8b 86 c8 23 00
+	00		 mov	 eax, DWORD PTR [esi+9160]
+  001b7	83 c4 04	 add	 esp, 4
+  001ba	85 c0		 test	 eax, eax
+  001bc	74 1c		 je	 SHORT $L71344
+
+; 276  : 			{
+; 277  : 				setparam (phTTS, 3, pDph_t->default_pitch);
+
+  001be	8b 96 d8 2b 00
+	00		 mov	 edx, DWORD PTR [esi+11224]
+  001c4	52		 push	 edx
+  001c5	6a 03		 push	 3
+  001c7	55		 push	 ebp
+  001c8	e8 00 00 00 00	 call	 _setparam
+  001cd	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 278  : 				pDph_t->reset_pitch = FALSE;
+
+  001d0	c7 86 c8 23 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+9160], 0
+$L71344:
+
+; 279  : 			}
+; 280  : 			if (buf[0] != SYNC)
+
+  001da	66 81 7c 24 10
+	0a 1f		 cmp	 WORD PTR _buf$[esp+24], 7946 ; 00001f0aH
+  001e1	0f 85 5e ff ff
+	ff		 jne	 $L71333
+$L71347:
+
+; 289  : 		{
+; 290  : 			speak_now (phTTS);
+
+  001e7	8b 54 24 1c	 mov	 edx, DWORD PTR _phTTS$[esp+20]
+  001eb	52		 push	 edx
+  001ec	e8 00 00 00 00	 call	 _speak_now
+
+; 291  : 
+; 292  : #ifndef SEPARATE_PROCESSES
+; 293  : #ifdef MSDOS
+; 294  : 			spcwrite ((unsigned short _far *) spcget (SPC_type_sync));
+; 295  : #endif
+; 296  : /* GL 04/21/1997  change to be the same as the latest OSF code */
+; 297  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 298  : 			buf[0] = SPC_type_sync;
+
+  001f1	66 c7 44 24 14
+	08 00		 mov	 WORD PTR _buf$[esp+28], 8
+
+; 299  : 			write_pipe (pKsd_t->vtm_pipe, buf, 1);
+
+  001f8	8b 8f 9c 02 00
+	00		 mov	 ecx, DWORD PTR [edi+668]
+  001fe	8d 44 24 14	 lea	 eax, DWORD PTR _buf$[esp+28]
+  00202	6a 01		 push	 1
+  00204	50		 push	 eax
+  00205	51		 push	 ecx
+  00206	e8 00 00 00 00	 call	 _write_pipe
+  0020b	83 c4 10	 add	 esp, 16			; 00000010H
+  0020e	e9 32 ff ff ff	 jmp	 $L71333
+$L71345:
+
+; 281  : 				continue;
+; 282  : 		}
+; 283  : 
+; 284  : 		/* 
+; 285  : 		 * Check for syncs and always process them ... 
+; 286  : 		 */
+; 287  : 
+; 288  : 		if (buf[0] == SYNC || buf[0] == CNTRLK)
+
+  00213	66 8b 44 24 10	 mov	 ax, WORD PTR _buf$[esp+24]
+  00218	66 3d 0a 1f	 cmp	 ax, 7946		; 00001f0aH
+  0021c	74 c9		 je	 SHORT $L71347
+  0021e	66 3d 11 1f	 cmp	 ax, 7953		; 00001f11H
+  00222	74 c3		 je	 SHORT $L71347
+
+; 300  : #endif
+; 301  : #endif
+; 302  : 
+; 303  : 
+; 304  : 		/* 
+; 305  : 		 * #ifdef WIN32 buf[0] = SPC_type_sync; 
+; 306  : 		 * write_pipe( pKsd_t->vtm_pipe, buf, 1 ); 
+; 307  : 		 * #endif 
+; 308  : 		 * #ifdef __osf__ buf[0] = SPC_type_sync; 
+; 309  : 		 * write_pipe( vtm_pipe, buf, 1 ); 
+; 310  : 		 * #endif 
+; 311  : 		 */
+; 312  : 			continue;
+; 313  : 		}
+; 314  : 
+; 315  : 		/* 
+; 316  : 		 *  Now process the phoneme ...  look for special async control
+; 317  : 		 *  changes ...
+; 318  : 		 */
+; 319  : 
+; 320  : 		if (pKsd_t->async_change)
+
+  00224	8b 8f 00 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1024]
+  0022a	85 c9		 test	 ecx, ecx
+  0022c	0f 84 3c 01 00
+	00		 je	 $L71351
+
+; 321  : 		{
+; 322  : 			speak_now (phTTS);
+
+  00232	8b 44 24 1c	 mov	 eax, DWORD PTR _phTTS$[esp+20]
+  00236	50		 push	 eax
+  00237	e8 00 00 00 00	 call	 _speak_now
+
+; 323  : 			while (pKsd_t->async_change)
+
+  0023c	8b 87 00 04 00
+	00		 mov	 eax, DWORD PTR [edi+1024]
+  00242	83 c4 04	 add	 esp, 4
+  00245	85 c0		 test	 eax, eax
+  00247	0f 84 1c 01 00
+	00		 je	 $L71622
+$L71350:
+
+; 324  : 			{
+; 325  : 				if (pKsd_t->async_change & ASYNC_rate)
+
+  0024d	a8 02		 test	 al, 2
+  0024f	74 2b		 je	 SHORT $L71352
+
+; 326  : 				{
+; 327  : #ifdef SLOWTALK
+; 328  : 					pKsd_t->sprate = deadstop (pKsd_t->async_rate, 75, 600);
+
+  00251	8b 8f 08 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1032]
+  00257	68 58 02 00 00	 push	 600			; 00000258H
+  0025c	6a 4b		 push	 75			; 0000004bH
+  0025e	51		 push	 ecx
+  0025f	e8 00 00 00 00	 call	 _deadstop
+  00264	66 89 87 e6 03
+	00 00		 mov	 WORD PTR [edi+998], ax
+
+; 329  : #else
+; 330  : 					pKsd_t->sprate = deadstop (pKsd_t->async_rate, 50, 600);
+; 331  : #endif
+; 332  : 					pKsd_t->async_change &= (~ASYNC_rate);
+
+  0026b	8b 87 00 04 00
+	00		 mov	 eax, DWORD PTR [edi+1024]
+  00271	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00274	24 fd		 and	 al, -3			; fffffffdH
+  00276	89 87 00 04 00
+	00		 mov	 DWORD PTR [edi+1024], eax
+$L71352:
+
+; 333  : 				}
+; 334  : 				if (pKsd_t->async_change & ASYNC_rate_delta)
+
+  0027c	f6 87 00 04 00
+	00 10		 test	 BYTE PTR [edi+1024], 16	; 00000010H
+  00283	74 34		 je	 SHORT $L71353
+
+; 335  : 				{
+; 336  : #ifdef SLOWTALK
+; 337  : 					pKsd_t->sprate = deadstop (pKsd_t->sprate + pKsd_t->async_rate, 75, 600);
+
+  00285	0f bf 97 e6 03
+	00 00		 movsx	 edx, WORD PTR [edi+998]
+  0028c	8b 87 08 04 00
+	00		 mov	 eax, DWORD PTR [edi+1032]
+  00292	68 58 02 00 00	 push	 600			; 00000258H
+  00297	03 c2		 add	 eax, edx
+  00299	6a 4b		 push	 75			; 0000004bH
+  0029b	50		 push	 eax
+  0029c	e8 00 00 00 00	 call	 _deadstop
+  002a1	66 89 87 e6 03
+	00 00		 mov	 WORD PTR [edi+998], ax
+
+; 338  : 
+; 339  : #else
+; 340  : 					pKsd_t->sprate = deadstop (pKsd_t->sprate + pKsd_t->async_rate, 50, 600);
+; 341  : #endif
+; 342  : 					
+; 343  : 					pKsd_t->async_change &= (~ASYNC_rate_delta);
+
+  002a8	8b 87 00 04 00
+	00		 mov	 eax, DWORD PTR [edi+1024]
+  002ae	83 c4 0c	 add	 esp, 12			; 0000000cH
+  002b1	24 ef		 and	 al, -17			; ffffffefH
+  002b3	89 87 00 04 00
+	00		 mov	 DWORD PTR [edi+1024], eax
+$L71353:
+
+; 344  : 				}
+; 345  : 				if (pKsd_t->async_change & ASYNC_voice)
+
+  002b9	f6 87 00 04 00
+	00 01		 test	 BYTE PTR [edi+1024], 1
+  002c0	74 22		 je	 SHORT $L71354
+
+; 346  : 				{
+; 347  : 					usevoice (phTTS, pKsd_t->async_voice);
+
+  002c2	8b 8f 04 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1028]
+  002c8	8b 54 24 1c	 mov	 edx, DWORD PTR _phTTS$[esp+20]
+  002cc	51		 push	 ecx
+  002cd	52		 push	 edx
+  002ce	e8 00 00 00 00	 call	 _usevoice
+
+; 348  : 					pKsd_t->async_change &= (~ASYNC_voice);
+
+  002d3	8b 87 00 04 00
+	00		 mov	 eax, DWORD PTR [edi+1024]
+  002d9	83 c4 08	 add	 esp, 8
+  002dc	24 fe		 and	 al, -2			; fffffffeH
+  002de	89 87 00 04 00
+	00		 mov	 DWORD PTR [edi+1024], eax
+$L71354:
+
+; 349  : 				}
+; 350  : 				if (pKsd_t->async_change & ASYNC_comma)
+
+  002e4	f6 87 00 04 00
+	00 08		 test	 BYTE PTR [edi+1024], 8
+  002eb	74 31		 je	 SHORT $L71355
+
+; 351  : 				{
+; 352  : 					pDph_t->compause = mstofr (deadstop (pKsd_t->async_comma, -40, 30000));
+
+  002ed	8b 87 10 04 00
+	00		 mov	 eax, DWORD PTR [edi+1040]
+  002f3	68 30 75 00 00	 push	 30000			; 00007530H
+  002f8	6a d8		 push	 -40			; ffffffd8H
+  002fa	50		 push	 eax
+  002fb	e8 00 00 00 00	 call	 _deadstop
+  00300	50		 push	 eax
+  00301	e8 00 00 00 00	 call	 _mstofr
+  00306	66 89 86 de 18
+	00 00		 mov	 WORD PTR [esi+6366], ax
+
+; 353  : 					pKsd_t->async_change &= (~ASYNC_comma);
+
+  0030d	8b 87 00 04 00
+	00		 mov	 eax, DWORD PTR [edi+1024]
+  00313	83 c4 10	 add	 esp, 16			; 00000010H
+  00316	24 f7		 and	 al, -9			; fffffff7H
+  00318	89 87 00 04 00
+	00		 mov	 DWORD PTR [edi+1024], eax
+$L71355:
+
+; 354  : 				}
+; 355  : 				if (pKsd_t->async_change & ASYNC_period)
+
+  0031e	f6 87 00 04 00
+	00 04		 test	 BYTE PTR [edi+1024], 4
+  00325	74 34		 je	 SHORT $L71356
+
+; 356  : 				{
+; 357  : 					pDph_t->perpause = mstofr (deadstop (pKsd_t->async_period, -380, 30000));
+
+  00327	8b 8f 0c 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1036]
+  0032d	68 30 75 00 00	 push	 30000			; 00007530H
+  00332	68 84 fe ff ff	 push	 -380			; fffffe84H
+  00337	51		 push	 ecx
+  00338	e8 00 00 00 00	 call	 _deadstop
+  0033d	50		 push	 eax
+  0033e	e8 00 00 00 00	 call	 _mstofr
+  00343	66 89 86 e0 18
+	00 00		 mov	 WORD PTR [esi+6368], ax
+
+; 358  : 					pKsd_t->async_change &= (~ASYNC_period);
+
+  0034a	8b 87 00 04 00
+	00		 mov	 eax, DWORD PTR [edi+1024]
+  00350	83 c4 10	 add	 esp, 16			; 00000010H
+  00353	24 fb		 and	 al, -5			; fffffffbH
+  00355	89 87 00 04 00
+	00		 mov	 DWORD PTR [edi+1024], eax
+$L71356:
+  0035b	8b 87 00 04 00
+	00		 mov	 eax, DWORD PTR [edi+1024]
+  00361	85 c0		 test	 eax, eax
+  00363	0f 85 e4 fe ff
+	ff		 jne	 $L71350
+$L71622:
+
+; 323  : 			while (pKsd_t->async_change)
+
+  00369	66 8b 44 24 10	 mov	 ax, WORD PTR _buf$[esp+24]
+$L71351:
+
+; 359  : 				}
+; 360  : 			}
+; 361  : #ifdef MSDOS
+; 362  : 			continue;
+; 363  : #endif
+; 364  : 		}
+; 365  : 
+; 366  : 		/* 
+; 367  : 		 *  insert indexes into the chain ...
+; 368  : 		 */
+; 369  : #ifdef ENGLISH
+; 370  : 			if ((buf[0] & PVALUE) == SPECIALWORD)
+
+  0036e	80 7c 24 10 78	 cmp	 BYTE PTR _buf$[esp+24], 120 ; 00000078H
+  00373	75 0f		 jne	 SHORT $L71357
+
+; 371  : 			{
+; 372  : 				pDph_t->docitation = 1;
+
+  00375	c7 86 f0 2b 00
+	00 01 00 00 00	 mov	 DWORD PTR [esi+11248], 1
+  0037f	66 8b 44 24 10	 mov	 ax, WORD PTR _buf$[esp+24]
+$L71357:
+
+; 373  : 			}
+; 374  : #endif
+; 375  : 		/* debug eab */
+; 376  : 		if (   buf[0] == INDEX 
+; 377  : 			|| buf[0] == INDEX_REPLY   // tek 01aug97 bats 404 new msg types
+; 378  : #ifdef _WIN32
+; 379  : 			|| buf[0] == INDEX_BOOKMARK
+; 380  : 			|| buf[0] == INDEX_WORDPOS
+; 381  : 			|| buf[0] == INDEX_START
+; 382  : 			|| buf[0] == INDEX_STOP
+; 383  : 			|| buf[0] == INDEX_SENTENCE
+; 384  : 			|| buf[0] == INDEX_VOLUME
+; 385  : #endif //_WIN32
+; 386  : 		   )
+
+  00384	66 3d 08 1f	 cmp	 ax, 7944		; 00001f08H
+  00388	0f 84 0a 06 00
+	00		 je	 $L71359
+  0038e	66 3d 09 1f	 cmp	 ax, 7945		; 00001f09H
+  00392	0f 84 00 06 00
+	00		 je	 $L71359
+  00398	66 3d 13 1f	 cmp	 ax, 7955		; 00001f13H
+  0039c	0f 84 f6 05 00
+	00		 je	 $L71359
+  003a2	66 3d 14 1f	 cmp	 ax, 7956		; 00001f14H
+  003a6	0f 84 ec 05 00
+	00		 je	 $L71359
+  003ac	66 3d 15 1f	 cmp	 ax, 7957		; 00001f15H
+  003b0	0f 84 e2 05 00
+	00		 je	 $L71359
+  003b6	66 3d 16 1f	 cmp	 ax, 7958		; 00001f16H
+  003ba	0f 84 d8 05 00
+	00		 je	 $L71359
+  003c0	66 3d 18 1f	 cmp	 ax, 7960		; 00001f18H
+  003c4	0f 84 ce 05 00
+	00		 je	 $L71359
+  003ca	66 3d 19 1f	 cmp	 ax, 7961		; 00001f19H
+  003ce	0f 84 c4 05 00
+	00		 je	 $L71359
+
+; 397  : 		}
+; 398  : 
+; 399  : 		
+; 400  : 	/* sets wordclass but I want it marked throughout the word because I don't know where it started*/
+; 401  : 		pDph_t->wordclass[pDph_t->nsymbtot] = pDph_t->holdwordclass;
+
+  003d4	0f bf 96 82 17
+	00 00		 movsx	 edx, WORD PTR [esi+6018]
+  003db	8b 86 e0 14 00
+	00		 mov	 eax, DWORD PTR [esi+5344]
+  003e1	89 84 96 08 10
+	00 00		 mov	 DWORD PTR [esi+edx*4+4104], eax
+
+; 402  : 
+; 403  : 
+; 404  : 		/* 
+; 405  : 		 *  process control phones ...
+; 406  : 		 */
+; 407  : 
+; 408  : 		if ((buf[0] & PFONT) == (PFCONTROL << PSFONT))
+
+  003e8	8b 4c 24 10	 mov	 ecx, DWORD PTR _buf$[esp+24]
+  003ec	81 e1 00 1f 00
+	00		 and	 ecx, 7936		; 00001f00H
+  003f2	66 81 f9 00 1f	 cmp	 cx, 7936		; 00001f00H
+  003f7	0f 85 86 02 00
+	00		 jne	 $L71360
+
+; 409  : 		{
+; 410  : 			if (buf[0] == WORD_CLASS) {
+
+  003fd	66 81 7c 24 10
+	17 1f		 cmp	 WORD PTR _buf$[esp+24], 7959 ; 00001f17H
+  00404	75 77		 jne	 SHORT $L71361
+
+; 411  : 				//printf("int ph %04x%04x\n",buf[1],buf[2]);
+; 412  : 				pDph_t->holdwordclass = (buf[1] << 16) + buf[2];
+
+  00406	0f bf 54 24 12	 movsx	 edx, WORD PTR _buf$[esp+26]
+  0040b	0f bf 44 24 14	 movsx	 eax, WORD PTR _buf$[esp+28]
+
+; 413  : 				pDph_t->wordclass[pDph_t->nsymbtot] = pDph_t->holdwordclass;
+
+  00410	0f bf 8e 82 17
+	00 00		 movsx	 ecx, WORD PTR [esi+6018]
+  00417	c1 e2 10	 shl	 edx, 16			; 00000010H
+  0041a	03 c2		 add	 eax, edx
+  0041c	89 86 e0 14 00
+	00		 mov	 DWORD PTR [esi+5344], eax
+  00422	89 84 8e 08 10
+	00 00		 mov	 DWORD PTR [esi+ecx*4+4104], eax
+
+; 414  : 
+; 415  : 				/*EAB 2/10/99 Special code to deal with "helper verbs that
+; 416  : 				are marked as functors and unstress they need to be handled
+; 417  : 				differently if they're the only verb in the phrase in which case
+; 418  : 				they are the verb and not a "helper", this affects intonation timing 
+; 419  : 				and stress. Remember also that we will make mistakes because all
+; 420  : 				verbs are not in the dictionary so the rules must find a midle 
+; 421  : 				ground in perceptual effects */
+; 422  : #ifdef AD_BASE
+; 423  : 				if(pDph_t->holdwordclass & FC_VERB
+; 424  : 				|| pDph_t->holdwordclass & FC_ED
+; 425  : 				|| pDph_t->holdwordclass & FC_ING)
+
+  00429	8b 86 e0 14 00
+	00		 mov	 eax, DWORD PTR [esi+5344]
+  0042f	a9 00 02 02 00	 test	 eax, 131584		; 00020200H
+  00434	75 08		 jne	 SHORT $L71363
+  00436	a8 80		 test	 al, 128			; 00000080H
+  00438	0f 84 07 fd ff
+	ff		 je	 $L71333
+$L71363:
+
+; 426  : 				{
+; 427  : 					pDph_t->number_verbs++;
+
+  0043e	66 ff 86 30 20
+	00 00		 inc	 WORD PTR [esi+8240]
+
+; 428  : 					if(pDph_t->number_verbs >1)
+
+  00445	b8 01 00 00 00	 mov	 eax, 1
+  0044a	66 39 86 30 20
+	00 00		 cmp	 WORD PTR [esi+8240], ax
+  00451	7e 0e		 jle	 SHORT $L71364
+
+; 429  : 						pDph_t->promote_helper_verb = 0;
+
+  00453	66 c7 86 e4 14
+	00 00 00 00	 mov	 WORD PTR [esi+5348], 0
+
+; 430  : #ifndef GERMAN  //German doesn't mark helper verbs as functor- we may nee to redo the dicitonary POS
+; 431  : 					else if(pDph_t->holdwordclass & FC_FUNC)
+
+  0045c	e9 e4 fc ff ff	 jmp	 $L71333
+$L71364:
+  00461	f7 86 e0 14 00
+	00 00 00 80 00	 test	 DWORD PTR [esi+5344], 8388608 ; 00800000H
+  0046b	0f 84 d4 fc ff
+	ff		 je	 $L71333
+
+; 432  : #endif
+; 433  : 						pDph_t->promote_helper_verb = 1;
+
+  00471	66 89 86 e4 14
+	00 00		 mov	 WORD PTR [esi+5348], ax
+
+; 434  : 				}
+; 435  : 					
+; 436  : #endif						
+; 437  : 					
+; 438  : 
+; 439  : 				continue;
+
+  00478	e9 c8 fc ff ff	 jmp	 $L71333
+$L71361:
+
+; 440  : 			}
+; 441  : 		
+; 442  : 			if (pDph_t->nsymbtot > 1)
+
+  0047d	66 8b 86 82 17
+	00 00		 mov	 ax, WORD PTR [esi+6018]
+  00484	66 3d 01 00	 cmp	 ax, 1
+  00488	7e 47		 jle	 SHORT $L71367
+
+; 443  : 			{
+; 444  : 				/* pDph_t->symbols[pDph_t->nsymbtot] = COMMA;*/
+; 445  : 				/* GL 10/03/1996, use period to end the control phones */
+; 446  : 				/* GL 11/13/1997  set to comma for NWSNOAA */
+; 447  : #if defined (NWS_US) && defined (MSDOS)
+; 448  : 				pDph_t->symbols[pDph_t->nsymbtot] = COMMA;
+; 449  : #else
+; 450  : 				pDph_t->symbols[pDph_t->nsymbtot] = PERIOD;
+
+  0048a	0f bf d0	 movsx	 edx, ax
+  0048d	66 c7 84 56 26
+	15 00 00 74 00	 mov	 WORD PTR [esi+edx*2+5414], 116 ; 00000074H
+
+; 451  : #endif
+; 452  : 				pDph_t->user_durs[pDph_t->nsymbtot] = 0;
+
+  00497	8b 8e 84 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6020]
+  0049d	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  004a4	66 c7 04 41 00
+	00		 mov	 WORD PTR [ecx+eax*2], 0
+
+; 453  : 				pDph_t->user_f0[pDph_t->nsymbtot++] = 0;
+
+  004aa	8b 86 88 17 00
+	00		 mov	 eax, DWORD PTR [esi+6024]
+  004b0	0f bf 96 82 17
+	00 00		 movsx	 edx, WORD PTR [esi+6018]
+
+; 454  : 				speak_now (phTTS);
+
+  004b7	8b 4c 24 1c	 mov	 ecx, DWORD PTR _phTTS$[esp+20]
+  004bb	66 c7 04 50 00
+	00		 mov	 WORD PTR [eax+edx*2], 0
+  004c1	66 ff 86 82 17
+	00 00		 inc	 WORD PTR [esi+6018]
+  004c8	51		 push	 ecx
+  004c9	e8 00 00 00 00	 call	 _speak_now
+  004ce	83 c4 04	 add	 esp, 4
+$L71367:
+
+; 455  : 				/* Used to write SPC_type_force here WIH 3/2/94 */
+; 456  : 			}
+; 457  : 			/* debug switch */
+; 458  : 			if ((pKsd_t->logflag & LOG_PHONEMES) || DT_DBG(PH_DBG,0x002))
+
+  004d1	f6 87 c4 03 00
+	00 02		 test	 BYTE PTR [edi+964], 2
+  004d8	75 10		 jne	 SHORT $L71369
+  004da	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  004e1	f6 c4 20	 test	 ah, 32			; 00000020H
+  004e4	74 16		 je	 SHORT $L71368
+  004e6	a8 02		 test	 al, 2
+  004e8	74 12		 je	 SHORT $L71368
+$L71369:
+
+; 459  : 			{
+; 460  : #ifdef DEBUG
+; 461  : /* Added to debug [:log ...] printing problem 14-MAR-95 cjl */
+; 462  : 				printf ("This is the character %c\n\r", 'c');
+; 463  : /* printf("This is the float number %f\n\r",9.0/5.0); */
+; 464  : 				printf ("This is the string %s\n\r", "test");
+; 465  : 				printf ("This is the hex number %x\n\r", 'c');
+; 466  : 				printf ("This is the decimal number %d\n\r", 'c');
+; 467  : 				printf ("This is the unsigned number %u\n\r", 'c');
+; 468  : 				printf ("This is the octal number %o\n\r", 'c');
+; 469  : 				printf ("This is the binary number %b\n\r", 'c');
+; 470  : #endif
+; 471  : #ifdef MSDOS
+; 472  : 				logitem (buf);
+; 473  : #else
+; 474  : 				logitem (phTTS, buf);
+
+  004ea	8b 44 24 1c	 mov	 eax, DWORD PTR _phTTS$[esp+20]
+  004ee	8d 54 24 10	 lea	 edx, DWORD PTR _buf$[esp+24]
+  004f2	52		 push	 edx
+  004f3	50		 push	 eax
+  004f4	e8 00 00 00 00	 call	 _logitem
+  004f9	83 c4 08	 add	 esp, 8
+$L71368:
+
+; 475  : #endif
+; 476  : 			}
+; 477  : 			switch (buf[0])
+; 478  : 			{
+
+  004fc	0f bf 44 24 10	 movsx	 eax, WORD PTR _buf$[esp+24]
+  00501	3d 03 1f 00 00	 cmp	 eax, 7939		; 00001f03H
+  00506	0f 8f b7 00 00
+	00		 jg	 $L71606
+  0050c	0f 84 a5 00 00
+	00		 je	 $L71385
+  00512	3d 01 1f 00 00	 cmp	 eax, 7937		; 00001f01H
+  00517	7f 69		 jg	 SHORT $L71607
+  00519	74 40		 je	 SHORT $L71376
+  0051b	83 f8 78	 cmp	 eax, 120		; 00000078H
+  0051e	74 2c		 je	 SHORT $L71374
+  00520	3d 00 1f 00 00	 cmp	 eax, 7936		; 00001f00H
+  00525	0f 85 1a fc ff
+	ff		 jne	 $L71333
+
+; 490  : #endif
+; 491  : 			
+; 492  : 			case RATE:
+; 493  : 
+; 494  : 
+; 495  : #ifdef SLOWTALK
+; 496  : 				pKsd_t->sprate = deadstop (buf[1], 50, 550);
+
+  0052b	0f bf 4c 24 12	 movsx	 ecx, WORD PTR _buf$[esp+26]
+  00530	68 26 02 00 00	 push	 550			; 00000226H
+  00535	6a 32		 push	 50			; 00000032H
+  00537	51		 push	 ecx
+  00538	e8 00 00 00 00	 call	 _deadstop
+  0053d	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00540	66 89 87 e6 03
+	00 00		 mov	 WORD PTR [edi+998], ax
+
+; 497  : #else
+; 498  : 				pKsd_t->sprate = deadstop (buf[1], 75, 600);
+; 499  : #endif
+; 500  : 
+; 501  : 
+; 502  : 				break;
+
+  00547	e9 f9 fb ff ff	 jmp	 $L71333
+$L71374:
+
+; 479  : 				/* 
+; 480  : 				 * check for special words 
+; 481  : 				 * that wants to be handled 
+; 482  : 				 * special if a single word clause like "to" 
+; 483  : 				 */
+; 484  : 
+; 485  : #ifdef ENGLISH
+; 486  : 			case SPECIALWORD:
+; 487  : 
+; 488  : 				pDph_t->docitation = TRUE;
+
+  0054c	c7 86 f0 2b 00
+	00 01 00 00 00	 mov	 DWORD PTR [esi+11248], 1
+
+; 489  : 				break;
+
+  00556	e9 ea fb ff ff	 jmp	 $L71333
+$L71376:
+
+; 503  : 
+; 504  : 			case CPAUSE:
+; 505  : 
+; 506  : 				pDph_t->compause = mstofr (deadstop (buf[1], -40, 30000));
+
+  0055b	0f bf 54 24 12	 movsx	 edx, WORD PTR _buf$[esp+26]
+  00560	68 30 75 00 00	 push	 30000			; 00007530H
+  00565	6a d8		 push	 -40			; ffffffd8H
+  00567	52		 push	 edx
+  00568	e8 00 00 00 00	 call	 _deadstop
+  0056d	50		 push	 eax
+  0056e	e8 00 00 00 00	 call	 _mstofr
+  00573	83 c4 10	 add	 esp, 16			; 00000010H
+  00576	66 89 86 de 18
+	00 00		 mov	 WORD PTR [esi+6366], ax
+
+; 507  : 				break;
+
+  0057d	e9 c3 fb ff ff	 jmp	 $L71333
+$L71607:
+
+; 475  : #endif
+; 476  : 			}
+; 477  : 			switch (buf[0])
+; 478  : 			{
+
+  00582	3d 02 1f 00 00	 cmp	 eax, 7938		; 00001f02H
+  00587	0f 85 b8 fb ff
+	ff		 jne	 $L71333
+
+; 508  : 
+; 509  : 			case PPAUSE:
+; 510  : 
+; 511  : 				pDph_t->perpause = mstofr (deadstop (buf[1], -380, 30000));
+
+  0058d	0f bf 44 24 12	 movsx	 eax, WORD PTR _buf$[esp+26]
+  00592	68 30 75 00 00	 push	 30000			; 00007530H
+  00597	68 84 fe ff ff	 push	 -380			; fffffe84H
+  0059c	50		 push	 eax
+  0059d	e8 00 00 00 00	 call	 _deadstop
+  005a2	50		 push	 eax
+  005a3	e8 00 00 00 00	 call	 _mstofr
+  005a8	83 c4 10	 add	 esp, 16			; 00000010H
+  005ab	66 89 86 e0 18
+	00 00		 mov	 WORD PTR [esi+6368], ax
+
+; 512  : 				break;
+
+  005b2	e9 8e fb ff ff	 jmp	 $L71333
+$L71385:
+
+; 559  : 				break;
+; 560  : 
+; 561  : 			case LAST_VOICE:
+; 562  : 
+; 563  : 				pDph_t->loadspdef = TRUE;
+
+  005b7	c6 86 cc 18 00
+	00 01		 mov	 BYTE PTR [esi+6348], 1
+
+; 564  : 				break;
+
+  005be	e9 82 fb ff ff	 jmp	 $L71333
+$L71606:
+
+; 475  : #endif
+; 476  : 			}
+; 477  : 			switch (buf[0])
+; 478  : 			{
+
+  005c3	05 fb e0 ff ff	 add	 eax, -7941		; ffffe0fbH
+  005c8	83 f8 09	 cmp	 eax, 9
+  005cb	0f 87 74 fb ff
+	ff		 ja	 $L71333
+  005d1	33 c9		 xor	 ecx, ecx
+  005d3	8a 88 00 00 00
+	00		 mov	 cl, BYTE PTR $L71631[eax]
+  005d9	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L71632[ecx*4]
+$L71378:
+
+; 513  : 
+; 514  : 			case NEW_SPEAKER:
+; 515  : 
+; 516  : 				if (buf[1] < MAX_SPEAKERS)	/* changed from <=9 to < MAX_SPEAKERS */
+
+  005e0	66 8b 44 24 12	 mov	 ax, WORD PTR _buf$[esp+26]
+  005e5	66 3d 0a 00	 cmp	 ax, 10			; 0000000aH
+  005e9	7d 16		 jge	 SHORT $L71379
+
+; 517  : 					/* new code, was  < 7, but that cut out some voices */
+; 518  : 				{
+; 519  : 					usevoice (phTTS, buf[1]);
+
+  005eb	0f bf d0	 movsx	 edx, ax
+  005ee	8b 44 24 1c	 mov	 eax, DWORD PTR _phTTS$[esp+20]
+  005f2	52		 push	 edx
+  005f3	50		 push	 eax
+  005f4	e8 00 00 00 00	 call	 _usevoice
+  005f9	83 c4 08	 add	 esp, 8
+
+; 520  : 				}
+; 521  : 				else
+
+  005fc	e9 44 fb ff ff	 jmp	 $L71333
+$L71379:
+
+; 522  : 				{
+; 523  : 					usevoice (phTTS, 1);
+
+  00601	8b 4c 24 1c	 mov	 ecx, DWORD PTR _phTTS$[esp+20]
+  00605	6a 01		 push	 1
+  00607	51		 push	 ecx
+  00608	e8 00 00 00 00	 call	 _usevoice
+  0060d	83 c4 08	 add	 esp, 8
+
+; 524  : 				}
+; 525  : 				break;
+
+  00610	e9 30 fb ff ff	 jmp	 $L71333
+$L71381:
+
+; 526  : #ifdef SPANISH
+; 527  : 			case LATIN:
+; 528  : 
+; 529  : 				if (buf[1] == 1)
+; 530  : 				{
+; 531  : 					pDph_t->th_to_s = 1;
+; 532  : 				}
+; 533  : 				else
+; 534  : 				{
+; 535  : 					pDph_t->th_to_s = 0;
+; 536  : 				}
+; 537  : 
+; 538  : 				break;
+; 539  : #endif
+; 540  : 
+; 541  : 			case NEW_PARAM:
+; 542  : 
+; 543  : 				setparam (phTTS, buf[1], buf[2]);
+
+  00615	0f bf 54 24 14	 movsx	 edx, WORD PTR _buf$[esp+28]
+  0061a	0f bf 44 24 12	 movsx	 eax, WORD PTR _buf$[esp+26]
+  0061f	8b 4c 24 1c	 mov	 ecx, DWORD PTR _phTTS$[esp+20]
+  00623	52		 push	 edx
+  00624	50		 push	 eax
+  00625	51		 push	 ecx
+  00626	e8 00 00 00 00	 call	 _setparam
+  0062b	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 544  : 				break;
+
+  0062e	e9 12 fb ff ff	 jmp	 $L71333
+$L71382:
+
+; 545  : 
+; 546  : 			case PITCH_CHANGE:
+; 547  : 
+; 548  : 				if (pDph_t->reset_pitch == FALSE)
+
+  00633	8b 86 c8 23 00
+	00		 mov	 eax, DWORD PTR [esi+9160]
+  00639	85 c0		 test	 eax, eax
+  0063b	0f 85 04 fb ff
+	ff		 jne	 $L71333
+
+; 549  : 				{
+; 550  : 					pDph_t->default_pitch = pDph_t->curspdef[3];
+
+  00641	0f bf 86 a8 17
+	00 00		 movsx	 eax, WORD PTR [esi+6056]
+  00648	89 86 d8 2b 00
+	00		 mov	 DWORD PTR [esi+11224], eax
+
+; 551  : 					setparam (phTTS, 3, (pDph_t->curspdef[3] + pKsd_t->pitch_delta));
+
+  0064e	8b 97 18 04 00
+	00		 mov	 edx, DWORD PTR [edi+1048]
+  00654	03 d0		 add	 edx, eax
+  00656	8b 44 24 1c	 mov	 eax, DWORD PTR _phTTS$[esp+20]
+  0065a	52		 push	 edx
+  0065b	6a 03		 push	 3
+  0065d	50		 push	 eax
+  0065e	e8 00 00 00 00	 call	 _setparam
+  00663	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 552  : 					pDph_t->reset_pitch = TRUE;
+
+  00666	c7 86 c8 23 00
+	00 01 00 00 00	 mov	 DWORD PTR [esi+9160], 1
+
+; 553  : 				}
+; 554  : 				break;
+
+  00670	e9 d0 fa ff ff	 jmp	 $L71333
+$L71384:
+
+; 555  : 
+; 556  : 			case SAVE:
+; 557  : 
+; 558  : 				saveval (pDph_t);
+
+  00675	56		 push	 esi
+  00676	e8 00 00 00 00	 call	 _saveval
+  0067b	83 c4 04	 add	 esp, 4
+
+; 565  : 
+; 566  : 			case BREATH_BREAK:
+; 567  : 				break;
+; 568  : 
+; 569  : 			};
+; 570  : 			continue;
+
+  0067e	e9 c2 fa ff ff	 jmp	 $L71333
+$L71360:
+
+; 571  : 		}
+; 572  : 
+; 573  : 		/* 
+; 574  : 		 *  eat silence ...
+; 575  : 		 */
+; 576  : 
+; 577  : 		if (nextra == 0 && buf[0] ==  0 && pDph_t->symbols[pDph_t->lastoffs] == GEN_SIL)
+
+  00683	85 ed		 test	 ebp, ebp
+  00685	75 1d		 jne	 SHORT $L71387
+  00687	66 39 6c 24 10	 cmp	 WORD PTR _buf$[esp+24], bp
+  0068c	75 16		 jne	 SHORT $L71387
+  0068e	8b 8e d4 23 00
+	00		 mov	 ecx, DWORD PTR [esi+9172]
+  00694	66 81 bc 4e 26
+	15 00 00 00 1e	 cmp	 WORD PTR [esi+ecx*2+5414], 7680 ; 00001e00H
+  0069e	0f 84 a1 fa ff
+	ff		 je	 $L71333
+$L71387:
+
+; 578  : 			continue;
+; 579  : 
+; 580  : 		/* 
+; 581  : 		 * Force in a comma if the clause is getting too long for the buffers.
+; 582  : 		 * This can chomp down into the middle of a word. It should happen rarely
+; 583  : 		 * because of the "yellow line"  check (later on).
+; 584  : 		 */
+; 585  : 
+; 586  : 		if ((pDph_t->nsymbtot + nextra + 1) > (NPHON_MAX - 1))
+
+  006a4	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  006ab	8d 54 28 01	 lea	 edx, DWORD PTR [eax+ebp+1]
+  006af	81 fa 2b 01 00
+	00		 cmp	 edx, 299		; 0000012bH
+  006b5	7e 44		 jle	 SHORT $L71388
+
+; 587  : 		{
+; 588  : 			pDph_t->symbols[pDph_t->nsymbtot] = COMMA;
+
+  006b7	66 c7 84 46 26
+	15 00 00 73 00	 mov	 WORD PTR [esi+eax*2+5414], 115 ; 00000073H
+
+; 589  : 			pDph_t->user_durs[pDph_t->nsymbtot] = 0;
+
+  006c1	8b 8e 84 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6020]
+  006c7	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  006ce	66 c7 04 41 00
+	00		 mov	 WORD PTR [ecx+eax*2], 0
+
+; 590  : 			pDph_t->user_f0[pDph_t->nsymbtot++] = 0;
+
+  006d4	8b 86 88 17 00
+	00		 mov	 eax, DWORD PTR [esi+6024]
+  006da	0f bf 96 82 17
+	00 00		 movsx	 edx, WORD PTR [esi+6018]
+
+; 591  : 			speak_now (phTTS);
+
+  006e1	8b 4c 24 1c	 mov	 ecx, DWORD PTR _phTTS$[esp+20]
+  006e5	66 c7 04 50 00
+	00		 mov	 WORD PTR [eax+edx*2], 0
+  006eb	66 ff 86 82 17
+	00 00		 inc	 WORD PTR [esi+6018]
+  006f2	51		 push	 ecx
+  006f3	e8 00 00 00 00	 call	 _speak_now
+  006f8	83 c4 04	 add	 esp, 4
+$L71388:
+
+; 592  : 		}
+; 593  : #ifdef FRENCH
+; 594  : 		if ( (buf [0] & PFONT) == (FRGC << PSFONT) ) {
+; 595  : 			/* memorise the word grammatical category */
+; 596  : 			pDph_t->sentstruc [pDph_t->nsymbtot] = buf [0] & 0xFF;
+; 597  : 			
+; 598  : #ifdef GC_DEBUG
+; 599  : 			if (dbgpros)
+; 600  : 				printf ("phmain.c kltask grammatical categ. sentstruc [%3d] %8x\n",
+; 601  : 				pDph_t->nsymbtot, pDph_t->sentstruc [pDph_t->nsymbtot]);
+; 602  : #endif
+; 603  : 			continue;
+; 604  :       }
+; 605  : #endif
+; 606  : 
+; 607  : 		/* 
+; 608  : 		 * Kill font bits. Delete blocks of silence (I don't think this is
+; 609  : 		 * needed anymore).  Map WBOUND to COMMA if we are getting near the
+; 610  : 		 * end of the buffer.
+; 611  : 		 */
+; 612  : 
+; 613  : 		//buf[0] &= PVALUE;
+; 614  : 		//EAB 5/15/00 For unified phonemics I will jam control phones to have a null langauge filed
+; 615  : 		if((buf[0] & PVALUE) >= 100)
+
+  006fb	8b 44 24 10	 mov	 eax, DWORD PTR _buf$[esp+24]
+  006ff	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00704	66 3d 64 00	 cmp	 ax, 100			; 00000064H
+  00708	7c 05		 jl	 SHORT $L71389
+
+; 616  : 			buf[0] = buf[0] & PVALUE;
+
+  0070a	66 89 44 24 10	 mov	 WORD PTR _buf$[esp+24], ax
+$L71389:
+
+; 617  : 		if (pDph_t->nsymbtot >= (NPHON_MAX - GUARD) && ((buf[0] & PVALUE) == WBOUND))
+
+  0070f	66 81 be 82 17
+	00 00 13 01	 cmp	 WORD PTR [esi+6018], 275 ; 00000113H
+  00718	7c 0e		 jl	 SHORT $L71390
+  0071a	80 7c 24 10 6f	 cmp	 BYTE PTR _buf$[esp+24], 111 ; 0000006fH
+  0071f	75 07		 jne	 SHORT $L71390
+
+; 618  : 			buf[0]  = COMMA;
+
+  00721	66 c7 44 24 10
+	73 00		 mov	 WORD PTR _buf$[esp+24], 115 ; 00000073H
+$L71390:
+
+; 619  : 		/* 
+; 620  : 		 * Handle explict pitch, duration.
+; 621  : 		 */
+; 622  : 
+; 623  : 		if (nextra != 0)
+
+  00728	85 ed		 test	 ebp, ebp
+  0072a	0f 84 b2 00 00
+	00		 je	 $L71391
+
+; 624  : 		{
+; 625  : 			pDph_t->lastoffs = pDph_t->nsymbtot;
+
+  00730	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  00737	89 86 d4 23 00
+	00		 mov	 DWORD PTR [esi+9172], eax
+
+; 626  : 			pDph_t->symbols[pDph_t->nsymbtot] = buf[0];
+
+  0073d	66 8b 54 24 10	 mov	 dx, WORD PTR _buf$[esp+24]
+  00742	66 89 94 46 26
+	15 00 00	 mov	 WORD PTR [esi+eax*2+5414], dx
+
+; 627  : 			pDph_t->user_durs[pDph_t->nsymbtot] = buf[1];
+
+  0074a	8b 8e 84 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6020]
+  00750	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  00757	66 8b 54 24 12	 mov	 dx, WORD PTR _buf$[esp+26]
+
+; 628  : 			if (nextra == 1)
+
+  0075c	83 fd 01	 cmp	 ebp, 1
+  0075f	66 89 14 41	 mov	 WORD PTR [ecx+eax*2], dx
+  00763	75 15		 jne	 SHORT $L71392
+
+; 629  : 				pDph_t->user_f0[pDph_t->nsymbtot] = 0;
+
+  00765	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  0076c	8b 8e 88 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6024]
+  00772	66 c7 04 41 00
+	00		 mov	 WORD PTR [ecx+eax*2], 0
+
+; 630  : 			else
+
+  00778	eb 16		 jmp	 SHORT $L71393
+$L71392:
+
+; 631  : 				pDph_t->user_f0[pDph_t->nsymbtot] = buf[2];
+
+  0077a	0f bf 96 82 17
+	00 00		 movsx	 edx, WORD PTR [esi+6018]
+  00781	8b 86 88 17 00
+	00		 mov	 eax, DWORD PTR [esi+6024]
+  00787	66 8b 4c 24 14	 mov	 cx, WORD PTR _buf$[esp+28]
+  0078c	66 89 0c 50	 mov	 WORD PTR [eax+edx*2], cx
+$L71393:
+
+; 632  : 			pDph_t->nsymbtot++;
+
+  00790	66 ff 86 82 17
+	00 00		 inc	 WORD PTR [esi+6018]
+
+; 633  : 			if (ispause ((buf[0] & PVALUE)) == FALSE)
+
+  00797	8b 44 24 10	 mov	 eax, DWORD PTR _buf$[esp+24]
+  0079b	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  007a0	66 3d 71 00	 cmp	 ax, 113			; 00000071H
+  007a4	7c 06		 jl	 SHORT $L71608
+  007a6	66 3d 76 00	 cmp	 ax, 118			; 00000076H
+  007aa	7e 09		 jle	 SHORT $L71394
+$L71608:
+
+; 634  : 				pDph_t->nphone = 0;
+
+  007ac	66 c7 86 d0 23
+	00 00 00 00	 mov	 WORD PTR [esi+9168], 0
+$L71394:
+
+; 635  : 			if (isbound ((buf[0] & PVALUE)) != FALSE)
+
+  007b5	8b 44 24 10	 mov	 eax, DWORD PTR _buf$[esp+24]
+  007b9	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  007be	66 3d 6f 00	 cmp	 ax, 111			; 0000006fH
+  007c2	0f 8c 7d f9 ff
+	ff		 jl	 $L71333
+  007c8	66 3d 71 00	 cmp	 ax, 113			; 00000071H
+  007cc	0f 8f 73 f9 ff
+	ff		 jg	 $L71333
+
+; 636  : 				pDph_t->bound = buf[0];
+
+  007d2	0f bf 54 24 10	 movsx	 edx, WORD PTR _buf$[esp+24]
+  007d7	89 96 cc 23 00
+	00		 mov	 DWORD PTR [esi+9164], edx
+
+; 637  : 			continue;
+
+  007dd	e9 63 f9 ff ff	 jmp	 $L71333
+$L71391:
+
+; 638  : 		}
+; 639  : 
+; 640  : 		/* 
+; 641  : 		 * Adjust the strength of syntactic markers.
+; 642  : 		 */
+; 643  : 
+; 644  : 		if (issmark ((buf[0] & PVALUE)) && issmark (pDph_t->symbols[pDph_t->lastoffs]))
+
+  007e2	8b 44 24 10	 mov	 eax, DWORD PTR _buf$[esp+24]
+  007e6	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  007eb	66 3d 6f 00	 cmp	 ax, 111			; 0000006fH
+  007ef	0f 8c d4 00 00
+	00		 jl	 $L71401
+  007f5	66 3d 76 00	 cmp	 ax, 118			; 00000076H
+  007f9	0f 8f ca 00 00
+	00		 jg	 $L71401
+  007ff	8b 8e d4 23 00
+	00		 mov	 ecx, DWORD PTR [esi+9172]
+  00805	66 8b 94 4e 26
+	15 00 00	 mov	 dx, WORD PTR [esi+ecx*2+5414]
+  0080d	66 83 fa 6f	 cmp	 dx, 111			; 0000006fH
+  00811	0f 8c b2 00 00
+	00		 jl	 $L71401
+  00817	66 83 fa 76	 cmp	 dx, 118			; 00000076H
+  0081b	0f 8f a8 00 00
+	00		 jg	 $L71401
+
+; 645  : 		{
+; 646  : 			if (((buf[0] & PVALUE) == VPSTART) && ((pDph_t->bound == PPSTART) || (pDph_t->bound == VPSTART)))
+
+  00821	66 3d 71 00	 cmp	 ax, 113			; 00000071H
+  00825	75 18		 jne	 SHORT $L71397
+  00827	8b 8e cc 23 00
+	00		 mov	 ecx, DWORD PTR [esi+9164]
+  0082d	83 f9 70	 cmp	 ecx, 112		; 00000070H
+  00830	0f 84 0f f9 ff
+	ff		 je	 $L71333
+  00836	83 f9 71	 cmp	 ecx, 113		; 00000071H
+
+; 647  : 				continue;
+
+  00839	0f 84 06 f9 ff
+	ff		 je	 $L71333
+$L71397:
+
+; 648  : 			if (pDph_t->symbols[pDph_t->lastoffs] >= (buf[0] & PVALUE))
+
+  0083f	66 3b d0	 cmp	 dx, ax
+  00842	0f 8d fd f8 ff
+	ff		 jge	 $L71333
+
+; 649  : 				continue;
+; 650  : 			if ((buf[0] & PVALUE) == PPSTART && (pDph_t->nphone > 25))
+
+  00848	66 3d 70 00	 cmp	 ax, 112			; 00000070H
+  0084c	75 11		 jne	 SHORT $L71400
+  0084e	66 83 be d0 23
+	00 00 19	 cmp	 WORD PTR [esi+9168], 25	; 00000019H
+  00856	7e 07		 jle	 SHORT $L71400
+
+; 651  : 				buf[0] = VPSTART;
+
+  00858	66 c7 44 24 10
+	71 00		 mov	 WORD PTR _buf$[esp+24], 113 ; 00000071H
+$L71400:
+
+; 652  : 			if (pDph_t->lastoffs != 0)
+
+  0085f	8b 86 d4 23 00
+	00		 mov	 eax, DWORD PTR [esi+9172]
+  00865	85 c0		 test	 eax, eax
+  00867	74 60		 je	 SHORT $L71401
+
+; 653  : 			{
+; 654  : 				pDph_t->user_durs[pDph_t->lastoffs] = 0;
+
+  00869	8b 96 84 17 00
+	00		 mov	 edx, DWORD PTR [esi+6020]
+  0086f	66 c7 04 42 00
+	00		 mov	 WORD PTR [edx+eax*2], 0
+
+; 655  : 				pDph_t->user_f0[pDph_t->lastoffs] = 0;
+
+  00875	8b 86 d4 23 00
+	00		 mov	 eax, DWORD PTR [esi+9172]
+  0087b	8b 8e 88 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6024]
+  00881	66 c7 04 41 00
+	00		 mov	 WORD PTR [ecx+eax*2], 0
+
+; 656  : 				for (workp = &pDph_t->symbols[pDph_t->lastoffs + 1];
+; 657  : 					 workp != &pDph_t->symbols[pDph_t->nsymbtot];
+; 658  : 					 workp++)
+
+  00887	8b 96 d4 23 00
+	00		 mov	 edx, DWORD PTR [esi+9172]
+  0088d	0f bf 8e 82 17
+	00 00		 movsx	 ecx, WORD PTR [esi+6018]
+  00894	8d 84 56 28 15
+	00 00		 lea	 eax, DWORD PTR [esi+edx*2+5416]
+  0089b	8d 94 4e 26 15
+	00 00		 lea	 edx, DWORD PTR [esi+ecx*2+5414]
+  008a2	3b c2		 cmp	 eax, edx
+  008a4	74 1c		 je	 SHORT $L71404
+$L71402:
+
+; 659  : 					workp[-1] = workp[0];
+
+  008a6	66 8b 08	 mov	 cx, WORD PTR [eax]
+  008a9	66 89 48 fe	 mov	 WORD PTR [eax-2], cx
+  008ad	83 c0 02	 add	 eax, 2
+  008b0	0f bf 96 82 17
+	00 00		 movsx	 edx, WORD PTR [esi+6018]
+  008b7	8d 8c 56 26 15
+	00 00		 lea	 ecx, DWORD PTR [esi+edx*2+5414]
+  008be	3b c1		 cmp	 eax, ecx
+  008c0	75 e4		 jne	 SHORT $L71402
+$L71404:
+
+; 660  : 				pDph_t->nsymbtot -= 1;
+
+  008c2	66 ff 8e 82 17
+	00 00		 dec	 WORD PTR [esi+6018]
+$L71401:
+
+; 661  : 				/* adjust_index(pKsd_t,lastoffs+1,-1); out eab */
+; 662  : 			}
+; 663  : 		}
+; 664  : 
+; 665  : 		pDph_t->nphone += 1;
+
+  008c9	66 ff 86 d0 23
+	00 00		 inc	 WORD PTR [esi+9168]
+
+; 666  : 		if (ispause ((buf[0] & PVALUE)) == FALSE)
+
+  008d0	8b 44 24 10	 mov	 eax, DWORD PTR _buf$[esp+24]
+  008d4	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  008d9	66 3d 71 00	 cmp	 ax, 113			; 00000071H
+  008dd	7c 06		 jl	 SHORT $L71612
+  008df	66 3d 76 00	 cmp	 ax, 118			; 00000076H
+  008e3	7e 09		 jle	 SHORT $L71405
+$L71612:
+
+; 667  : 			pDph_t->nphone = 0;
+
+  008e5	66 c7 86 d0 23
+	00 00 00 00	 mov	 WORD PTR [esi+9168], 0
+$L71405:
+
+; 668  : 		if (isbound ((buf[0] & PVALUE)))
+
+  008ee	8b 44 24 10	 mov	 eax, DWORD PTR _buf$[esp+24]
+  008f2	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  008f7	66 3d 6f 00	 cmp	 ax, 111			; 0000006fH
+  008fb	7c 11		 jl	 SHORT $L71406
+  008fd	66 3d 71 00	 cmp	 ax, 113			; 00000071H
+  00901	7f 0b		 jg	 SHORT $L71406
+
+; 669  : 			pDph_t->bound = buf[0];
+
+  00903	0f bf 54 24 10	 movsx	 edx, WORD PTR _buf$[esp+24]
+  00908	89 96 cc 23 00
+	00		 mov	 DWORD PTR [esi+9164], edx
+$L71406:
+
+; 670  : 		pDph_t->lastoffs = pDph_t->nsymbtot;
+
+  0090e	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  00915	89 86 d4 23 00
+	00		 mov	 DWORD PTR [esi+9172], eax
+
+; 671  : 
+; 672  : 		/* 
+; 673  : 		 *  finally, buffer the phone in the array and speak if it is a delimiter ...
+; 674  : 		 */
+; 675  : 
+; 676  : 		pDph_t->symbols[pDph_t->nsymbtot] = buf[0];
+
+  0091b	66 8b 4c 24 10	 mov	 cx, WORD PTR _buf$[esp+24]
+  00920	66 89 8c 46 26
+	15 00 00	 mov	 WORD PTR [esi+eax*2+5414], cx
+
+; 677  : 		pDph_t->user_durs[pDph_t->nsymbtot] = 0;
+
+  00928	8b 86 84 17 00
+	00		 mov	 eax, DWORD PTR [esi+6020]
+  0092e	0f bf 96 82 17
+	00 00		 movsx	 edx, WORD PTR [esi+6018]
+  00935	66 c7 04 50 00
+	00		 mov	 WORD PTR [eax+edx*2], 0
+
+; 678  : 		pDph_t->user_f0[pDph_t->nsymbtot++] = 0;
+
+  0093b	8b 96 88 17 00
+	00		 mov	 edx, DWORD PTR [esi+6024]
+  00941	0f bf 8e 82 17
+	00 00		 movsx	 ecx, WORD PTR [esi+6018]
+  00948	66 c7 04 4a 00
+	00		 mov	 WORD PTR [edx+ecx*2], 0
+  0094e	66 ff 86 82 17
+	00 00		 inc	 WORD PTR [esi+6018]
+
+; 679  : 		pDph_t->sentstruc [pDph_t->nsymbtot] = 0; // default value for next phone
+
+  00955	0f bf 86 82 17
+	00 00		 movsx	 eax, WORD PTR [esi+6018]
+  0095c	8b 8e 94 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6036]
+  00962	c7 04 81 00 00
+	00 00		 mov	 DWORD PTR [ecx+eax*4], 0
+
+; 680  :                                                   // important for French
+; 681  : 		if (isdelim ((buf[0] & PVALUE)))
+
+  00969	8b 44 24 10	 mov	 eax, DWORD PTR _buf$[esp+24]
+  0096d	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00972	66 3d 73 00	 cmp	 ax, 115			; 00000073H
+  00976	0f 8c c9 f7 ff
+	ff		 jl	 $L71333
+  0097c	66 3d 76 00	 cmp	 ax, 118			; 00000076H
+  00980	0f 8f bf f7 ff
+	ff		 jg	 $L71333
+
+; 682  : 			speak_now (phTTS);
+
+  00986	8b 54 24 1c	 mov	 edx, DWORD PTR _phTTS$[esp+20]
+  0098a	52		 push	 edx
+  0098b	e8 00 00 00 00	 call	 _speak_now
+  00990	83 c4 04	 add	 esp, 4
+
+; 683  : 	}	// while (TRUE)
+
+  00993	e9 ad f7 ff ff	 jmp	 $L71333
+$L71359:
+
+; 387  : 		{
+; 388  : #ifdef MSDOS
+; 389  : 				save_index (pDph_t->nsymbtot, buf[0], buf[1], buf[2]);
+; 390  : #else
+; 391  : 				save_index (pKsd_t, pDph_t->nsymbtot, buf[0], buf[1], buf[2]);
+
+  00998	0f bf 4c 24 14	 movsx	 ecx, WORD PTR _buf$[esp+28]
+  0099d	0f bf 54 24 12	 movsx	 edx, WORD PTR _buf$[esp+26]
+  009a2	51		 push	 ecx
+  009a3	52		 push	 edx
+  009a4	0f bf 8e 82 17
+	00 00		 movsx	 ecx, WORD PTR [esi+6018]
+  009ab	0f bf c0	 movsx	 eax, ax
+  009ae	50		 push	 eax
+  009af	51		 push	 ecx
+  009b0	57		 push	 edi
+  009b1	e8 00 00 00 00	 call	 _save_index
+  009b6	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 392  : #endif
+; 393  : 
+; 394  : 
+; 395  : 
+; 396  : 			continue;
+
+  009b9	e9 87 f7 ff ff	 jmp	 $L71333
+
+; 684  : }	// kltask
+
+  009be	8b ff		 npad	 2
+$L71632:
+  009c0	00 00 00 00	 DD	 $L71378
+  009c4	00 00 00 00	 DD	 $L71381
+  009c8	00 00 00 00	 DD	 $L71384
+  009cc	00 00 00 00	 DD	 $L71382
+  009d0	00 00 00 00	 DD	 $L71333
+$L71631:
+  009d4	00		 DB	 0
+  009d5	01		 DB	 1
+  009d6	02		 DB	 2
+  009d7	04		 DB	 4
+  009d8	04		 DB	 4
+  009d9	04		 DB	 4
+  009da	04		 DB	 4
+  009db	04		 DB	 4
+  009dc	04		 DB	 4
+  009dd	03		 DB	 3
+_kltask	ENDP
+_TEXT	ENDS
+EXTRN	_check_index:NEAR
+EXTRN	_logclaus:NEAR
+EXTRN	_phclause:NEAR
+EXTRN	_logsyllable:NEAR
+EXTRN	_saysyllable:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pipe_item$ = 8
+_speak_now PROC NEAR
+
+; 700  : {
+
+  009e0	53		 push	 ebx
+
+; 701  : #ifndef MSDOS
+; 702  : 	DT_PIPE_T               pipe_item[1];
+; 703  : 
+; 704  : #endif
+; 705  : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+
+  009e1	8b 5c 24 08	 mov	 ebx, DWORD PTR _phTTS$[esp]
+  009e5	55		 push	 ebp
+  009e6	56		 push	 esi
+
+; 706  : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+
+  009e7	8b 73 18	 mov	 esi, DWORD PTR [ebx+24]
+
+; 707  : 	int n=0;
+; 708  : 	pDph_t->holdwordclass = 0;
+
+  009ea	33 ed		 xor	 ebp, ebp
+  009ec	57		 push	 edi
+  009ed	8b 7b 08	 mov	 edi, DWORD PTR [ebx+8]
+
+; 709  : #ifndef FRENCH
+; 710  : 	for (n = 0; n < pDph_t->nsymbtot; n++)
+
+  009f0	33 c0		 xor	 eax, eax
+  009f2	66 39 ae 82 17
+	00 00		 cmp	 WORD PTR [esi+6018], bp
+  009f9	89 ae e0 14 00
+	00		 mov	 DWORD PTR [esi+5344], ebp
+  009ff	7e 16		 jle	 SHORT $L71417
+$L71415:
+
+; 711  : 	// SENSTRUC is really allofeats and and is used earlier in french and thus can't
+; 712  : 	{
+; 713  : 		// be are initalized
+; 714  : 		pDph_t->sentstruc[n] = 0;
+
+  00a01	8b 8e 94 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6036]
+  00a07	40		 inc	 eax
+  00a08	89 6c 81 fc	 mov	 DWORD PTR [ecx+eax*4-4], ebp
+  00a0c	0f bf 96 82 17
+	00 00		 movsx	 edx, WORD PTR [esi+6018]
+  00a13	3b c2		 cmp	 eax, edx
+  00a15	7c ea		 jl	 SHORT $L71415
+$L71417:
+
+; 715  : 	}	
+; 716  : #endif
+; 717  : #ifdef DTEX
+; 718  : 	if (pKsd_t->spc_sleeping)
+; 719  : 	{
+; 720  : 		/* 
+; 721  : 		 * we've put the DSP to sleep; have to wake it up before  
+; 722  : 		 * we try to do anything else. Make sure there is a speakerdef 
+; 723  : 		 * packet in there to reinit the DSP before anything else 
+; 724  : 		 * gets to it.. 
+; 725  : 		 */
+; 726  : 		dsp_wakeup ();
+; 727  : 		setspdef (phTTS);
+; 728  : 	}
+; 729  : #endif								   /* DTEX */
+; 730  : 
+; 731  : 	if ((pDph_t->nsymbtot > 1) && (pKsd_t->halting == FALSE))
+
+  00a17	66 8b 8e 82 17
+	00 00		 mov	 cx, WORD PTR [esi+6018]
+  00a1e	66 83 f9 01	 cmp	 cx, 1
+  00a22	0f 8e a3 00 00
+	00		 jle	 $L71425
+  00a28	39 af 34 03 00
+	00		 cmp	 DWORD PTR [edi+820], ebp
+  00a2e	0f 85 97 00 00
+	00		 jne	 $L71425
+
+; 732  : 	{
+; 733  : 		/* debug switch */
+; 734  : 		if ((pKsd_t->logflag & LOG_PHONEMES) || DT_DBG(PH_DBG,0x002))
+
+  00a34	f6 87 c4 03 00
+	00 02		 test	 BYTE PTR [edi+964], 2
+  00a3b	75 10		 jne	 SHORT $L71420
+  00a3d	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00a44	f6 c4 20	 test	 ah, 32			; 00000020H
+  00a47	74 23		 je	 SHORT $L71419
+  00a49	a8 02		 test	 al, 2
+  00a4b	74 1f		 je	 SHORT $L71419
+$L71420:
+
+; 735  : 		{
+; 736  : #ifdef DEBUG
+; 737  : /* Added to debug [:log ...] printing problem 14-MAR-95 cjl */
+; 738  : 			printf ("This is the character %c\n\r", 'c');
+; 739  : /* printf("This is the float number %f\n\r",9.0/5.0); */
+; 740  : 			printf ("This is the string %s\n\r", "test");
+; 741  : 			printf ("This is the hex number %x\n\r", 'c');
+; 742  : 			printf ("This is the decimal number %d\n\r", 'c');
+; 743  : 			printf ("This is the unsigned number %u\n\r", 'c');
+; 744  : 			printf ("This is the octal number %o\n\r", 'c');
+; 745  : 			printf ("This is the binary number %b\n\r", 'c');
+; 746  : #endif
+; 747  : #ifdef MSDOS
+; 748  : 			logclaus (pDph_t->symbols, pDph_t->nsymbtot, pDph_t->user_durs, pDph_t->user_f0);
+; 749  : #else
+; 750  : 			logclaus (phTTS, pDph_t->symbols, pDph_t->nsymbtot, pDph_t->user_durs, pDph_t->user_f0);
+
+  00a4d	8b 86 88 17 00
+	00		 mov	 eax, DWORD PTR [esi+6024]
+  00a53	8b 96 84 17 00
+	00		 mov	 edx, DWORD PTR [esi+6020]
+  00a59	50		 push	 eax
+  00a5a	52		 push	 edx
+  00a5b	8d 86 26 15 00
+	00		 lea	 eax, DWORD PTR [esi+5414]
+  00a61	51		 push	 ecx
+  00a62	50		 push	 eax
+  00a63	53		 push	 ebx
+  00a64	e8 00 00 00 00	 call	 _logclaus
+  00a69	83 c4 14	 add	 esp, 20			; 00000014H
+$L71419:
+
+; 751  : #endif
+; 752  : 		}
+; 753  : #if (defined ENGLISH) || (defined SPANISH) || (defined FRENCH) /* no syllablification in german */
+; 754  : 		/* debug switch */
+; 755  : 		if ((pKsd_t->logflag & LOG_SYLLABLES) || DT_DBG(PH_DBG,0x004))
+
+  00a6c	f6 87 c4 03 00
+	00 10		 test	 BYTE PTR [edi+964], 16	; 00000010H
+  00a73	75 10		 jne	 SHORT $L71422
+  00a75	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00a7c	f6 c4 20	 test	 ah, 32			; 00000020H
+  00a7f	74 0d		 je	 SHORT $L71421
+  00a81	a8 04		 test	 al, 4
+  00a83	74 09		 je	 SHORT $L71421
+$L71422:
+
+; 756  : 			logsyllable (phTTS);
+
+  00a85	53		 push	 ebx
+  00a86	e8 00 00 00 00	 call	 _logsyllable
+  00a8b	83 c4 04	 add	 esp, 4
+$L71421:
+
+; 757  : 		if (pKsd_t->sayflag == SAY_SYLLABLE)
+
+  00a8e	8b 87 c8 03 00
+	00		 mov	 eax, DWORD PTR [edi+968]
+
+; 758  : 		{
+; 759  : 				saysyllable (phTTS);
+
+  00a94	53		 push	 ebx
+  00a95	83 f8 08	 cmp	 eax, 8
+  00a98	75 07		 jne	 SHORT $L71423
+  00a9a	e8 00 00 00 00	 call	 _saysyllable
+
+; 760  : 		}		
+; 761  : 		else
+
+  00a9f	eb 05		 jmp	 SHORT $L71636
+$L71423:
+
+; 762  : #endif	
+; 763  : 		{
+; 764  : #ifdef DEBGFRENCH // for FRENCH
+; 765  : 			{
+; 766  : 				int i;
+; 767  : 				
+; 768  : 				printf ("\n");
+; 769  : 				printf ("         sym   sent  user_ user_  ph_task.c speak_now\n");
+; 770  : 				printf ("         bols  struc durs  f0\n");
+; 771  : 				for (i=0; i<pDph_t->nsymbtot; i++) 
+; 772  : 				{
+; 773  : 					printf ("%3d %2s %6x%6x%6x%6x", i, phprint (pDph_t->symbols [i]),
+; 774  : 						pDph_t->symbols [i], pDph_t->sentstruc [i], pDph_t->user_durs[i], 
+; 775  : 						pDph_t->user_f0[i]);
+; 776  : 					
+; 777  : 					if (pDph_t->sentstruc [i] != 0) 
+; 778  : 					{
+; 779  : 						switch ( pDph_t->sentstruc [i] ) 
+; 780  : 						{
+; 781  : 						case CgConj    : printf (" CgConj   "); break;
+; 782  : 						case CgPPS     : printf (" CgPPS    "); break;
+; 783  : 						case CgVA      : printf (" CgVA     "); break;
+; 784  : 						case CgArt     : printf (" CgArt    "); break;
+; 785  : 						case CgDivers  : printf (" CgDivers "); break;
+; 786  : 						case CgPrep    : printf (" CgPrep   "); break;
+; 787  : 						case CgPosDem  : printf (" CgPosDem "); break;
+; 788  : 						case CgInterr  : printf (" CgInter  "); break;
+; 789  : 						case CgDe      : printf (" CgDe     "); break;
+; 790  : 						case CgPrep2   : printf (" CgPrep2  "); break;
+; 791  : 						} /* switch */
+; 792  : 					} /* if */
+; 793  : 					printf ("\n");
+; 794  : 				} /* for */
+; 795  : 				printf ("\n\n");
+; 796  : 			}
+; 797  : #endif  // DEBG for FRENCH
+; 798  : 			phclause (phTTS);
+
+  00aa1	e8 00 00 00 00	 call	 _phclause
+$L71636:
+
+; 799  : 		}
+; 800  : #ifdef MSDOS
+; 801  : 		block (NULL_FP);			   /* run a scheduler pass.. */
+; 802  : #endif
+; 803  : 		if (pDph_t->reset_pitch)
+
+  00aa6	8b 86 c8 23 00
+	00		 mov	 eax, DWORD PTR [esi+9160]
+  00aac	83 c4 04	 add	 esp, 4
+  00aaf	3b c5		 cmp	 eax, ebp
+  00ab1	74 18		 je	 SHORT $L71425
+
+; 804  : 		{
+; 805  : 			setparam (phTTS, 3, pDph_t->default_pitch);
+
+  00ab3	8b 8e d8 2b 00
+	00		 mov	 ecx, DWORD PTR [esi+11224]
+  00ab9	51		 push	 ecx
+  00aba	6a 03		 push	 3
+  00abc	53		 push	 ebx
+  00abd	e8 00 00 00 00	 call	 _setparam
+  00ac2	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 806  : 			pDph_t->reset_pitch = FALSE;
+
+  00ac5	89 ae c8 23 00
+	00		 mov	 DWORD PTR [esi+9160], ebp
+$L71425:
+
+; 807  : 		}
+; 808  : 	}	// (pDph_t->nsymbtot > 1) && (pKsd_t->halting == FALSE)
+; 809  : #ifdef MSDOS
+; 810  :         else /*tek 6/25/96 */
+; 811  :         {
+; 812  :            /* we might have a load-speaker pending with nothing else in */
+; 813  :            /* process.. */
+; 814  :            if (pDph_t->loadspdef)
+; 815  :            {
+; 816  :                 setspdef(phTTS);
+; 817  :                 pDph_t->loadspdef=0;
+; 818  :             }
+; 819  :         }
+; 820  : 	check_index (PHONE_HUGE);
+; 821  : #else
+; 822  : 	check_index (pKsd_t, PHONE_HUGE);
+
+  00acb	68 0f 27 00 00	 push	 9999			; 0000270fH
+  00ad0	57		 push	 edi
+  00ad1	e8 00 00 00 00	 call	 _check_index
+
+; 823  : #endif // MSDOS
+; 824  : 
+; 825  : 	pDph_t->symbols[0] = GEN_SIL;
+
+  00ad6	66 c7 86 26 15
+	00 00 00 1e	 mov	 WORD PTR [esi+5414], 7680 ; 00001e00H
+
+; 826  : 	pDph_t->bound = COMMA;
+
+  00adf	c7 86 cc 23 00
+	00 73 00 00 00	 mov	 DWORD PTR [esi+9164], 115 ; 00000073H
+
+; 827  : 	pDph_t->lastoffs = 0;
+
+  00ae9	89 ae d4 23 00
+	00		 mov	 DWORD PTR [esi+9172], ebp
+
+; 828  : 	pDph_t->nsymbtot = 1;
+
+  00aef	66 c7 86 82 17
+	00 00 01 00	 mov	 WORD PTR [esi+6018], 1
+
+; 829  : 	pDph_t->nphone = 0;
+
+  00af8	66 89 ae d0 23
+	00 00		 mov	 WORD PTR [esi+9168], bp
+
+; 830  : 	pDph_t->asperation = 0;
+
+  00aff	89 ae c4 23 00
+	00		 mov	 DWORD PTR [esi+9156], ebp
+
+; 831  : 
+; 832  : /* GL 04/21/1997  change to be the same as the latest OSF code */
+; 833  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 834  : 	/* write forced clause boundary symbol to VTM */
+; 835  : 	pipe_item[0] = SPC_type_force;
+
+  00b05	66 c7 44 24 1c
+	0b 00		 mov	 WORD PTR _pipe_item$[esp+20], 11 ; 0000000bH
+
+; 836  : 	/* debug switch GL 3/27/1997 BATS#319 */
+; 837  : 	if (!(DT_DBG(PH_DBG,0x800)))
+
+  00b0c	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00b13	83 c4 08	 add	 esp, 8
+  00b16	f6 c4 20	 test	 ah, 32			; 00000020H
+  00b19	74 05		 je	 SHORT $L71427
+  00b1b	f6 c4 08	 test	 ah, 8
+  00b1e	75 16		 jne	 SHORT $L71426
+$L71427:
+
+; 838  : 	write_pipe (pKsd_t->vtm_pipe, pipe_item, 1);
+
+  00b20	8b 87 9c 02 00
+	00		 mov	 eax, DWORD PTR [edi+668]
+  00b26	8d 54 24 14	 lea	 edx, DWORD PTR _pipe_item$[esp+12]
+  00b2a	6a 01		 push	 1
+  00b2c	52		 push	 edx
+  00b2d	50		 push	 eax
+  00b2e	e8 00 00 00 00	 call	 _write_pipe
+  00b33	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71426:
+  00b36	5f		 pop	 edi
+  00b37	5e		 pop	 esi
+  00b38	5d		 pop	 ebp
+  00b39	5b		 pop	 ebx
+
+; 839  : #endif
+; 840  : }	// speak_now
+
+  00b3a	c3		 ret	 0
+_speak_now ENDP
+_value$ = 8
+_low$ = 12
+_high$ = 16
+_deadstop PROC NEAR
+
+; 860  : 	if (value < low)
+
+  00b40	8b 4c 24 04	 mov	 ecx, DWORD PTR _value$[esp-4]
+  00b44	8b 44 24 08	 mov	 eax, DWORD PTR _low$[esp-4]
+  00b48	3b c8		 cmp	 ecx, eax
+
+; 861  : 		return (low);
+
+  00b4a	7c 0a		 jl	 SHORT $L71434
+
+; 862  : 	if (value > high)
+
+  00b4c	8b 44 24 0c	 mov	 eax, DWORD PTR _high$[esp-4]
+  00b50	3b c8		 cmp	 ecx, eax
+
+; 863  : 		return (high);
+
+  00b52	7f 02		 jg	 SHORT $L71434
+
+; 864  : 	return (value);
+
+  00b54	8b c1		 mov	 eax, ecx
+$L71434:
+
+; 865  : }
+
+  00b56	c3		 ret	 0
+_deadstop ENDP
+_TEXT	ENDS
+EXTRN	__imp__fprintf:NEAR
+EXTRN	_read_pipe:NEAR
+_DATA	SEGMENT
+	ORG $+1
+$SG71453 DB	0aH, '(%d-%d--%d-%c%c)', 00H
+	ORG $+2
+$SG71455 DB	0aH, '(*%d-%d--%d)', 00H
+	ORG $+2
+$SG71457 DB	0aH, '(%d-%d--%d-%c%c)', 00H
+	ORG $+2
+$SG71459 DB	0aH, '(*%d-%d--%d)', 00H
+	ORG $+2
+$SG71465 DB	0aH, '(#%u[0x%x])', 00H
+	ORG $+3
+$SG71466 DB	0aH, '(#%u[0x%x])', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_buf$ = 12
+_local_buf$ = -8
+_kinp$ = 8
+_readphone PROC NEAR
+
+; 884  : {
+
+  00b60	83 ec 0c	 sub	 esp, 12			; 0000000cH
+  00b63	53		 push	 ebx
+  00b64	55		 push	 ebp
+
+; 885  : 	int nextra;
+; 886  : 	int i;
+; 887  : 	unsigned short local_buf[4];
+; 888  : 	
+; 889  : 	/* MVP MI declare kinp local variable and initialize */
+; 890  : 	P_PIPE                  kinp;
+; 891  : 	
+; 892  : #ifdef ENGLISH_US
+; 893  : 	kinp = pKsd_t->lang_ph[LANG_english];
+
+  00b65	8b 6c 24 18	 mov	 ebp, DWORD PTR _pKsd_t$[esp+16]
+  00b69	56		 push	 esi
+  00b6a	57		 push	 edi
+  00b6b	8b 85 f4 02 00
+	00		 mov	 eax, DWORD PTR [ebp+756]
+  00b71	89 44 24 20	 mov	 DWORD PTR _kinp$[esp+24], eax
+$L71447:
+
+; 912  : 	{
+; 913  : 		// read the entire packet out of the pipe 
+; 914  : 		read_pipe (kinp, &local_buf[0], READ_WORD_PIPE_PACKET);
+
+  00b75	8b 54 24 20	 mov	 edx, DWORD PTR _kinp$[esp+24]
+  00b79	8d 4c 24 14	 lea	 ecx, DWORD PTR _local_buf$[esp+28]
+  00b7d	68 de c0 ed fe	 push	 -17973026		; feedc0deH
+  00b82	51		 push	 ecx
+  00b83	52		 push	 edx
+  00b84	e8 00 00 00 00	 call	 _read_pipe
+
+; 915  : 		//read_pipe (kinp, &buf[0], 1);
+; 916  : 		// fake the read...
+; 917  : 		buf[0]=local_buf[0];
+
+  00b89	8b 4c 24 30	 mov	 ecx, DWORD PTR _buf$[esp+36]
+  00b8d	8b 44 24 20	 mov	 eax, DWORD PTR _local_buf$[esp+40]
+  00b91	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00b94	66 89 01	 mov	 WORD PTR [ecx], ax
+
+; 918  : 
+; 919  : //		if (((buf[0] & 0xff)>=121)  && ((buf[0] & 0xff) <=129))
+; 920  : 		/* GL 11/22/1997 support LINKRWORD(121) */
+; 921  : 		if (((buf[0] & 0xff)>=PHO_SYM_TOT)  && ((buf[0] & 0xff) <=129))
+
+  00b97	8b c8		 mov	 ecx, eax
+  00b99	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00b9f	66 83 f9 7b	 cmp	 cx, 123			; 0000007bH
+  00ba3	72 07		 jb	 SHORT $L71449
+  00ba5	66 81 f9 81 00	 cmp	 cx, 129			; 00000081H
+  00baa	76 c9		 jbe	 SHORT $L71447
+$L71449:
+
+; 922  : 			continue;
+; 923  : 
+; 924  : 		/* debug switch */
+; 925  : 		/* GL 09/01/1998 BATS#755  fix the PH pipe data display format to show the control section */
+; 926  : 		if (DT_DBG(PH_DBG,0x001))
+
+  00bac	66 8b 8d 40 06
+	00 00		 mov	 cx, WORD PTR [ebp+1600]
+  00bb3	f6 c5 20	 test	 ch, 32			; 00000020H
+  00bb6	0f 84 0c 01 00
+	00		 je	 $L71458
+  00bbc	f6 c1 01	 test	 cl, 1
+  00bbf	0f 84 03 01 00
+	00		 je	 $L71458
+
+; 927  : 		{
+; 928  : #ifndef MSDOS
+; 929  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  00bc5	8b bd 44 06 00
+	00		 mov	 edi, DWORD PTR [ebp+1604]
+  00bcb	85 ff		 test	 edi, edi
+  00bcd	74 7a		 je	 SHORT $L71454
+
+; 930  : 			{
+; 931  : 				if ((buf[0] & 0x1f00) != PFCONTROL << PSFONT)
+
+  00bcf	8b d0		 mov	 edx, eax
+  00bd1	81 e2 00 1f 00
+	00		 and	 edx, 7936		; 00001f00H
+  00bd7	81 fa 00 1f 00
+	00		 cmp	 edx, 7936		; 00001f00H
+  00bdd	74 40		 je	 SHORT $L71452
+
+; 932  : 					fprintf (pKsd_t->dbglog,"\n(%d-%d--%d-%c%c)",(buf[0] & 0xe000) >> PSNEXTRA,(buf[0] & 0x1f00) >> PSFONT,buf[0] & 0xff,
+; 933  : 											   pKsd_t->arpabet[(buf[0] & 0xff) * 2],pKsd_t->arpabet[(buf[0] & 0xff) * 2 + 1]);
+
+  00bdf	8b 95 2c 06 00
+	00		 mov	 edx, DWORD PTR [ebp+1580]
+  00be5	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00bea	8b c8		 mov	 ecx, eax
+  00bec	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00bf2	8d 34 4a	 lea	 esi, DWORD PTR [edx+ecx*2]
+  00bf5	33 d2		 xor	 edx, edx
+  00bf7	8a 56 01	 mov	 dl, BYTE PTR [esi+1]
+  00bfa	52		 push	 edx
+  00bfb	33 d2		 xor	 edx, edx
+  00bfd	8a 16		 mov	 dl, BYTE PTR [esi]
+  00bff	52		 push	 edx
+  00c00	51		 push	 ecx
+  00c01	8b c8		 mov	 ecx, eax
+  00c03	c1 e9 08	 shr	 ecx, 8
+  00c06	83 e1 1f	 and	 ecx, 31			; 0000001fH
+  00c09	c1 e8 0d	 shr	 eax, 13			; 0000000dH
+  00c0c	51		 push	 ecx
+  00c0d	50		 push	 eax
+  00c0e	68 00 00 00 00	 push	 OFFSET FLAT:$SG71453
+  00c13	57		 push	 edi
+  00c14	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00c1a	83 c4 1c	 add	 esp, 28			; 0000001cH
+
+; 934  : 				else
+
+  00c1d	eb 2a		 jmp	 SHORT $L71454
+$L71452:
+
+; 935  : 				{
+; 936  : 					fprintf (pKsd_t->dbglog,"\n(*%d-%d--%d)",(buf[0] & 0xe000) >> PSNEXTRA,(buf[0] & 0x1f00) >> PSFONT,buf[0] & 0xff);
+
+  00c1f	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00c24	8b c8		 mov	 ecx, eax
+  00c26	8b d0		 mov	 edx, eax
+  00c28	c1 e9 08	 shr	 ecx, 8
+  00c2b	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  00c31	83 e1 1f	 and	 ecx, 31			; 0000001fH
+  00c34	52		 push	 edx
+  00c35	51		 push	 ecx
+  00c36	c1 e8 0d	 shr	 eax, 13			; 0000000dH
+  00c39	50		 push	 eax
+  00c3a	68 00 00 00 00	 push	 OFFSET FLAT:$SG71455
+  00c3f	57		 push	 edi
+  00c40	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00c46	83 c4 14	 add	 esp, 20			; 00000014H
+$L71454:
+
+; 937  : 				}
+; 938  : 			}
+; 939  : #endif
+; 940  : 			if ((buf[0] & 0x1f00) != PFCONTROL << PSFONT)
+
+  00c49	8b 54 24 24	 mov	 edx, DWORD PTR _buf$[esp+24]
+  00c4d	66 8b 02	 mov	 ax, WORD PTR [edx]
+  00c50	8b c8		 mov	 ecx, eax
+  00c52	81 e1 00 1f 00
+	00		 and	 ecx, 7936		; 00001f00H
+  00c58	81 f9 00 1f 00
+	00		 cmp	 ecx, 7936		; 00001f00H
+  00c5e	74 3f		 je	 SHORT $L71456
+
+; 941  : 				printf ("\n(%d-%d--%d-%c%c)",(buf[0] & 0xe000) >> PSNEXTRA,(buf[0] & 0x1f00) >> PSFONT,buf[0] & 0xff,
+; 942  : 											   pKsd_t->arpabet[(buf[0] & 0xff) * 2],pKsd_t->arpabet[(buf[0] & 0xff) * 2 + 1]);
+
+  00c60	8b 95 2c 06 00
+	00		 mov	 edx, DWORD PTR [ebp+1580]
+  00c66	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00c6b	8b c8		 mov	 ecx, eax
+  00c6d	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00c73	8d 34 4a	 lea	 esi, DWORD PTR [edx+ecx*2]
+  00c76	33 d2		 xor	 edx, edx
+  00c78	8a 56 01	 mov	 dl, BYTE PTR [esi+1]
+  00c7b	52		 push	 edx
+  00c7c	33 d2		 xor	 edx, edx
+  00c7e	8a 16		 mov	 dl, BYTE PTR [esi]
+  00c80	52		 push	 edx
+  00c81	51		 push	 ecx
+  00c82	8b c8		 mov	 ecx, eax
+  00c84	c1 e9 08	 shr	 ecx, 8
+  00c87	83 e1 1f	 and	 ecx, 31			; 0000001fH
+  00c8a	c1 e8 0d	 shr	 eax, 13			; 0000000dH
+  00c8d	51		 push	 ecx
+  00c8e	50		 push	 eax
+  00c8f	68 00 00 00 00	 push	 OFFSET FLAT:$SG71457
+  00c94	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00c9a	83 c4 18	 add	 esp, 24			; 00000018H
+
+; 943  : 			else
+
+  00c9d	eb 29		 jmp	 SHORT $L71458
+$L71456:
+
+; 944  : 			{
+; 945  : 				printf ("\n(*%d-%d--%d)",(buf[0] & 0xe000) >> PSNEXTRA,(buf[0] & 0x1f00) >> PSFONT,buf[0] & 0xff);
+
+  00c9f	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00ca4	8b c8		 mov	 ecx, eax
+  00ca6	8b d0		 mov	 edx, eax
+  00ca8	c1 e9 08	 shr	 ecx, 8
+  00cab	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  00cb1	83 e1 1f	 and	 ecx, 31			; 0000001fH
+  00cb4	52		 push	 edx
+  00cb5	51		 push	 ecx
+  00cb6	c1 e8 0d	 shr	 eax, 13			; 0000000dH
+  00cb9	50		 push	 eax
+  00cba	68 00 00 00 00	 push	 OFFSET FLAT:$SG71459
+  00cbf	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00cc5	83 c4 10	 add	 esp, 16			; 00000010H
+$L71458:
+
+; 946  : 			}
+; 947  : 		}
+; 948  : 
+; 949  : 		nextra = (buf[0] & PNEXTRA) >> PSNEXTRA;
+
+  00cc8	8b 74 24 24	 mov	 esi, DWORD PTR _buf$[esp+24]
+
+; 950  : 		buf[0] &= ~PNEXTRA;
+; 951  : 		for (i = 1; i <= nextra; i++)
+
+  00ccc	bb 01 00 00 00	 mov	 ebx, 1
+  00cd1	66 8b 06	 mov	 ax, WORD PTR [esi]
+  00cd4	8b f8		 mov	 edi, eax
+  00cd6	25 ff 9f 00 00	 and	 eax, 40959		; 00009fffH
+  00cdb	c1 ef 0d	 shr	 edi, 13			; 0000000dH
+  00cde	83 e7 03	 and	 edi, 3
+  00ce1	66 89 06	 mov	 WORD PTR [esi], ax
+  00ce4	3b fb		 cmp	 edi, ebx
+  00ce6	7c 7b		 jl	 SHORT $L71462
+  00ce8	8b 44 24 24	 mov	 eax, DWORD PTR _buf$[esp+24]
+  00cec	8d 54 24 14	 lea	 edx, DWORD PTR _local_buf$[esp+28]
+  00cf0	83 c6 02	 add	 esi, 2
+  00cf3	2b d0		 sub	 edx, eax
+  00cf5	89 54 24 10	 mov	 DWORD PTR -12+[esp+28], edx
+$L71460:
+
+; 952  : 		{
+; 953  : 			//read_pipe (kinp, &buf[i], 1);
+; 954  : 			// fake the read again..
+; 955  : 			buf[i]=local_buf[i];
+
+  00cf9	66 8b 04 32	 mov	 ax, WORD PTR [edx+esi]
+  00cfd	66 89 06	 mov	 WORD PTR [esi], ax
+
+; 956  : 
+; 957  : 		/* debug switch */
+; 958  : 		if (DT_DBG(PH_DBG,0x001))
+
+  00d00	66 8b 8d 40 06
+	00 00		 mov	 cx, WORD PTR [ebp+1600]
+  00d07	f6 c5 20	 test	 ch, 32			; 00000020H
+  00d0a	74 3e		 je	 SHORT $L71463
+  00d0c	f6 c1 01	 test	 cl, 1
+  00d0f	74 39		 je	 SHORT $L71463
+
+; 959  : 		{
+; 960  : #ifndef MSDOS
+; 961  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  00d11	8b 8d 44 06 00
+	00		 mov	 ecx, DWORD PTR [ebp+1604]
+  00d17	85 c9		 test	 ecx, ecx
+  00d19	74 16		 je	 SHORT $L71464
+
+; 962  : 				fprintf (pKsd_t->dbglog,"\n(#%u[0x%x])",buf[i],buf[i]);
+
+  00d1b	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00d20	50		 push	 eax
+  00d21	50		 push	 eax
+  00d22	68 00 00 00 00	 push	 OFFSET FLAT:$SG71465
+  00d27	51		 push	 ecx
+  00d28	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00d2e	83 c4 10	 add	 esp, 16			; 00000010H
+$L71464:
+
+; 963  : #endif
+; 964  : 			printf ("\n(#%u[0x%x])",buf[i],buf[i]);
+
+  00d31	33 c0		 xor	 eax, eax
+  00d33	66 8b 06	 mov	 ax, WORD PTR [esi]
+  00d36	50		 push	 eax
+  00d37	50		 push	 eax
+  00d38	68 00 00 00 00	 push	 OFFSET FLAT:$SG71466
+  00d3d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00d43	8b 54 24 1c	 mov	 edx, DWORD PTR -12+[esp+40]
+  00d47	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71463:
+
+; 965  : 		}
+; 966  : 			if (pKsd_t->halting)
+
+  00d4a	8b 85 34 03 00
+	00		 mov	 eax, DWORD PTR [ebp+820]
+  00d50	85 c0		 test	 eax, eax
+  00d52	74 07		 je	 SHORT $L71461
+
+; 967  : 			{
+; 968  : 				if (buf[i] == SYNC)
+
+  00d54	66 81 3e 0a 1f	 cmp	 WORD PTR [esi], 7946	; 00001f0aH
+  00d59	74 22		 je	 SHORT $L71641
+$L71461:
+
+; 950  : 		buf[0] &= ~PNEXTRA;
+; 951  : 		for (i = 1; i <= nextra; i++)
+
+  00d5b	43		 inc	 ebx
+  00d5c	83 c6 02	 add	 esi, 2
+  00d5f	3b df		 cmp	 ebx, edi
+  00d61	7e 96		 jle	 SHORT $L71460
+$L71462:
+
+; 972  : 				}
+; 973  : 			}
+; 974  : 		}
+; 975  : 		if (pKsd_t->halting == FALSE || buf[0] == SYNC)
+
+  00d63	8b 85 34 03 00
+	00		 mov	 eax, DWORD PTR [ebp+820]
+  00d69	85 c0		 test	 eax, eax
+  00d6b	74 23		 je	 SHORT $L71642
+  00d6d	8b 54 24 24	 mov	 edx, DWORD PTR _buf$[esp+24]
+  00d71	66 81 3a 0a 1f	 cmp	 WORD PTR [edx], 7946	; 00001f0aH
+  00d76	74 18		 je	 SHORT $L71642
+
+; 894  : #endif
+; 895  : #ifdef ENGLISH_UK
+; 896  : 	kinp = pKsd_t->lang_ph[LANG_british];
+; 897  : #endif
+; 898  : #ifdef SPANISH_SP
+; 899  : 	kinp = pKsd_t->lang_ph[LANG_spanish];
+; 900  : #endif
+; 901  : #ifdef SPANISH_LA
+; 902  : 	kinp = pKsd_t->lang_ph[LANG_latin_american];
+; 903  : #endif
+; 904  : #ifdef GERMAN
+; 905  : 	kinp = pKsd_t->lang_ph[LANG_german];
+; 906  : #endif
+; 907  : #ifdef FRENCH
+; 908  : 	kinp = pKsd_t->lang_ph[LANG_french];
+; 909  : #endif
+; 910  : 	
+; 911  : 	while (TRUE)
+
+  00d78	e9 f8 fd ff ff	 jmp	 $L71447
+$L71641:
+
+; 969  : 				{
+; 970  : 					buf[0] = SYNC;
+
+  00d7d	8b 44 24 24	 mov	 eax, DWORD PTR _buf$[esp+24]
+  00d81	5f		 pop	 edi
+  00d82	5e		 pop	 esi
+  00d83	5d		 pop	 ebp
+  00d84	66 c7 00 0a 1f	 mov	 WORD PTR [eax], 7946	; 00001f0aH
+
+; 971  : 					return (0);
+
+  00d89	33 c0		 xor	 eax, eax
+  00d8b	5b		 pop	 ebx
+
+; 977  : 	}
+; 978  : }
+
+  00d8c	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00d8f	c3		 ret	 0
+$L71642:
+
+; 976  : 			return (nextra);
+
+  00d90	8b c7		 mov	 eax, edi
+  00d92	5f		 pop	 edi
+  00d93	5e		 pop	 esi
+  00d94	5d		 pop	 ebp
+  00d95	5b		 pop	 ebx
+
+; 977  : 	}
+; 978  : }
+
+  00d96	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00d99	c3		 ret	 0
+_readphone ENDP
+_nms$ = 8
+_mstofr	PROC NEAR
+
+; 1002 :         S32                     temp;
+; 1003 : 
+; 1004 :         temp = (S32) nms;
+; 1005 :         temp *= 10;
+
+  00da0	8b 44 24 04	 mov	 eax, DWORD PTR _nms$[esp-4]
+  00da4	8d 04 80	 lea	 eax, DWORD PTR [eax+eax*4]
+  00da7	d1 e0		 shl	 eax, 1
+
+; 1006 :         return ((int) (temp >> 6));
+
+  00da9	c1 f8 06	 sar	 eax, 6
+
+; 1007 : }
+
+  00dac	c3		 ret	 0
+_mstofr	ENDP
+_TEXT	ENDS
+PUBLIC	_GetCurrentPitch
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pitch$ = 12
+_GetCurrentPitch PROC NEAR
+
+; 1013 : 	PDPH_T pDph_t;
+; 1014 : 	if (phTTS==NULL)
+
+  00db0	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00db4	85 c0		 test	 eax, eax
+  00db6	75 06		 jne	 SHORT $L71485
+
+; 1015 : 		return(MMSYSERR_INVALPARAM);
+
+  00db8	b8 0b 00 00 00	 mov	 eax, 11			; 0000000bH
+
+; 1019 : }
+
+  00dbd	c3		 ret	 0
+$L71485:
+
+; 1016 : 	pDph_t = phTTS->pPHThreadData;
+; 1017 : 	*pitch=pDph_t->curspdef[SPD_AP];
+
+  00dbe	8b 40 18	 mov	 eax, DWORD PTR [eax+24]
+  00dc1	8b 54 24 08	 mov	 edx, DWORD PTR _pitch$[esp-4]
+  00dc5	0f bf 88 a8 17
+	00 00		 movsx	 ecx, WORD PTR [eax+6056]
+  00dcc	89 0a		 mov	 DWORD PTR [edx], ecx
+
+; 1018 : 	return(MMSYSERR_NOERROR);
+
+  00dce	33 c0		 xor	 eax, eax
+
+; 1019 : }
+
+  00dd0	c3		 ret	 0
+_GetCurrentPitch ENDP
+_TEXT	ENDS
+PUBLIC	_GetPhVdefParams
+EXTRN	_paul_8:BYTE
+EXTRN	_betty_8:BYTE
+EXTRN	_harry_8:BYTE
+EXTRN	_frank_8:BYTE
+EXTRN	_kit_8:BYTE
+EXTRN	_ursula_8:BYTE
+EXTRN	_rita_8:BYTE
+EXTRN	_wendy_8:BYTE
+EXTRN	_dennis_8:BYTE
+EXTRN	_paul:BYTE
+EXTRN	_betty:BYTE
+EXTRN	_harry:BYTE
+EXTRN	_frank:BYTE
+EXTRN	_kit:BYTE
+EXTRN	_ursula:BYTE
+EXTRN	_rita:BYTE
+EXTRN	_wendy:BYTE
+EXTRN	_dennis:BYTE
+EXTRN	__imp__CoTaskMemAlloc@4:NEAR
+EXTRN	__imp__CoTaskMemFree@4:NEAR
+_TEXT	SEGMENT
+_index$ = 12
+_GetPhVdefParams PROC NEAR
+
+; 1101 : 
+; 1102 : 	short *params=NULL;
+; 1103 : 
+; 1104 : 	
+; 1105 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1106 : 	params = (short *) CoTaskMemAlloc(sizeof(SPDEFS));
+
+  00de0	6a 42		 push	 66			; 00000042H
+  00de2	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CoTaskMemAlloc@4
+
+; 1107 : #else
+; 1108 : 	params = (short *) malloc(sizeof(SPDEFS));
+; 1109 : #endif
+; 1110 : 
+; 1111 : 	if (params == NULL)
+
+  00de8	85 c0		 test	 eax, eax
+  00dea	75 0a		 jne	 SHORT $L71497
+
+; 1112 : 	{
+; 1113 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1114 : 		CoTaskMemFree(params);
+
+  00dec	50		 push	 eax
+  00ded	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CoTaskMemFree@4
+
+; 1115 : #else
+; 1116 : 		free(params);
+; 1117 : #endif
+; 1118 : 		return NULL;
+
+  00df3	33 c0		 xor	 eax, eax
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00df5	c3		 ret	 0
+$L71497:
+
+; 1119 : 	}
+; 1120 : 	
+; 1121 : 
+; 1122 : 	switch (index) {
+
+  00df6	8b 4c 24 08	 mov	 ecx, DWORD PTR _index$[esp-4]
+  00dfa	83 f9 11	 cmp	 ecx, 17			; 00000011H
+  00dfd	77 72		 ja	 SHORT $L71491
+  00dff	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L71648[ecx*4]
+$L71503:
+
+; 1123 : 	case 0:	 params = paul_8;     break;
+
+  00e06	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_paul_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e0b	c3		 ret	 0
+$L71504:
+
+; 1124 : 	case 1:	 params = betty_8;    break;
+
+  00e0c	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_betty_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e11	c3		 ret	 0
+$L71505:
+
+; 1125 : 	case 2:	 params = harry_8;    break;
+
+  00e12	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_harry_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e17	c3		 ret	 0
+$L71506:
+
+; 1126 : 	case 3:	 params = frank_8;    break;
+
+  00e18	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_frank_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e1d	c3		 ret	 0
+$L71507:
+
+; 1127 : 	case 4:	 params = kit_8;      break;
+
+  00e1e	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_kit_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e23	c3		 ret	 0
+$L71508:
+
+; 1128 : 	case 5:	 params = ursula_8;   break;
+
+  00e24	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_ursula_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e29	c3		 ret	 0
+$L71509:
+
+; 1129 : 	case 6:	 params = rita_8;     break;
+
+  00e2a	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_rita_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e2f	c3		 ret	 0
+$L71510:
+
+; 1130 : 	case 7:	 params = wendy_8;    break;
+
+  00e30	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_wendy_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e35	c3		 ret	 0
+$L71511:
+
+; 1131 : 	case 8:	 params = dennis_8;   break;
+
+  00e36	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_dennis_8
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e3b	c3		 ret	 0
+$L71512:
+
+; 1132 : 	case 9:	 params = paul;   break;
+
+  00e3c	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_paul
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e41	c3		 ret	 0
+$L71513:
+
+; 1133 : 	case 10: params = betty;  break;
+
+  00e42	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_betty
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e47	c3		 ret	 0
+$L71514:
+
+; 1134 : 	case 11: params = harry;  break;
+
+  00e48	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_harry
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e4d	c3		 ret	 0
+$L71515:
+
+; 1135 : 	case 12: params = frank;  break;
+
+  00e4e	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_frank
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e53	c3		 ret	 0
+$L71516:
+
+; 1136 : 	case 13: params = kit;    break;
+
+  00e54	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_kit
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e59	c3		 ret	 0
+$L71517:
+
+; 1137 : 	case 14: params = ursula; break;
+
+  00e5a	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_ursula
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e5f	c3		 ret	 0
+$L71518:
+
+; 1138 : 	case 15: params = rita;   break;
+
+  00e60	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_rita
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e65	c3		 ret	 0
+$L71519:
+
+; 1139 : 	case 16: params = wendy;  break;
+
+  00e66	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_wendy
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e6b	c3		 ret	 0
+$L71520:
+
+; 1140 : 	case 17: params = dennis; break;
+
+  00e6c	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_dennis
+$L71491:
+
+; 1141 : 	}
+; 1142 : 	
+; 1143 : 	return params;
+; 1144 : }
+
+  00e71	c3		 ret	 0
+  00e72	8b ff		 npad	 2
+$L71648:
+  00e74	00 00 00 00	 DD	 $L71503
+  00e78	00 00 00 00	 DD	 $L71504
+  00e7c	00 00 00 00	 DD	 $L71505
+  00e80	00 00 00 00	 DD	 $L71506
+  00e84	00 00 00 00	 DD	 $L71507
+  00e88	00 00 00 00	 DD	 $L71508
+  00e8c	00 00 00 00	 DD	 $L71509
+  00e90	00 00 00 00	 DD	 $L71510
+  00e94	00 00 00 00	 DD	 $L71511
+  00e98	00 00 00 00	 DD	 $L71512
+  00e9c	00 00 00 00	 DD	 $L71513
+  00ea0	00 00 00 00	 DD	 $L71514
+  00ea4	00 00 00 00	 DD	 $L71515
+  00ea8	00 00 00 00	 DD	 $L71516
+  00eac	00 00 00 00	 DD	 $L71517
+  00eb0	00 00 00 00	 DD	 $L71518
+  00eb4	00 00 00 00	 DD	 $L71519
+  00eb8	00 00 00 00	 DD	 $L71520
+_GetPhVdefParams ENDP
+_TEXT	ENDS
+PUBLIC	_GetSpeakerParams
+EXTRN	_limit:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_ppspCur$ = 16
+_ppspLoLimit$ = 20
+_ppspHiLimit$ = 24
+_ppspDefault$ = 28
+_pKsd_t$ = -4
+_cur_speaker$ = -8
+_voice$ = 8
+_GetSpeakerParams PROC NEAR
+
+; 1158 : {
+
+  00ec0	83 ec 08	 sub	 esp, 8
+
+; 1159 : 	PDPH_T pDph_t;
+; 1160 : 	PKSD_T pKsd_t;
+; 1161 : 
+; 1162 : 	extern LIMIT limit[];
+; 1163 : 	short speaker_num;
+; 1164 : 	short *cur_speaker=NULL;
+; 1165 : 	int voice;
+; 1166 : 
+; 1167 : 	if (phTTS == NULL)
+
+  00ec3	8b 44 24 0c	 mov	 eax, DWORD PTR _phTTS$[esp+4]
+  00ec7	53		 push	 ebx
+  00ec8	55		 push	 ebp
+  00ec9	56		 push	 esi
+  00eca	85 c0		 test	 eax, eax
+  00ecc	57		 push	 edi
+  00ecd	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], 0
+  00ed5	75 0d		 jne	 SHORT $L71543
+  00ed7	5f		 pop	 edi
+  00ed8	5e		 pop	 esi
+  00ed9	5d		 pop	 ebp
+
+; 1168 : 		return MMSYSERR_INVALPARAM;
+
+  00eda	b8 0b 00 00 00	 mov	 eax, 11			; 0000000bH
+  00edf	5b		 pop	 ebx
+
+; 1415 : }
+
+  00ee0	83 c4 08	 add	 esp, 8
+  00ee3	c3		 ret	 0
+$L71543:
+
+; 1169 : 
+; 1170 : 	pDph_t = phTTS->pPHThreadData;
+
+  00ee4	8b 70 18	 mov	 esi, DWORD PTR [eax+24]
+
+; 1171 : 	pKsd_t = phTTS->pKernelShareData;
+
+  00ee7	8b 40 08	 mov	 eax, DWORD PTR [eax+8]
+
+; 1172 : 	voice = pKsd_t->last_voice;
+; 1173 : 
+; 1174 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1175 : 	*ppspCur     = (SPDEFS *) CoTaskMemAlloc(sizeof(SPDEFS));
+
+  00eea	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__CoTaskMemAlloc@4
+  00ef0	89 44 24 14	 mov	 DWORD PTR _pKsd_t$[esp+24], eax
+  00ef4	0f bf 80 e4 03
+	00 00		 movsx	 eax, WORD PTR [eax+996]
+  00efb	6a 42		 push	 66			; 00000042H
+  00efd	89 44 24 20	 mov	 DWORD PTR _voice$[esp+24], eax
+  00f01	ff d3		 call	 ebx
+  00f03	8b 6c 24 24	 mov	 ebp, DWORD PTR _ppspCur$[esp+20]
+
+; 1176 : #else
+; 1177 : 	*ppspCur     = (SPDEFS *) malloc(sizeof(SPDEFS));
+; 1178 : #endif
+; 1179 : 
+; 1180 : 	if (*ppspCur == NULL)
+
+  00f07	85 c0		 test	 eax, eax
+  00f09	89 45 00	 mov	 DWORD PTR [ebp], eax
+  00f0c	75 0d		 jne	 SHORT $L71547
+  00f0e	5f		 pop	 edi
+  00f0f	5e		 pop	 esi
+  00f10	5d		 pop	 ebp
+
+; 1181 : 		return MMSYSERR_NOMEM;
+
+  00f11	b8 07 00 00 00	 mov	 eax, 7
+  00f16	5b		 pop	 ebx
+
+; 1415 : }
+
+  00f17	83 c4 08	 add	 esp, 8
+  00f1a	c3		 ret	 0
+$L71547:
+
+; 1182 : 
+; 1183 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1184 : 	*ppspLoLimit = (SPDEFS *) CoTaskMemAlloc(sizeof(SPDEFS));
+
+  00f1b	6a 42		 push	 66			; 00000042H
+  00f1d	ff d3		 call	 ebx
+  00f1f	8b 7c 24 28	 mov	 edi, DWORD PTR _ppspLoLimit$[esp+20]
+
+; 1185 : #else
+; 1186 : 	*ppspLoLimit = (SPDEFS *) malloc(sizeof(SPDEFS));
+; 1187 : #endif
+; 1188 : 
+; 1189 : 	if (*ppspLoLimit == NULL)
+
+  00f23	85 c0		 test	 eax, eax
+  00f25	89 07		 mov	 DWORD PTR [edi], eax
+  00f27	75 17		 jne	 SHORT $L71551
+
+; 1190 : 	{
+; 1191 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1192 : 		CoTaskMemFree(*ppspCur);
+
+  00f29	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  00f2c	51		 push	 ecx
+  00f2d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CoTaskMemFree@4
+  00f33	5f		 pop	 edi
+  00f34	5e		 pop	 esi
+  00f35	5d		 pop	 ebp
+
+; 1193 : #else
+; 1194 : 		free(*ppspCur);
+; 1195 : #endif
+; 1196 : 		return MMSYSERR_NOMEM;
+
+  00f36	b8 07 00 00 00	 mov	 eax, 7
+  00f3b	5b		 pop	 ebx
+
+; 1415 : }
+
+  00f3c	83 c4 08	 add	 esp, 8
+  00f3f	c3		 ret	 0
+$L71551:
+
+; 1197 : 	}
+; 1198 : 
+; 1199 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1200 : 	*ppspHiLimit = (SPDEFS *) CoTaskMemAlloc(sizeof(SPDEFS));
+
+  00f40	6a 42		 push	 66			; 00000042H
+  00f42	ff d3		 call	 ebx
+  00f44	8b 5c 24 2c	 mov	 ebx, DWORD PTR _ppspHiLimit$[esp+20]
+
+; 1201 : #else
+; 1202 : 	*ppspHiLimit = (SPDEFS *) malloc(sizeof(SPDEFS));
+; 1203 : #endif
+; 1204 : 	if (*ppspHiLimit == NULL)
+
+  00f48	85 c0		 test	 eax, eax
+  00f4a	89 03		 mov	 DWORD PTR [ebx], eax
+  00f4c	75 1e		 jne	 SHORT $L71555
+
+; 1205 : 	{
+; 1206 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1207 : 		CoTaskMemFree(*ppspCur);
+
+  00f4e	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  00f51	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__CoTaskMemFree@4
+  00f57	52		 push	 edx
+  00f58	ff d6		 call	 esi
+
+; 1208 : 		CoTaskMemFree(*ppspLoLimit);
+
+  00f5a	8b 07		 mov	 eax, DWORD PTR [edi]
+  00f5c	50		 push	 eax
+  00f5d	ff d6		 call	 esi
+  00f5f	5f		 pop	 edi
+  00f60	5e		 pop	 esi
+  00f61	5d		 pop	 ebp
+
+; 1209 : #else
+; 1210 : 		free(*ppspCur);
+; 1211 : 		free(*ppspLoLimit);
+; 1212 : #endif
+; 1213 : 		return MMSYSERR_NOMEM;
+
+  00f62	b8 07 00 00 00	 mov	 eax, 7
+  00f67	5b		 pop	 ebx
+
+; 1415 : }
+
+  00f68	83 c4 08	 add	 esp, 8
+  00f6b	c3		 ret	 0
+$L71555:
+
+; 1214 : 	}
+; 1215 : 
+; 1216 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1217 : 	*ppspDefault = (SPDEFS *) CoTaskMemAlloc(sizeof(SPDEFS));
+
+  00f6c	6a 42		 push	 66			; 00000042H
+  00f6e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CoTaskMemAlloc@4
+  00f74	8b 4c 24 30	 mov	 ecx, DWORD PTR _ppspDefault$[esp+20]
+
+; 1218 : #else
+; 1219 : 	*ppspDefault = (SPDEFS *) malloc(sizeof(SPDEFS));
+; 1220 : #endif
+; 1221 : 	if (*ppspDefault == NULL)
+
+  00f78	85 c0		 test	 eax, eax
+  00f7a	89 01		 mov	 DWORD PTR [ecx], eax
+  00f7c	75 23		 jne	 SHORT $L71559
+
+; 1222 : 	{
+; 1223 : #if defined(WIN32) && !defined(UNDER_CE)
+; 1224 : 		CoTaskMemFree(*ppspCur);
+
+  00f7e	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  00f81	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__CoTaskMemFree@4
+  00f87	52		 push	 edx
+  00f88	ff d6		 call	 esi
+
+; 1225 : 		CoTaskMemFree(*ppspLoLimit);
+
+  00f8a	8b 07		 mov	 eax, DWORD PTR [edi]
+  00f8c	50		 push	 eax
+  00f8d	ff d6		 call	 esi
+
+; 1226 : 		CoTaskMemFree(*ppspHiLimit);
+
+  00f8f	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  00f91	51		 push	 ecx
+  00f92	ff d6		 call	 esi
+  00f94	5f		 pop	 edi
+  00f95	5e		 pop	 esi
+  00f96	5d		 pop	 ebp
+
+; 1227 : #else
+; 1228 : 		free(*ppspCur);
+; 1229 : 		free(*ppspLoLimit);
+; 1230 : 		free(*ppspHiLimit);
+; 1231 : #endif
+; 1232 : 		return MMSYSERR_NOMEM;
+
+  00f97	b8 07 00 00 00	 mov	 eax, 7
+  00f9c	5b		 pop	 ebx
+
+; 1415 : }
+
+  00f9d	83 c4 08	 add	 esp, 8
+  00fa0	c3		 ret	 0
+$L71559:
+
+; 1233 : 	}
+; 1234 : 
+; 1235 : 	/* Fill current speaker parameters */
+; 1236 : 	(*ppspCur)->sex                = pDph_t->curspdef[SPD_SEX] -(pDph_t->tunedef[voice][SPD_SEX]);
+
+  00fa1	8b 44 24 1c	 mov	 eax, DWORD PTR _voice$[esp+20]
+  00fa5	66 8b 8e a2 17
+	00 00		 mov	 cx, WORD PTR [esi+6050]
+  00fac	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  00fb3	66 2b 0a	 sub	 cx, WORD PTR [edx]
+  00fb6	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  00fb9	66 89 0a	 mov	 WORD PTR [edx], cx
+
+; 1237 : 	(*ppspCur)->smoothness         = pDph_t->curspdef[SPD_SM] - (pDph_t->tunedef[voice][SPD_SM]);
+
+  00fbc	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  00fc3	66 8b 96 a4 17
+	00 00		 mov	 dx, WORD PTR [esi+6052]
+  00fca	66 2b 51 02	 sub	 dx, WORD PTR [ecx+2]
+  00fce	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  00fd1	66 89 51 02	 mov	 WORD PTR [ecx+2], dx
+
+; 1238 : 	(*ppspCur)->assertiveness      = pDph_t->curspdef[SPD_AS] - (pDph_t->tunedef[voice][SPD_AS]);
+
+  00fd5	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  00fdc	66 8b 8e a6 17
+	00 00		 mov	 cx, WORD PTR [esi+6054]
+  00fe3	66 2b 4a 04	 sub	 cx, WORD PTR [edx+4]
+  00fe7	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  00fea	66 89 4a 04	 mov	 WORD PTR [edx+4], cx
+
+; 1239 : 	(*ppspCur)->average_pitch      = pDph_t->curspdef[SPD_AP] - (pDph_t->tunedef[voice][SPD_AP]);
+
+  00fee	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  00ff5	66 8b 96 a8 17
+	00 00		 mov	 dx, WORD PTR [esi+6056]
+  00ffc	66 2b 51 06	 sub	 dx, WORD PTR [ecx+6]
+  01000	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  01003	66 89 51 06	 mov	 WORD PTR [ecx+6], dx
+
+; 1240 : 	(*ppspCur)->pitch_range        = pDph_t->curspdef[SPD_PR] - (pDph_t->tunedef[voice][SPD_PR]);
+
+  01007	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  0100e	66 8b 8e aa 17
+	00 00		 mov	 cx, WORD PTR [esi+6058]
+  01015	66 2b 4a 08	 sub	 cx, WORD PTR [edx+8]
+  01019	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  0101c	66 89 4a 08	 mov	 WORD PTR [edx+8], cx
+
+; 1241 : 	(*ppspCur)->breathiness        = pDph_t->curspdef[SPD_BR] - (pDph_t->tunedef[voice][SPD_BR]);
+
+  01020	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  01027	66 8b 96 ac 17
+	00 00		 mov	 dx, WORD PTR [esi+6060]
+  0102e	66 2b 51 0a	 sub	 dx, WORD PTR [ecx+10]
+  01032	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  01035	66 89 51 0a	 mov	 WORD PTR [ecx+10], dx
+
+; 1242 : 	(*ppspCur)->richness           = pDph_t->curspdef[SPD_RI] - (pDph_t->tunedef[voice][SPD_RI]);
+
+  01039	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  01040	66 8b 8e ae 17
+	00 00		 mov	 cx, WORD PTR [esi+6062]
+  01047	66 2b 4a 0c	 sub	 cx, WORD PTR [edx+12]
+  0104b	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  0104e	66 89 4a 0c	 mov	 WORD PTR [edx+12], cx
+
+; 1243 : 	(*ppspCur)->num_fixed_samp_og  = pDph_t->curspdef[SPD_NF] - (pDph_t->tunedef[voice][SPD_NF]);
+
+  01052	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  01059	66 8b 96 b0 17
+	00 00		 mov	 dx, WORD PTR [esi+6064]
+  01060	66 2b 51 0e	 sub	 dx, WORD PTR [ecx+14]
+  01064	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  01067	66 89 51 0e	 mov	 WORD PTR [ecx+14], dx
+
+; 1244 : 	(*ppspCur)->laryngealization   = pDph_t->curspdef[SPD_LA] - (pDph_t->tunedef[voice][SPD_LA]);
+
+  0106b	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  01072	66 8b 8e b2 17
+	00 00		 mov	 cx, WORD PTR [esi+6066]
+  01079	66 2b 4a 10	 sub	 cx, WORD PTR [edx+16]
+  0107d	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  01080	66 89 4a 10	 mov	 WORD PTR [edx+16], cx
+
+; 1245 : 	(*ppspCur)->head_size          = pDph_t->curspdef[SPD_HS] - (pDph_t->tunedef[voice][SPD_HS]);
+
+  01084	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  0108b	66 8b 96 b4 17
+	00 00		 mov	 dx, WORD PTR [esi+6068]
+  01092	66 2b 51 12	 sub	 dx, WORD PTR [ecx+18]
+  01096	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  01099	66 89 51 12	 mov	 WORD PTR [ecx+18], dx
+
+; 1246 : 	(*ppspCur)->formant4_res_freq  = pDph_t->curspdef[SPD_F4] - (pDph_t->tunedef[voice][SPD_F4]);
+
+  0109d	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  010a4	66 8b 8e b6 17
+	00 00		 mov	 cx, WORD PTR [esi+6070]
+  010ab	66 2b 4a 14	 sub	 cx, WORD PTR [edx+20]
+  010af	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  010b2	66 89 4a 14	 mov	 WORD PTR [edx+20], cx
+
+; 1247 : 	(*ppspCur)->formant4_bandwidth = pDph_t->curspdef[SPD_B4] - (pDph_t->tunedef[voice][SPD_B4]);
+
+  010b6	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  010bd	66 8b 96 b8 17
+	00 00		 mov	 dx, WORD PTR [esi+6072]
+  010c4	66 2b 51 16	 sub	 dx, WORD PTR [ecx+22]
+  010c8	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  010cb	66 89 51 16	 mov	 WORD PTR [ecx+22], dx
+
+; 1248 : 	(*ppspCur)->formant5_res_freq  = pDph_t->curspdef[SPD_F5] - (pDph_t->tunedef[voice][SPD_F5]);
+
+  010cf	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  010d6	66 8b 8e ba 17
+	00 00		 mov	 cx, WORD PTR [esi+6074]
+  010dd	66 2b 4a 18	 sub	 cx, WORD PTR [edx+24]
+  010e1	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  010e4	66 89 4a 18	 mov	 WORD PTR [edx+24], cx
+
+; 1249 : 	(*ppspCur)->formant5_bandwidth = pDph_t->curspdef[SPD_B5] - (pDph_t->tunedef[voice][SPD_B5]);
+
+  010e8	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  010ef	66 8b 96 bc 17
+	00 00		 mov	 dx, WORD PTR [esi+6076]
+  010f6	66 2b 51 1a	 sub	 dx, WORD PTR [ecx+26]
+  010fa	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  010fd	66 89 51 1a	 mov	 WORD PTR [ecx+26], dx
+
+; 1250 : 	(*ppspCur)->parallel4_freq     = pDph_t->curspdef[SPD_P4] - (pDph_t->tunedef[voice][SPD_P4]);
+
+  01101	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  01108	66 8b 8e be 17
+	00 00		 mov	 cx, WORD PTR [esi+6078]
+  0110f	66 2b 4a 1c	 sub	 cx, WORD PTR [edx+28]
+  01113	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  01116	66 89 4a 1c	 mov	 WORD PTR [edx+28], cx
+
+; 1251 : 	(*ppspCur)->parallel5_freq     = pDph_t->curspdef[SPD_P5] - (pDph_t->tunedef[voice][SPD_P5]);
+
+  0111a	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  01121	66 8b 96 c0 17
+	00 00		 mov	 dx, WORD PTR [esi+6080]
+  01128	66 2b 51 1e	 sub	 dx, WORD PTR [ecx+30]
+  0112c	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  0112f	66 89 51 1e	 mov	 WORD PTR [ecx+30], dx
+
+; 1252 : 	(*ppspCur)->gain_frication     = pDph_t->curspdef[SPD_GF] - (pDph_t->tunedef[voice][SPD_GF]);
+
+  01133	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  0113a	66 8b 8e c2 17
+	00 00		 mov	 cx, WORD PTR [esi+6082]
+  01141	66 2b 4a 20	 sub	 cx, WORD PTR [edx+32]
+  01145	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  01148	66 89 4a 20	 mov	 WORD PTR [edx+32], cx
+
+; 1253 : 	(*ppspCur)->gain_aspiration    = pDph_t->curspdef[SPD_GH] - (pDph_t->tunedef[voice][SPD_GH]);
+
+  0114c	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  01153	66 8b 96 c4 17
+	00 00		 mov	 dx, WORD PTR [esi+6084]
+  0115a	66 2b 51 22	 sub	 dx, WORD PTR [ecx+34]
+  0115e	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  01161	66 89 51 22	 mov	 WORD PTR [ecx+34], dx
+
+; 1254 : 	(*ppspCur)->gain_voicing       = pDph_t->curspdef[SPD_GV] - (pDph_t->tunedef[voice][SPD_GV]);
+
+  01165	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  0116c	66 8b 8e c6 17
+	00 00		 mov	 cx, WORD PTR [esi+6086]
+  01173	66 2b 4a 24	 sub	 cx, WORD PTR [edx+36]
+  01177	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  0117a	66 89 4a 24	 mov	 WORD PTR [edx+36], cx
+
+; 1255 : 	(*ppspCur)->gain_nasalization  = pDph_t->curspdef[SPD_GN] - (pDph_t->tunedef[voice][SPD_GN]);
+
+  0117e	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  01185	66 8b 96 c8 17
+	00 00		 mov	 dx, WORD PTR [esi+6088]
+  0118c	66 2b 51 26	 sub	 dx, WORD PTR [ecx+38]
+  01190	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  01193	66 89 51 26	 mov	 WORD PTR [ecx+38], dx
+
+; 1256 : 	(*ppspCur)->gain_cfr1          = pDph_t->curspdef[SPD_G1] - (pDph_t->tunedef[voice][SPD_G1]);
+
+  01197	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  0119e	66 8b 8e ca 17
+	00 00		 mov	 cx, WORD PTR [esi+6090]
+  011a5	66 2b 4a 28	 sub	 cx, WORD PTR [edx+40]
+  011a9	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  011ac	66 89 4a 28	 mov	 WORD PTR [edx+40], cx
+
+; 1257 : 	(*ppspCur)->gain_cfr2          = pDph_t->curspdef[SPD_G2] - (pDph_t->tunedef[voice][SPD_G2]);
+
+  011b0	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  011b7	66 8b 96 cc 17
+	00 00		 mov	 dx, WORD PTR [esi+6092]
+  011be	66 2b 51 2a	 sub	 dx, WORD PTR [ecx+42]
+  011c2	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  011c5	66 89 51 2a	 mov	 WORD PTR [ecx+42], dx
+
+; 1258 : 	(*ppspCur)->gain_cfr3          = pDph_t->curspdef[SPD_G3] - (pDph_t->tunedef[voice][SPD_G3]);
+
+  011c9	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  011d0	66 8b 8e ce 17
+	00 00		 mov	 cx, WORD PTR [esi+6094]
+  011d7	66 2b 4a 2c	 sub	 cx, WORD PTR [edx+44]
+  011db	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  011de	66 89 4a 2c	 mov	 WORD PTR [edx+44], cx
+
+; 1259 : 	(*ppspCur)->gain_cfr4          = pDph_t->curspdef[SPD_G4] - (pDph_t->tunedef[voice][SPD_G4]);
+
+  011e2	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  011e9	66 8b 96 d0 17
+	00 00		 mov	 dx, WORD PTR [esi+6096]
+  011f0	66 2b 51 2e	 sub	 dx, WORD PTR [ecx+46]
+  011f4	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  011f7	66 89 51 2e	 mov	 WORD PTR [ecx+46], dx
+
+; 1260 : 	(*ppspCur)->loudness           = pDph_t->curspdef[SPD_LO] - (pDph_t->tunedef[voice][SPD_LO]);
+
+  011fb	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  01202	66 8b 8e d2 17
+	00 00		 mov	 cx, WORD PTR [esi+6098]
+  01209	66 2b 4a 30	 sub	 cx, WORD PTR [edx+48]
+  0120d	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  01210	66 89 4a 30	 mov	 WORD PTR [edx+48], cx
+
+; 1261 : 	(*ppspCur)->spectral_tilt      = pDph_t->curspdef[SPD_FT] - (pDph_t->tunedef[voice][SPD_FT]);
+
+  01214	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  0121b	66 8b 96 d4 17
+	00 00		 mov	 dx, WORD PTR [esi+6100]
+  01222	66 2b 51 32	 sub	 dx, WORD PTR [ecx+50]
+  01226	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  01229	66 89 51 32	 mov	 WORD PTR [ecx+50], dx
+
+; 1262 : 	(*ppspCur)->baseline_fall      = pDph_t->curspdef[SPD_BF] - (pDph_t->tunedef[voice][SPD_BF]);
+
+  0122d	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  01234	66 8b 8e d6 17
+	00 00		 mov	 cx, WORD PTR [esi+6102]
+  0123b	66 2b 4a 34	 sub	 cx, WORD PTR [edx+52]
+  0123f	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  01242	66 89 4a 34	 mov	 WORD PTR [edx+52], cx
+
+; 1263 : 	(*ppspCur)->lax_breathiness    = pDph_t->curspdef[SPD_LX] - (pDph_t->tunedef[voice][SPD_LX]);
+
+  01246	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  0124d	66 8b 96 d8 17
+	00 00		 mov	 dx, WORD PTR [esi+6104]
+  01254	66 2b 51 36	 sub	 dx, WORD PTR [ecx+54]
+  01258	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  0125b	66 89 51 36	 mov	 WORD PTR [ecx+54], dx
+
+; 1264 : 	(*ppspCur)->quickness          = pDph_t->curspdef[SPD_QU] - (pDph_t->tunedef[voice][SPD_QU]);
+
+  0125f	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  01266	66 8b 8e da 17
+	00 00		 mov	 cx, WORD PTR [esi+6106]
+  0126d	66 2b 4a 38	 sub	 cx, WORD PTR [edx+56]
+  01271	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  01274	66 89 4a 38	 mov	 WORD PTR [edx+56], cx
+
+; 1265 : 	(*ppspCur)->hat_rise           = pDph_t->curspdef[SPD_HR] - (pDph_t->tunedef[voice][SPD_HR]);
+
+  01278	8b 8c 86 38 18
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+6200]
+  0127f	66 8b 96 dc 17
+	00 00		 mov	 dx, WORD PTR [esi+6108]
+  01286	66 2b 51 3a	 sub	 dx, WORD PTR [ecx+58]
+  0128a	8b 4d 00	 mov	 ecx, DWORD PTR [ebp]
+  0128d	66 89 51 3a	 mov	 WORD PTR [ecx+58], dx
+
+; 1266 : 	(*ppspCur)->stress_rise        = pDph_t->curspdef[SPD_SR] - (pDph_t->tunedef[voice][SPD_SR]);
+
+  01291	8b 94 86 38 18
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+6200]
+  01298	66 8b 8e de 17
+	00 00		 mov	 cx, WORD PTR [esi+6110]
+  0129f	66 2b 4a 3c	 sub	 cx, WORD PTR [edx+60]
+  012a3	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  012a6	66 89 4a 3c	 mov	 WORD PTR [edx+60], cx
+
+; 1267 : 	(*ppspCur)->glottal_speed      = pDph_t->curspdef[SPD_GS] - (pDph_t->tunedef[voice][SPD_GS]);
+
+  012aa	8b 84 86 38 18
+	00 00		 mov	 eax, DWORD PTR [esi+eax*4+6200]
+  012b1	66 8b 8e e0 17
+	00 00		 mov	 cx, WORD PTR [esi+6112]
+  012b8	8b 55 00	 mov	 edx, DWORD PTR [ebp]
+  012bb	66 2b 48 3e	 sub	 cx, WORD PTR [eax+62]
+  012bf	66 89 4a 3e	 mov	 WORD PTR [edx+62], cx
+
+; 1268 : #if (defined (WIN32) || defined (__osf__) || defined (__linux__)) && !defined (i386)
+; 1269 : 	(*ppspCur)->output_gain_mult   = pDph_t->curspdef[SPD_OS];
+; 1270 : #endif
+; 1271 : 
+; 1272 : 
+; 1273 : 	/* Fill low limits for speaker parameters */
+; 1274 : 	/* The limits are taken from the limit array, which is defined in ph_vdefi.c. */
+; 1275 : 	(*ppspLoLimit)->sex                = limit[SPD_SEX].l_min;
+
+  012c3	8b 07		 mov	 eax, DWORD PTR [edi]
+  012c5	66 8b 0d 00 00
+	00 00		 mov	 cx, WORD PTR _limit
+  012cc	66 89 08	 mov	 WORD PTR [eax], cx
+
+; 1276 : 	(*ppspLoLimit)->smoothness         = limit[SPD_SM].l_min;
+
+  012cf	8b 17		 mov	 edx, DWORD PTR [edi]
+  012d1	66 a1 04 00 00
+	00		 mov	 ax, WORD PTR _limit+4
+  012d7	66 89 42 02	 mov	 WORD PTR [edx+2], ax
+
+; 1277 : 	(*ppspLoLimit)->assertiveness      = limit[SPD_AS].l_min;
+
+  012db	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  012dd	66 8b 15 08 00
+	00 00		 mov	 dx, WORD PTR _limit+8
+  012e4	66 89 51 04	 mov	 WORD PTR [ecx+4], dx
+
+; 1278 : 	(*ppspLoLimit)->average_pitch      = limit[SPD_AP].l_min;
+
+  012e8	8b 07		 mov	 eax, DWORD PTR [edi]
+  012ea	66 8b 0d 0c 00
+	00 00		 mov	 cx, WORD PTR _limit+12
+  012f1	66 89 48 06	 mov	 WORD PTR [eax+6], cx
+
+; 1279 : 	(*ppspLoLimit)->pitch_range        = limit[SPD_PR].l_min;
+
+  012f5	8b 17		 mov	 edx, DWORD PTR [edi]
+  012f7	66 a1 10 00 00
+	00		 mov	 ax, WORD PTR _limit+16
+  012fd	66 89 42 08	 mov	 WORD PTR [edx+8], ax
+
+; 1280 : 	(*ppspLoLimit)->breathiness        = limit[SPD_BR].l_min;
+
+  01301	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  01303	66 8b 15 14 00
+	00 00		 mov	 dx, WORD PTR _limit+20
+  0130a	66 89 51 0a	 mov	 WORD PTR [ecx+10], dx
+
+; 1281 : 	(*ppspLoLimit)->richness           = limit[SPD_RI].l_min;
+
+  0130e	8b 07		 mov	 eax, DWORD PTR [edi]
+  01310	66 8b 0d 18 00
+	00 00		 mov	 cx, WORD PTR _limit+24
+  01317	66 89 48 0c	 mov	 WORD PTR [eax+12], cx
+
+; 1282 : 	(*ppspLoLimit)->num_fixed_samp_og  = limit[SPD_NF].l_min;
+
+  0131b	8b 17		 mov	 edx, DWORD PTR [edi]
+  0131d	66 a1 1c 00 00
+	00		 mov	 ax, WORD PTR _limit+28
+  01323	66 89 42 0e	 mov	 WORD PTR [edx+14], ax
+
+; 1283 : 	(*ppspLoLimit)->laryngealization   = limit[SPD_LA].l_min;
+
+  01327	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  01329	66 8b 15 20 00
+	00 00		 mov	 dx, WORD PTR _limit+32
+  01330	66 89 51 10	 mov	 WORD PTR [ecx+16], dx
+
+; 1284 : 	(*ppspLoLimit)->head_size          = limit[SPD_HS].l_min;
+
+  01334	8b 07		 mov	 eax, DWORD PTR [edi]
+  01336	66 8b 0d 24 00
+	00 00		 mov	 cx, WORD PTR _limit+36
+  0133d	66 89 48 12	 mov	 WORD PTR [eax+18], cx
+
+; 1285 : 	(*ppspLoLimit)->formant4_res_freq  = limit[SPD_F4].l_min;
+
+  01341	8b 17		 mov	 edx, DWORD PTR [edi]
+  01343	66 a1 28 00 00
+	00		 mov	 ax, WORD PTR _limit+40
+  01349	66 89 42 14	 mov	 WORD PTR [edx+20], ax
+
+; 1286 : 	(*ppspLoLimit)->formant4_bandwidth = limit[SPD_B4].l_min;
+
+  0134d	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  0134f	66 8b 15 2c 00
+	00 00		 mov	 dx, WORD PTR _limit+44
+  01356	66 89 51 16	 mov	 WORD PTR [ecx+22], dx
+
+; 1287 : 	(*ppspLoLimit)->formant5_res_freq  = limit[SPD_F5].l_min;
+
+  0135a	8b 07		 mov	 eax, DWORD PTR [edi]
+  0135c	66 8b 0d 30 00
+	00 00		 mov	 cx, WORD PTR _limit+48
+  01363	66 89 48 18	 mov	 WORD PTR [eax+24], cx
+
+; 1288 : 	(*ppspLoLimit)->formant5_bandwidth = limit[SPD_B5].l_min;
+
+  01367	8b 17		 mov	 edx, DWORD PTR [edi]
+  01369	66 a1 34 00 00
+	00		 mov	 ax, WORD PTR _limit+52
+  0136f	66 89 42 1a	 mov	 WORD PTR [edx+26], ax
+
+; 1289 : 	(*ppspLoLimit)->parallel4_freq     = limit[SPD_P4].l_min;
+
+  01373	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  01375	66 8b 15 38 00
+	00 00		 mov	 dx, WORD PTR _limit+56
+  0137c	66 89 51 1c	 mov	 WORD PTR [ecx+28], dx
+
+; 1290 : 	(*ppspLoLimit)->parallel5_freq     = limit[SPD_P5].l_min;
+
+  01380	8b 07		 mov	 eax, DWORD PTR [edi]
+  01382	66 8b 0d 3c 00
+	00 00		 mov	 cx, WORD PTR _limit+60
+  01389	66 89 48 1e	 mov	 WORD PTR [eax+30], cx
+
+; 1291 : 	(*ppspLoLimit)->gain_frication     = limit[SPD_GF].l_min;
+
+  0138d	8b 17		 mov	 edx, DWORD PTR [edi]
+  0138f	66 a1 40 00 00
+	00		 mov	 ax, WORD PTR _limit+64
+  01395	66 89 42 20	 mov	 WORD PTR [edx+32], ax
+
+; 1292 : 	(*ppspLoLimit)->gain_aspiration    = limit[SPD_GH].l_min;
+
+  01399	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  0139b	66 8b 15 44 00
+	00 00		 mov	 dx, WORD PTR _limit+68
+  013a2	66 89 51 22	 mov	 WORD PTR [ecx+34], dx
+
+; 1293 : 	(*ppspLoLimit)->gain_voicing       = limit[SPD_GV].l_min;
+
+  013a6	8b 07		 mov	 eax, DWORD PTR [edi]
+  013a8	66 8b 0d 48 00
+	00 00		 mov	 cx, WORD PTR _limit+72
+  013af	66 89 48 24	 mov	 WORD PTR [eax+36], cx
+
+; 1294 : 	(*ppspLoLimit)->gain_nasalization  = limit[SPD_GN].l_min;
+
+  013b3	8b 17		 mov	 edx, DWORD PTR [edi]
+  013b5	66 a1 4c 00 00
+	00		 mov	 ax, WORD PTR _limit+76
+  013bb	66 89 42 26	 mov	 WORD PTR [edx+38], ax
+
+; 1295 : 	(*ppspLoLimit)->gain_cfr1          = limit[SPD_G1].l_min;
+
+  013bf	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  013c1	66 8b 15 50 00
+	00 00		 mov	 dx, WORD PTR _limit+80
+  013c8	66 89 51 28	 mov	 WORD PTR [ecx+40], dx
+
+; 1296 : 	(*ppspLoLimit)->gain_cfr2          = limit[SPD_G2].l_min;
+
+  013cc	8b 07		 mov	 eax, DWORD PTR [edi]
+  013ce	66 8b 0d 54 00
+	00 00		 mov	 cx, WORD PTR _limit+84
+  013d5	66 89 48 2a	 mov	 WORD PTR [eax+42], cx
+
+; 1297 : 	(*ppspLoLimit)->gain_cfr3          = limit[SPD_G3].l_min;
+
+  013d9	8b 17		 mov	 edx, DWORD PTR [edi]
+  013db	66 a1 58 00 00
+	00		 mov	 ax, WORD PTR _limit+88
+  013e1	66 89 42 2c	 mov	 WORD PTR [edx+44], ax
+
+; 1298 : 	(*ppspLoLimit)->gain_cfr4          = limit[SPD_G4].l_min;
+
+  013e5	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  013e7	66 8b 15 5c 00
+	00 00		 mov	 dx, WORD PTR _limit+92
+  013ee	66 89 51 2e	 mov	 WORD PTR [ecx+46], dx
+
+; 1299 : 	(*ppspLoLimit)->loudness           = limit[SPD_LO].l_min;
+
+  013f2	8b 07		 mov	 eax, DWORD PTR [edi]
+  013f4	66 8b 0d 60 00
+	00 00		 mov	 cx, WORD PTR _limit+96
+  013fb	66 89 48 30	 mov	 WORD PTR [eax+48], cx
+
+; 1300 : 	(*ppspLoLimit)->spectral_tilt      = limit[SPD_FT].l_min;
+
+  013ff	8b 17		 mov	 edx, DWORD PTR [edi]
+  01401	66 a1 64 00 00
+	00		 mov	 ax, WORD PTR _limit+100
+  01407	66 89 42 32	 mov	 WORD PTR [edx+50], ax
+
+; 1301 : 	(*ppspLoLimit)->baseline_fall      = limit[SPD_BF].l_min;
+
+  0140b	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  0140d	66 8b 15 68 00
+	00 00		 mov	 dx, WORD PTR _limit+104
+  01414	66 89 51 34	 mov	 WORD PTR [ecx+52], dx
+
+; 1302 : 	(*ppspLoLimit)->lax_breathiness    = limit[SPD_LX].l_min;
+
+  01418	8b 07		 mov	 eax, DWORD PTR [edi]
+  0141a	66 8b 0d 6c 00
+	00 00		 mov	 cx, WORD PTR _limit+108
+  01421	66 89 48 36	 mov	 WORD PTR [eax+54], cx
+
+; 1303 : 	(*ppspLoLimit)->quickness          = limit[SPD_QU].l_min;
+
+  01425	8b 17		 mov	 edx, DWORD PTR [edi]
+  01427	66 a1 70 00 00
+	00		 mov	 ax, WORD PTR _limit+112
+  0142d	66 89 42 38	 mov	 WORD PTR [edx+56], ax
+
+; 1304 : 	(*ppspLoLimit)->hat_rise           = limit[SPD_HR].l_min;
+
+  01431	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  01433	66 8b 15 74 00
+	00 00		 mov	 dx, WORD PTR _limit+116
+  0143a	66 89 51 3a	 mov	 WORD PTR [ecx+58], dx
+
+; 1305 : 	(*ppspLoLimit)->stress_rise        = limit[SPD_SR].l_min;
+
+  0143e	8b 07		 mov	 eax, DWORD PTR [edi]
+  01440	66 8b 0d 78 00
+	00 00		 mov	 cx, WORD PTR _limit+120
+  01447	66 89 48 3c	 mov	 WORD PTR [eax+60], cx
+
+; 1306 : 	(*ppspLoLimit)->glottal_speed      = limit[SPD_GS].l_min;
+
+  0144b	8b 17		 mov	 edx, DWORD PTR [edi]
+  0144d	66 a1 7c 00 00
+	00		 mov	 ax, WORD PTR _limit+124
+  01453	66 89 42 3e	 mov	 WORD PTR [edx+62], ax
+
+; 1307 : 	(*ppspLoLimit)->output_gain_mult   = limit[SPD_OS].l_min;
+
+  01457	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  01459	66 8b 15 80 00
+	00 00		 mov	 dx, WORD PTR _limit+128
+  01460	66 89 51 40	 mov	 WORD PTR [ecx+64], dx
+
+; 1308 : 
+; 1309 : 
+; 1310 : 	/* Fill high limits for speaker parameters */
+; 1311 : 	(*ppspHiLimit)->sex                = limit[SPD_SEX].l_max;
+
+  01464	8b 03		 mov	 eax, DWORD PTR [ebx]
+  01466	66 8b 0d 02 00
+	00 00		 mov	 cx, WORD PTR _limit+2
+  0146d	66 89 08	 mov	 WORD PTR [eax], cx
+
+; 1312 : 	(*ppspHiLimit)->smoothness         = limit[SPD_SM].l_max;
+
+  01470	8b 13		 mov	 edx, DWORD PTR [ebx]
+  01472	66 a1 06 00 00
+	00		 mov	 ax, WORD PTR _limit+6
+  01478	66 89 42 02	 mov	 WORD PTR [edx+2], ax
+
+; 1313 : 	(*ppspHiLimit)->assertiveness      = limit[SPD_AS].l_max;
+
+  0147c	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  0147e	66 8b 15 0a 00
+	00 00		 mov	 dx, WORD PTR _limit+10
+  01485	66 89 51 04	 mov	 WORD PTR [ecx+4], dx
+
+; 1314 : 	(*ppspHiLimit)->average_pitch      = limit[SPD_AP].l_max;
+
+  01489	8b 03		 mov	 eax, DWORD PTR [ebx]
+  0148b	66 8b 0d 0e 00
+	00 00		 mov	 cx, WORD PTR _limit+14
+  01492	66 89 48 06	 mov	 WORD PTR [eax+6], cx
+
+; 1315 : 	(*ppspHiLimit)->pitch_range        = limit[SPD_PR].l_max;
+
+  01496	8b 13		 mov	 edx, DWORD PTR [ebx]
+  01498	66 a1 12 00 00
+	00		 mov	 ax, WORD PTR _limit+18
+  0149e	66 89 42 08	 mov	 WORD PTR [edx+8], ax
+
+; 1316 : 	(*ppspHiLimit)->breathiness        = limit[SPD_BR].l_max;
+
+  014a2	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  014a4	66 8b 15 16 00
+	00 00		 mov	 dx, WORD PTR _limit+22
+  014ab	66 89 51 0a	 mov	 WORD PTR [ecx+10], dx
+
+; 1317 : 	(*ppspHiLimit)->richness           = limit[SPD_RI].l_max;
+
+  014af	8b 03		 mov	 eax, DWORD PTR [ebx]
+  014b1	66 8b 0d 1a 00
+	00 00		 mov	 cx, WORD PTR _limit+26
+  014b8	66 89 48 0c	 mov	 WORD PTR [eax+12], cx
+
+; 1318 : 	(*ppspHiLimit)->num_fixed_samp_og  = limit[SPD_NF].l_max;
+
+  014bc	8b 13		 mov	 edx, DWORD PTR [ebx]
+  014be	66 a1 1e 00 00
+	00		 mov	 ax, WORD PTR _limit+30
+  014c4	66 89 42 0e	 mov	 WORD PTR [edx+14], ax
+
+; 1319 : 	(*ppspHiLimit)->laryngealization   = limit[SPD_LA].l_max;
+
+  014c8	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  014ca	66 8b 15 22 00
+	00 00		 mov	 dx, WORD PTR _limit+34
+  014d1	66 89 51 10	 mov	 WORD PTR [ecx+16], dx
+
+; 1320 : 	(*ppspHiLimit)->head_size          = limit[SPD_HS].l_max;
+
+  014d5	8b 03		 mov	 eax, DWORD PTR [ebx]
+  014d7	66 8b 0d 26 00
+	00 00		 mov	 cx, WORD PTR _limit+38
+  014de	66 89 48 12	 mov	 WORD PTR [eax+18], cx
+
+; 1321 : 	(*ppspHiLimit)->formant4_res_freq  = limit[SPD_F4].l_max;
+
+  014e2	8b 13		 mov	 edx, DWORD PTR [ebx]
+  014e4	66 a1 2a 00 00
+	00		 mov	 ax, WORD PTR _limit+42
+  014ea	66 89 42 14	 mov	 WORD PTR [edx+20], ax
+
+; 1322 : 	(*ppspHiLimit)->formant4_bandwidth = limit[SPD_B4].l_max;
+
+  014ee	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  014f0	66 8b 15 2e 00
+	00 00		 mov	 dx, WORD PTR _limit+46
+  014f7	66 89 51 16	 mov	 WORD PTR [ecx+22], dx
+
+; 1323 : 	(*ppspHiLimit)->formant5_res_freq  = limit[SPD_F5].l_max;
+
+  014fb	8b 03		 mov	 eax, DWORD PTR [ebx]
+  014fd	66 8b 0d 32 00
+	00 00		 mov	 cx, WORD PTR _limit+50
+  01504	66 89 48 18	 mov	 WORD PTR [eax+24], cx
+
+; 1324 : 	(*ppspHiLimit)->formant5_bandwidth = limit[SPD_B5].l_max;
+
+  01508	8b 13		 mov	 edx, DWORD PTR [ebx]
+  0150a	66 a1 36 00 00
+	00		 mov	 ax, WORD PTR _limit+54
+  01510	66 89 42 1a	 mov	 WORD PTR [edx+26], ax
+
+; 1325 : 	(*ppspHiLimit)->parallel4_freq     = limit[SPD_P4].l_max;
+
+  01514	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  01516	66 8b 15 3a 00
+	00 00		 mov	 dx, WORD PTR _limit+58
+  0151d	66 89 51 1c	 mov	 WORD PTR [ecx+28], dx
+
+; 1326 : 	(*ppspHiLimit)->parallel5_freq     = limit[SPD_P5].l_max;
+
+  01521	8b 03		 mov	 eax, DWORD PTR [ebx]
+  01523	66 8b 0d 3e 00
+	00 00		 mov	 cx, WORD PTR _limit+62
+  0152a	66 89 48 1e	 mov	 WORD PTR [eax+30], cx
+
+; 1327 : 	(*ppspHiLimit)->gain_frication     = limit[SPD_GF].l_max;
+
+  0152e	8b 13		 mov	 edx, DWORD PTR [ebx]
+  01530	66 a1 42 00 00
+	00		 mov	 ax, WORD PTR _limit+66
+  01536	66 89 42 20	 mov	 WORD PTR [edx+32], ax
+
+; 1328 : 	(*ppspHiLimit)->gain_aspiration    = limit[SPD_GH].l_max;
+
+  0153a	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  0153c	66 8b 15 46 00
+	00 00		 mov	 dx, WORD PTR _limit+70
+  01543	66 89 51 22	 mov	 WORD PTR [ecx+34], dx
+
+; 1329 : 	(*ppspHiLimit)->gain_voicing       = limit[SPD_GV].l_max;
+
+  01547	8b 03		 mov	 eax, DWORD PTR [ebx]
+  01549	66 8b 0d 4a 00
+	00 00		 mov	 cx, WORD PTR _limit+74
+  01550	66 89 48 24	 mov	 WORD PTR [eax+36], cx
+
+; 1330 : 	(*ppspHiLimit)->gain_nasalization  = limit[SPD_GN].l_max;
+
+  01554	8b 13		 mov	 edx, DWORD PTR [ebx]
+  01556	66 a1 4e 00 00
+	00		 mov	 ax, WORD PTR _limit+78
+  0155c	66 89 42 26	 mov	 WORD PTR [edx+38], ax
+
+; 1331 : 	(*ppspHiLimit)->gain_cfr1          = limit[SPD_G1].l_max;
+
+  01560	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  01562	66 8b 15 52 00
+	00 00		 mov	 dx, WORD PTR _limit+82
+  01569	66 89 51 28	 mov	 WORD PTR [ecx+40], dx
+
+; 1332 : 	(*ppspHiLimit)->gain_cfr2          = limit[SPD_G2].l_max;
+
+  0156d	8b 03		 mov	 eax, DWORD PTR [ebx]
+  0156f	66 8b 0d 56 00
+	00 00		 mov	 cx, WORD PTR _limit+86
+  01576	66 89 48 2a	 mov	 WORD PTR [eax+42], cx
+
+; 1333 : 	(*ppspHiLimit)->gain_cfr3          = limit[SPD_G3].l_max;
+
+  0157a	8b 13		 mov	 edx, DWORD PTR [ebx]
+  0157c	66 a1 5a 00 00
+	00		 mov	 ax, WORD PTR _limit+90
+  01582	66 89 42 2c	 mov	 WORD PTR [edx+44], ax
+
+; 1334 : 	(*ppspHiLimit)->gain_cfr4          = limit[SPD_G4].l_max;
+
+  01586	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  01588	66 8b 15 5e 00
+	00 00		 mov	 dx, WORD PTR _limit+94
+  0158f	66 89 51 2e	 mov	 WORD PTR [ecx+46], dx
+
+; 1335 : 	(*ppspHiLimit)->loudness           = limit[SPD_LO].l_max;
+
+  01593	8b 03		 mov	 eax, DWORD PTR [ebx]
+  01595	66 8b 0d 62 00
+	00 00		 mov	 cx, WORD PTR _limit+98
+  0159c	66 89 48 30	 mov	 WORD PTR [eax+48], cx
+
+; 1336 : 	(*ppspHiLimit)->spectral_tilt      = limit[SPD_FT].l_max;
+
+  015a0	8b 13		 mov	 edx, DWORD PTR [ebx]
+  015a2	66 a1 66 00 00
+	00		 mov	 ax, WORD PTR _limit+102
+  015a8	66 89 42 32	 mov	 WORD PTR [edx+50], ax
+
+; 1337 : 	(*ppspHiLimit)->baseline_fall      = limit[SPD_BF].l_max;
+
+  015ac	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  015ae	66 8b 15 6a 00
+	00 00		 mov	 dx, WORD PTR _limit+106
+  015b5	66 89 51 34	 mov	 WORD PTR [ecx+52], dx
+
+; 1338 : 	(*ppspHiLimit)->lax_breathiness    = limit[SPD_LX].l_max;
+
+  015b9	8b 03		 mov	 eax, DWORD PTR [ebx]
+  015bb	66 8b 0d 6e 00
+	00 00		 mov	 cx, WORD PTR _limit+110
+  015c2	66 89 48 36	 mov	 WORD PTR [eax+54], cx
+
+; 1339 : 	(*ppspHiLimit)->quickness          = limit[SPD_QU].l_max;
+
+  015c6	8b 13		 mov	 edx, DWORD PTR [ebx]
+  015c8	66 a1 72 00 00
+	00		 mov	 ax, WORD PTR _limit+114
+  015ce	66 89 42 38	 mov	 WORD PTR [edx+56], ax
+
+; 1340 : 	(*ppspHiLimit)->hat_rise           = limit[SPD_HR].l_max;
+
+  015d2	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  015d4	66 8b 15 76 00
+	00 00		 mov	 dx, WORD PTR _limit+118
+  015db	66 89 51 3a	 mov	 WORD PTR [ecx+58], dx
+
+; 1341 : 	(*ppspHiLimit)->stress_rise        = limit[SPD_SR].l_max;
+
+  015df	8b 03		 mov	 eax, DWORD PTR [ebx]
+  015e1	66 8b 0d 7a 00
+	00 00		 mov	 cx, WORD PTR _limit+122
+  015e8	66 89 48 3c	 mov	 WORD PTR [eax+60], cx
+
+; 1342 : 	(*ppspHiLimit)->glottal_speed      = limit[SPD_GS].l_max;
+
+  015ec	8b 13		 mov	 edx, DWORD PTR [ebx]
+  015ee	66 a1 7e 00 00
+	00		 mov	 ax, WORD PTR _limit+126
+  015f4	66 89 42 3e	 mov	 WORD PTR [edx+62], ax
+
+; 1343 : 	(*ppspHiLimit)->output_gain_mult   = limit[SPD_OS].l_max;
+
+  015f8	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  015fa	66 8b 15 82 00
+	00 00		 mov	 dx, WORD PTR _limit+130
+
+; 1344 : 
+; 1345 : 
+; 1346 : 	speaker_num = pDph_t->curspdef[SPD_NM];
+; 1347 : 
+; 1348 : 	if (pKsd_t->uiSampleRate < 8763) /* 8-bit */
+
+  01601	8b 44 24 14	 mov	 eax, DWORD PTR _pKsd_t$[esp+24]
+  01605	66 89 51 40	 mov	 WORD PTR [ecx+64], dx
+  01609	66 8b b6 e4 17
+	00 00		 mov	 si, WORD PTR [esi+6116]
+  01610	81 b8 f0 03 00
+	00 3b 22 00 00	 cmp	 DWORD PTR [eax+1008], 8763 ; 0000223bH
+
+; 1349 : 		switch (speaker_num) {
+
+  0161a	0f bf c6	 movsx	 eax, si
+  0161d	73 79		 jae	 SHORT $L71560
+  0161f	83 f8 08	 cmp	 eax, 8
+  01622	0f 87 d4 00 00
+	00		 ja	 $L71650
+  01628	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71651[eax*4]
+$L71565:
+
+; 1350 : 			case 0:	cur_speaker = paul_8;   break;
+
+  0162f	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_paul_8
+  01634	e9 c7 00 00 00	 jmp	 $L71576
+$L71566:
+
+; 1351 : 			case 1:	cur_speaker = betty_8;  break;
+
+  01639	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_betty_8
+  01641	e9 b6 00 00 00	 jmp	 $L71650
+$L71567:
+
+; 1352 : 			case 2:	cur_speaker = harry_8;  break;
+
+  01646	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_harry_8
+  0164e	e9 a9 00 00 00	 jmp	 $L71650
+$L71568:
+
+; 1353 : 			case 3:	cur_speaker = frank_8;  break;
+
+  01653	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_frank_8
+  0165b	e9 9c 00 00 00	 jmp	 $L71650
+$L71569:
+
+; 1354 : 			case 4:	cur_speaker = dennis_8; break;
+
+  01660	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_dennis_8
+  01668	e9 8f 00 00 00	 jmp	 $L71650
+$L71570:
+
+; 1355 : 			case 5:	cur_speaker = kit_8;    break;
+
+  0166d	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_kit_8
+  01675	e9 82 00 00 00	 jmp	 $L71650
+$L71571:
+
+; 1356 : 			case 6:	cur_speaker = ursula_8; break;
+
+  0167a	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_ursula_8
+  01682	eb 78		 jmp	 SHORT $L71650
+$L71572:
+
+; 1357 : 			case 7:	cur_speaker = rita_8;   break;
+
+  01684	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_rita_8
+  0168c	eb 6e		 jmp	 SHORT $L71650
+$L71573:
+
+; 1358 : 			case 8:	cur_speaker = wendy_8;  break;
+
+  0168e	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_wendy_8
+
+; 1359 : 		}
+; 1360 : 	else /* 16-bit */
+
+  01696	eb 64		 jmp	 SHORT $L71650
+$L71560:
+
+; 1361 : 		switch (speaker_num) {
+
+  01698	83 f8 08	 cmp	 eax, 8
+  0169b	77 5f		 ja	 SHORT $L71650
+  0169d	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71652[eax*4]
+$L71579:
+
+; 1362 : 			case 0:	cur_speaker = paul;   break;
+
+  016a4	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_paul
+  016ac	eb 4e		 jmp	 SHORT $L71650
+$L71580:
+
+; 1363 : 			case 1:	cur_speaker = betty;  break;
+
+  016ae	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_betty
+  016b6	eb 44		 jmp	 SHORT $L71650
+$L71581:
+
+; 1364 : 			case 2:	cur_speaker = harry;  break;
+
+  016b8	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_harry
+  016c0	eb 3a		 jmp	 SHORT $L71650
+$L71582:
+
+; 1365 : 			case 3:	cur_speaker = frank;  break;
+
+  016c2	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_frank
+  016ca	eb 30		 jmp	 SHORT $L71650
+$L71583:
+
+; 1366 : 			case 4:	cur_speaker = dennis; break;
+
+  016cc	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_dennis
+  016d4	eb 26		 jmp	 SHORT $L71650
+$L71584:
+
+; 1367 : 			case 5:	cur_speaker = kit;    break;
+
+  016d6	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_kit
+  016de	eb 1c		 jmp	 SHORT $L71650
+$L71585:
+
+; 1368 : 			case 6:	cur_speaker = ursula; break;
+
+  016e0	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_ursula
+  016e8	eb 12		 jmp	 SHORT $L71650
+$L71586:
+
+; 1369 : 			case 7:	cur_speaker = rita;   break;
+
+  016ea	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_rita
+  016f2	eb 08		 jmp	 SHORT $L71650
+$L71587:
+
+; 1370 : 			case 8:	cur_speaker = wendy;  break;
+
+  016f4	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _cur_speaker$[esp+24], OFFSET FLAT:_wendy
+$L71650:
+
+; 1369 : 			case 7:	cur_speaker = rita;   break;
+
+  016fc	8b 44 24 10	 mov	 eax, DWORD PTR _cur_speaker$[esp+24]
+$L71576:
+
+; 1371 : 		}
+; 1372 : 
+; 1373 : 	/* Fill default speaker parameters for current speaker */
+; 1374 : 	/* The default speaker parameters are taken from the appropriate array, which is defined */
+; 1375 : 	/* in p_??_vdf.c.                                                                        */
+; 1376 : 
+; 1377 : 	(*ppspDefault)->sex                = cur_speaker[SPD_SEX];
+
+  01700	8b 4c 24 30	 mov	 ecx, DWORD PTR _ppspDefault$[esp+20]
+  01704	66 8b 30	 mov	 si, WORD PTR [eax]
+  01707	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01709	66 89 32	 mov	 WORD PTR [edx], si
+
+; 1378 : 	(*ppspDefault)->smoothness         = cur_speaker[SPD_SM];
+
+  0170c	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0170e	66 8b 70 02	 mov	 si, WORD PTR [eax+2]
+  01712	66 89 72 02	 mov	 WORD PTR [edx+2], si
+
+; 1379 : 	(*ppspDefault)->assertiveness      = cur_speaker[SPD_AS];
+
+  01716	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01718	66 8b 70 04	 mov	 si, WORD PTR [eax+4]
+  0171c	66 89 72 04	 mov	 WORD PTR [edx+4], si
+
+; 1380 : 	(*ppspDefault)->average_pitch      = cur_speaker[SPD_AP];
+
+  01720	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01722	66 8b 70 06	 mov	 si, WORD PTR [eax+6]
+  01726	66 89 72 06	 mov	 WORD PTR [edx+6], si
+
+; 1381 : 	(*ppspDefault)->pitch_range        = cur_speaker[SPD_PR];
+
+  0172a	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0172c	66 8b 70 08	 mov	 si, WORD PTR [eax+8]
+  01730	66 89 72 08	 mov	 WORD PTR [edx+8], si
+
+; 1382 : 	(*ppspDefault)->breathiness        = cur_speaker[SPD_BR];
+
+  01734	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01736	66 8b 70 0a	 mov	 si, WORD PTR [eax+10]
+  0173a	66 89 72 0a	 mov	 WORD PTR [edx+10], si
+
+; 1383 : 	(*ppspDefault)->richness           = cur_speaker[SPD_RI];
+
+  0173e	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01740	66 8b 70 0c	 mov	 si, WORD PTR [eax+12]
+  01744	66 89 72 0c	 mov	 WORD PTR [edx+12], si
+
+; 1384 : 	(*ppspDefault)->num_fixed_samp_og  = cur_speaker[SPD_NF];
+
+  01748	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0174a	66 8b 70 0e	 mov	 si, WORD PTR [eax+14]
+  0174e	66 89 72 0e	 mov	 WORD PTR [edx+14], si
+
+; 1385 : 	(*ppspDefault)->laryngealization   = cur_speaker[SPD_LA];
+
+  01752	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01754	66 8b 70 10	 mov	 si, WORD PTR [eax+16]
+  01758	66 89 72 10	 mov	 WORD PTR [edx+16], si
+
+; 1386 : 	(*ppspDefault)->head_size          = cur_speaker[SPD_HS];
+
+  0175c	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0175e	66 8b 70 12	 mov	 si, WORD PTR [eax+18]
+  01762	66 89 72 12	 mov	 WORD PTR [edx+18], si
+
+; 1387 : 	(*ppspDefault)->formant4_res_freq  = cur_speaker[SPD_F4];
+
+  01766	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01768	66 8b 70 14	 mov	 si, WORD PTR [eax+20]
+  0176c	66 89 72 14	 mov	 WORD PTR [edx+20], si
+
+; 1388 : 	(*ppspDefault)->formant4_bandwidth = cur_speaker[SPD_B4];
+
+  01770	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01772	66 8b 70 16	 mov	 si, WORD PTR [eax+22]
+  01776	66 89 72 16	 mov	 WORD PTR [edx+22], si
+
+; 1389 : 	(*ppspDefault)->formant5_res_freq  = cur_speaker[SPD_F5];
+
+  0177a	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0177c	66 8b 70 18	 mov	 si, WORD PTR [eax+24]
+  01780	66 89 72 18	 mov	 WORD PTR [edx+24], si
+
+; 1390 : 	(*ppspDefault)->formant5_bandwidth = cur_speaker[SPD_B5];
+
+  01784	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01786	66 8b 70 1a	 mov	 si, WORD PTR [eax+26]
+  0178a	66 89 72 1a	 mov	 WORD PTR [edx+26], si
+
+; 1391 : 	(*ppspDefault)->parallel4_freq     = cur_speaker[SPD_P4];
+
+  0178e	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01790	66 8b 70 1c	 mov	 si, WORD PTR [eax+28]
+  01794	66 89 72 1c	 mov	 WORD PTR [edx+28], si
+
+; 1392 : 	(*ppspDefault)->parallel5_freq     = cur_speaker[SPD_P5];
+
+  01798	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0179a	66 8b 70 1e	 mov	 si, WORD PTR [eax+30]
+  0179e	66 89 72 1e	 mov	 WORD PTR [edx+30], si
+
+; 1393 : 	(*ppspDefault)->gain_frication     = cur_speaker[SPD_GF];
+
+  017a2	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017a4	66 8b 70 20	 mov	 si, WORD PTR [eax+32]
+  017a8	66 89 72 20	 mov	 WORD PTR [edx+32], si
+
+; 1394 : 	(*ppspDefault)->gain_aspiration    = cur_speaker[SPD_GH];
+
+  017ac	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017ae	66 8b 70 22	 mov	 si, WORD PTR [eax+34]
+  017b2	66 89 72 22	 mov	 WORD PTR [edx+34], si
+
+; 1395 : 	(*ppspDefault)->gain_voicing       = cur_speaker[SPD_GV];
+
+  017b6	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017b8	66 8b 70 24	 mov	 si, WORD PTR [eax+36]
+  017bc	66 89 72 24	 mov	 WORD PTR [edx+36], si
+
+; 1396 : 	(*ppspDefault)->gain_nasalization  = cur_speaker[SPD_GN];
+
+  017c0	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017c2	66 8b 70 26	 mov	 si, WORD PTR [eax+38]
+  017c6	66 89 72 26	 mov	 WORD PTR [edx+38], si
+
+; 1397 : 	(*ppspDefault)->gain_cfr1          = cur_speaker[SPD_G1];
+
+  017ca	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017cc	66 8b 70 28	 mov	 si, WORD PTR [eax+40]
+  017d0	66 89 72 28	 mov	 WORD PTR [edx+40], si
+
+; 1398 : 	(*ppspDefault)->gain_cfr2          = cur_speaker[SPD_G2];
+
+  017d4	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017d6	66 8b 70 2a	 mov	 si, WORD PTR [eax+42]
+  017da	66 89 72 2a	 mov	 WORD PTR [edx+42], si
+
+; 1399 : 	(*ppspDefault)->gain_cfr3          = cur_speaker[SPD_G3];
+
+  017de	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017e0	66 8b 70 2c	 mov	 si, WORD PTR [eax+44]
+  017e4	66 89 72 2c	 mov	 WORD PTR [edx+44], si
+
+; 1400 : 	(*ppspDefault)->gain_cfr4          = cur_speaker[SPD_G4];
+
+  017e8	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017ea	66 8b 70 2e	 mov	 si, WORD PTR [eax+46]
+  017ee	66 89 72 2e	 mov	 WORD PTR [edx+46], si
+
+; 1401 : 	(*ppspDefault)->loudness           = cur_speaker[SPD_LO];
+
+  017f2	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017f4	66 8b 70 30	 mov	 si, WORD PTR [eax+48]
+  017f8	66 89 72 30	 mov	 WORD PTR [edx+48], si
+
+; 1402 : 	(*ppspDefault)->spectral_tilt      = cur_speaker[SPD_FT];
+
+  017fc	8b 11		 mov	 edx, DWORD PTR [ecx]
+  017fe	66 8b 70 32	 mov	 si, WORD PTR [eax+50]
+  01802	66 89 72 32	 mov	 WORD PTR [edx+50], si
+
+; 1403 : 	(*ppspDefault)->baseline_fall      = cur_speaker[SPD_BF];
+
+  01806	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01808	66 8b 70 34	 mov	 si, WORD PTR [eax+52]
+  0180c	66 89 72 34	 mov	 WORD PTR [edx+52], si
+
+; 1404 : 	(*ppspDefault)->lax_breathiness    = cur_speaker[SPD_LX];
+
+  01810	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01812	66 8b 70 36	 mov	 si, WORD PTR [eax+54]
+  01816	5f		 pop	 edi
+  01817	66 89 72 36	 mov	 WORD PTR [edx+54], si
+
+; 1405 : 	(*ppspDefault)->quickness          = cur_speaker[SPD_QU];
+
+  0181b	8b 11		 mov	 edx, DWORD PTR [ecx]
+  0181d	66 8b 70 38	 mov	 si, WORD PTR [eax+56]
+  01821	66 89 72 38	 mov	 WORD PTR [edx+56], si
+
+; 1406 : 	(*ppspDefault)->hat_rise           = cur_speaker[SPD_HR];
+
+  01825	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01827	66 8b 70 3a	 mov	 si, WORD PTR [eax+58]
+  0182b	66 89 72 3a	 mov	 WORD PTR [edx+58], si
+
+; 1407 : 	(*ppspDefault)->stress_rise        = cur_speaker[SPD_SR];
+
+  0182f	8b 11		 mov	 edx, DWORD PTR [ecx]
+  01831	66 8b 70 3c	 mov	 si, WORD PTR [eax+60]
+  01835	66 89 72 3c	 mov	 WORD PTR [edx+60], si
+
+; 1408 : 	(*ppspDefault)->glottal_speed      = cur_speaker[SPD_GS];
+
+  01839	8b 09		 mov	 ecx, DWORD PTR [ecx]
+  0183b	66 8b 50 3e	 mov	 dx, WORD PTR [eax+62]
+  0183f	5e		 pop	 esi
+  01840	5d		 pop	 ebp
+  01841	66 89 51 3e	 mov	 WORD PTR [ecx+62], dx
+
+; 1409 : #if (defined (WIN32) || defined (__osf__) || defined (__linux__)) && !defined (i386)
+; 1410 : 	(*ppspDefault)->output_gain_mult   = cur_speaker[SPD_OS];
+; 1411 : #endif
+; 1412 : 
+; 1413 : 
+; 1414 : 	return MMSYSERR_NOERROR;
+
+  01845	33 c0		 xor	 eax, eax
+  01847	5b		 pop	 ebx
+
+; 1415 : }
+
+  01848	83 c4 08	 add	 esp, 8
+  0184b	c3		 ret	 0
+$L71651:
+  0184c	00 00 00 00	 DD	 $L71565
+  01850	00 00 00 00	 DD	 $L71566
+  01854	00 00 00 00	 DD	 $L71567
+  01858	00 00 00 00	 DD	 $L71568
+  0185c	00 00 00 00	 DD	 $L71569
+  01860	00 00 00 00	 DD	 $L71570
+  01864	00 00 00 00	 DD	 $L71571
+  01868	00 00 00 00	 DD	 $L71572
+  0186c	00 00 00 00	 DD	 $L71573
+$L71652:
+  01870	00 00 00 00	 DD	 $L71579
+  01874	00 00 00 00	 DD	 $L71580
+  01878	00 00 00 00	 DD	 $L71581
+  0187c	00 00 00 00	 DD	 $L71582
+  01880	00 00 00 00	 DD	 $L71583
+  01884	00 00 00 00	 DD	 $L71584
+  01888	00 00 00 00	 DD	 $L71585
+  0188c	00 00 00 00	 DD	 $L71586
+  01890	00 00 00 00	 DD	 $L71587
+_GetSpeakerParams ENDP
+_TEXT	ENDS
+PUBLIC	_SetSpeakerParams
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pspSet$ = 12
+_SetSpeakerParams PROC NEAR
+
+; 1428 : 	PDPH_T pDph_t;
+; 1429 : 	PKSD_T pKsd_t;
+; 1430 : 	int voice;
+; 1431 : 
+; 1432 : 
+; 1433 : 	if (phTTS == NULL)
+
+  018a0	8b 4c 24 04	 mov	 ecx, DWORD PTR _phTTS$[esp-4]
+  018a4	85 c9		 test	 ecx, ecx
+  018a6	75 06		 jne	 SHORT $L71598
+
+; 1434 : 		return MMSYSERR_INVALPARAM;
+
+  018a8	b8 0b 00 00 00	 mov	 eax, 11			; 0000000bH
+
+; 1480 : }
+
+  018ad	c3		 ret	 0
+$L71598:
+
+; 1435 : 
+; 1436 : 	pDph_t = phTTS->pPHThreadData;
+
+  018ae	8b 41 18	 mov	 eax, DWORD PTR [ecx+24]
+
+; 1437 : 	pKsd_t = phTTS->pKernelShareData;
+; 1438 : 	voice = pKsd_t->last_voice;
+
+  018b1	8b 49 08	 mov	 ecx, DWORD PTR [ecx+8]
+  018b4	56		 push	 esi
+  018b5	0f bf 89 e4 03
+	00 00		 movsx	 ecx, WORD PTR [ecx+996]
+
+; 1439 : 
+; 1440 : 	/* Set current speaker parameters */
+; 1441 : 	pDph_t->curspdef[SPD_SEX] = pspSet->sex				 +	(pDph_t->tunedef[voice][SPD_SEX]);
+
+  018bc	8b 94 88 38 18
+	00 00		 mov	 edx, DWORD PTR [eax+ecx*4+6200]
+  018c3	66 8b 32	 mov	 si, WORD PTR [edx]
+  018c6	8b 54 24 0c	 mov	 edx, DWORD PTR _pspSet$[esp]
+  018ca	66 03 32	 add	 si, WORD PTR [edx]
+  018cd	66 89 b0 a2 17
+	00 00		 mov	 WORD PTR [eax+6050], si
+
+; 1442 : 	pDph_t->curspdef[SPD_SM]  = pspSet->smoothness		 +	(pDph_t->tunedef[voice][SPD_SM]);
+
+  018d4	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  018db	66 8b 76 02	 mov	 si, WORD PTR [esi+2]
+  018df	66 03 72 02	 add	 si, WORD PTR [edx+2]
+  018e3	66 89 b0 a4 17
+	00 00		 mov	 WORD PTR [eax+6052], si
+
+; 1443 : 	pDph_t->curspdef[SPD_AS]  = pspSet->assertiveness	 +	(pDph_t->tunedef[voice][SPD_AS]);
+
+  018ea	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  018f1	66 8b 76 04	 mov	 si, WORD PTR [esi+4]
+  018f5	66 03 72 04	 add	 si, WORD PTR [edx+4]
+  018f9	66 89 b0 a6 17
+	00 00		 mov	 WORD PTR [eax+6054], si
+
+; 1444 : 	pDph_t->curspdef[SPD_AP]  = pspSet->average_pitch	 +	(pDph_t->tunedef[voice][SPD_AP]);
+
+  01900	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01907	66 8b 76 06	 mov	 si, WORD PTR [esi+6]
+  0190b	66 03 72 06	 add	 si, WORD PTR [edx+6]
+  0190f	66 89 b0 a8 17
+	00 00		 mov	 WORD PTR [eax+6056], si
+
+; 1445 : 	pDph_t->curspdef[SPD_PR]  = pspSet->pitch_range		 +	(pDph_t->tunedef[voice][SPD_PR]);
+
+  01916	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  0191d	66 8b 76 08	 mov	 si, WORD PTR [esi+8]
+  01921	66 03 72 08	 add	 si, WORD PTR [edx+8]
+  01925	66 89 b0 aa 17
+	00 00		 mov	 WORD PTR [eax+6058], si
+
+; 1446 : 	pDph_t->curspdef[SPD_BR]  = pspSet->breathiness		 +	(pDph_t->tunedef[voice][SPD_BR]);
+
+  0192c	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01933	66 8b 76 0a	 mov	 si, WORD PTR [esi+10]
+  01937	66 03 72 0a	 add	 si, WORD PTR [edx+10]
+  0193b	66 89 b0 ac 17
+	00 00		 mov	 WORD PTR [eax+6060], si
+
+; 1447 : 	pDph_t->curspdef[SPD_RI]  = pspSet->richness			 +	(pDph_t->tunedef[voice][SPD_RI]);
+
+  01942	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01949	66 8b 76 0c	 mov	 si, WORD PTR [esi+12]
+  0194d	66 03 72 0c	 add	 si, WORD PTR [edx+12]
+  01951	66 89 b0 ae 17
+	00 00		 mov	 WORD PTR [eax+6062], si
+
+; 1448 : 	pDph_t->curspdef[SPD_NF]  = pspSet->num_fixed_samp_og  +	(pDph_t->tunedef[voice][SPD_NF]);
+
+  01958	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  0195f	66 8b 76 0e	 mov	 si, WORD PTR [esi+14]
+  01963	66 03 72 0e	 add	 si, WORD PTR [edx+14]
+  01967	66 89 b0 b0 17
+	00 00		 mov	 WORD PTR [eax+6064], si
+
+; 1449 : 	pDph_t->curspdef[SPD_LA]  = pspSet->laryngealization  +	(pDph_t->tunedef[voice][SPD_LA]);
+
+  0196e	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01975	66 8b 76 10	 mov	 si, WORD PTR [esi+16]
+  01979	66 03 72 10	 add	 si, WORD PTR [edx+16]
+  0197d	66 89 b0 b2 17
+	00 00		 mov	 WORD PTR [eax+6066], si
+
+; 1450 : 	pDph_t->curspdef[SPD_HS]  = pspSet->head_size		 +	(pDph_t->tunedef[voice][SPD_HS]);
+
+  01984	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  0198b	66 8b 76 12	 mov	 si, WORD PTR [esi+18]
+  0198f	66 03 72 12	 add	 si, WORD PTR [edx+18]
+  01993	66 89 b0 b4 17
+	00 00		 mov	 WORD PTR [eax+6068], si
+
+; 1451 : 	pDph_t->curspdef[SPD_F4]  = pspSet->formant4_res_freq  +	(pDph_t->tunedef[voice][SPD_F4]);
+
+  0199a	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  019a1	66 8b 76 14	 mov	 si, WORD PTR [esi+20]
+  019a5	66 03 72 14	 add	 si, WORD PTR [edx+20]
+  019a9	66 89 b0 b6 17
+	00 00		 mov	 WORD PTR [eax+6070], si
+
+; 1452 : 	pDph_t->curspdef[SPD_B4]  = pspSet->formant4_bandwidth  +	(pDph_t->tunedef[voice][SPD_B4]);
+
+  019b0	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  019b7	66 8b 76 16	 mov	 si, WORD PTR [esi+22]
+  019bb	66 03 72 16	 add	 si, WORD PTR [edx+22]
+  019bf	66 89 b0 b8 17
+	00 00		 mov	 WORD PTR [eax+6072], si
+
+; 1453 : 	pDph_t->curspdef[SPD_F5]  = pspSet->formant5_res_freq  +	(pDph_t->tunedef[voice][SPD_F5]);
+
+  019c6	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  019cd	66 8b 76 18	 mov	 si, WORD PTR [esi+24]
+  019d1	66 03 72 18	 add	 si, WORD PTR [edx+24]
+  019d5	66 89 b0 ba 17
+	00 00		 mov	 WORD PTR [eax+6074], si
+
+; 1454 : 	pDph_t->curspdef[SPD_B5]  = pspSet->formant5_bandwidth  + (pDph_t->tunedef[voice][SPD_B5]);
+
+  019dc	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  019e3	66 8b 76 1a	 mov	 si, WORD PTR [esi+26]
+  019e7	66 03 72 1a	 add	 si, WORD PTR [edx+26]
+  019eb	66 89 b0 bc 17
+	00 00		 mov	 WORD PTR [eax+6076], si
+
+; 1455 : 	pDph_t->curspdef[SPD_P4]  = pspSet->parallel4_freq	 +	(pDph_t->tunedef[voice][SPD_P4]);
+
+  019f2	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  019f9	66 8b 76 1c	 mov	 si, WORD PTR [esi+28]
+  019fd	66 03 72 1c	 add	 si, WORD PTR [edx+28]
+  01a01	66 89 b0 be 17
+	00 00		 mov	 WORD PTR [eax+6078], si
+
+; 1456 : 	pDph_t->curspdef[SPD_P5]  = pspSet->parallel5_freq	 +	(pDph_t->tunedef[voice][SPD_P5]);
+
+  01a08	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01a0f	66 8b 76 1e	 mov	 si, WORD PTR [esi+30]
+  01a13	66 03 72 1e	 add	 si, WORD PTR [edx+30]
+  01a17	66 89 b0 c0 17
+	00 00		 mov	 WORD PTR [eax+6080], si
+
+; 1457 : 	pDph_t->curspdef[SPD_GF]  = pspSet->gain_frication	 +	(pDph_t->tunedef[voice][SPD_GF]);
+
+  01a1e	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01a25	66 8b 76 20	 mov	 si, WORD PTR [esi+32]
+  01a29	66 03 72 20	 add	 si, WORD PTR [edx+32]
+  01a2d	66 89 b0 c2 17
+	00 00		 mov	 WORD PTR [eax+6082], si
+
+; 1458 : 	pDph_t->curspdef[SPD_GH]  = pspSet->gain_aspiration	 +	(pDph_t->tunedef[voice][SPD_GH]);
+
+  01a34	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01a3b	66 8b 76 22	 mov	 si, WORD PTR [esi+34]
+  01a3f	66 03 72 22	 add	 si, WORD PTR [edx+34]
+  01a43	66 89 b0 c4 17
+	00 00		 mov	 WORD PTR [eax+6084], si
+
+; 1459 : 	pDph_t->curspdef[SPD_GV]  = pspSet->gain_voicing		 +	(pDph_t->tunedef[voice][SPD_GV]);
+
+  01a4a	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01a51	66 8b 76 24	 mov	 si, WORD PTR [esi+36]
+  01a55	66 03 72 24	 add	 si, WORD PTR [edx+36]
+  01a59	66 89 b0 c6 17
+	00 00		 mov	 WORD PTR [eax+6086], si
+
+; 1460 : 	pDph_t->curspdef[SPD_GN]  = pspSet->gain_nasalization  +	(pDph_t->tunedef[voice][SPD_GN]);
+
+  01a60	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01a67	66 8b 76 26	 mov	 si, WORD PTR [esi+38]
+  01a6b	66 03 72 26	 add	 si, WORD PTR [edx+38]
+  01a6f	66 89 b0 c8 17
+	00 00		 mov	 WORD PTR [eax+6088], si
+
+; 1461 : 	pDph_t->curspdef[SPD_G1]  = pspSet->gain_cfr1		 +	(pDph_t->tunedef[voice][SPD_G1]);
+
+  01a76	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01a7d	66 8b 76 28	 mov	 si, WORD PTR [esi+40]
+  01a81	66 03 72 28	 add	 si, WORD PTR [edx+40]
+  01a85	66 89 b0 ca 17
+	00 00		 mov	 WORD PTR [eax+6090], si
+
+; 1462 : 	pDph_t->curspdef[SPD_G2]  = pspSet->gain_cfr2		 +	(pDph_t->tunedef[voice][SPD_G2]);
+
+  01a8c	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01a93	66 8b 76 2a	 mov	 si, WORD PTR [esi+42]
+  01a97	66 03 72 2a	 add	 si, WORD PTR [edx+42]
+  01a9b	66 89 b0 cc 17
+	00 00		 mov	 WORD PTR [eax+6092], si
+
+; 1463 : 	pDph_t->curspdef[SPD_G3]  = pspSet->gain_cfr3		 +	(pDph_t->tunedef[voice][SPD_G3]);
+
+  01aa2	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01aa9	66 8b 76 2c	 mov	 si, WORD PTR [esi+44]
+  01aad	66 03 72 2c	 add	 si, WORD PTR [edx+44]
+  01ab1	66 89 b0 ce 17
+	00 00		 mov	 WORD PTR [eax+6094], si
+
+; 1464 : 	pDph_t->curspdef[SPD_G4]  = pspSet->gain_cfr4		 +	(pDph_t->tunedef[voice][SPD_G4]);
+
+  01ab8	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01abf	66 8b 76 2e	 mov	 si, WORD PTR [esi+46]
+  01ac3	66 03 72 2e	 add	 si, WORD PTR [edx+46]
+  01ac7	66 89 b0 d0 17
+	00 00		 mov	 WORD PTR [eax+6096], si
+
+; 1465 : 	pDph_t->curspdef[SPD_LO]  = pspSet->loudness			 +	(pDph_t->tunedef[voice][SPD_LO]);
+
+  01ace	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01ad5	66 8b 76 30	 mov	 si, WORD PTR [esi+48]
+  01ad9	66 03 72 30	 add	 si, WORD PTR [edx+48]
+  01add	66 89 b0 d2 17
+	00 00		 mov	 WORD PTR [eax+6098], si
+
+; 1466 : 	pDph_t->curspdef[SPD_FT]  = pspSet->spectral_tilt	 +	(pDph_t->tunedef[voice][SPD_FT]);
+
+  01ae4	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01aeb	66 8b 76 32	 mov	 si, WORD PTR [esi+50]
+  01aef	66 03 72 32	 add	 si, WORD PTR [edx+50]
+  01af3	66 89 b0 d4 17
+	00 00		 mov	 WORD PTR [eax+6100], si
+
+; 1467 : 	pDph_t->curspdef[SPD_BF]  = pspSet->baseline_fall	 +	(pDph_t->tunedef[voice][SPD_BF]);
+
+  01afa	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01b01	66 8b 76 34	 mov	 si, WORD PTR [esi+52]
+  01b05	66 03 72 34	 add	 si, WORD PTR [edx+52]
+  01b09	66 89 b0 d6 17
+	00 00		 mov	 WORD PTR [eax+6102], si
+
+; 1468 : 	pDph_t->curspdef[SPD_LX]  = pspSet->lax_breathiness	 +	(pDph_t->tunedef[voice][SPD_LX]);
+
+  01b10	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01b17	66 8b 76 36	 mov	 si, WORD PTR [esi+54]
+  01b1b	66 03 72 36	 add	 si, WORD PTR [edx+54]
+  01b1f	66 89 b0 d8 17
+	00 00		 mov	 WORD PTR [eax+6104], si
+
+; 1469 : 	pDph_t->curspdef[SPD_QU]  = pspSet->quickness		 +	(pDph_t->tunedef[voice][SPD_QU]);
+
+  01b26	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01b2d	66 8b 76 38	 mov	 si, WORD PTR [esi+56]
+  01b31	66 03 72 38	 add	 si, WORD PTR [edx+56]
+  01b35	66 89 b0 da 17
+	00 00		 mov	 WORD PTR [eax+6106], si
+
+; 1470 : 	pDph_t->curspdef[SPD_HR]  = pspSet->hat_rise			 +	(pDph_t->tunedef[voice][SPD_HR]);
+
+  01b3c	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01b43	66 8b 76 3a	 mov	 si, WORD PTR [esi+58]
+  01b47	66 03 72 3a	 add	 si, WORD PTR [edx+58]
+  01b4b	66 89 b0 dc 17
+	00 00		 mov	 WORD PTR [eax+6108], si
+
+; 1471 : 	pDph_t->curspdef[SPD_SR]  = pspSet->stress_rise		 +	(pDph_t->tunedef[voice][SPD_SR]);
+
+  01b52	8b b4 88 38 18
+	00 00		 mov	 esi, DWORD PTR [eax+ecx*4+6200]
+  01b59	66 8b 76 3c	 mov	 si, WORD PTR [esi+60]
+  01b5d	66 03 72 3c	 add	 si, WORD PTR [edx+60]
+  01b61	66 89 b0 de 17
+	00 00		 mov	 WORD PTR [eax+6110], si
+
+; 1472 : 	pDph_t->curspdef[SPD_GS]  = pspSet->glottal_speed	 +	(pDph_t->tunedef[voice][SPD_GS]);
+
+  01b68	8b 8c 88 38 18
+	00 00		 mov	 ecx, DWORD PTR [eax+ecx*4+6200]
+  01b6f	5e		 pop	 esi
+  01b70	66 8b 49 3e	 mov	 cx, WORD PTR [ecx+62]
+  01b74	66 03 4a 3e	 add	 cx, WORD PTR [edx+62]
+
+; 1473 : #if (defined (WIN32) || defined (__osf__) || defined (__linux__)) && !defined (i386)
+; 1474 : 	pDph_t->curspdef[SPD_OS]  = pspSet->output_gain_mult;
+; 1475 : #endif
+; 1476 : 
+; 1477 : 	pDph_t->loadspdef = TRUE; /* inform PH to reload the VTM on the next utterance */
+
+  01b78	c6 80 cc 18 00
+	00 01		 mov	 BYTE PTR [eax+6348], 1
+  01b7f	66 89 88 e0 17
+	00 00		 mov	 WORD PTR [eax+6112], cx
+
+; 1478 : 
+; 1479 : 	return MMSYSERR_NOERROR;
+
+  01b86	33 c0		 xor	 eax, eax
+
+; 1480 : }
+
+  01b88	c3		 ret	 0
+_SetSpeakerParams ENDP
+_TEXT	ENDS
+END

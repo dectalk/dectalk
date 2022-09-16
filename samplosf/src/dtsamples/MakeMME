@@ -1,0 +1,97 @@
+#
+# COPYRIGHT NOTICE
+#
+# Copyright (c) Digital Equipment Corporation, 1994
+# All Rights reserved. Unpublished rights reserved under the
+# copyright laws of the United States. Copyright is claimed in
+# the computer program and user interface thereof.
+#
+# The software contained on this media is proprietary to and
+# embodies the confidential technology of Digital Equipment
+# Corporation. Possession, use, duplication or dissemination of
+# the software and media is authorized only pursuant to a valid
+# written license from Digital Equipment Corporation.
+#
+# The name of Digital Equipment Corporation may not be used to endorse or
+# promote products derived from this software without specific prior
+# written permission. All other rights reserved.
+#
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OF
+# NON-INFRINGEMENT, MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+# Digital assumes no responsibility AT ALL for the use or reliability of
+# this software.
+#
+#
+# +---------------------------------------------------------------------+
+# | USE, DUPLICATION OR DISCLOSURE BY THE U.S. GOVERNMENT IS SUBJECT TO |
+# | RESTRICTIONS AS SET FORTH IN SUBPARAGRAPH (c) (1) (ii) of           |
+# | DFARS 252.227-7013, OR IN FAR 52.227-19, or in FAR 52.227-14        |
+# | ALT. III, AS APPLICABLE.                                            |
+# |                                                                     |
+# +---------------------------------------------------------------------+
+#
+# HISTORY
+#
+#
+#
+# FACILITY:  DECtalk
+#
+# FILE NAME:
+#
+# MODULE NAME:
+#
+# MODULE DESCRIPTION:
+#
+# DESIGN OVERVIEW:
+#
+#
+
+#CFLAGS = -O -Olimit 2000 -std
+CFLAGS = -O -Olimit 2000 -I/usr/include/dtk
+
+DEFINITIONS = -DDEC
+#
+# the DECtalk API library to link against
+#
+OS_LIBS = -lpthreads -lc_r -lmach
+
+#
+# the Motif API libraries to link against
+#
+MOTIF_LIBS = -lMrm -lXm -lXt -lXext -lX11
+
+#
+# UIL compiler
+#
+UIL = /usr/bin/X11/uil
+
+LINK_LIBS =  -lmme -lttsmme $(OS_LIBS)
+LINK_MEM  =  -ltts $(OS_LIBS)
+
+TARGETS = say dtmemory mailtalk  xmsay xmsay.uid
+
+all : $(TARGETS)
+
+.c.o:
+	$(CC) $(CFLAGS) $(DEFINITIONS) -c $*.c
+
+say: say.o 
+	$(CC) $(CFLAGS) -o say say.o $(LINK_LIBS) 
+
+xmsay : xmsay.o
+	ln -s /u5/users/krishna/dectalk/v42/clients/xmsay/xmsay.c /u5/users/krishna/dectalk/v42/clients/dtsamples/xmsay.c
+	$(CC) $(CFLAGS) -o xmsay xmsay.o $(LINK_LIBS) $(MOTIF_LIBS)
+
+xmsay.uid : xmsay.uil
+	$(UIL) -o xmsay.uid xmsay.uil
+
+dtmemory : dtmemory.o 
+	$(CC) $(CFLAGS) -o dtmemory dtmemory.o $(LINK_MEM) 
+
+mailtalk : mailtalk.o 
+	$(CC) $(CFLAGS) -o mailtalk mailtalk.o $(LINK_LIBS) 
+
+clean::
+	rm -f *.o $(TARGETS)
+

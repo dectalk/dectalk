@@ -1,0 +1,6322 @@
+	TITLE	D:\work\Product\dapi\src\Lts\lsa_util.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_lsa_util_pcmp
+_TEXT	SEGMENT
+_fpp$ = 8
+_lpp$ = 12
+_p$ = 16
+_p_len$ = 20
+_lsa_util_pcmp PROC NEAR
+
+; 77   :    PHONE *pp;           /* PHONE list scanner */
+; 78   :    int i;               /* loop counter */
+; 79   : 
+; 80   :    pp = fpp;
+; 81   :    for (i=0; i<p_len; i++)
+
+  00000	8b 54 24 10	 mov	 edx, DWORD PTR _p_len$[esp-4]
+  00004	8b 44 24 04	 mov	 eax, DWORD PTR _fpp$[esp-4]
+  00008	53		 push	 ebx
+  00009	33 c9		 xor	 ecx, ecx
+  0000b	56		 push	 esi
+  0000c	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  00012	57		 push	 edi
+  00013	7e 1c		 jle	 SHORT $L72545
+  00015	8b 74 24 18	 mov	 esi, DWORD PTR _p$[esp+8]
+  00019	8b 7c 24 14	 mov	 edi, DWORD PTR _lpp$[esp+8]
+$L71778:
+
+; 82   :    {
+; 83   : 	  if (pp == lpp || pp->p_sphone != p[i])
+
+  0001d	3b c7		 cmp	 eax, edi
+  0001f	74 10		 je	 SHORT $L72545
+  00021	0f be 1c 31	 movsx	 ebx, BYTE PTR [ecx+esi]
+  00025	39 58 14	 cmp	 DWORD PTR [eax+20], ebx
+  00028	75 07		 jne	 SHORT $L72545
+
+; 84   : 	 break;
+; 85   : 	  pp = pp->p_fp;
+
+  0002a	8b 00		 mov	 eax, DWORD PTR [eax]
+  0002c	41		 inc	 ecx
+  0002d	3b ca		 cmp	 ecx, edx
+  0002f	7c ec		 jl	 SHORT $L71778
+$L72545:
+
+; 86   :    }
+; 87   : 
+; 88   :    if (i != p_len) return (FALSE);
+
+  00031	33 c0		 xor	 eax, eax
+  00033	5f		 pop	 edi
+  00034	3b ca		 cmp	 ecx, edx
+  00036	5e		 pop	 esi
+  00037	5b		 pop	 ebx
+  00038	0f 94 c0	 sete	 al
+
+; 89   :    return (TRUE);
+; 90   : }
+
+  0003b	c3		 ret	 0
+_lsa_util_pcmp ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_stress_fr
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_pstype$ = 20
+_lsa_util_stress_fr PROC NEAR
+
+; 117  :    fpp = NULL;
+; 118  :    lpp = NULL;
+; 119  : 
+; 120  :    /*
+; 121  : 	* French stress is ultimate if there are only two syllables; otherwise,
+; 122  : 	* the stress is initial.
+; 123  : 	*/
+; 124  : 
+; 125  :    if (pLts_t->nsyl == 2)
+
+  00040	8b 44 24 04	 mov	 eax, DWORD PTR _pLts_t$[esp-4]
+  00044	b9 02 00 00 00	 mov	 ecx, 2
+  00049	ba 01 00 00 00	 mov	 edx, 1
+  0004e	66 39 88 30 04
+	00 00		 cmp	 WORD PTR [eax+1072], cx
+  00055	75 09		 jne	 SHORT $L71795
+
+; 126  : 	  pLts_t->psyl = pLts_t->nsyl;
+
+  00057	66 89 88 34 04
+	00 00		 mov	 WORD PTR [eax+1076], cx
+
+; 127  :    else
+
+  0005e	eb 07		 jmp	 SHORT $L71796
+$L71795:
+
+; 128  : 	  pLts_t->psyl = 1;
+
+  00060	66 89 90 34 04
+	00 00		 mov	 WORD PTR [eax+1076], dx
+$L71796:
+
+; 129  : 
+; 130  :    if (pLts_t->psyl < 1) pLts_t->psyl = 1;
+
+  00067	66 39 90 34 04
+	00 00		 cmp	 WORD PTR [eax+1076], dx
+  0006e	7d 07		 jge	 SHORT $L71797
+  00070	66 89 90 34 04
+	00 00		 mov	 WORD PTR [eax+1076], dx
+$L71797:
+
+; 131  :    pLts_t->sylp[pLts_t->psyl-1]->p_stress = pstype;
+
+  00077	0f bf 88 34 04
+	00 00		 movsx	 ecx, WORD PTR [eax+1076]
+  0007e	8b 94 88 04 04
+	00 00		 mov	 edx, DWORD PTR [eax+ecx*4+1028]
+  00085	8b 44 24 10	 mov	 eax, DWORD PTR _pstype$[esp-4]
+  00089	89 42 10	 mov	 DWORD PTR [edx+16], eax
+
+; 132  : }
+
+  0008c	c3		 ret	 0
+_lsa_util_stress_fr ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_stress_gr
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_fpp$ = 12
+_lpp$ = 16
+_pstype$ = 20
+_excep_1$ = -8
+_excep_2$ = -24
+_excep_3$ = -16
+_excep_4$ = -28
+_lsa_util_stress_gr PROC NEAR
+
+; 158  : {
+
+  00090	83 ec 1c	 sub	 esp, 28			; 0000001cH
+
+; 159  :    char excep_1[7] = {6, US_V, US_AE, US_N, US_D, US_AX, US_N};
+
+  00093	b0 05		 mov	 al, 5
+  00095	53		 push	 ebx
+  00096	56		 push	 esi
+
+; 160  :    char excep_2[6] = {5, US_V, US_AE, US_N, US_D, US_RR};
+; 161  :    char excep_3[6] = {5, US_V, US_AE, US_N, US_D, US_AX};
+; 162  :    char excep_4[4] = {3, US_V, US_AE, US_N};
+; 163  : 
+; 164  :    /*
+; 165  : 	* Germanic stress is initial, unless the first syllable is [v][@][n], in
+; 166  : 	* which case the stress is placed on the following syllable (VAN is a
+; 167  : 	* Germanic-specific stress refusing prefix).  HOWEVER, this stress 
+; 168  : 	* refuser does NOT refuse the stress if followed by a [d][x][n], [d][R],
+; 169  : 	* or [d][x].
+; 170  : 	*/
+; 171  : 
+; 172  :    if (lsa_util_pcmp (fpp, lpp, &excep_1[1], excep_1[0])
+; 173  :    ||  lsa_util_pcmp (fpp, lpp, &excep_2[1], excep_2[0])
+; 174  :    ||  lsa_util_pcmp (fpp, lpp, &excep_3[1], excep_3[0]))
+
+  00097	8b 74 24 30	 mov	 esi, DWORD PTR _lpp$[esp+32]
+  0009b	88 44 24 1e	 mov	 BYTE PTR _excep_1$[esp+38], al
+  0009f	88 44 24 0c	 mov	 BYTE PTR _excep_2$[esp+36], al
+  000a3	88 44 24 0e	 mov	 BYTE PTR _excep_2$[esp+38], al
+  000a7	88 44 24 14	 mov	 BYTE PTR _excep_3$[esp+36], al
+  000ab	88 44 24 16	 mov	 BYTE PTR _excep_3$[esp+38], al
+  000af	88 44 24 0a	 mov	 BYTE PTR _excep_4$[esp+38], al
+  000b3	57		 push	 edi
+  000b4	8b 7c 24 30	 mov	 edi, DWORD PTR _fpp$[esp+36]
+  000b8	8d 44 24 21	 lea	 eax, DWORD PTR _excep_1$[esp+41]
+  000bc	6a 06		 push	 6
+  000be	50		 push	 eax
+  000bf	b2 26		 mov	 dl, 38			; 00000026H
+  000c1	b1 20		 mov	 cl, 32			; 00000020H
+  000c3	b3 30		 mov	 bl, 48			; 00000030H
+  000c5	56		 push	 esi
+  000c6	57		 push	 edi
+  000c7	c6 44 24 30 06	 mov	 BYTE PTR _excep_1$[esp+56], 6
+  000cc	88 54 24 31	 mov	 BYTE PTR _excep_1$[esp+57], dl
+  000d0	88 4c 24 33	 mov	 BYTE PTR _excep_1$[esp+59], cl
+  000d4	88 5c 24 34	 mov	 BYTE PTR _excep_1$[esp+60], bl
+  000d8	c6 44 24 35 11	 mov	 BYTE PTR _excep_1$[esp+61], 17 ; 00000011H
+  000dd	88 4c 24 36	 mov	 BYTE PTR _excep_1$[esp+62], cl
+  000e1	88 54 24 21	 mov	 BYTE PTR _excep_2$[esp+57], dl
+  000e5	88 4c 24 23	 mov	 BYTE PTR _excep_2$[esp+59], cl
+  000e9	88 5c 24 24	 mov	 BYTE PTR _excep_2$[esp+60], bl
+  000ed	c6 44 24 25 0f	 mov	 BYTE PTR _excep_2$[esp+61], 15 ; 0000000fH
+  000f2	88 54 24 29	 mov	 BYTE PTR _excep_3$[esp+57], dl
+  000f6	88 4c 24 2b	 mov	 BYTE PTR _excep_3$[esp+59], cl
+  000fa	88 5c 24 2c	 mov	 BYTE PTR _excep_3$[esp+60], bl
+  000fe	c6 44 24 2d 11	 mov	 BYTE PTR _excep_3$[esp+61], 17 ; 00000011H
+  00103	c6 44 24 1c 03	 mov	 BYTE PTR _excep_4$[esp+56], 3
+  00108	88 54 24 1d	 mov	 BYTE PTR _excep_4$[esp+57], dl
+  0010c	88 4c 24 1f	 mov	 BYTE PTR _excep_4$[esp+59], cl
+  00110	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00115	83 c4 10	 add	 esp, 16			; 00000010H
+  00118	bb 01 00 00 00	 mov	 ebx, 1
+  0011d	85 c0		 test	 eax, eax
+  0011f	75 5d		 jne	 SHORT $L71812
+  00121	66 0f be 4c 24
+	10		 movsx	 cx, BYTE PTR _excep_2$[esp+40]
+  00127	8d 54 24 11	 lea	 edx, DWORD PTR _excep_2$[esp+41]
+  0012b	51		 push	 ecx
+  0012c	52		 push	 edx
+  0012d	56		 push	 esi
+  0012e	57		 push	 edi
+  0012f	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00134	83 c4 10	 add	 esp, 16			; 00000010H
+  00137	85 c0		 test	 eax, eax
+  00139	75 43		 jne	 SHORT $L71812
+  0013b	66 0f be 44 24
+	18		 movsx	 ax, BYTE PTR _excep_3$[esp+40]
+  00141	8d 4c 24 19	 lea	 ecx, DWORD PTR _excep_3$[esp+41]
+  00145	50		 push	 eax
+  00146	51		 push	 ecx
+  00147	56		 push	 esi
+  00148	57		 push	 edi
+  00149	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  0014e	83 c4 10	 add	 esp, 16			; 00000010H
+  00151	85 c0		 test	 eax, eax
+  00153	75 29		 jne	 SHORT $L71812
+
+; 176  :    else if (lsa_util_pcmp (fpp, lpp, &excep_4[1], excep_4[0]))
+
+  00155	66 0f be 54 24
+	0c		 movsx	 dx, BYTE PTR _excep_4$[esp+40]
+  0015b	8d 44 24 0d	 lea	 eax, DWORD PTR _excep_4$[esp+41]
+  0015f	52		 push	 edx
+  00160	50		 push	 eax
+  00161	56		 push	 esi
+  00162	57		 push	 edi
+  00163	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00168	83 c4 10	 add	 esp, 16			; 00000010H
+  0016b	85 c0		 test	 eax, eax
+
+; 177  : 	  pLts_t->psyl = 2;
+
+  0016d	8b 44 24 2c	 mov	 eax, DWORD PTR _pLts_t$[esp+36]
+  00171	74 0f		 je	 SHORT $L71814
+  00173	66 c7 80 34 04
+	00 00 02 00	 mov	 WORD PTR [eax+1076], 2
+
+; 178  :    else
+
+  0017c	eb 0b		 jmp	 SHORT $L71815
+$L71812:
+
+; 175  : 	  pLts_t->psyl = 1;
+
+  0017e	8b 44 24 2c	 mov	 eax, DWORD PTR _pLts_t$[esp+36]
+$L71814:
+  00182	66 89 98 34 04
+	00 00		 mov	 WORD PTR [eax+1076], bx
+$L71815:
+
+; 179  : 	  pLts_t->psyl = 1;
+; 180  : 
+; 181  :    if (pLts_t->psyl < 1) pLts_t->psyl = 1;
+
+  00189	66 39 98 34 04
+	00 00		 cmp	 WORD PTR [eax+1076], bx
+  00190	7d 07		 jge	 SHORT $L71816
+  00192	66 89 98 34 04
+	00 00		 mov	 WORD PTR [eax+1076], bx
+$L71816:
+
+; 182  :    pLts_t->sylp[pLts_t->psyl-1]->p_stress = pstype;
+
+  00199	0f bf 88 34 04
+	00 00		 movsx	 ecx, WORD PTR [eax+1076]
+  001a0	5f		 pop	 edi
+  001a1	5e		 pop	 esi
+  001a2	8b 94 88 04 04
+	00 00		 mov	 edx, DWORD PTR [eax+ecx*4+1028]
+  001a9	8b 44 24 30	 mov	 eax, DWORD PTR _pstype$[esp+28]
+  001ad	5b		 pop	 ebx
+  001ae	89 42 10	 mov	 DWORD PTR [edx+16], eax
+
+; 183  : }
+
+  001b1	83 c4 1c	 add	 esp, 28			; 0000001cH
+  001b4	c3		 ret	 0
+_lsa_util_stress_gr ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_stress_it
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_lpp$ = 16
+_pstype$ = 20
+_excep_1$ = -4
+_excep_2$ = -8
+_lsa_util_stress_it PROC NEAR
+
+; 209  : {
+
+  001c0	83 ec 08	 sub	 esp, 8
+  001c3	53		 push	 ebx
+  001c4	56		 push	 esi
+
+; 210  :    char excep_1[3] = {2, US_IY, US_OW};
+; 211  :    char excep_2[3] = {2, US_IY, US_AX};
+; 212  : 
+; 213  :    fpp = NULL;
+; 214  : 
+; 215  :    /*
+; 216  : 	* Italian is penultimate stress except when the word has a [i][o]
+; 217  : 	* or [i][x] suffix, in which case antepenultimate stress is used.
+; 218  : 	*/
+; 219  : 
+; 220  :    if (lsa_util_pcmp (lpp->p_bp->p_bp, lpp, &excep_1[1], excep_1[0])
+; 221  :    ||  lsa_util_pcmp (lpp->p_bp->p_bp, lpp, &excep_2[1], excep_2[0]))
+
+  001c5	8b 74 24 1c	 mov	 esi, DWORD PTR _lpp$[esp+12]
+  001c9	bb 01 00 00 00	 mov	 ebx, 1
+  001ce	8d 44 24 0d	 lea	 eax, DWORD PTR _excep_1$[esp+17]
+  001d2	c6 44 24 0c 02	 mov	 BYTE PTR _excep_1$[esp+16], 2
+  001d7	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+  001da	88 5c 24 0d	 mov	 BYTE PTR _excep_1$[esp+17], bl
+  001de	c6 44 24 0e 0b	 mov	 BYTE PTR _excep_1$[esp+18], 11 ; 0000000bH
+  001e3	c6 44 24 08 02	 mov	 BYTE PTR _excep_2$[esp+16], 2
+  001e8	88 5c 24 09	 mov	 BYTE PTR _excep_2$[esp+17], bl
+  001ec	c6 44 24 0a 11	 mov	 BYTE PTR _excep_2$[esp+18], 17 ; 00000011H
+  001f1	8b 51 04	 mov	 edx, DWORD PTR [ecx+4]
+  001f4	6a 02		 push	 2
+  001f6	50		 push	 eax
+  001f7	56		 push	 esi
+  001f8	52		 push	 edx
+  001f9	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  001fe	83 c4 10	 add	 esp, 16			; 00000010H
+  00201	85 c0		 test	 eax, eax
+  00203	75 36		 jne	 SHORT $L71830
+  00205	66 0f be 44 24
+	08		 movsx	 ax, BYTE PTR _excep_2$[esp+16]
+  0020b	8b 56 04	 mov	 edx, DWORD PTR [esi+4]
+  0020e	8d 4c 24 09	 lea	 ecx, DWORD PTR _excep_2$[esp+17]
+  00212	50		 push	 eax
+  00213	51		 push	 ecx
+  00214	8b 42 04	 mov	 eax, DWORD PTR [edx+4]
+  00217	56		 push	 esi
+  00218	50		 push	 eax
+  00219	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  0021e	83 c4 10	 add	 esp, 16			; 00000010H
+  00221	85 c0		 test	 eax, eax
+  00223	75 16		 jne	 SHORT $L71830
+
+; 223  :    else
+; 224  : 	  pLts_t->psyl = pLts_t->nsyl - 1;
+
+  00225	8b 44 24 14	 mov	 eax, DWORD PTR _pLts_t$[esp+12]
+  00229	66 8b 88 30 04
+	00 00		 mov	 cx, WORD PTR [eax+1072]
+  00230	66 49		 dec	 cx
+  00232	66 89 88 34 04
+	00 00		 mov	 WORD PTR [eax+1076], cx
+  00239	eb 16		 jmp	 SHORT $L71831
+$L71830:
+
+; 222  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+
+  0023b	8b 44 24 14	 mov	 eax, DWORD PTR _pLts_t$[esp+12]
+  0023f	66 8b 90 30 04
+	00 00		 mov	 dx, WORD PTR [eax+1072]
+  00246	66 83 ea 02	 sub	 dx, 2
+  0024a	66 89 90 34 04
+	00 00		 mov	 WORD PTR [eax+1076], dx
+$L71831:
+
+; 225  : 
+; 226  :    if (pLts_t->psyl < 1) pLts_t->psyl = 1;
+
+  00251	66 39 98 34 04
+	00 00		 cmp	 WORD PTR [eax+1076], bx
+  00258	7d 07		 jge	 SHORT $L71832
+  0025a	66 89 98 34 04
+	00 00		 mov	 WORD PTR [eax+1076], bx
+$L71832:
+
+; 227  :    pLts_t->sylp[pLts_t->psyl-1]->p_stress = pstype;
+
+  00261	0f bf 88 34 04
+	00 00		 movsx	 ecx, WORD PTR [eax+1076]
+  00268	5e		 pop	 esi
+  00269	5b		 pop	 ebx
+  0026a	8b 94 88 04 04
+	00 00		 mov	 edx, DWORD PTR [eax+ecx*4+1028]
+  00271	8b 44 24 18	 mov	 eax, DWORD PTR _pstype$[esp+4]
+  00275	89 42 10	 mov	 DWORD PTR [edx+16], eax
+
+; 228  : }
+
+  00278	83 c4 08	 add	 esp, 8
+  0027b	c3		 ret	 0
+_lsa_util_stress_it ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_stress_ja
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_pstype$ = 20
+_lsa_util_stress_ja PROC NEAR
+
+; 255  :    fpp = NULL;
+; 256  :    lpp = NULL;
+; 257  : 
+; 258  :    /*
+; 259  : 	* Japanese is always penultimate stress.
+; 260  : 	*/
+; 261  : 
+; 262  :    pLts_t->psyl = pLts_t->nsyl - 1;
+
+  00280	8b 4c 24 04	 mov	 ecx, DWORD PTR _pLts_t$[esp-4]
+  00284	66 8b 81 30 04
+	00 00		 mov	 ax, WORD PTR [ecx+1072]
+  0028b	66 48		 dec	 ax
+
+; 263  :    if (pLts_t->psyl < 1) pLts_t->psyl = 1;
+
+  0028d	66 3d 01 00	 cmp	 ax, 1
+  00291	66 89 81 34 04
+	00 00		 mov	 WORD PTR [ecx+1076], ax
+  00298	7d 09		 jge	 SHORT $L71844
+  0029a	66 c7 81 34 04
+	00 00 01 00	 mov	 WORD PTR [ecx+1076], 1
+$L71844:
+
+; 264  :    pLts_t->sylp[pLts_t->psyl-1]->p_stress = pstype;
+
+  002a3	0f bf 81 34 04
+	00 00		 movsx	 eax, WORD PTR [ecx+1076]
+  002aa	8b 54 24 10	 mov	 edx, DWORD PTR _pstype$[esp-4]
+  002ae	8b 8c 81 04 04
+	00 00		 mov	 ecx, DWORD PTR [ecx+eax*4+1028]
+  002b5	89 51 10	 mov	 DWORD PTR [ecx+16], edx
+
+; 265  : }
+
+  002b8	c3		 ret	 0
+_lsa_util_stress_ja ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_stress_sl
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_lpp$ = 16
+_pstype$ = 20
+_excep_1$ = -20
+_excep_2$ = -44
+_excep_3$ = -16
+_excep_4$ = -40
+_excep_5$ = -36
+_excep_6$ = -32
+_excep_7$ = -28
+_excep_8$ = -48
+_excep_9$ = -8
+_excep_10$ = -24
+_lsa_util_stress_sl PROC NEAR
+
+; 292  : {
+
+  002c0	83 ec 30	 sub	 esp, 48			; 00000030H
+  002c3	53		 push	 ebx
+  002c4	56		 push	 esi
+
+; 293  :    PHONE *pp;               /* pointer to 3rd to last phoneme */
+; 294  :    char excep_1[4]  = {3, US_V , US_IH, US_CH};
+; 295  :    char excep_2[4]  = {3, US_W , US_IH, US_CH};
+; 296  :    char excep_3[5]  = {4, US_V , US_IH, US_T, US_S};
+; 297  :    char excep_4[4]  = {3, US_CH, US_AE, US_K};
+; 298  :    char excep_5[4]  = {3, US_CH, US_EH, US_K};
+; 299  :    char excep_6[4]  = {3, US_CH, US_UH, US_K};
+; 300  :    char excep_7[4]  = {3, US_CH, US_IH, US_K};
+; 301  :    char excep_8[3]  = {2, US_AO, US_F};
+; 302  :    char excep_9[5]  = {4, US_W,  US_IH, US_T, US_S};
+; 303  :    char excep_10[4] = {3, US_IY, US_AE, US_K};
+; 304  : 
+; 305  :    fpp = NULL;
+; 306  : 
+; 307  :    /*
+; 308  : 	* Slavic is penultimate stress except when the word has one of the
+; 309  : 	* following suffixes, in which case antepenultimate stress is used:
+; 310  : 	*
+; 311  : 	* [v][I][C]     -VITCH, -VICH
+; 312  : 	* [w][I][C]     -WITCH
+; 313  : 	* [v][I][t][s]  -VITZ
+; 314  : 	* [C][@][k]     -CZAK
+; 315  : 	* [C][E][k]     -CZEK
+; 316  : 	* [C][U][k]     -CZUK
+; 317  : 	* [C][I][k]     -CYK
+; 318  : 	* [c][f]        -OW
+; 319  : 	* [w][I][t][s]  -WITZ
+; 320  : 	* [i][@][k]     -IAC
+; 321  : 	*/
+; 322  : 
+; 323  :    pp = lpp->p_bp->p_bp->p_bp;
+
+  002c5	8b 74 24 44	 mov	 esi, DWORD PTR _lpp$[esp+52]
+  002c9	b2 26		 mov	 dl, 38			; 00000026H
+  002cb	b1 36		 mov	 cl, 54			; 00000036H
+  002cd	88 54 24 25	 mov	 BYTE PTR _excep_1$[esp+57], dl
+  002d1	88 4c 24 27	 mov	 BYTE PTR _excep_1$[esp+59], cl
+  002d5	88 4c 24 0f	 mov	 BYTE PTR _excep_2$[esp+59], cl
+  002d9	88 54 24 29	 mov	 BYTE PTR _excep_3$[esp+57], dl
+  002dd	88 4c 24 11	 mov	 BYTE PTR _excep_4$[esp+57], cl
+  002e1	88 4c 24 15	 mov	 BYTE PTR _excep_5$[esp+57], cl
+  002e5	88 4c 24 19	 mov	 BYTE PTR _excep_6$[esp+57], cl
+  002e9	88 4c 24 1d	 mov	 BYTE PTR _excep_7$[esp+57], cl
+  002ed	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+  002f0	b8 03 00 00 00	 mov	 eax, 3
+  002f5	bb 02 00 00 00	 mov	 ebx, 2
+  002fa	b2 31		 mov	 dl, 49			; 00000031H
+  002fc	57		 push	 edi
+  002fd	88 44 24 28	 mov	 BYTE PTR _excep_1$[esp+60], al
+  00301	88 5c 24 2a	 mov	 BYTE PTR _excep_1$[esp+62], bl
+  00305	88 44 24 10	 mov	 BYTE PTR _excep_2$[esp+60], al
+  00309	c6 44 24 11 18	 mov	 BYTE PTR _excep_2$[esp+61], 24 ; 00000018H
+  0030e	88 5c 24 12	 mov	 BYTE PTR _excep_2$[esp+62], bl
+  00312	c6 44 24 2c 04	 mov	 BYTE PTR _excep_3$[esp+60], 4
+  00317	88 5c 24 2e	 mov	 BYTE PTR _excep_3$[esp+62], bl
+  0031b	c6 44 24 2f 2f	 mov	 BYTE PTR _excep_3$[esp+63], 47 ; 0000002fH
+  00320	c6 44 24 30 29	 mov	 BYTE PTR _excep_3$[esp+64], 41 ; 00000029H
+  00325	88 44 24 14	 mov	 BYTE PTR _excep_4$[esp+60], al
+  00329	c6 44 24 16 05	 mov	 BYTE PTR _excep_4$[esp+62], 5
+  0032e	88 54 24 17	 mov	 BYTE PTR _excep_4$[esp+63], dl
+  00332	88 44 24 18	 mov	 BYTE PTR _excep_5$[esp+60], al
+  00336	c6 44 24 1a 04	 mov	 BYTE PTR _excep_5$[esp+62], 4
+  0033b	88 54 24 1b	 mov	 BYTE PTR _excep_5$[esp+63], dl
+  0033f	88 44 24 1c	 mov	 BYTE PTR _excep_6$[esp+60], al
+  00343	c6 44 24 1e 0d	 mov	 BYTE PTR _excep_6$[esp+62], 13 ; 0000000dH
+  00348	88 54 24 1f	 mov	 BYTE PTR _excep_6$[esp+63], dl
+  0034c	88 44 24 20	 mov	 BYTE PTR _excep_7$[esp+60], al
+  00350	88 5c 24 22	 mov	 BYTE PTR _excep_7$[esp+62], bl
+  00354	88 54 24 23	 mov	 BYTE PTR _excep_7$[esp+63], dl
+  00358	88 5c 24 0c	 mov	 BYTE PTR _excep_8$[esp+60], bl
+  0035c	c6 44 24 0d 0a	 mov	 BYTE PTR _excep_8$[esp+61], 10 ; 0000000aH
+  00361	c6 44 24 0e 25	 mov	 BYTE PTR _excep_8$[esp+62], 37 ; 00000025H
+  00366	c6 44 24 34 04	 mov	 BYTE PTR _excep_9$[esp+60], 4
+  0036b	c6 44 24 35 18	 mov	 BYTE PTR _excep_9$[esp+61], 24 ; 00000018H
+  00370	88 5c 24 36	 mov	 BYTE PTR _excep_9$[esp+62], bl
+  00374	c6 44 24 37 2f	 mov	 BYTE PTR _excep_9$[esp+63], 47 ; 0000002fH
+  00379	c6 44 24 38 29	 mov	 BYTE PTR _excep_9$[esp+64], 41 ; 00000029H
+  0037e	88 44 24 24	 mov	 BYTE PTR _excep_10$[esp+60], al
+  00382	c6 44 24 25 01	 mov	 BYTE PTR _excep_10$[esp+61], 1
+  00387	c6 44 24 26 05	 mov	 BYTE PTR _excep_10$[esp+62], 5
+  0038c	88 54 24 27	 mov	 BYTE PTR _excep_10$[esp+63], dl
+  00390	8b 51 04	 mov	 edx, DWORD PTR [ecx+4]
+
+; 324  :    if (lsa_util_pcmp (pp      , lpp, &excep_1[1], excep_1[0]))
+
+  00393	50		 push	 eax
+  00394	8d 44 24 2d	 lea	 eax, DWORD PTR _excep_1$[esp+65]
+  00398	8b 7a 04	 mov	 edi, DWORD PTR [edx+4]
+  0039b	50		 push	 eax
+  0039c	56		 push	 esi
+  0039d	57		 push	 edi
+  0039e	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  003a3	83 c4 10	 add	 esp, 16			; 00000010H
+  003a6	85 c0		 test	 eax, eax
+  003a8	74 13		 je	 SHORT $L71866
+
+; 325  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+
+  003aa	8b 44 24 40	 mov	 eax, DWORD PTR _pLts_t$[esp+56]
+  003ae	66 8b 88 30 04
+	00 00		 mov	 cx, WORD PTR [eax+1072]
+  003b5	66 2b cb	 sub	 cx, bx
+
+; 326  :    else if (lsa_util_pcmp (pp      , lpp, &excep_2[1], excep_2[0]))
+
+  003b8	e9 48 01 00 00	 jmp	 $L72552
+$L71866:
+  003bd	66 0f be 54 24
+	10		 movsx	 dx, BYTE PTR _excep_2$[esp+60]
+  003c3	8d 44 24 11	 lea	 eax, DWORD PTR _excep_2$[esp+61]
+  003c7	52		 push	 edx
+  003c8	50		 push	 eax
+  003c9	56		 push	 esi
+  003ca	57		 push	 edi
+  003cb	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  003d0	83 c4 10	 add	 esp, 16			; 00000010H
+  003d3	85 c0		 test	 eax, eax
+  003d5	74 13		 je	 SHORT $L71868
+
+; 327  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+
+  003d7	8b 44 24 40	 mov	 eax, DWORD PTR _pLts_t$[esp+56]
+  003db	66 8b 88 30 04
+	00 00		 mov	 cx, WORD PTR [eax+1072]
+  003e2	66 2b cb	 sub	 cx, bx
+
+; 328  :    else if (lsa_util_pcmp (pp->p_bp, lpp, &excep_3[1], excep_3[0]))
+
+  003e5	e9 1b 01 00 00	 jmp	 $L72552
+$L71868:
+  003ea	66 0f be 54 24
+	2c		 movsx	 dx, BYTE PTR _excep_3$[esp+60]
+  003f0	8b 4f 04	 mov	 ecx, DWORD PTR [edi+4]
+  003f3	8d 44 24 2d	 lea	 eax, DWORD PTR _excep_3$[esp+61]
+  003f7	52		 push	 edx
+  003f8	50		 push	 eax
+  003f9	56		 push	 esi
+  003fa	51		 push	 ecx
+  003fb	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00400	83 c4 10	 add	 esp, 16			; 00000010H
+  00403	85 c0		 test	 eax, eax
+  00405	74 1a		 je	 SHORT $L71870
+$L72553:
+
+; 329  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+
+  00407	8b 44 24 40	 mov	 eax, DWORD PTR _pLts_t$[esp+56]
+$L72554:
+  0040b	66 8b 90 30 04
+	00 00		 mov	 dx, WORD PTR [eax+1072]
+  00412	66 2b d3	 sub	 dx, bx
+  00415	66 89 90 34 04
+	00 00		 mov	 WORD PTR [eax+1076], dx
+
+; 330  :    else if (lsa_util_pcmp (pp      , lpp, &excep_4[1], excep_4[0]))
+
+  0041c	e9 eb 00 00 00	 jmp	 $L71885
+$L71870:
+  00421	66 0f be 44 24
+	14		 movsx	 ax, BYTE PTR _excep_4$[esp+60]
+  00427	8d 4c 24 15	 lea	 ecx, DWORD PTR _excep_4$[esp+61]
+  0042b	50		 push	 eax
+  0042c	51		 push	 ecx
+  0042d	56		 push	 esi
+  0042e	57		 push	 edi
+  0042f	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00434	83 c4 10	 add	 esp, 16			; 00000010H
+  00437	85 c0		 test	 eax, eax
+
+; 331  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+; 332  :    else if (lsa_util_pcmp (pp      , lpp, &excep_5[1], excep_5[0]))
+
+  00439	75 cc		 jne	 SHORT $L72553
+  0043b	66 0f be 44 24
+	18		 movsx	 ax, BYTE PTR _excep_5$[esp+60]
+  00441	8d 4c 24 19	 lea	 ecx, DWORD PTR _excep_5$[esp+61]
+  00445	50		 push	 eax
+  00446	51		 push	 ecx
+  00447	56		 push	 esi
+  00448	57		 push	 edi
+  00449	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  0044e	83 c4 10	 add	 esp, 16			; 00000010H
+  00451	85 c0		 test	 eax, eax
+
+; 333  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+; 334  :    else if (lsa_util_pcmp (pp      , lpp, &excep_6[1], excep_6[0]))
+
+  00453	75 b2		 jne	 SHORT $L72553
+  00455	66 0f be 44 24
+	1c		 movsx	 ax, BYTE PTR _excep_6$[esp+60]
+  0045b	8d 4c 24 1d	 lea	 ecx, DWORD PTR _excep_6$[esp+61]
+  0045f	50		 push	 eax
+  00460	51		 push	 ecx
+  00461	56		 push	 esi
+  00462	57		 push	 edi
+  00463	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00468	83 c4 10	 add	 esp, 16			; 00000010H
+  0046b	85 c0		 test	 eax, eax
+
+; 335  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+; 336  :    else if (lsa_util_pcmp (pp      , lpp, &excep_7[1], excep_7[0]))
+
+  0046d	75 98		 jne	 SHORT $L72553
+  0046f	66 0f be 44 24
+	20		 movsx	 ax, BYTE PTR _excep_7$[esp+60]
+  00475	8d 4c 24 21	 lea	 ecx, DWORD PTR _excep_7$[esp+61]
+  00479	50		 push	 eax
+  0047a	51		 push	 ecx
+  0047b	56		 push	 esi
+  0047c	57		 push	 edi
+  0047d	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00482	83 c4 10	 add	 esp, 16			; 00000010H
+  00485	85 c0		 test	 eax, eax
+
+; 337  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+; 338  :    else if (lsa_util_pcmp (pp->p_fp, lpp, &excep_8[1], excep_8[0]))
+
+  00487	0f 85 7a ff ff
+	ff		 jne	 $L72553
+  0048d	66 0f be 44 24
+	0c		 movsx	 ax, BYTE PTR _excep_8$[esp+60]
+  00493	8b 17		 mov	 edx, DWORD PTR [edi]
+  00495	8d 4c 24 0d	 lea	 ecx, DWORD PTR _excep_8$[esp+61]
+  00499	50		 push	 eax
+  0049a	51		 push	 ecx
+  0049b	56		 push	 esi
+  0049c	52		 push	 edx
+  0049d	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  004a2	83 c4 10	 add	 esp, 16			; 00000010H
+  004a5	85 c0		 test	 eax, eax
+  004a7	74 10		 je	 SHORT $L71880
+
+; 339  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+
+  004a9	8b 44 24 40	 mov	 eax, DWORD PTR _pLts_t$[esp+56]
+  004ad	66 8b 88 30 04
+	00 00		 mov	 cx, WORD PTR [eax+1072]
+  004b4	66 2b cb	 sub	 cx, bx
+
+; 340  :    else if (lsa_util_pcmp (pp->p_bp, lpp, &excep_9[1], excep_9[0]))
+
+  004b7	eb 4c		 jmp	 SHORT $L72552
+$L71880:
+  004b9	66 0f be 54 24
+	34		 movsx	 dx, BYTE PTR _excep_9$[esp+60]
+  004bf	8b 4f 04	 mov	 ecx, DWORD PTR [edi+4]
+  004c2	8d 44 24 35	 lea	 eax, DWORD PTR _excep_9$[esp+61]
+  004c6	52		 push	 edx
+  004c7	50		 push	 eax
+  004c8	56		 push	 esi
+  004c9	51		 push	 ecx
+  004ca	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  004cf	83 c4 10	 add	 esp, 16			; 00000010H
+  004d2	85 c0		 test	 eax, eax
+
+; 341  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+; 342  :    else if (lsa_util_pcmp (pp      , lpp, &excep_10[1], excep_10[0]))
+
+  004d4	0f 85 2d ff ff
+	ff		 jne	 $L72553
+  004da	66 0f be 44 24
+	24		 movsx	 ax, BYTE PTR _excep_10$[esp+60]
+  004e0	8d 4c 24 25	 lea	 ecx, DWORD PTR _excep_10$[esp+61]
+  004e4	50		 push	 eax
+  004e5	51		 push	 ecx
+  004e6	56		 push	 esi
+  004e7	57		 push	 edi
+  004e8	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  004ed	83 c4 10	 add	 esp, 16			; 00000010H
+  004f0	85 c0		 test	 eax, eax
+
+; 343  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+
+  004f2	8b 44 24 40	 mov	 eax, DWORD PTR _pLts_t$[esp+56]
+
+; 344  :    else
+
+  004f6	0f 85 0f ff ff
+	ff		 jne	 $L72554
+
+; 345  : 	  pLts_t->psyl = pLts_t->nsyl - 1;
+
+  004fc	66 8b 88 30 04
+	00 00		 mov	 cx, WORD PTR [eax+1072]
+  00503	66 49		 dec	 cx
+$L72552:
+  00505	66 89 88 34 04
+	00 00		 mov	 WORD PTR [eax+1076], cx
+$L71885:
+
+; 346  : 
+; 347  :    if (pLts_t->psyl < 1) pLts_t->psyl = 1;
+
+  0050c	b9 01 00 00 00	 mov	 ecx, 1
+  00511	5f		 pop	 edi
+  00512	66 39 88 34 04
+	00 00		 cmp	 WORD PTR [eax+1076], cx
+  00519	5e		 pop	 esi
+  0051a	5b		 pop	 ebx
+  0051b	7d 07		 jge	 SHORT $L71886
+  0051d	66 89 88 34 04
+	00 00		 mov	 WORD PTR [eax+1076], cx
+$L71886:
+
+; 348  :    pLts_t->sylp[pLts_t->psyl-1]->p_stress = pstype;
+
+  00524	0f bf 90 34 04
+	00 00		 movsx	 edx, WORD PTR [eax+1076]
+  0052b	8b 4c 24 40	 mov	 ecx, DWORD PTR _pstype$[esp+44]
+  0052f	8b 84 90 04 04
+	00 00		 mov	 eax, DWORD PTR [eax+edx*4+1028]
+  00536	89 48 10	 mov	 DWORD PTR [eax+16], ecx
+
+; 349  : }
+
+  00539	83 c4 30	 add	 esp, 48			; 00000030H
+  0053c	c3		 ret	 0
+_lsa_util_stress_sl ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_stress_sp
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_lpp$ = 16
+_pstype$ = 20
+_excep_1$ = -14
+_excep_2$ = -20
+_excep_3$ = -18
+_excep_4$ = -16
+_excep_5$ = -12
+_excep_6$ = -8
+_excep_7$ = -4
+_lsa_util_stress_sp PROC NEAR
+
+; 376  : {
+
+  00540	83 ec 14	 sub	 esp, 20			; 00000014H
+  00543	53		 push	 ebx
+  00544	55		 push	 ebp
+  00545	56		 push	 esi
+
+; 377  :    PHONE *pp;               /* temporary pointer */
+; 378  :    char excep_1[2] = {1, US_R};
+; 379  :    char excep_2[2] = {1, US_LL};
+; 380  :    char excep_3[2] = {1, US_N};
+; 381  :    char excep_4[2] = {1, US_D};
+; 382  :    char excep_5[3] = {2, US_EH, US_Z};
+; 383  :    char excep_6[3] = {2, US_IY, US_OW};
+; 384  :    char excep_7[3] = {2, US_IY, US_AX};
+; 385  : 
+; 386  :    fpp = NULL;
+; 387  : 
+; 388  :    /*
+; 389  : 	* Spanish is penultimate; however, the following exceptions apply:
+; 390  : 	*
+; 391  : 	* 1)  Use ultimate stress if the word ends in [r], [n], [l], or [d];
+; 392  : 	*
+; 393  : 	* 2)  Use ultimate stress if the word is exactly two syllables and
+; 394  : 	*     ends in [E][z];
+; 395  : 	*
+; 396  : 	* 3)  Use antepenultimate stress if the word ends in [i][o] or [i][x].
+; 397  : 	*/
+; 398  : 
+; 399  :    pp = lpp->p_bp;
+
+  00546	8b 74 24 2c	 mov	 esi, DWORD PTR _lpp$[esp+28]
+  0054a	bb 01 00 00 00	 mov	 ebx, 1
+  0054f	57		 push	 edi
+  00550	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+
+; 400  :    if (lsa_util_pcmp (pp, lpp, &excep_1[1], excep_1[0])
+; 401  :    ||  lsa_util_pcmp (pp, lpp, &excep_2[1], excep_2[0])
+; 402  :    ||  lsa_util_pcmp (pp, lpp, &excep_3[1], excep_3[0])
+; 403  :    ||  lsa_util_pcmp (pp, lpp, &excep_4[1], excep_4[0]))
+
+  00553	8d 44 24 17	 lea	 eax, DWORD PTR _excep_1$[esp+37]
+  00557	53		 push	 ebx
+  00558	50		 push	 eax
+  00559	56		 push	 esi
+  0055a	57		 push	 edi
+  0055b	88 5c 24 26	 mov	 BYTE PTR _excep_1$[esp+52], bl
+  0055f	c6 44 24 27 1a	 mov	 BYTE PTR _excep_1$[esp+53], 26 ; 0000001aH
+  00564	88 5c 24 20	 mov	 BYTE PTR _excep_2$[esp+52], bl
+  00568	c6 44 24 21 1b	 mov	 BYTE PTR _excep_2$[esp+53], 27 ; 0000001bH
+  0056d	88 5c 24 22	 mov	 BYTE PTR _excep_3$[esp+52], bl
+  00571	c6 44 24 23 20	 mov	 BYTE PTR _excep_3$[esp+53], 32 ; 00000020H
+  00576	88 5c 24 24	 mov	 BYTE PTR _excep_4$[esp+52], bl
+  0057a	c6 44 24 25 30	 mov	 BYTE PTR _excep_4$[esp+53], 48 ; 00000030H
+  0057f	c6 44 24 28 02	 mov	 BYTE PTR _excep_5$[esp+52], 2
+  00584	c6 44 24 29 04	 mov	 BYTE PTR _excep_5$[esp+53], 4
+  00589	c6 44 24 2a 2a	 mov	 BYTE PTR _excep_5$[esp+54], 42 ; 0000002aH
+  0058e	c6 44 24 2c 02	 mov	 BYTE PTR _excep_6$[esp+52], 2
+  00593	88 5c 24 2d	 mov	 BYTE PTR _excep_6$[esp+53], bl
+  00597	c6 44 24 2e 0b	 mov	 BYTE PTR _excep_6$[esp+54], 11 ; 0000000bH
+  0059c	c6 44 24 30 02	 mov	 BYTE PTR _excep_7$[esp+52], 2
+  005a1	88 5c 24 31	 mov	 BYTE PTR _excep_7$[esp+53], bl
+  005a5	c6 44 24 32 11	 mov	 BYTE PTR _excep_7$[esp+54], 17 ; 00000011H
+  005aa	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  005af	83 c4 10	 add	 esp, 16			; 00000010H
+  005b2	85 c0		 test	 eax, eax
+  005b4	0f 85 e5 00 00
+	00		 jne	 $L71906
+  005ba	66 0f be 4c 24
+	10		 movsx	 cx, BYTE PTR _excep_2$[esp+36]
+  005c0	8d 54 24 11	 lea	 edx, DWORD PTR _excep_2$[esp+37]
+  005c4	51		 push	 ecx
+  005c5	52		 push	 edx
+  005c6	56		 push	 esi
+  005c7	57		 push	 edi
+  005c8	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  005cd	83 c4 10	 add	 esp, 16			; 00000010H
+  005d0	85 c0		 test	 eax, eax
+  005d2	0f 85 c7 00 00
+	00		 jne	 $L71906
+  005d8	66 0f be 44 24
+	12		 movsx	 ax, BYTE PTR _excep_3$[esp+36]
+  005de	8d 4c 24 13	 lea	 ecx, DWORD PTR _excep_3$[esp+37]
+  005e2	50		 push	 eax
+  005e3	51		 push	 ecx
+  005e4	56		 push	 esi
+  005e5	57		 push	 edi
+  005e6	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  005eb	83 c4 10	 add	 esp, 16			; 00000010H
+  005ee	85 c0		 test	 eax, eax
+  005f0	0f 85 a9 00 00
+	00		 jne	 $L71906
+  005f6	66 0f be 54 24
+	14		 movsx	 dx, BYTE PTR _excep_4$[esp+36]
+  005fc	8d 44 24 15	 lea	 eax, DWORD PTR _excep_4$[esp+37]
+  00600	52		 push	 edx
+  00601	50		 push	 eax
+  00602	56		 push	 esi
+  00603	57		 push	 edi
+  00604	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00609	83 c4 10	 add	 esp, 16			; 00000010H
+  0060c	85 c0		 test	 eax, eax
+  0060e	0f 85 8b 00 00
+	00		 jne	 $L71906
+
+; 405  :    else if (pLts_t->nsyl == 2 && lsa_util_pcmp (pp->p_bp, lpp, &excep_5[1], excep_5[0]))
+
+  00614	8b 6c 24 28	 mov	 ebp, DWORD PTR _pLts_t$[esp+32]
+  00618	66 83 bd 30 04
+	00 00 02	 cmp	 WORD PTR [ebp+1072], 2
+  00620	75 1d		 jne	 SHORT $L71908
+  00622	66 0f be 4c 24
+	18		 movsx	 cx, BYTE PTR _excep_5$[esp+36]
+  00628	8b 47 04	 mov	 eax, DWORD PTR [edi+4]
+  0062b	8d 54 24 19	 lea	 edx, DWORD PTR _excep_5$[esp+37]
+  0062f	51		 push	 ecx
+  00630	52		 push	 edx
+  00631	56		 push	 esi
+  00632	50		 push	 eax
+  00633	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00638	83 c4 10	 add	 esp, 16			; 00000010H
+  0063b	85 c0		 test	 eax, eax
+
+; 406  : 	  pLts_t->psyl = pLts_t->nsyl;
+; 407  :    else if (lsa_util_pcmp (pp->p_bp, lpp, &excep_6[1], excep_6[0])
+
+  0063d	75 64		 jne	 SHORT $L72556
+$L71908:
+
+; 408  :    ||       lsa_util_pcmp (pp->p_bp, lpp, &excep_7[1], excep_7[0]))
+
+  0063f	66 0f be 54 24
+	1c		 movsx	 dx, BYTE PTR _excep_6$[esp+36]
+  00645	8b 4f 04	 mov	 ecx, DWORD PTR [edi+4]
+  00648	8d 44 24 1d	 lea	 eax, DWORD PTR _excep_6$[esp+37]
+  0064c	52		 push	 edx
+  0064d	50		 push	 eax
+  0064e	56		 push	 esi
+  0064f	51		 push	 ecx
+  00650	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00655	83 c4 10	 add	 esp, 16			; 00000010H
+  00658	85 c0		 test	 eax, eax
+  0065a	75 2f		 jne	 SHORT $L71911
+  0065c	66 0f be 54 24
+	20		 movsx	 dx, BYTE PTR _excep_7$[esp+36]
+  00662	8b 4f 04	 mov	 ecx, DWORD PTR [edi+4]
+  00665	8d 44 24 21	 lea	 eax, DWORD PTR _excep_7$[esp+37]
+  00669	52		 push	 edx
+  0066a	50		 push	 eax
+  0066b	56		 push	 esi
+  0066c	51		 push	 ecx
+  0066d	e8 00 00 00 00	 call	 _lsa_util_pcmp
+  00672	83 c4 10	 add	 esp, 16			; 00000010H
+  00675	85 c0		 test	 eax, eax
+  00677	75 12		 jne	 SHORT $L71911
+
+; 411  : 	  pLts_t->psyl = pLts_t->nsyl - 1;
+
+  00679	66 8b 95 30 04
+	00 00		 mov	 dx, WORD PTR [ebp+1072]
+  00680	66 4a		 dec	 dx
+  00682	66 89 95 34 04
+	00 00		 mov	 WORD PTR [ebp+1076], dx
+  00689	eb 26		 jmp	 SHORT $L71912
+$L71911:
+
+; 409  : 	  pLts_t->psyl = pLts_t->nsyl - 2;
+
+  0068b	66 8b 85 30 04
+	00 00		 mov	 ax, WORD PTR [ebp+1072]
+  00692	66 2d 02 00	 sub	 ax, 2
+  00696	66 89 85 34 04
+	00 00		 mov	 WORD PTR [ebp+1076], ax
+
+; 410  :    else
+
+  0069d	eb 12		 jmp	 SHORT $L71912
+$L71906:
+
+; 404  : 	  pLts_t->psyl = pLts_t->nsyl;
+
+  0069f	8b 6c 24 28	 mov	 ebp, DWORD PTR _pLts_t$[esp+32]
+$L72556:
+  006a3	66 8b 8d 30 04
+	00 00		 mov	 cx, WORD PTR [ebp+1072]
+  006aa	66 89 8d 34 04
+	00 00		 mov	 WORD PTR [ebp+1076], cx
+$L71912:
+
+; 412  : 
+; 413  :    if (pLts_t->psyl < 1) pLts_t->psyl = 1;
+
+  006b1	66 39 9d 34 04
+	00 00		 cmp	 WORD PTR [ebp+1076], bx
+  006b8	7d 07		 jge	 SHORT $L71913
+  006ba	66 89 9d 34 04
+	00 00		 mov	 WORD PTR [ebp+1076], bx
+$L71913:
+
+; 414  :    pLts_t->sylp[pLts_t->psyl-1]->p_stress = pstype;
+
+  006c1	0f bf 95 34 04
+	00 00		 movsx	 edx, WORD PTR [ebp+1076]
+  006c8	8b 4c 24 34	 mov	 ecx, DWORD PTR _pstype$[esp+32]
+  006cc	5f		 pop	 edi
+  006cd	8b 84 95 04 04
+	00 00		 mov	 eax, DWORD PTR [ebp+edx*4+1028]
+  006d4	5e		 pop	 esi
+  006d5	5d		 pop	 ebp
+  006d6	5b		 pop	 ebx
+  006d7	89 48 10	 mov	 DWORD PTR [eax+16], ecx
+
+; 415  : }
+
+  006da	83 c4 14	 add	 esp, 20			; 00000014H
+  006dd	c3		 ret	 0
+_lsa_util_stress_sp ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_init_lang
+EXTRN	_english:BYTE
+EXTRN	_irish:BYTE
+EXTRN	_japan:BYTE
+EXTRN	_french:BYTE
+EXTRN	_german:BYTE
+EXTRN	_slavic:BYTE
+EXTRN	_italian:BYTE
+EXTRN	_spanish:BYTE
+EXTRN	_lp:BYTE
+_TEXT	SEGMENT
+_lsa_util_init_lang PROC NEAR
+
+; 433  : 	lp[0].tri_grams = spanish;
+
+  006e0	c7 05 00 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp, OFFSET FLAT:_spanish
+
+; 434  : 	lp[0].name_type = NAME_SPANISH;
+
+  006ea	c7 05 14 00 00
+	00 07 00 00 00	 mov	 DWORD PTR _lp+20, 7
+
+; 435  : 	lp[1].tri_grams = english;
+
+  006f4	c7 05 18 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+24, OFFSET FLAT:_english
+
+; 436  : 	lp[1].name_type = NAME_ENGLISH;
+
+  006fe	c7 05 2c 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+44, 0
+
+; 437  : 	lp[2].tri_grams = irish;
+
+  00708	c7 05 30 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+48, OFFSET FLAT:_irish
+
+; 438  : 	lp[2].name_type = NAME_IRISH;
+
+  00712	c7 05 44 00 00
+	00 03 00 00 00	 mov	 DWORD PTR _lp+68, 3
+
+; 439  : 	lp[3].tri_grams = japan;
+
+  0071c	c7 05 48 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+72, OFFSET FLAT:_japan
+
+; 440  : 	lp[3].name_type = NAME_JAPANESE;
+
+  00726	c7 05 5c 00 00
+	00 05 00 00 00	 mov	 DWORD PTR _lp+92, 5
+
+; 441  : 	lp[4].tri_grams = french;
+
+  00730	c7 05 60 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+96, OFFSET FLAT:_french
+
+; 442  : 	lp[4].name_type = NAME_FRENCH;
+
+  0073a	c7 05 74 00 00
+	00 01 00 00 00	 mov	 DWORD PTR _lp+116, 1
+
+; 443  : 	lp[5].tri_grams = german;
+
+  00744	c7 05 78 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+120, OFFSET FLAT:_german
+
+; 444  : 	lp[5].name_type = NAME_GERMANIC;
+
+  0074e	c7 05 8c 00 00
+	00 02 00 00 00	 mov	 DWORD PTR _lp+140, 2
+
+; 445  : 	lp[6].tri_grams = slavic;
+
+  00758	c7 05 90 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+144, OFFSET FLAT:_slavic
+
+; 446  : 	lp[6].name_type = NAME_SLAVIC;
+
+  00762	c7 05 a4 00 00
+	00 06 00 00 00	 mov	 DWORD PTR _lp+164, 6
+
+; 447  : 	lp[7].tri_grams = italian;
+
+  0076c	c7 05 a8 00 00
+	00 00 00 00 00	 mov	 DWORD PTR _lp+168, OFFSET FLAT:_italian
+
+; 448  : 	lp[7].name_type = NAME_ITALIAN;
+
+  00776	c7 05 bc 00 00
+	00 04 00 00 00	 mov	 DWORD PTR _lp+188, 4
+
+; 449  : }
+
+  00780	c3		 ret	 0
+_lsa_util_init_lang ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_force_english
+PUBLIC	_lsa_util_id_name
+EXTRN	_name:BYTE
+EXTRN	_name_size:DWORD
+EXTRN	_ls_char_feat:BYTE
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_tri$ = -64
+_tri_prob$ = 8
+_step$ = 12
+_size$ = -68
+_lsa_util_id_name PROC NEAR
+
+; 453  : 	char    tri[64];
+; 454  : 	unsigned char tri_prob,tri_mask;
+; 455  : 	int weight,step,i,j,size,index;
+; 456  : 	S32    highest_prob;
+; 457  : 	int most_trigrams;
+; 458  : 
+; 459  : 	for(i=0;llp < rlp;i++)
+
+  00790	8b 4c 24 04	 mov	 ecx, DWORD PTR _llp$[esp-4]
+  00794	83 ec 44	 sub	 esp, 68			; 00000044H
+  00797	33 c0		 xor	 eax, eax
+  00799	53		 push	 ebx
+  0079a	56		 push	 esi
+  0079b	8b 74 24 54	 mov	 esi, DWORD PTR _rlp$[esp+72]
+  0079f	57		 push	 edi
+  007a0	33 ff		 xor	 edi, edi
+  007a2	3b ce		 cmp	 ecx, esi
+  007a4	b3 60		 mov	 bl, 96			; 00000060H
+  007a6	73 1f		 jae	 SHORT $L71934
+$L71932:
+
+; 460  : 		{
+; 461  : 		name[i] = (char)(*llp).l_ch; // NAL warning removal
+
+  007a8	8a 11		 mov	 dl, BYTE PTR [ecx]
+  007aa	88 90 00 00 00
+	00		 mov	 BYTE PTR _name[eax], dl
+
+; 462  : 		if((ls_char_feat[(int)name[i]] & (CFEAT_vowel|CFEAT_cons)) == 0)
+
+  007b0	0f be d2	 movsx	 edx, dl
+  007b3	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  007b9	0f 84 f3 01 00
+	00		 je	 $L72571
+
+; 463  : 			 return(NAME_ENGLISH);
+; 464  : 		llp++;
+
+  007bf	83 c1 02	 add	 ecx, 2
+  007c2	40		 inc	 eax
+  007c3	3b ce		 cmp	 ecx, esi
+  007c5	72 e1		 jb	 SHORT $L71932
+$L71934:
+
+; 465  : 		}
+; 466  : 	name_size = i;
+; 467  : 	name[i] = 0;
+; 468  : 
+; 469  : 	if(name_size < 3)
+
+  007c7	83 f8 03	 cmp	 eax, 3
+  007ca	a3 00 00 00 00	 mov	 DWORD PTR _name_size, eax
+  007cf	c6 80 00 00 00
+	00 00		 mov	 BYTE PTR _name[eax], 0
+
+; 470  : 		return(NAME_ENGLISH);
+
+  007d6	0f 8c d6 01 00
+	00		 jl	 $L72571
+
+; 471  : 	if(lsa_util_force_english())
+
+  007dc	e8 00 00 00 00	 call	 _lsa_util_force_english
+  007e1	85 c0		 test	 eax, eax
+
+; 472  : 		return(NAME_ENGLISH);
+
+  007e3	0f 85 c9 01 00
+	00		 jne	 $L72571
+
+; 476  : 	for(i=0;i<name_size;i++)
+
+  007e9	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _name_size
+  007ef	88 44 24 10	 mov	 BYTE PTR _tri$[esp+80], al
+  007f3	3b cf		 cmp	 ecx, edi
+  007f5	be 01 00 00 00	 mov	 esi, 1
+  007fa	7e 16		 jle	 SHORT $L71942
+
+; 473  : 
+; 474  : 	index = 0;
+; 475  : 	tri[index++] = 0;
+
+  007fc	8d 71 01	 lea	 esi, DWORD PTR [ecx+1]
+$L71940:
+
+; 477  : 		tri[index++] = name[i]-'a'+1;
+
+  007ff	8a 90 00 00 00
+	00		 mov	 dl, BYTE PTR _name[eax]
+  00805	2a d3		 sub	 dl, bl
+  00807	88 54 04 11	 mov	 BYTE PTR _tri$[esp+eax+81], dl
+  0080b	40		 inc	 eax
+  0080c	3b c1		 cmp	 eax, ecx
+  0080e	7c ef		 jl	 SHORT $L71940
+
+; 476  : 	for(i=0;i<name_size;i++)
+
+  00810	33 ff		 xor	 edi, edi
+$L71942:
+
+; 478  : 	tri[index++] = 0;
+
+  00812	c6 44 34 10 00	 mov	 BYTE PTR _tri$[esp+esi+80], 0
+  00817	46		 inc	 esi
+  00818	b8 04 00 00 00	 mov	 eax, OFFSET FLAT:_lp+4
+$L71943:
+
+; 479  : 
+; 480  : 	for(i=0;i<NO_LANGS;i++)
+; 481  : 			{
+; 482  : 			lp[i].prob = 0;
+
+  0081d	89 78 0c	 mov	 DWORD PTR [eax+12], edi
+
+; 483  : 			lp[i].hits = 0;
+
+  00820	89 38		 mov	 DWORD PTR [eax], edi
+
+; 484  : 			lp[i].last_prob = 0;
+
+  00822	89 78 04	 mov	 DWORD PTR [eax+4], edi
+
+; 485  : 			lp[i].eliminate = '*';
+
+  00825	c6 40 08 2a	 mov	 BYTE PTR [eax+8], 42	; 0000002aH
+  00829	83 c0 18	 add	 eax, 24			; 00000018H
+  0082c	3d c4 00 00 00	 cmp	 eax, OFFSET FLAT:_lp+196
+  00831	7c ea		 jl	 SHORT $L71943
+
+; 486  : 			}
+; 487  : 		size = index - 2;
+
+  00833	8d 4e fe	 lea	 ecx, DWORD PTR [esi-2]
+  00836	55		 push	 ebp
+
+; 488  : 		weight = (size > 2) ? size/2 : 1;
+
+  00837	83 f9 02	 cmp	 ecx, 2
+  0083a	89 4c 24 10	 mov	 DWORD PTR _size$[esp+84], ecx
+  0083e	7e 0b		 jle	 SHORT $L72559
+  00840	8b c1		 mov	 eax, ecx
+  00842	99		 cdq
+  00843	2b c2		 sub	 eax, edx
+  00845	8b e8		 mov	 ebp, eax
+  00847	d1 fd		 sar	 ebp, 1
+  00849	eb 05		 jmp	 SHORT $L72560
+$L72559:
+  0084b	bd 01 00 00 00	 mov	 ebp, 1
+$L72560:
+
+; 489  : 		step = -1;
+; 490  : 		for(i=0;i<size;i++)
+
+  00850	85 c9		 test	 ecx, ecx
+  00852	c7 44 24 5c ff
+	ff ff ff	 mov	 DWORD PTR _step$[esp+80], -1
+  0085a	0f 8e d4 00 00
+	00		 jle	 $L71948
+
+; 494  : 			if(i > size-3)
+
+  00860	eb 04		 jmp	 SHORT $L71946
+$L72583:
+  00862	8b 4c 24 10	 mov	 ecx, DWORD PTR _size$[esp+84]
+$L71946:
+
+; 491  : 			{
+; 492  : 			index = (tri[i]*27*27)+(tri[i+1]*27)+tri[i+2];
+
+  00866	0f be 44 3c 14	 movsx	 eax, BYTE PTR _tri$[esp+edi+84]
+  0086b	0f be 54 3c 15	 movsx	 edx, BYTE PTR _tri$[esp+edi+85]
+  00870	8d 04 40	 lea	 eax, DWORD PTR [eax+eax*2]
+
+; 493  : 			tri_mask = 0;
+
+  00873	32 db		 xor	 bl, bl
+  00875	8d 04 c0	 lea	 eax, DWORD PTR [eax+eax*8]
+  00878	03 c2		 add	 eax, edx
+  0087a	8d 04 40	 lea	 eax, DWORD PTR [eax+eax*2]
+  0087d	8d 34 c0	 lea	 esi, DWORD PTR [eax+eax*8]
+  00880	0f be 44 3c 16	 movsx	 eax, BYTE PTR _tri$[esp+edi+86]
+  00885	03 f0		 add	 esi, eax
+
+; 494  : 			if(i > size-3)
+
+  00887	8d 41 fd	 lea	 eax, DWORD PTR [ecx-3]
+  0088a	3b f8		 cmp	 edi, eax
+  0088c	7e 04		 jle	 SHORT $L71949
+
+; 495  : 				tri_mask = TG_end;
+
+  0088e	b3 40		 mov	 bl, 64			; 00000040H
+
+; 496  : 			else if(i < 3)
+
+  00890	eb 07		 jmp	 SHORT $L71951
+$L71949:
+  00892	83 ff 03	 cmp	 edi, 3
+  00895	7d 02		 jge	 SHORT $L71951
+
+; 497  : 				tri_mask = TG_start;
+
+  00897	b3 80		 mov	 bl, 128			; 00000080H
+$L71951:
+
+; 498  : 	
+; 499  : 			for(j=0;j<NO_LANGS;j++)
+
+  00899	b9 04 00 00 00	 mov	 ecx, OFFSET FLAT:_lp+4
+$L71952:
+
+; 500  : 				{
+; 501  : 				if((tri_prob = lp[j].tri_grams[index]))
+
+  0089e	8b 51 fc	 mov	 edx, DWORD PTR [ecx-4]
+  008a1	8a 04 32	 mov	 al, BYTE PTR [edx+esi]
+  008a4	84 c0		 test	 al, al
+  008a6	74 5e		 je	 SHORT $L71955
+
+; 502  : 					{
+; 503  : 					lp[j].hits += 1;
+
+  008a8	8b 11		 mov	 edx, DWORD PTR [ecx]
+  008aa	42		 inc	 edx
+
+; 504  : 					if(tri_prob & tri_mask)
+
+  008ab	84 c3		 test	 al, bl
+  008ad	89 11		 mov	 DWORD PTR [ecx], edx
+  008af	74 08		 je	 SHORT $L71956
+
+; 505  : 						tri_prob = 5*(tri_prob & TG_freq);
+
+  008b1	24 3f		 and	 al, 63			; 0000003fH
+  008b3	b2 05		 mov	 dl, 5
+  008b5	f6 ea		 imul	 dl
+
+; 506  : 					else if(tri_prob & (TG_start | TG_end))
+
+  008b7	eb 2a		 jmp	 SHORT $L72584
+$L71956:
+  008b9	a8 c0		 test	 al, 192			; 000000c0H
+  008bb	74 24		 je	 SHORT $L71958
+
+; 507  : 						{
+; 508  : 						tri_prob = (tri_prob & TG_freq)/5;
+
+  008bd	83 e0 3f	 and	 eax, 63			; 0000003fH
+  008c0	8b d0		 mov	 edx, eax
+  008c2	b8 67 66 66 66	 mov	 eax, 1717986919		; 66666667H
+  008c7	f7 ea		 imul	 edx
+  008c9	d1 fa		 sar	 edx, 1
+  008cb	8b c2		 mov	 eax, edx
+  008cd	c1 e8 1f	 shr	 eax, 31			; 0000001fH
+  008d0	03 d0		 add	 edx, eax
+
+; 509  : 						if(tri_prob == 0)
+
+  008d2	84 d2		 test	 dl, dl
+  008d4	88 54 24 58	 mov	 BYTE PTR _tri_prob$[esp+80], dl
+  008d8	75 0d		 jne	 SHORT $L71960
+
+; 510  : 							tri_prob = 1;
+
+  008da	c6 44 24 58 01	 mov	 BYTE PTR _tri_prob$[esp+80], 1
+
+; 511  : 						}
+; 512  : 					else
+
+  008df	eb 06		 jmp	 SHORT $L71960
+$L71958:
+
+; 513  : 						tri_prob = (tri_prob & TG_freq);
+
+  008e1	24 3f		 and	 al, 63			; 0000003fH
+$L72584:
+  008e3	88 44 24 58	 mov	 BYTE PTR _tri_prob$[esp+80], al
+$L71960:
+
+; 514  : 					lp[j].last_prob = (lp[j].last_prob/2)+tri_prob;
+
+  008e7	8b 41 04	 mov	 eax, DWORD PTR [ecx+4]
+  008ea	99		 cdq
+  008eb	2b c2		 sub	 eax, edx
+  008ed	8b 54 24 58	 mov	 edx, DWORD PTR _tri_prob$[esp+80]
+  008f1	d1 f8		 sar	 eax, 1
+  008f3	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  008f9	03 c2		 add	 eax, edx
+  008fb	89 41 04	 mov	 DWORD PTR [ecx+4], eax
+
+; 515  : 					lp[j].prob += weight*lp[j].last_prob;
+
+  008fe	0f af c5	 imul	 eax, ebp
+  00901	01 41 0c	 add	 DWORD PTR [ecx+12], eax
+
+; 516  : 					}
+; 517  : 				else
+
+  00904	eb 07		 jmp	 SHORT $L71953
+$L71955:
+
+; 518  : 					lp[j].last_prob = 0;
+
+  00906	c7 41 04 00 00
+	00 00		 mov	 DWORD PTR [ecx+4], 0
+$L71953:
+
+; 498  : 	
+; 499  : 			for(j=0;j<NO_LANGS;j++)
+
+  0090d	83 c1 18	 add	 ecx, 24			; 00000018H
+  00910	81 f9 c4 00 00
+	00		 cmp	 ecx, OFFSET FLAT:_lp+196
+  00916	7c 86		 jl	 SHORT $L71952
+
+; 519  : 				}
+; 520  : 			if(weight == 1)
+
+  00918	83 fd 01	 cmp	 ebp, 1
+  0091b	75 04		 jne	 SHORT $L71962
+
+; 521  : 				step = 1;
+
+  0091d	89 6c 24 5c	 mov	 DWORD PTR _step$[esp+80], ebp
+$L71962:
+
+; 522  : 			weight += step;
+
+  00921	8b 54 24 5c	 mov	 edx, DWORD PTR _step$[esp+80]
+  00925	8b 44 24 10	 mov	 eax, DWORD PTR _size$[esp+84]
+  00929	03 ea		 add	 ebp, edx
+  0092b	47		 inc	 edi
+  0092c	3b f8		 cmp	 edi, eax
+  0092e	0f 8c 2e ff ff
+	ff		 jl	 $L72583
+$L71948:
+
+; 523  : 			}
+; 524  : /*
+; 525  :  *  decide which to choose, for now, take the highest trigram hits, then
+; 526  :  *  the highest probability ...
+; 527  :  */
+; 528  : 
+; 529  : 	most_trigrams = 0;
+
+  00934	33 d2		 xor	 edx, edx
+  00936	b8 04 00 00 00	 mov	 eax, OFFSET FLAT:_lp+4
+  0093b	5d		 pop	 ebp
+$L71963:
+
+; 531  : 		if(most_trigrams < lp[i].hits)
+
+  0093c	8b 08		 mov	 ecx, DWORD PTR [eax]
+  0093e	3b d1		 cmp	 edx, ecx
+  00940	7d 02		 jge	 SHORT $L71964
+
+; 532  : 			most_trigrams = lp[i].hits;
+
+  00942	8b d1		 mov	 edx, ecx
+$L71964:
+
+; 530  : 	for(i=0;i<NO_LANGS;i++)
+
+  00944	83 c0 18	 add	 eax, 24			; 00000018H
+  00947	3d c4 00 00 00	 cmp	 eax, OFFSET FLAT:_lp+196
+  0094c	7c ee		 jl	 SHORT $L71963
+
+; 533  : 	for(i=0;i<NO_LANGS;i++)
+
+  0094e	b8 0c 00 00 00	 mov	 eax, OFFSET FLAT:_lp+12
+$L71967:
+
+; 534  : 		if(lp[i].hits != most_trigrams)
+
+  00953	39 50 f8	 cmp	 DWORD PTR [eax-8], edx
+  00956	74 03		 je	 SHORT $L71968
+
+; 535  : 			lp[i].eliminate = ' ';
+
+  00958	c6 00 20	 mov	 BYTE PTR [eax], 32	; 00000020H
+$L71968:
+
+; 533  : 	for(i=0;i<NO_LANGS;i++)
+
+  0095b	83 c0 18	 add	 eax, 24			; 00000018H
+  0095e	3d cc 00 00 00	 cmp	 eax, OFFSET FLAT:_lp+204
+  00963	7c ee		 jl	 SHORT $L71967
+
+; 536  : 
+; 537  : 	highest_prob = 0;
+
+  00965	33 d2		 xor	 edx, edx
+  00967	b8 10 00 00 00	 mov	 eax, OFFSET FLAT:_lp+16
+$L71971:
+
+; 539  : 		if(highest_prob < lp[i].prob && lp[i].eliminate == '*')
+
+  0096c	8b 08		 mov	 ecx, DWORD PTR [eax]
+  0096e	3b d1		 cmp	 edx, ecx
+  00970	7d 08		 jge	 SHORT $L71972
+  00972	80 78 fc 2a	 cmp	 BYTE PTR [eax-4], 42	; 0000002aH
+  00976	75 02		 jne	 SHORT $L71972
+
+; 540  : 			highest_prob = lp[i].prob;
+
+  00978	8b d1		 mov	 edx, ecx
+$L71972:
+
+; 538  : 	for(i=0;i<NO_LANGS;i++)
+
+  0097a	83 c0 18	 add	 eax, 24			; 00000018H
+  0097d	3d d0 00 00 00	 cmp	 eax, OFFSET FLAT:_lp+208
+  00982	7c e8		 jl	 SHORT $L71971
+
+; 541  : 	for(i=0;i<NO_LANGS;i++)
+
+  00984	b8 0c 00 00 00	 mov	 eax, OFFSET FLAT:_lp+12
+$L71975:
+
+; 542  : 		if(highest_prob > lp[i].prob)
+
+  00989	3b 50 04	 cmp	 edx, DWORD PTR [eax+4]
+  0098c	7e 03		 jle	 SHORT $L71976
+
+; 543  : 			lp[i].eliminate = ' ';
+
+  0098e	c6 00 20	 mov	 BYTE PTR [eax], 32	; 00000020H
+$L71976:
+
+; 541  : 	for(i=0;i<NO_LANGS;i++)
+
+  00991	83 c0 18	 add	 eax, 24			; 00000018H
+  00994	3d cc 00 00 00	 cmp	 eax, OFFSET FLAT:_lp+204
+  00999	7c ee		 jl	 SHORT $L71975
+
+; 544  : 
+; 545  : 	for(i=0;i<NO_LANGS;i++)
+
+  0099b	33 c9		 xor	 ecx, ecx
+  0099d	b8 0c 00 00 00	 mov	 eax, OFFSET FLAT:_lp+12
+$L71979:
+
+; 546  : 			if(lp[i].eliminate == '*')
+
+  009a2	80 38 2a	 cmp	 BYTE PTR [eax], 42	; 0000002aH
+  009a5	74 14		 je	 SHORT $L72572
+  009a7	83 c0 18	 add	 eax, 24			; 00000018H
+  009aa	41		 inc	 ecx
+  009ab	3d cc 00 00 00	 cmp	 eax, OFFSET FLAT:_lp+204
+  009b0	7c f0		 jl	 SHORT $L71979
+$L72571:
+  009b2	5f		 pop	 edi
+  009b3	5e		 pop	 esi
+
+; 548  : 	return(NAME_ENGLISH);
+
+  009b4	33 c0		 xor	 eax, eax
+  009b6	5b		 pop	 ebx
+
+; 549  : }
+
+  009b7	83 c4 44	 add	 esp, 68			; 00000044H
+  009ba	c3		 ret	 0
+$L72572:
+
+; 547  : 				return(lp[i].name_type);
+
+  009bb	8d 04 49	 lea	 eax, DWORD PTR [ecx+ecx*2]
+  009be	5f		 pop	 edi
+  009bf	5e		 pop	 esi
+  009c0	5b		 pop	 ebx
+  009c1	8b 04 c5 14 00
+	00 00		 mov	 eax, DWORD PTR _lp[eax*8+20]
+
+; 549  : }
+
+  009c8	83 c4 44	 add	 esp, 68			; 00000044H
+  009cb	c3		 ret	 0
+_lsa_util_id_name ENDP
+_TEXT	ENDS
+PUBLIC	_lsa_util_print_ntype
+EXTRN	_name_types:BYTE
+EXTRN	__imp__printf:NEAR
+_DATA	SEGMENT
+$SG71986 DB	0aH, '[Name: %s type : %s]', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_type$ = 8
+_lsa_util_print_ntype PROC NEAR
+
+; 568  : 	printf("\n[Name: %s type : %s]",name,name_types[type]);
+
+  009d0	8b 44 24 04	 mov	 eax, DWORD PTR _type$[esp-4]
+  009d4	8b 0c 85 00 00
+	00 00		 mov	 ecx, DWORD PTR _name_types[eax*4]
+  009db	51		 push	 ecx
+  009dc	68 00 00 00 00	 push	 OFFSET FLAT:_name
+  009e1	68 00 00 00 00	 push	 OFFSET FLAT:$SG71986
+  009e6	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  009ec	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 569  : }
+
+  009ef	c3		 ret	 0
+_lsa_util_print_ntype ENDP
+_TEXT	ENDS
+EXTRN	_elim_rules:BYTE
+_TEXT	SEGMENT
+_lsa_util_force_english PROC NEAR
+
+; 588  : 
+; 589  : 	unsigned char *er;
+; 590  : 	int off,nm,miss,i,j;
+; 591  : 
+; 592  : 	for(j=0;(er=elim_rules[j]);j++)
+
+  009f0	8b 15 00 00 00
+	00		 mov	 edx, DWORD PTR _elim_rules
+  009f6	83 ec 08	 sub	 esp, 8
+  009f9	85 d2		 test	 edx, edx
+  009fb	53		 push	 ebx
+  009fc	55		 push	 ebp
+  009fd	56		 push	 esi
+  009fe	57		 push	 edi
+  009ff	0f 84 c6 00 00
+	00		 je	 $L71997
+
+; 593  : 		{
+; 594  : 		nm = off = 0;
+; 595  : 		miss = false;
+; 596  : 		for(i=name_size-1;i>=0;i--)
+
+  00a05	a1 00 00 00 00	 mov	 eax, DWORD PTR _name_size
+  00a0a	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR -8+[esp+24], OFFSET FLAT:_elim_rules
+  00a12	48		 dec	 eax
+  00a13	89 44 24 14	 mov	 DWORD PTR -4+[esp+24], eax
+$L71995:
+  00a17	8b 44 24 14	 mov	 eax, DWORD PTR -4+[esp+24]
+  00a1b	33 c9		 xor	 ecx, ecx
+  00a1d	33 ed		 xor	 ebp, ebp
+  00a1f	85 c0		 test	 eax, eax
+  00a21	0f 8c 88 00 00
+	00		 jl	 $L72593
+$L71998:
+
+; 597  : 			{
+; 598  : 			switch(er[off]) {
+
+  00a27	33 db		 xor	 ebx, ebx
+  00a29	8a 1c 11	 mov	 bl, BYTE PTR [ecx+edx]
+  00a2c	8b f3		 mov	 esi, ebx
+  00a2e	8d 7e dd	 lea	 edi, DWORD PTR [esi-35]
+  00a31	83 ff 33	 cmp	 edi, 51			; 00000033H
+  00a34	77 61		 ja	 SHORT $L72023
+  00a36	33 db		 xor	 ebx, ebx
+  00a38	8a 9f 00 00 00
+	00		 mov	 bl, BYTE PTR $L72604[edi]
+  00a3e	ff 24 9d 00 00
+	00 00		 jmp	 DWORD PTR $L72605[ebx*4]
+$L72005:
+
+; 599  : 
+; 600  : 				case    'C' :
+; 601  : 
+; 602  : 					if(ls_char_feat[(int)name[i]] & CFEAT_cons)
+
+  00a45	0f be b0 00 00
+	00 00		 movsx	 esi, BYTE PTR _name[eax]
+  00a4c	f6 86 00 00 00
+	00 20		 test	 BYTE PTR _ls_char_feat[esi], 32 ; 00000020H
+  00a53	74 03		 je	 SHORT $L72007
+
+; 603  : 						nm += 1;
+
+  00a55	45		 inc	 ebp
+
+; 604  : 					else if(nm)
+
+  00a56	eb 4b		 jmp	 SHORT $L72025
+$L72007:
+  00a58	85 ed		 test	 ebp, ebp
+  00a5a	74 4f		 je	 SHORT $L72589
+
+; 605  : 						{
+; 606  : 						i += 1;
+
+  00a5c	40		 inc	 eax
+
+; 607  : 						off += 1;
+
+  00a5d	41		 inc	 ecx
+
+; 608  : 						nm = 0;
+
+  00a5e	33 ed		 xor	 ebp, ebp
+
+; 609  : 						}
+; 610  : 					else
+; 611  : 						miss = true;
+; 612  : 					break;
+
+  00a60	eb 41		 jmp	 SHORT $L72025
+$L72011:
+
+; 613  : 
+; 614  : 				case    'N' :
+; 615  : 
+; 616  : 					if(ls_char_feat[(int)name[i]] & CFEAT_cons)
+
+  00a62	0f be b0 00 00
+	00 00		 movsx	 esi, BYTE PTR _name[eax]
+  00a69	f6 86 00 00 00
+	00 20		 test	 BYTE PTR _ls_char_feat[esi], 32 ; 00000020H
+  00a70	75 31		 jne	 SHORT $L72025
+
+; 617  : 						break;
+; 618  : 					i += 1;
+
+  00a72	40		 inc	 eax
+
+; 619  : 					off += 1;
+; 620  : 					break;
+
+  00a73	eb 2d		 jmp	 SHORT $L72020
+$L72014:
+
+; 621  : 
+; 622  : 				case    'V' :
+; 623  : 
+; 624  : 					if(ls_char_feat[(int)name[i]] & CFEAT_vowel)
+
+  00a75	0f be b0 00 00
+	00 00		 movsx	 esi, BYTE PTR _name[eax]
+  00a7c	f6 86 00 00 00
+	00 40		 test	 BYTE PTR _ls_char_feat[esi], 64 ; 00000040H
+  00a83	74 03		 je	 SHORT $L72016
+
+; 625  : 						nm += 1;
+
+  00a85	45		 inc	 ebp
+
+; 626  : 					else if(nm > 0 && nm <=2)
+
+  00a86	eb 1b		 jmp	 SHORT $L72025
+$L72016:
+  00a88	85 ed		 test	 ebp, ebp
+  00a8a	7e 1f		 jle	 SHORT $L72589
+  00a8c	83 fd 02	 cmp	 ebp, 2
+  00a8f	7f 1a		 jg	 SHORT $L72589
+
+; 627  : 						{
+; 628  : 						i += 1;
+
+  00a91	40		 inc	 eax
+
+; 629  : 						off += 1;
+
+  00a92	41		 inc	 ecx
+
+; 630  : 						nm = 0;
+
+  00a93	33 ed		 xor	 ebp, ebp
+
+; 631  : 						}
+; 632  : 					else
+; 633  : 						miss = true;
+; 634  : 					break;
+
+  00a95	eb 0c		 jmp	 SHORT $L72025
+$L72023:
+
+; 635  : 
+; 636  : 				case    '$' :
+; 637  : 
+; 638  : 					off += 1;
+; 639  : 					break;
+; 640  : 
+; 641  : 				case    '*' :
+; 642  : 					return(true);
+; 643  : 
+; 644  : 				case    '#' :
+; 645  : 					miss = true;
+; 646  : 					break;
+; 647  : 
+; 648  : 				default     :
+; 649  : 
+; 650  : 					if(name[i] != er[off])
+
+  00a97	0f be b8 00 00
+	00 00		 movsx	 edi, BYTE PTR _name[eax]
+  00a9e	3b fe		 cmp	 edi, esi
+  00aa0	75 09		 jne	 SHORT $L72589
+$L72020:
+
+; 651  : 						miss = true;
+; 652  : 					else
+; 653  : 						off += 1;
+
+  00aa2	41		 inc	 ecx
+$L72025:
+
+; 593  : 		{
+; 594  : 		nm = off = 0;
+; 595  : 		miss = false;
+; 596  : 		for(i=name_size-1;i>=0;i--)
+
+  00aa3	48		 dec	 eax
+  00aa4	78 09		 js	 SHORT $L72593
+  00aa6	e9 7c ff ff ff	 jmp	 $L71998
+$L72589:
+
+; 654  : 					break;
+; 655  : 				};
+; 656  : 			if(miss)
+; 657  : 				break;
+; 658  : 			}
+; 659  : 		if(i < 0 && er[off+1] == '#')
+
+  00aab	85 c0		 test	 eax, eax
+  00aad	7d 07		 jge	 SHORT $L71996
+$L72593:
+  00aaf	80 7c 11 01 23	 cmp	 BYTE PTR [ecx+edx+1], 35 ; 00000023H
+  00ab4	74 1f		 je	 SHORT $L72021
+$L71996:
+
+; 588  : 
+; 589  : 	unsigned char *er;
+; 590  : 	int off,nm,miss,i,j;
+; 591  : 
+; 592  : 	for(j=0;(er=elim_rules[j]);j++)
+
+  00ab6	8b 44 24 10	 mov	 eax, DWORD PTR -8+[esp+24]
+  00aba	83 c0 04	 add	 eax, 4
+  00abd	89 44 24 10	 mov	 DWORD PTR -8+[esp+24], eax
+  00ac1	8b 10		 mov	 edx, DWORD PTR [eax]
+  00ac3	85 d2		 test	 edx, edx
+  00ac5	0f 85 4c ff ff
+	ff		 jne	 $L71995
+$L71997:
+  00acb	5f		 pop	 edi
+  00acc	5e		 pop	 esi
+  00acd	5d		 pop	 ebp
+
+; 661  : 		}
+; 662  : 	return(false);
+
+  00ace	33 c0		 xor	 eax, eax
+  00ad0	5b		 pop	 ebx
+
+; 663  : }           
+
+  00ad1	83 c4 08	 add	 esp, 8
+  00ad4	c3		 ret	 0
+$L72021:
+  00ad5	5f		 pop	 edi
+  00ad6	5e		 pop	 esi
+  00ad7	5d		 pop	 ebp
+
+; 660  : 			return(true);
+
+  00ad8	b8 01 00 00 00	 mov	 eax, 1
+  00add	5b		 pop	 ebx
+
+; 663  : }           
+
+  00ade	83 c4 08	 add	 esp, 8
+  00ae1	c3		 ret	 0
+  00ae2	8b ff		 npad	 2
+$L72605:
+  00ae4	00 00 00 00	 DD	 $L72589
+  00ae8	00 00 00 00	 DD	 $L72020
+  00aec	00 00 00 00	 DD	 $L72021
+  00af0	00 00 00 00	 DD	 $L72005
+  00af4	00 00 00 00	 DD	 $L72011
+  00af8	00 00 00 00	 DD	 $L72014
+  00afc	00 00 00 00	 DD	 $L72023
+$L72604:
+  00b00	00		 DB	 0
+  00b01	01		 DB	 1
+  00b02	06		 DB	 6
+  00b03	06		 DB	 6
+  00b04	06		 DB	 6
+  00b05	06		 DB	 6
+  00b06	06		 DB	 6
+  00b07	02		 DB	 2
+  00b08	06		 DB	 6
+  00b09	06		 DB	 6
+  00b0a	06		 DB	 6
+  00b0b	06		 DB	 6
+  00b0c	06		 DB	 6
+  00b0d	06		 DB	 6
+  00b0e	06		 DB	 6
+  00b0f	06		 DB	 6
+  00b10	06		 DB	 6
+  00b11	06		 DB	 6
+  00b12	06		 DB	 6
+  00b13	06		 DB	 6
+  00b14	06		 DB	 6
+  00b15	06		 DB	 6
+  00b16	06		 DB	 6
+  00b17	06		 DB	 6
+  00b18	06		 DB	 6
+  00b19	06		 DB	 6
+  00b1a	06		 DB	 6
+  00b1b	06		 DB	 6
+  00b1c	06		 DB	 6
+  00b1d	06		 DB	 6
+  00b1e	06		 DB	 6
+  00b1f	06		 DB	 6
+  00b20	03		 DB	 3
+  00b21	06		 DB	 6
+  00b22	06		 DB	 6
+  00b23	06		 DB	 6
+  00b24	06		 DB	 6
+  00b25	06		 DB	 6
+  00b26	06		 DB	 6
+  00b27	06		 DB	 6
+  00b28	06		 DB	 6
+  00b29	06		 DB	 6
+  00b2a	06		 DB	 6
+  00b2b	04		 DB	 4
+  00b2c	06		 DB	 6
+  00b2d	06		 DB	 6
+  00b2e	06		 DB	 6
+  00b2f	06		 DB	 6
+  00b30	06		 DB	 6
+  00b31	06		 DB	 6
+  00b32	06		 DB	 6
+  00b33	05		 DB	 5
+_lsa_util_force_english ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_dump_cword
+EXTRN	__imp__fclose:NEAR
+EXTRN	__imp__fopen:NEAR
+EXTRN	__imp__fprintf:NEAR
+_DATA	SEGMENT
+	ORG $+2
+$SG72037 DB	'a', 00H
+	ORG $+2
+$SG72038 DB	'output.log', 00H
+	ORG $+1
+$SG72039 DB	'%s -- ', 00H
+	ORG $+1
+$SG72043 DB	'%c(%02x)', 00H
+	ORG $+3
+$SG72044 DB	0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_word$ = 8
+_message$ = 12
+_ls_util_dump_cword PROC NEAR
+
+; 140  : {
+
+  00b40	53		 push	 ebx
+  00b41	56		 push	 esi
+
+; 141  : /* GL 04/21/1997  change this for OSF build */
+; 142  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 143  : 	FILE *fp;
+; 144  : #endif	/* defined (WIN32) || defined (__osf__) || defined (__linux__) */
+; 145  : 	LETTER *llp;
+; 146  : 	llp=&word[0];
+
+  00b42	8b 74 24 0c	 mov	 esi, DWORD PTR _word$[esp+4]
+  00b46	57		 push	 edi
+
+; 147  : 
+; 148  : /* GL 04/21/1997  change this for OSF build */
+; 149  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 150  : #ifdef PRINTFDEBUG
+; 151  : 	printf ("%s -- ", message);
+; 152  : #endif	//	PRINTFDEBUG
+; 153  : 	fp=fopen("output.log","a");
+
+  00b47	68 00 00 00 00	 push	 OFFSET FLAT:$SG72037
+  00b4c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72038
+  00b51	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+
+; 154  : 	fprintf(fp,"%s -- ",message);
+
+  00b57	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  00b5d	8b f8		 mov	 edi, eax
+  00b5f	8b 44 24 1c	 mov	 eax, DWORD PTR _message$[esp+16]
+  00b63	50		 push	 eax
+  00b64	68 00 00 00 00	 push	 OFFSET FLAT:$SG72039
+  00b69	57		 push	 edi
+  00b6a	ff d3		 call	 ebx
+
+; 155  : #else
+; 156  :     printf ("%s -- ", message);
+; 157  : #endif	// defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 158  : 
+; 159  : 	while (llp->l_ch!=EOS)
+
+  00b6c	66 8b 06	 mov	 ax, WORD PTR [esi]
+  00b6f	83 c4 14	 add	 esp, 20			; 00000014H
+  00b72	66 85 c0	 test	 ax, ax
+  00b75	74 1c		 je	 SHORT $L72042
+$L72041:
+
+; 160  : 	{                          
+; 161  : 
+; 162  : /* GL 04/21/1997  change this for OSF build */
+; 163  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 164  : #ifdef PRINTFDEBUG
+; 165  : 		printf("%c(%02x)",llp->l_ch,llp->l_ch);
+; 166  : #endif	// PRINTFDEBUG
+; 167  : 		fprintf(fp,"%c(%02x)",llp->l_ch,llp->l_ch);
+
+  00b77	0f bf c0	 movsx	 eax, ax
+  00b7a	50		 push	 eax
+  00b7b	50		 push	 eax
+  00b7c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72043
+  00b81	57		 push	 edi
+  00b82	ff d3		 call	 ebx
+  00b84	66 8b 46 02	 mov	 ax, WORD PTR [esi+2]
+
+; 168  : #else
+; 169  : 		printf("%c(%02x)",llp->l_ch,llp->l_ch);
+; 170  : #endif // defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 171  : 		++llp;
+
+  00b88	83 c6 02	 add	 esi, 2
+  00b8b	83 c4 10	 add	 esp, 16			; 00000010H
+  00b8e	66 85 c0	 test	 ax, ax
+  00b91	75 e4		 jne	 SHORT $L72041
+$L72042:
+
+; 172  : 	}          
+; 173  : 	
+; 174  : 
+; 175  : /* GL 04/21/1997  change this for OSF build */
+; 176  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 177  : #ifdef PRINTFDEBUG
+; 178  : 	printf ("\n");
+; 179  : #endif	// PRINTFDEBUG
+; 180  : 	fprintf(fp,"\n");
+
+  00b93	68 00 00 00 00	 push	 OFFSET FLAT:$SG72044
+  00b98	57		 push	 edi
+  00b99	ff d3		 call	 ebx
+
+; 181  : 	fclose(fp);
+
+  00b9b	57		 push	 edi
+  00b9c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  00ba2	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00ba5	5f		 pop	 edi
+  00ba6	5e		 pop	 esi
+  00ba7	5b		 pop	 ebx
+
+; 182  : #else
+; 183  :     printf ("\n");
+; 184  : 	printf ("\r");
+; 185  : #endif	// defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 186  : 
+; 187  : }
+
+  00ba8	c3		 ret	 0
+_ls_util_dump_cword ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_dump_llp_rlp
+_DATA	SEGMENT
+	ORG $+2
+$SG72053 DB	'a', 00H
+	ORG $+2
+$SG72054 DB	'output.log', 00H
+	ORG $+1
+$SG72055 DB	'%s -- ', 00H
+	ORG $+1
+$SG72059 DB	'%c(%02x)', 00H
+	ORG $+3
+$SG72060 DB	0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_message$ = 16
+_ls_util_dump_llp_rlp PROC NEAR
+
+; 209  : {       
+
+  00bb0	53		 push	 ebx
+  00bb1	55		 push	 ebp
+  00bb2	56		 push	 esi
+  00bb3	57		 push	 edi
+
+; 210  : 
+; 211  : /* GL 04/21/1997  change this for OSF build */
+; 212  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 213  : 	FILE *fp;
+; 214  : 	fp=fopen("output.log","a");
+
+  00bb4	68 00 00 00 00	 push	 OFFSET FLAT:$SG72053
+  00bb9	68 00 00 00 00	 push	 OFFSET FLAT:$SG72054
+  00bbe	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+
+; 215  : 	fprintf(fp,"%s -- ",message);
+
+  00bc4	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  00bca	8b f8		 mov	 edi, eax
+  00bcc	8b 44 24 24	 mov	 eax, DWORD PTR _message$[esp+20]
+  00bd0	50		 push	 eax
+  00bd1	68 00 00 00 00	 push	 OFFSET FLAT:$SG72055
+  00bd6	57		 push	 edi
+  00bd7	ff d3		 call	 ebx
+
+; 216  : #ifdef PRINTFDEBUG
+; 217  :     printf ("%s -- ", message);
+; 218  : #endif	// PRINTFDEBUG
+; 219  : #else
+; 220  :     printf ("%s -- ", message);
+; 221  : #endif	// defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 222  : 
+; 223  : 	while (llp!=rlp)
+
+  00bd9	8b 74 24 28	 mov	 esi, DWORD PTR _llp$[esp+32]
+  00bdd	8b 6c 24 2c	 mov	 ebp, DWORD PTR _rlp$[esp+32]
+  00be1	83 c4 14	 add	 esp, 20			; 00000014H
+  00be4	3b f5		 cmp	 esi, ebp
+  00be6	74 17		 je	 SHORT $L72058
+$L72057:
+
+; 224  : 	{
+; 225  : /* GL 04/21/1997  change this for OSF build */
+; 226  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 227  : #ifdef PRINTFDEBUG
+; 228  : 		printf("%c(%02x)",llp->l_ch,llp->l_ch);
+; 229  : #endif	// PRINTFDEBUG
+; 230  : 		fprintf(fp,"%c(%02x)",llp->l_ch,llp->l_ch);
+
+  00be8	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  00beb	50		 push	 eax
+  00bec	50		 push	 eax
+  00bed	68 00 00 00 00	 push	 OFFSET FLAT:$SG72059
+  00bf2	57		 push	 edi
+  00bf3	ff d3		 call	 ebx
+
+; 231  : #else
+; 232  : 		printf("%c(%02x)",llp->l_ch,llp->l_ch);
+; 233  : #endif	// defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 234  : 		++llp;
+
+  00bf5	83 c6 02	 add	 esi, 2
+  00bf8	83 c4 10	 add	 esp, 16			; 00000010H
+  00bfb	3b f5		 cmp	 esi, ebp
+  00bfd	75 e9		 jne	 SHORT $L72057
+$L72058:
+
+; 235  : 	}      
+; 236  : /* GL 04/21/1997  change this for OSF build */
+; 237  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 238  : #ifdef PRINTFDEBUG
+; 239  : 	printf ("\n");
+; 240  : #endif	// PRINTFDEBUG
+; 241  : 	fprintf(fp,"\n");
+
+  00bff	68 00 00 00 00	 push	 OFFSET FLAT:$SG72060
+  00c04	57		 push	 edi
+  00c05	ff d3		 call	 ebx
+
+; 242  : 	fclose(fp);
+
+  00c07	57		 push	 edi
+  00c08	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  00c0e	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00c11	5f		 pop	 edi
+  00c12	5e		 pop	 esi
+  00c13	5d		 pop	 ebp
+  00c14	5b		 pop	 ebx
+
+; 243  : #else
+; 244  :    printf ("\n");
+; 245  :    printf ("\r");
+; 246  : #endif	// defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 247  : }       
+
+  00c15	c3		 ret	 0
+_ls_util_dump_llp_rlp ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_dump_lsp_endp
+_DATA	SEGMENT
+	ORG $+2
+$SG72072 DB	'a', 00H
+	ORG $+2
+$SG72073 DB	'output.log', 00H
+	ORG $+1
+$SG72074 DB	'%s -- ', 00H
+	ORG $+1
+$SG72083 DB	'(%d)', 00H
+	ORG $+3
+$SG72085 DB	'(%d)', 00H
+	ORG $+3
+$SG72086 DB	0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_type$ = 8
+_lsp$ = 12
+_endp$ = 16
+_message$ = 20
+_ls_util_dump_lsp_endp PROC NEAR
+
+; 272  : {
+
+  00c20	53		 push	 ebx
+  00c21	55		 push	 ebp
+  00c22	56		 push	 esi
+  00c23	57		 push	 edi
+
+; 273  : PHONE *pp1;       
+; 274  : 
+; 275  : /* GL 04/21/1997  change this for OSF build */
+; 276  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 277  : 	FILE *fp;
+; 278  : 	fp=fopen("output.log","a");
+
+  00c24	68 00 00 00 00	 push	 OFFSET FLAT:$SG72072
+  00c29	68 00 00 00 00	 push	 OFFSET FLAT:$SG72073
+  00c2e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+
+; 279  : 	fprintf(fp,"%s -- ",message);
+
+  00c34	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  00c3a	8b f8		 mov	 edi, eax
+  00c3c	8b 44 24 28	 mov	 eax, DWORD PTR _message$[esp+20]
+  00c40	50		 push	 eax
+  00c41	68 00 00 00 00	 push	 OFFSET FLAT:$SG72074
+  00c46	57		 push	 edi
+  00c47	ff d3		 call	 ebx
+
+; 280  : #ifdef PRINTFDEBUG
+; 281  :     printf ("%s -- ", message);
+; 282  : #endif	// PRINTFDEBUG
+; 283  : #else
+; 284  :     printf ("%s -- ", message);
+; 285  : #endif	// defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 286  : 
+; 287  :     pp1 = lsp;
+
+  00c49	8b 74 24 2c	 mov	 esi, DWORD PTR _lsp$[esp+32]
+
+; 288  : 	while (pp1 != endp)
+
+  00c4d	8b 6c 24 30	 mov	 ebp, DWORD PTR _endp$[esp+32]
+  00c51	83 c4 14	 add	 esp, 20			; 00000014H
+  00c54	3b f5		 cmp	 esi, ebp
+  00c56	74 2d		 je	 SHORT $L72077
+$L72076:
+
+; 289  : 	{
+; 290  : 		switch(type)
+; 291  : 		{
+
+  00c58	0f bf 44 24 14	 movsx	 eax, WORD PTR _type$[esp+12]
+  00c5d	83 e8 00	 sub	 eax, 0
+  00c60	74 0e		 je	 SHORT $L72082
+  00c62	48		 dec	 eax
+  00c63	75 1a		 jne	 SHORT $L72079
+
+; 299  : #else
+; 300  : 				printf("(%d)",pp1->p_stress);
+; 301  : #endif	// defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 302  : 				break;          	    
+; 303  : 		  case 1:
+; 304  : /* GL 04/21/1997  change this for OSF build */
+; 305  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 306  : #ifdef PRINTFDEBUG
+; 307  : 				printf("(%d)",pp1->p_sphone);
+; 308  : #endif
+; 309  : 				fprintf(fp,"(%d)",pp1->p_sphone);
+
+  00c65	8b 4e 14	 mov	 ecx, DWORD PTR [esi+20]
+  00c68	51		 push	 ecx
+  00c69	68 00 00 00 00	 push	 OFFSET FLAT:$SG72085
+
+; 310  : #else
+; 311  : 				printf("(%d)",pp1->p_sphone);
+; 312  : #endif
+; 313  : 				break;          	    
+
+  00c6e	eb 09		 jmp	 SHORT $L72615
+$L72082:
+
+; 292  : 		  case 0:
+; 293  : /* GL 04/21/1997  change this for OSF build */
+; 294  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 295  : #ifdef PRINTFDEBUG
+; 296  : 				printf("(%d)",pp1->p_stress);
+; 297  : #endif	// PRINTFDEBUG
+; 298  : 				fprintf(fp,"(%d)",pp1->p_stress);
+
+  00c70	8b 56 10	 mov	 edx, DWORD PTR [esi+16]
+  00c73	52		 push	 edx
+  00c74	68 00 00 00 00	 push	 OFFSET FLAT:$SG72083
+$L72615:
+  00c79	57		 push	 edi
+  00c7a	ff d3		 call	 ebx
+  00c7c	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72079:
+
+; 314  :         }
+; 315  :         
+; 316  : 		pp1 = pp1->p_fp;
+
+  00c7f	8b 36		 mov	 esi, DWORD PTR [esi]
+  00c81	3b f5		 cmp	 esi, ebp
+  00c83	75 d3		 jne	 SHORT $L72076
+$L72077:
+
+; 317  : 	}      
+; 318  : /* GL 04/21/1997  change this for OSF build */
+; 319  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 320  : #ifdef PRINTFDEBUG
+; 321  : 	printf ("\n");
+; 322  : #endif
+; 323  : 	fprintf(fp,"\n");
+
+  00c85	68 00 00 00 00	 push	 OFFSET FLAT:$SG72086
+  00c8a	57		 push	 edi
+  00c8b	ff d3		 call	 ebx
+
+; 324  : 	fclose(fp);
+
+  00c8d	57		 push	 edi
+  00c8e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  00c94	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00c97	5f		 pop	 edi
+  00c98	5e		 pop	 esi
+  00c99	5d		 pop	 ebp
+  00c9a	5b		 pop	 ebx
+
+; 325  : #else
+; 326  :    printf ("\n");
+; 327  :    printf ("\r");
+; 328  : #endif
+; 329  : }       
+
+  00c9b	c3		 ret	 0
+_ls_util_dump_lsp_endp ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_dot
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_ls_util_is_dot PROC NEAR
+
+; 358  : 	if (pLts_t->citem.i_word[0] == ((PFASCII<<PSFONT)|'.'))
+
+  00ca0	8b 4c 24 04	 mov	 ecx, DWORD PTR _pLts_t$[esp-4]
+  00ca4	33 c0		 xor	 eax, eax
+  00ca6	66 83 b9 02 09
+	00 00 2e	 cmp	 WORD PTR [ecx+2306], 46	; 0000002eH
+  00cae	0f 94 c0	 sete	 al
+
+; 359  : 	{
+; 360  : 		return (TRUE);
+; 361  : 	}
+; 362  : 	return (FALSE);
+; 363  : }
+
+  00cb1	c3		 ret	 0
+_ls_util_is_dot ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_name
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_ls_util_is_name PROC NEAR
+
+; 386  : #ifdef ACNA
+; 387  : 	PLTS_T  pLts_t;
+; 388  : 	PKSD_T  pKsd_t;
+; 389  : 
+; 390  : 	pLts_t = phTTS->pLTSThreadData;
+; 391  : 	pKsd_t = phTTS->pKernelShareData;   
+
+  00cc0	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00cc4	53		 push	 ebx
+  00cc5	56		 push	 esi
+  00cc6	8b 70 08	 mov	 esi, DWORD PTR [eax+8]
+
+; 392  : 	if(pKsd_t->pronflag & PRON_ACNA_NAME)
+
+  00cc9	8b 9e cc 03 00
+	00		 mov	 ebx, DWORD PTR [esi+972]
+  00ccf	f6 c3 04	 test	 bl, 4
+  00cd2	74 08		 je	 SHORT $L72100
+  00cd4	5e		 pop	 esi
+
+; 393  : 		return(TRUE);
+
+  00cd5	b8 01 00 00 00	 mov	 eax, 1
+  00cda	5b		 pop	 ebx
+
+; 405  : #else
+; 406  : 	return(FALSE);
+; 407  : #endif
+; 408  : }
+
+  00cdb	c3		 ret	 0
+$L72100:
+
+; 394  : 	if((pKsd_t->modeflag & MODE_NAME) == 0)
+
+  00cdc	f6 86 c0 03 00
+	00 40		 test	 BYTE PTR [esi+960], 64	; 00000040H
+  00ce3	75 08		 jne	 SHORT $L72101
+  00ce5	5e		 pop	 esi
+
+; 395  : 		return(TRUE);
+
+  00ce6	b8 01 00 00 00	 mov	 eax, 1
+  00ceb	5b		 pop	 ebx
+
+; 405  : #else
+; 406  : 	return(FALSE);
+; 407  : #endif
+; 408  : }
+
+  00cec	c3		 ret	 0
+$L72101:
+
+; 396  : 	if(pLts_t->fc_index == 0)
+
+  00ced	8b 40 10	 mov	 eax, DWORD PTR [eax+16]
+  00cf0	8b 88 bc 08 00
+	00		 mov	 ecx, DWORD PTR [eax+2236]
+  00cf6	85 c9		 test	 ecx, ecx
+
+; 397  : 		return(FALSE);
+
+  00cf8	74 45		 je	 SHORT $L72619
+
+; 398  : 	if((*llp).l_ch < 64 || (*llp).l_ch > 97 )/*first character upper??*/
+
+  00cfa	8b 44 24 10	 mov	 eax, DWORD PTR _llp$[esp+4]
+  00cfe	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00d01	66 83 f9 40	 cmp	 cx, 64			; 00000040H
+  00d05	7c 38		 jl	 SHORT $L72619
+  00d07	66 83 f9 61	 cmp	 cx, 97			; 00000061H
+  00d0b	7f 32		 jg	 SHORT $L72619
+
+; 400  : 	for(llp++;llp<rlp;llp++)
+
+  00d0d	8b 54 24 14	 mov	 edx, DWORD PTR _rlp$[esp+4]
+  00d11	83 c0 02	 add	 eax, 2
+  00d14	3b c2		 cmp	 eax, edx
+  00d16	73 16		 jae	 SHORT $L72107
+$L72105:
+
+; 401  : 		if( (*llp).l_ch  >122 ||  (*llp).l_ch <97) /*the rest lower*/
+
+  00d18	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00d1b	66 83 f9 7a	 cmp	 cx, 122			; 0000007aH
+  00d1f	7f 1e		 jg	 SHORT $L72619
+  00d21	66 83 f9 61	 cmp	 cx, 97			; 00000061H
+  00d25	7c 18		 jl	 SHORT $L72619
+  00d27	83 c0 02	 add	 eax, 2
+  00d2a	3b c2		 cmp	 eax, edx
+  00d2c	72 ea		 jb	 SHORT $L72105
+$L72107:
+
+; 402  : 			return(FALSE);
+; 403  : 	pKsd_t->pronflag |= PRON_ACNA_NAME;
+
+  00d2e	83 cb 04	 or	 ebx, 4
+
+; 404  : 		return(TRUE);
+
+  00d31	b8 01 00 00 00	 mov	 eax, 1
+  00d36	89 9e cc 03 00
+	00		 mov	 DWORD PTR [esi+972], ebx
+  00d3c	5e		 pop	 esi
+  00d3d	5b		 pop	 ebx
+
+; 405  : #else
+; 406  : 	return(FALSE);
+; 407  : #endif
+; 408  : }
+
+  00d3e	c3		 ret	 0
+$L72619:
+  00d3f	5e		 pop	 esi
+
+; 399  : 		return(FALSE);
+
+  00d40	33 c0		 xor	 eax, eax
+  00d42	5b		 pop	 ebx
+
+; 405  : #else
+; 406  : 	return(FALSE);
+; 407  : #endif
+; 408  : }
+
+  00d43	c3		 ret	 0
+_ls_util_is_name ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_ordinal
+_TEXT	SEGMENT
+_np$ = 12
+_ls_util_is_ordinal PROC NEAR
+
+; 435  : 	  PLTS_T  pLts_t;
+; 436  : 	  LETTER        *lp;
+; 437  : 	  int   ud;
+; 438  : 
+; 439  : 	  pLts_t = phTTS->pLTSThreadData;
+; 440  : 
+; 441  : 	if (np->n_ilp==NULL || np->n_flp!=NULL || np->n_elp!=NULL)
+
+  00d50	8b 44 24 08	 mov	 eax, DWORD PTR _np$[esp-4]
+  00d54	8b 10		 mov	 edx, DWORD PTR [eax]
+  00d56	85 d2		 test	 edx, edx
+  00d58	0f 84 82 00 00
+	00		 je	 $L72131
+  00d5e	8b 48 08	 mov	 ecx, DWORD PTR [eax+8]
+  00d61	85 c9		 test	 ecx, ecx
+  00d63	75 7b		 jne	 SHORT $L72131
+  00d65	8b 48 10	 mov	 ecx, DWORD PTR [eax+16]
+  00d68	85 c9		 test	 ecx, ecx
+  00d6a	75 74		 jne	 SHORT $L72131
+
+; 443  : 	lp = np->n_irp;                         /* Just past right.     */
+
+  00d6c	8b 40 04	 mov	 eax, DWORD PTR [eax+4]
+
+; 444  : 	ud = (lp-1)->l_ch;                      /* Unit digit.          */
+
+  00d6f	0f bf 48 fe	 movsx	 ecx, WORD PTR [eax-2]
+
+; 445  : 	if (ud==0xBC || ud==0xBD)               /* Things like "1 1/2". */
+
+  00d73	81 f9 bc 00 00
+	00		 cmp	 ecx, 188		; 000000bcH
+  00d79	74 65		 je	 SHORT $L72131
+  00d7b	81 f9 bd 00 00
+	00		 cmp	 ecx, 189		; 000000bdH
+  00d81	74 5d		 je	 SHORT $L72131
+
+; 446  : 		return (FALSE);
+; 447  : 	if (lp>np->n_ilp+1 && (lp-2)->l_ch=='1')
+
+  00d83	83 c2 02	 add	 edx, 2
+  00d86	3b c2		 cmp	 eax, edx
+  00d88	76 0c		 jbe	 SHORT $L72125
+  00d8a	66 83 78 fc 31	 cmp	 WORD PTR [eax-4], 49	; 00000031H
+  00d8f	75 05		 jne	 SHORT $L72125
+
+; 448  : 		ud = '0';
+
+  00d91	b9 30 00 00 00	 mov	 ecx, 48			; 00000030H
+$L72125:
+
+; 449  : #ifdef ENGLISH
+; 450  : 	switch (ud) 
+; 451  : 	{
+
+  00d96	83 e9 31	 sub	 ecx, 49			; 00000031H
+  00d99	74 32		 je	 SHORT $L72130
+  00d9b	49		 dec	 ecx
+  00d9c	74 29		 je	 SHORT $L72132
+  00d9e	49		 dec	 ecx
+  00d9f	74 13		 je	 SHORT $L72134
+
+; 465  : 		break;
+; 466  : 
+; 467  : 	default:                                /* "th"                 */
+; 468  : 		if (lp->l_ch=='t' && (lp+1)->l_ch=='h')
+
+  00da1	66 83 38 74	 cmp	 WORD PTR [eax], 116	; 00000074H
+  00da5	75 39		 jne	 SHORT $L72131
+  00da7	66 83 78 02 68	 cmp	 WORD PTR [eax+2], 104	; 00000068H
+  00dac	75 32		 jne	 SHORT $L72131
+
+; 469  : 			return (TRUE);
+
+  00dae	b8 01 00 00 00	 mov	 eax, 1
+
+; 470  : 		break;
+; 471  : 	}
+; 472  : #endif /* #ifdef ENGLISH */ 
+; 473  : #ifdef SPANISH
+; 474  : 	if (lp->l_ch==186)
+; 475  : 	{
+; 476  : 			pLts_t->ord = 1;
+; 477  : 			return(TRUE);
+; 478  : 	}
+; 479  : 	if (lp->l_ch==170)
+; 480  : 	{
+; 481  : 			pLts_t->ord = 2;
+; 482  : 			return(TRUE);
+; 483  : 	}
+; 484  : 
+; 485  : #endif /* #ifdef SPANISH */
+; 486  : 	return (FALSE);
+; 487  : }                
+
+  00db3	c3		 ret	 0
+$L72134:
+
+; 460  : 		break;
+; 461  : 
+; 462  : 	case '3':                               /* "rd"                 */
+; 463  : 		if (lp->l_ch=='r' && (lp+1)->l_ch=='d')
+
+  00db4	66 83 38 72	 cmp	 WORD PTR [eax], 114	; 00000072H
+$L72623:
+  00db8	75 26		 jne	 SHORT $L72131
+  00dba	66 83 78 02 64	 cmp	 WORD PTR [eax+2], 100	; 00000064H
+  00dbf	75 1f		 jne	 SHORT $L72131
+
+; 464  : 			return (TRUE);
+
+  00dc1	b8 01 00 00 00	 mov	 eax, 1
+
+; 470  : 		break;
+; 471  : 	}
+; 472  : #endif /* #ifdef ENGLISH */ 
+; 473  : #ifdef SPANISH
+; 474  : 	if (lp->l_ch==186)
+; 475  : 	{
+; 476  : 			pLts_t->ord = 1;
+; 477  : 			return(TRUE);
+; 478  : 	}
+; 479  : 	if (lp->l_ch==170)
+; 480  : 	{
+; 481  : 			pLts_t->ord = 2;
+; 482  : 			return(TRUE);
+; 483  : 	}
+; 484  : 
+; 485  : #endif /* #ifdef SPANISH */
+; 486  : 	return (FALSE);
+; 487  : }                
+
+  00dc6	c3		 ret	 0
+$L72132:
+
+; 455  : 		break;
+; 456  : 
+; 457  : 	case '2':                               /* "nd"                 */
+; 458  : 		if (lp->l_ch=='n' && (lp+1)->l_ch=='d')
+
+  00dc7	66 83 38 6e	 cmp	 WORD PTR [eax], 110	; 0000006eH
+
+; 459  : 			return (TRUE);
+
+  00dcb	eb eb		 jmp	 SHORT $L72623
+$L72130:
+
+; 452  : 	case '1':                               /* "st"                 */
+; 453  : 		if (lp->l_ch=='s' && (lp+1)->l_ch=='t')
+
+  00dcd	66 83 38 73	 cmp	 WORD PTR [eax], 115	; 00000073H
+  00dd1	75 0d		 jne	 SHORT $L72131
+  00dd3	66 83 78 02 74	 cmp	 WORD PTR [eax+2], 116	; 00000074H
+  00dd8	75 06		 jne	 SHORT $L72131
+
+; 454  : 			return (TRUE);
+
+  00dda	b8 01 00 00 00	 mov	 eax, 1
+
+; 470  : 		break;
+; 471  : 	}
+; 472  : #endif /* #ifdef ENGLISH */ 
+; 473  : #ifdef SPANISH
+; 474  : 	if (lp->l_ch==186)
+; 475  : 	{
+; 476  : 			pLts_t->ord = 1;
+; 477  : 			return(TRUE);
+; 478  : 	}
+; 479  : 	if (lp->l_ch==170)
+; 480  : 	{
+; 481  : 			pLts_t->ord = 2;
+; 482  : 			return(TRUE);
+; 483  : 	}
+; 484  : 
+; 485  : #endif /* #ifdef SPANISH */
+; 486  : 	return (FALSE);
+; 487  : }                
+
+  00ddf	c3		 ret	 0
+$L72131:
+
+; 442  : 		return (FALSE);
+
+  00de0	33 c0		 xor	 eax, eax
+
+; 470  : 		break;
+; 471  : 	}
+; 472  : #endif /* #ifdef ENGLISH */ 
+; 473  : #ifdef SPANISH
+; 474  : 	if (lp->l_ch==186)
+; 475  : 	{
+; 476  : 			pLts_t->ord = 1;
+; 477  : 			return(TRUE);
+; 478  : 	}
+; 479  : 	if (lp->l_ch==170)
+; 480  : 	{
+; 481  : 			pLts_t->ord = 2;
+; 482  : 			return(TRUE);
+; 483  : 	}
+; 484  : 
+; 485  : #endif /* #ifdef SPANISH */
+; 486  : 	return (FALSE);
+; 487  : }                
+
+  00de2	c3		 ret	 0
+_ls_util_is_ordinal ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_year
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_ls_util_is_year PROC NEAR
+
+; 515  : 	LETTER        *tlp1;
+; 516  : 	int   ndig;
+; 517  : 
+; 518  : 	ndig = 0;                               /* Count digits, check. */
+; 519  : 	tlp1 = llp;                             /* for all digits.      */
+; 520  : 	while (tlp1 != rlp) 
+
+  00df0	8b 4c 24 08	 mov	 ecx, DWORD PTR _rlp$[esp-4]
+  00df4	56		 push	 esi
+  00df5	8b 74 24 08	 mov	 esi, DWORD PTR _llp$[esp]
+  00df9	33 d2		 xor	 edx, edx
+  00dfb	3b f1		 cmp	 esi, ecx
+  00dfd	57		 push	 edi
+  00dfe	8b c6		 mov	 eax, esi
+  00e00	74 14		 je	 SHORT $L72147
+$L72146:
+
+; 521  : 	{
+; 522  : 		if (!IS_DIGIT(tlp1->l_ch))
+
+  00e02	0f bf 38	 movsx	 edi, WORD PTR [eax]
+  00e05	f6 87 00 00 00
+	00 10		 test	 BYTE PTR _ls_char_feat[edi], 16 ; 00000010H
+  00e0c	74 3d		 je	 SHORT $L72626
+
+; 523  : 			return (FALSE);
+; 524  : 		++ndig;
+; 525  : 		++tlp1;
+
+  00e0e	83 c0 02	 add	 eax, 2
+  00e11	42		 inc	 edx
+  00e12	3b c1		 cmp	 eax, ecx
+  00e14	75 ec		 jne	 SHORT $L72146
+$L72147:
+
+; 526  : 	}
+; 527  : 	/* MGS 07/22/97 BATS #412 */
+; 528  : 	if ((rlp-1)->l_ch==0xBC || (rlp-1)->l_ch==0xBD) /* don't let years have 1/2 or 1/4 in them */
+
+  00e16	66 8b 49 fe	 mov	 cx, WORD PTR [ecx-2]
+  00e1a	66 81 f9 bc 00	 cmp	 cx, 188			; 000000bcH
+  00e1f	74 2a		 je	 SHORT $L72626
+  00e21	66 81 f9 bd 00	 cmp	 cx, 189			; 000000bdH
+  00e26	74 23		 je	 SHORT $L72626
+
+; 530  : 	if (ndig != 4)                          /* Must be 4 digits.    */
+
+  00e28	83 fa 04	 cmp	 edx, 4
+
+; 531  : 		return (FALSE);
+
+  00e2b	75 1e		 jne	 SHORT $L72626
+
+; 532  : 	if (llp->l_ch == '0')                   /* No initial "0", no   */
+
+  00e2d	b8 30 00 00 00	 mov	 eax, 48			; 00000030H
+  00e32	66 39 06	 cmp	 WORD PTR [esi], ax
+
+; 533  : 		return (FALSE);                 /* imbedded "00" pair.  */
+
+  00e35	74 14		 je	 SHORT $L72626
+
+; 534  : 	if ((llp+1)->l_ch=='0' && (llp+2)->l_ch=='0')
+
+  00e37	66 39 46 02	 cmp	 WORD PTR [esi+2], ax
+  00e3b	75 06		 jne	 SHORT $L72153
+  00e3d	66 39 46 04	 cmp	 WORD PTR [esi+4], ax
+
+; 535  : 		return (FALSE);
+
+  00e41	74 08		 je	 SHORT $L72626
+$L72153:
+  00e43	5f		 pop	 edi
+
+; 536  : 	return (TRUE);
+
+  00e44	b8 01 00 00 00	 mov	 eax, 1
+  00e49	5e		 pop	 esi
+
+; 537  : }
+
+  00e4a	c3		 ret	 0
+$L72626:
+  00e4b	5f		 pop	 edi
+
+; 529  : 		return (FALSE);
+
+  00e4c	33 c0		 xor	 eax, eax
+  00e4e	5e		 pop	 esi
+
+; 537  : }
+
+  00e4f	c3		 ret	 0
+_ls_util_is_year ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_copyword
+_TEXT	SEGMENT
+_tlp$ = 8
+_flp$ = 12
+_ls_util_copyword PROC NEAR
+
+; 561  : 	while (flp->l_ch != EOS) 
+
+  00e50	8b 54 24 08	 mov	 edx, DWORD PTR _flp$[esp-4]
+  00e54	66 8b 02	 mov	 ax, WORD PTR [edx]
+  00e57	66 85 c0	 test	 ax, ax
+  00e5a	74 19		 je	 SHORT $L72631
+  00e5c	8b 4c 24 04	 mov	 ecx, DWORD PTR _tlp$[esp-4]
+$L72160:
+
+; 562  : 	{
+; 563  : 		tlp->l_ch = flp->l_ch;
+; 564  : 		++tlp;
+; 565  : 		++flp;
+
+  00e60	83 c2 02	 add	 edx, 2
+  00e63	66 89 01	 mov	 WORD PTR [ecx], ax
+  00e66	83 c1 02	 add	 ecx, 2
+  00e69	66 8b 02	 mov	 ax, WORD PTR [edx]
+  00e6c	66 85 c0	 test	 ax, ax
+  00e6f	75 ef		 jne	 SHORT $L72160
+
+; 566  : 	}
+; 567  : 	tlp->l_ch = EOS;
+
+  00e71	66 89 01	 mov	 WORD PTR [ecx], ax
+
+; 568  : 	// tlp->l_ip = NULL;
+; 569  : }
+
+  00e74	c3		 ret	 0
+$L72631:
+
+; 566  : 	}
+; 567  : 	tlp->l_ch = EOS;
+
+  00e75	8b 44 24 04	 mov	 eax, DWORD PTR _tlp$[esp-4]
+  00e79	66 c7 00 00 00	 mov	 WORD PTR [eax], 0
+
+; 568  : 	// tlp->l_ip = NULL;
+; 569  : }
+
+  00e7e	c3		 ret	 0
+_ls_util_copyword ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_send_phone_list
+PUBLIC	_ls_util_send_phone
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pp$ = 12
+_ls_util_send_phone_list PROC NEAR
+
+; 589  : {
+
+  00e80	56		 push	 esi
+
+; 590  : 	  int   ph;
+; 591  : 
+; 592  : 	while ((ph = *pp++) != SIL && !phTTS->pKernelShareData->halting)
+
+  00e81	8b 74 24 0c	 mov	 esi, DWORD PTR _pp$[esp]
+  00e85	57		 push	 edi
+  00e86	0f be 06	 movsx	 eax, BYTE PTR [esi]
+  00e89	46		 inc	 esi
+  00e8a	85 c0		 test	 eax, eax
+  00e8c	74 23		 je	 SHORT $L72170
+  00e8e	8b 7c 24 0c	 mov	 edi, DWORD PTR _phTTS$[esp+4]
+$L72169:
+  00e92	8b 4f 08	 mov	 ecx, DWORD PTR [edi+8]
+  00e95	8b 91 34 03 00
+	00		 mov	 edx, DWORD PTR [ecx+820]
+  00e9b	85 d2		 test	 edx, edx
+  00e9d	75 12		 jne	 SHORT $L72170
+
+; 593  : 		ls_util_send_phone(phTTS,ph);
+
+  00e9f	50		 push	 eax
+  00ea0	57		 push	 edi
+  00ea1	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00ea6	0f be 06	 movsx	 eax, BYTE PTR [esi]
+  00ea9	83 c4 08	 add	 esp, 8
+  00eac	46		 inc	 esi
+  00ead	85 c0		 test	 eax, eax
+  00eaf	75 e1		 jne	 SHORT $L72169
+$L72170:
+  00eb1	5f		 pop	 edi
+  00eb2	5e		 pop	 esi
+
+; 594  : }
+
+  00eb3	c3		 ret	 0
+_ls_util_send_phone_list ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_write_pipe
+_DATA	SEGMENT
+	ORG $+2
+$SG72186 DB	0aH, 'FC(%d)(%08x)', 00H
+	ORG $+2
+$SG72187 DB	0aH, 'FC(%d)(%08x)', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_ph$ = 12
+_buf$ = 8
+_buf2$ = -8
+_ls_util_send_phone PROC NEAR
+
+; 620  : #ifdef __linux__
+; 621  : 	short buf[1];
+; 622  : #else
+; 623  : 	DT_PIPE_T   buf[1];
+; 624  : #endif
+; 625  : 	PLTS_T  pLts_t;
+; 626  : 	PKSD_T  pKsd_t;
+; 627  : 
+; 628  : #ifdef __linux__
+; 629  : 	short buf2[4];
+; 630  : #else
+; 631  : 	DT_PIPE_T buf2[4];
+; 632  : #endif
+; 633  : 
+; 634  : /* GL 09/24/1997  add LDS_BUILD flag for LDS run */
+; 635  : #if defined (VMS) || defined (LDS_BUILD)
+; 636  : 	lds_sendphone(ph);
+; 637  : 	return;
+; 638  : #endif
+; 639  : 
+; 640  : 	pLts_t = phTTS->pLTSThreadData;
+
+  00ec0	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00ec4	83 ec 08	 sub	 esp, 8
+  00ec7	56		 push	 esi
+  00ec8	8b 70 10	 mov	 esi, DWORD PTR [eax+16]
+  00ecb	57		 push	 edi
+
+; 641  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00ecc	8b 78 08	 mov	 edi, DWORD PTR [eax+8]
+
+; 642  : 	pLts_t->lphone = ph;
+
+  00ecf	8b 44 24 18	 mov	 eax, DWORD PTR _ph$[esp+12]
+
+; 643  : 
+; 644  : 	if ((ph & 0xff00) || ( ph >= 100))
+
+  00ed3	f6 c4 ff	 test	 ah, -1
+  00ed6	66 89 86 36 04
+	00 00		 mov	 WORD PTR [esi+1078], ax
+  00edd	75 0a		 jne	 SHORT $L72181
+  00edf	83 f8 64	 cmp	 eax, 100		; 00000064H
+  00ee2	7d 05		 jge	 SHORT $L72181
+
+; 646  : 	else
+; 647  : 	{
+; 648  : 
+; 649  : #ifdef ENGLISH_US
+; 650  : 		buf[0] = (PFUSA<<PSFONT) + ph;
+
+  00ee4	05 00 1e 00 00	 add	 eax, 7680		; 00001e00H
+$L72181:
+
+; 645  : 		buf[0]=ph;
+
+  00ee9	66 89 44 24 14	 mov	 WORD PTR _buf$[esp+12], ax
+
+; 651  : #endif                 
+; 652  : 
+; 653  : #ifdef ENGLISH_UK
+; 654  : 		buf[0] = (PFUK<<PSFONT) + ph;
+; 655  : #endif                 
+; 656  : 
+; 657  : #ifdef GERMAN
+; 658  : 		buf[0] = (PFGR << PSFONT) + ph;
+; 659  : #endif
+; 660  :         
+; 661  : #ifdef SPANISH_SP
+; 662  : 		buf[0] = (PFSP <<PSFONT) + ph;
+; 663  : #endif	
+; 664  : 
+; 665  : #ifdef SPANISH_LA
+; 666  : 		buf[0] = (PFLA <<PSFONT) + ph;
+; 667  : #endif	
+; 668  : #ifdef FRENCH
+; 669  : 		buf[0] = (PFFR<<PSFONT) + ph;
+; 670  : #endif  
+; 671  : 	}
+; 672  : 	/* debug switch */
+; 673  : 	if (DT_DBG(LTS_DBG,0x040))
+
+  00eee	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  00ef5	f6 c4 40	 test	 ah, 64			; 00000040H
+  00ef8	74 49		 je	 SHORT $L72183
+  00efa	a8 40		 test	 al, 64			; 00000040H
+  00efc	74 45		 je	 SHORT $L72183
+
+; 674  : 	{
+; 675  : #ifndef MSDOS
+; 676  : 		if (pKsd_t->dbglog)			/*mfg 04/28/98 added debug support*/
+
+  00efe	8b 8f 44 06 00
+	00		 mov	 ecx, DWORD PTR [edi+1604]
+  00f04	85 c9		 test	 ecx, ecx
+  00f06	74 1e		 je	 SHORT $L72184
+
+; 677  : 		fprintf((FILE *)pKsd_t->dbglog,"\nFC(%d)(%08x)",pLts_t->fc_index,pLts_t->fc_struct[pLts_t->fc_index]);
+
+  00f08	8b 86 bc 08 00
+	00		 mov	 eax, DWORD PTR [esi+2236]
+  00f0e	8b 94 86 bc 04
+	00 00		 mov	 edx, DWORD PTR [esi+eax*4+1212]
+  00f15	52		 push	 edx
+  00f16	50		 push	 eax
+  00f17	68 00 00 00 00	 push	 OFFSET FLAT:$SG72186
+  00f1c	51		 push	 ecx
+  00f1d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00f23	83 c4 10	 add	 esp, 16			; 00000010H
+$L72184:
+
+; 678  : #endif
+; 679  : 		printf("\nFC(%d)(%08x)",pLts_t->fc_index,pLts_t->fc_struct[pLts_t->fc_index]);
+
+  00f26	8b 86 bc 08 00
+	00		 mov	 eax, DWORD PTR [esi+2236]
+  00f2c	8b 8c 86 bc 04
+	00 00		 mov	 ecx, DWORD PTR [esi+eax*4+1212]
+  00f33	51		 push	 ecx
+  00f34	50		 push	 eax
+  00f35	68 00 00 00 00	 push	 OFFSET FLAT:$SG72187
+  00f3a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00f40	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72183:
+
+; 680  : 	}
+; 681  : 	/* MGS 10/17/1997, send word class */
+; 682  : 	/* GL 09/01/1998, BATS#755 only send out one word_class per word */
+; 683  : 	/* GL 10/19/1998, BATS#773 don't send formclass if index == 0 */
+; 684  : 	if ((pLts_t->fc_index != pLts_t->old_fc_index) && (pLts_t->fc_index != 0))
+
+  00f43	8b 86 bc 08 00
+	00		 mov	 eax, DWORD PTR [esi+2236]
+  00f49	8b 8e c0 08 00
+	00		 mov	 ecx, DWORD PTR [esi+2240]
+  00f4f	3b c1		 cmp	 eax, ecx
+  00f51	74 49		 je	 SHORT $L72188
+  00f53	85 c0		 test	 eax, eax
+  00f55	74 45		 je	 SHORT $L72188
+
+; 685  : 	{
+; 686  : 		pLts_t->old_fc_index=pLts_t->fc_index;
+
+  00f57	89 86 c0 08 00
+	00		 mov	 DWORD PTR [esi+2240], eax
+
+; 687  : 		buf2[0]=WORD_CLASS + (2 << PSNEXTRA);
+
+  00f5d	66 c7 44 24 08
+	17 5f		 mov	 WORD PTR _buf2$[esp+16], 24343 ; 00005f17H
+
+; 688  : #ifdef LTS_PIPE_DEBUG
+; 689  : 		buf2[1]=0xfcdc;
+; 690  : 		buf2[2]=0xfcdc;
+; 691  : #else
+; 692  : 		buf2[1]=((pLts_t->fc_struct[pLts_t->fc_index])>>16);
+
+  00f64	8b 96 bc 08 00
+	00		 mov	 edx, DWORD PTR [esi+2236]
+
+; 693  : 		buf2[2]=((pLts_t->fc_struct[pLts_t->fc_index]) & 0x0000FFFF);
+; 694  : #endif
+; 695  : 	//	printf("\nin lts FC(%d)(%08x)\n",pLts_t->fc_index,pLts_t->fc_struct[pLts_t->fc_index]);
+; 696  : 		ls_util_write_pipe(pKsd_t,&buf2[0],3);
+
+  00f6a	6a 03		 push	 3
+  00f6c	8b 84 96 bc 04
+	00 00		 mov	 eax, DWORD PTR [esi+edx*4+1212]
+  00f73	c1 e8 10	 shr	 eax, 16			; 00000010H
+  00f76	66 89 44 24 0e	 mov	 WORD PTR _buf2$[esp+22], ax
+  00f7b	8b 8e bc 08 00
+	00		 mov	 ecx, DWORD PTR [esi+2236]
+  00f81	8d 44 24 0c	 lea	 eax, DWORD PTR _buf2$[esp+20]
+  00f85	66 8b 94 8e bc
+	04 00 00	 mov	 dx, WORD PTR [esi+ecx*4+1212]
+  00f8d	50		 push	 eax
+  00f8e	57		 push	 edi
+  00f8f	66 89 54 24 18	 mov	 WORD PTR _buf2$[esp+32], dx
+  00f94	e8 00 00 00 00	 call	 _ls_util_write_pipe
+  00f99	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72188:
+
+; 697  : 	}
+; 698  : 	ls_util_write_pipe(pKsd_t,&buf[0],1);
+
+  00f9c	8d 4c 24 14	 lea	 ecx, DWORD PTR _buf$[esp+12]
+  00fa0	6a 01		 push	 1
+  00fa2	51		 push	 ecx
+  00fa3	57		 push	 edi
+  00fa4	e8 00 00 00 00	 call	 _ls_util_write_pipe
+  00fa9	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00fac	5f		 pop	 edi
+  00fad	5e		 pop	 esi
+
+; 699  : }
+
+  00fae	83 c4 08	 add	 esp, 8
+  00fb1	c3		 ret	 0
+_ls_util_send_phone ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_might
+PUBLIC	_ls_util_next_item
+EXTRN	_lsctype:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_ls_util_is_might PROC NEAR
+
+; 724  : 	int   t;
+; 725  : 	PLTS_T pLts_t;
+; 726  : 	pLts_t=phTTS->pLTSThreadData;
+
+  00fc0	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00fc4	56		 push	 esi
+
+; 727  : 
+; 728  : 	ls_util_next_item(phTTS);
+
+  00fc5	50		 push	 eax
+  00fc6	8b 70 10	 mov	 esi, DWORD PTR [eax+16]
+  00fc9	e8 00 00 00 00	 call	 _ls_util_next_item
+
+; 729  : 	if ((pLts_t->nitem.i_word[0]&PFONT) == (PFASCII<<PSFONT)) 
+
+  00fce	66 8b 86 0c 09
+	00 00		 mov	 ax, WORD PTR [esi+2316]
+  00fd5	83 c4 04	 add	 esp, 4
+  00fd8	8b c8		 mov	 ecx, eax
+  00fda	81 e1 00 1f 00
+	00		 and	 ecx, 7936		; 00001f00H
+  00fe0	5e		 pop	 esi
+  00fe1	66 85 c9	 test	 cx, cx
+  00fe4	75 24		 jne	 SHORT $L72195
+
+; 730  : 	{
+; 731  : 		t = lsctype[pLts_t->nitem.i_word[0]&PVALUE] & TYPE;
+
+  00fe6	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00feb	8a 04 45 00 00
+	00 00		 mov	 al, BYTE PTR _lsctype[eax*2]
+  00ff2	83 e0 0f	 and	 eax, 15			; 0000000fH
+
+; 732  : 		if (t==BACKUP || t==ALWAYS || t==MIGHT)
+
+  00ff5	83 f8 01	 cmp	 eax, 1
+  00ff8	74 0a		 je	 SHORT $L72196
+  00ffa	83 f8 04	 cmp	 eax, 4
+  00ffd	74 05		 je	 SHORT $L72196
+  00fff	83 f8 03	 cmp	 eax, 3
+  01002	75 06		 jne	 SHORT $L72195
+$L72196:
+
+; 733  : 			return (TRUE);
+
+  01004	b8 01 00 00 00	 mov	 eax, 1
+
+; 736  : }
+
+  01009	c3		 ret	 0
+$L72195:
+
+; 734  : 	}
+; 735  : 	return (FALSE);
+
+  0100a	33 c0		 xor	 eax, eax
+
+; 736  : }
+
+  0100c	c3		 ret	 0
+_ls_util_is_might ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_index
+_TEXT	SEGMENT
+_ip$ = 8
+_ls_util_is_index PROC NEAR
+
+; 756  : 	if (   ip->i_word[0]==INDEX 
+; 757  : 		|| ip->i_word[0]==INDEX_REPLY //tek 01aug97 bats 404 added index types
+; 758  : //#ifdef _WIN32
+; 759  : 		|| ip->i_word[0]==INDEX_BOOKMARK
+; 760  : 		|| ip->i_word[0]==INDEX_WORDPOS
+; 761  : 		|| ip->i_word[0]==INDEX_START
+; 762  : 		|| ip->i_word[0]==INDEX_STOP
+; 763  : 		|| ip->i_word[0]==INDEX_SENTENCE
+; 764  : 		|| ip->i_word[0]==INDEX_VOLUME
+; 765  : //#endif //_WIN32
+; 766  : 	   )
+
+  01010	8b 44 24 04	 mov	 eax, DWORD PTR _ip$[esp-4]
+  01014	66 8b 40 02	 mov	 ax, WORD PTR [eax+2]
+  01018	66 3d 08 1f	 cmp	 ax, 7944		; 00001f08H
+  0101c	74 2d		 je	 SHORT $L72201
+  0101e	66 3d 09 1f	 cmp	 ax, 7945		; 00001f09H
+  01022	74 27		 je	 SHORT $L72201
+  01024	66 3d 13 1f	 cmp	 ax, 7955		; 00001f13H
+  01028	74 21		 je	 SHORT $L72201
+  0102a	66 3d 14 1f	 cmp	 ax, 7956		; 00001f14H
+  0102e	74 1b		 je	 SHORT $L72201
+  01030	66 3d 15 1f	 cmp	 ax, 7957		; 00001f15H
+  01034	74 15		 je	 SHORT $L72201
+  01036	66 3d 16 1f	 cmp	 ax, 7958		; 00001f16H
+  0103a	74 0f		 je	 SHORT $L72201
+  0103c	66 3d 18 1f	 cmp	 ax, 7960		; 00001f18H
+  01040	74 09		 je	 SHORT $L72201
+  01042	66 3d 19 1f	 cmp	 ax, 7961		; 00001f19H
+  01046	74 03		 je	 SHORT $L72201
+
+; 769  : 	}
+; 770  : 	return (FALSE);
+
+  01048	33 c0		 xor	 eax, eax
+
+; 771  : }
+
+  0104a	c3		 ret	 0
+$L72201:
+
+; 767  : 	{
+; 768  : 		return (TRUE);
+
+  0104b	b8 01 00 00 00	 mov	 eax, 1
+
+; 771  : }
+
+  01050	c3		 ret	 0
+_ls_util_is_index ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_white
+_TEXT	SEGMENT
+_ip$ = 8
+_ls_util_is_white PROC NEAR
+
+; 796  : 	  int   c;
+; 797  : 
+; 798  : 	if ((ip->i_word[0]&PFONT) == (PFASCII<<PSFONT)) 
+
+  01060	8b 44 24 04	 mov	 eax, DWORD PTR _ip$[esp-4]
+  01064	66 8b 40 02	 mov	 ax, WORD PTR [eax+2]
+  01068	8b c8		 mov	 ecx, eax
+  0106a	81 e1 00 1f 00
+	00		 and	 ecx, 7936		; 00001f00H
+  01070	66 85 c9	 test	 cx, cx
+  01073	75 26		 jne	 SHORT $L72207
+
+; 799  : 	{
+; 800  : 		c = ip->i_word[0] & PVALUE;
+
+  01075	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+
+; 801  : 		if (c==' ' || c==0xA0 || c==LF || c==CR || c==FF)
+
+  0107a	83 f8 20	 cmp	 eax, 32			; 00000020H
+  0107d	74 16		 je	 SHORT $L72208
+  0107f	3d a0 00 00 00	 cmp	 eax, 160		; 000000a0H
+  01084	74 0f		 je	 SHORT $L72208
+  01086	83 f8 0a	 cmp	 eax, 10			; 0000000aH
+  01089	74 0a		 je	 SHORT $L72208
+  0108b	83 f8 0d	 cmp	 eax, 13			; 0000000dH
+  0108e	74 05		 je	 SHORT $L72208
+  01090	83 f8 0c	 cmp	 eax, 12			; 0000000cH
+  01093	75 06		 jne	 SHORT $L72207
+$L72208:
+
+; 802  : 			return (TRUE);
+
+  01095	b8 01 00 00 00	 mov	 eax, 1
+
+; 805  : }
+
+  0109a	c3		 ret	 0
+$L72207:
+
+; 803  : 	}
+; 804  : 	return (FALSE);
+
+  0109b	33 c0		 xor	 eax, eax
+
+; 805  : }
+
+  0109d	c3		 ret	 0
+_ls_util_is_white ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_read_item
+_TEXT	SEGMENT
+_phTTS$ = 8
+_ls_util_read_item PROC NEAR
+
+; 827  : 	int   i;    
+; 828  : 	PLTS_T  pLts_t;
+; 829  : 	pLts_t = phTTS->pLTSThreadData;
+
+  010a0	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  010a4	56		 push	 esi
+  010a5	8b 70 10	 mov	 esi, DWORD PTR [eax+16]
+
+; 830  : 
+; 831  : 	if (pLts_t->nitem.i_nword == 0)
+
+  010a8	66 83 be 0a 09
+	00 00 00	 cmp	 WORD PTR [esi+2314], 0
+  010b0	75 09		 jne	 SHORT $L72214
+
+; 832  : 		ls_util_next_item(phTTS);
+
+  010b2	50		 push	 eax
+  010b3	e8 00 00 00 00	 call	 _ls_util_next_item
+  010b8	83 c4 04	 add	 esp, 4
+$L72214:
+
+; 833  : 	pLts_t->citem.i_nword =pLts_t->nitem.i_nword;
+
+  010bb	66 8b 86 0a 09
+	00 00		 mov	 ax, WORD PTR [esi+2314]
+
+; 834  : 	pLts_t->nitem.i_nword = 0;
+
+  010c2	66 c7 86 0a 09
+	00 00 00 00	 mov	 WORD PTR [esi+2314], 0
+  010cb	66 89 86 00 09
+	00 00		 mov	 WORD PTR [esi+2304], ax
+  010d2	8d 86 02 09 00
+	00		 lea	 eax, DWORD PTR [esi+2306]
+  010d8	b9 04 00 00 00	 mov	 ecx, 4
+  010dd	5e		 pop	 esi
+$L72215:
+
+; 835  : 	for (i=0; i<4; ++i)
+; 836  : 		pLts_t->citem.i_word[i] = pLts_t->nitem.i_word[i];
+
+  010de	66 8b 50 0a	 mov	 dx, WORD PTR [eax+10]
+  010e2	66 89 10	 mov	 WORD PTR [eax], dx
+  010e5	83 c0 02	 add	 eax, 2
+  010e8	49		 dec	 ecx
+  010e9	75 f3		 jne	 SHORT $L72215
+
+; 837  : }
+
+  010eb	c3		 ret	 0
+_ls_util_read_item ENDP
+_TEXT	ENDS
+EXTRN	_read_pipe:NEAR
+_DATA	SEGMENT
+	ORG $+2
+$SG72232 DB	0aH, 'LTS input:%c(%x)', 00H
+	ORG $+2
+$SG72239 DB	0aH, 'LTS input:%c[%x]', 00H
+	ORG $+2
+$SG72264 DB	0aH, 'LTS input:*%c[%x]', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_nextra$ = -24
+_lts_sync$ = -16
+_linp$ = -20
+_pLts_t$ = 8
+_local_buf$ = -8
+_ls_util_next_item PROC NEAR
+
+; 860  : {
+
+  010f0	83 ec 18	 sub	 esp, 24			; 00000018H
+
+; 861  : 	int     nextra,i; 
+; 862  : 	DT_PIPE_T       lts_sync[2];
+; 863  : 	P_PIPE linp;
+; 864  : 	PLTS_T  pLts_t;
+; 865  : 	PKSD_T  pKsd_t;
+; 866  : 
+; 867  : 	short local_buf[4];
+; 868  : 	
+; 869  : 	pKsd_t = phTTS->pKernelShareData;
+
+  010f3	8b 44 24 1c	 mov	 eax, DWORD PTR _phTTS$[esp+20]
+  010f7	53		 push	 ebx
+  010f8	55		 push	 ebp
+  010f9	56		 push	 esi
+  010fa	8b 70 08	 mov	 esi, DWORD PTR [eax+8]
+
+; 870  : 	pLts_t=phTTS->pLTSThreadData;
+
+  010fd	8b 68 10	 mov	 ebp, DWORD PTR [eax+16]
+  01100	57		 push	 edi
+  01101	89 6c 24 2c	 mov	 DWORD PTR _pLts_t$[esp+36], ebp
+
+; 871  : 
+; 872  : #ifdef ENGLISH_US                 
+; 873  : 	linp = pKsd_t->lang_lts[LANG_english];
+
+  01105	8b 86 d8 02 00
+	00		 mov	 eax, DWORD PTR [esi+728]
+  0110b	89 44 24 14	 mov	 DWORD PTR _linp$[esp+40], eax
+$L72229:
+
+; 895  : 	{
+; 896  : 		read_pipe(linp,&local_buf[0],READ_WORD_PIPE_PACKET);
+
+  0110f	8b 54 24 14	 mov	 edx, DWORD PTR _linp$[esp+40]
+  01113	8d 4c 24 20	 lea	 ecx, DWORD PTR _local_buf$[esp+40]
+  01117	68 de c0 ed fe	 push	 -17973026		; feedc0deH
+  0111c	51		 push	 ecx
+  0111d	52		 push	 edx
+  0111e	e8 00 00 00 00	 call	 _read_pipe
+
+; 897  : //		read_pipe(linp,&(pLts_t->nitem.i_word[0]), 1);
+; 898  : 		// fake the read_pipe
+; 899  : 		pLts_t->nitem.i_word[0]=local_buf[0];
+
+  01123	66 8b 44 24 2c	 mov	 ax, WORD PTR _local_buf$[esp+52]
+  01128	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0112b	66 89 85 0c 09
+	00 00		 mov	 WORD PTR [ebp+2316], ax
+
+; 900  : 
+; 901  : 		/* debug switch */
+; 902  : 		if (DT_DBG(LTS_DBG,0x001))
+
+  01132	66 8b 86 40 06
+	00 00		 mov	 ax, WORD PTR [esi+1600]
+  01139	f6 c4 40	 test	 ah, 64			; 00000040H
+  0113c	74 1d		 je	 SHORT $L72654
+  0113e	a8 01		 test	 al, 1
+  01140	74 19		 je	 SHORT $L72654
+
+; 903  : 		{
+; 904  : 			printf("\nLTS input:%c(%x)",pLts_t->nitem.i_word[0],pLts_t->nitem.i_word[0]);
+
+  01142	0f bf 44 24 20	 movsx	 eax, WORD PTR _local_buf$[esp+40]
+  01147	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__printf
+  0114d	50		 push	 eax
+  0114e	50		 push	 eax
+  0114f	68 00 00 00 00	 push	 OFFSET FLAT:$SG72232
+  01154	ff d3		 call	 ebx
+  01156	83 c4 0c	 add	 esp, 12			; 0000000cH
+  01159	eb 06		 jmp	 SHORT $L72231
+$L72654:
+  0115b	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__printf
+$L72231:
+
+; 905  : 		}
+; 906  : 
+; 907  : /* GL 04/21/1997  change this for OSF build */
+; 908  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 909  : 		/* GL 12/02/1996, pass RESET to PH pipe */
+; 910  : 		if(((pLts_t->nitem.i_word[0]) & (PFONT|PVALUE)) == RESET)
+
+  01161	66 8b 85 0c 09
+	00 00		 mov	 ax, WORD PTR [ebp+2316]
+  01168	8b c8		 mov	 ecx, eax
+  0116a	81 e1 ff 1f 00
+	00		 and	 ecx, 8191		; 00001fffH
+  01170	66 81 f9 12 1f	 cmp	 cx, 7954		; 00001f12H
+  01175	75 14		 jne	 SHORT $L72233
+
+; 911  : 		{
+; 912  : 			ls_util_write_pipe(pKsd_t,&(pLts_t->nitem.i_word[0]),1);
+
+  01177	8d 85 0c 09 00
+	00		 lea	 eax, DWORD PTR [ebp+2316]
+  0117d	6a 01		 push	 1
+  0117f	50		 push	 eax
+  01180	56		 push	 esi
+  01181	e8 00 00 00 00	 call	 _ls_util_write_pipe
+  01186	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 913  : 			continue;		
+
+  01189	eb 84		 jmp	 SHORT $L72229
+$L72233:
+
+; 914  :         }
+; 915  : #endif        
+; 916  :         
+; 917  : #ifdef SPANISH
+; 918  :    		if(pLts_t->got_quote && pLts_t->nitem.i_word[0] == ((PFASCII<<PSFONT)+','))
+; 919  : 		{
+; 920  : 			
+; 921  : 			/*eab 9/95got quote followed by comma*/
+; 922  : 			/*treat next phrase differently if special word set.*/
+; 923  : 			ls_util_send_phone(phTTS, S3);
+; 924  : 		}
+; 925  : 		if(pLts_t->nitem.i_word[0] == ((PFASCII<<PSFONT)+'"'))
+; 926  : 		{
+; 927  : 			pLts_t->got_quote=1;	
+; 928  : 		}
+; 929  : 		else
+; 930  : 			pLts_t->got_quote=0;
+; 931  : #endif
+; 932  : 
+; 933  : 
+; 934  : 		nextra = ((pLts_t->nitem.i_word[0])&PNEXTRA) >> PSNEXTRA;
+
+  0118b	c1 f8 0d	 sar	 eax, 13			; 0000000dH
+  0118e	83 e0 03	 and	 eax, 3
+
+; 935  : 
+; 936  : /*
+; 937  :  *  commands synchronous to lts ...
+; 938  :  */
+; 939  : 
+; 940  : 		if(((pLts_t->nitem.i_word[0]) & (PFONT|PVALUE)) == LTS_SYNC)
+
+  01191	66 81 f9 04 1f	 cmp	 cx, 7940		; 00001f04H
+  01196	8b d0		 mov	 edx, eax
+  01198	89 54 24 10	 mov	 DWORD PTR _nextra$[esp+40], edx
+  0119c	0f 85 70 01 00
+	00		 jne	 $L72234
+
+; 941  : 		{
+; 942  : 			for(i=0;i<nextra;i++)
+
+  011a2	33 ff		 xor	 edi, edi
+  011a4	85 d2		 test	 edx, edx
+  011a6	7e 5b		 jle	 SHORT $L72243
+$L72235:
+
+; 943  : 			{
+; 944  : 				//read_pipe(linp,&lts_sync[i],1);
+; 945  : 				// fake the read_pipe
+; 946  : 				lts_sync[i]=local_buf[i+1];
+; 947  : 
+; 948  : 		        /* debug switch */
+; 949  : 		        if (DT_DBG(LTS_DBG,0x001))
+
+  011a8	66 8b 8e 40 06
+	00 00		 mov	 cx, WORD PTR [esi+1600]
+  011af	66 8b 44 7c 22	 mov	 ax, WORD PTR _local_buf$[esp+edi*2+42]
+  011b4	f6 c5 40	 test	 ch, 64			; 00000040H
+  011b7	66 89 44 7c 18	 mov	 WORD PTR _lts_sync$[esp+edi*2+40], ax
+  011bc	74 1a		 je	 SHORT $L72238
+  011be	f6 c1 01	 test	 cl, 1
+  011c1	74 15		 je	 SHORT $L72238
+
+; 950  : 		        {
+; 951  : 			       printf("\nLTS input:%c[%x]",lts_sync[i],lts_sync[i]);
+
+  011c3	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  011c8	50		 push	 eax
+  011c9	50		 push	 eax
+  011ca	68 00 00 00 00	 push	 OFFSET FLAT:$SG72239
+  011cf	ff d3		 call	 ebx
+  011d1	8b 54 24 1c	 mov	 edx, DWORD PTR _nextra$[esp+52]
+  011d5	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72238:
+
+; 952  : 		        }
+; 953  : 				if(pKsd_t->halting)
+
+  011d8	8b 86 34 03 00
+	00		 mov	 eax, DWORD PTR [esi+820]
+  011de	85 c0		 test	 eax, eax
+  011e0	75 07		 jne	 SHORT $L72646
+  011e2	47		 inc	 edi
+  011e3	3b fa		 cmp	 edi, edx
+  011e5	7c c1		 jl	 SHORT $L72235
+
+; 1041 : 
+; 1042 : 					return;
+; 1043 : 				} 
+; 1044 : 			}
+; 1045 : 		}
+; 1046 : 		if(pKsd_t->halting == FALSE ||
+; 1047 : 		  pLts_t->nitem.i_word[0] == SYNC ||
+; 1048 : 		    pLts_t->nitem.i_word[0] == ((PFASCII<<PSFONT)+0xb))
+
+  011e7	eb 1a		 jmp	 SHORT $L72243
+$L72646:
+
+; 954  : 				{
+; 955  : 					if(lts_sync[i] == SYNC)
+
+  011e9	66 8b 7c 7c 18	 mov	 di, WORD PTR _lts_sync$[esp+edi*2+40]
+  011ee	66 81 ff 0a 1f	 cmp	 di, 7946		; 00001f0aH
+  011f3	0f 84 c2 01 00
+	00		 je	 $L72649
+
+; 959  : 						return;
+; 960  : 					}
+; 961  : 					else if(lts_sync[i] == ((PFASCII<<PSFONT)+0xb))
+
+  011f9	66 83 ff 0b	 cmp	 di, 11			; 0000000bH
+  011fd	0f 84 d2 01 00
+	00		 je	 $L72650
+$L72243:
+
+; 965  : 
+; 966  : 						return;
+; 967  : 					} 
+; 968  : 					break;
+; 969  : 				}
+; 970  : 			}
+; 971  : 			if(pKsd_t->halting == FALSE)
+
+  01203	8b 86 34 03 00
+	00		 mov	 eax, DWORD PTR [esi+820]
+  01209	85 c0		 test	 eax, eax
+  0120b	0f 85 fe fe ff
+	ff		 jne	 $L72229
+
+; 972  : 			{
+; 973  : 				switch(lts_sync[0])
+; 974  : 				{
+
+  01211	8b 44 24 18	 mov	 eax, DWORD PTR _lts_sync$[esp+40]
+  01215	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  0121a	83 f8 0a	 cmp	 eax, 10			; 0000000aH
+  0121d	0f 87 ec fe ff
+	ff		 ja	 $L72229
+  01223	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L72659[eax*4]
+$L72249:
+
+; 975  : 					case    LTS_MODE_SET    :
+; 976  : 						pKsd_t->modeflag |= lts_sync[1];
+
+  0122a	8b 4c 24 1a	 mov	 ecx, DWORD PTR _lts_sync$[esp+42]
+  0122e	8b 86 c0 03 00
+	00		 mov	 eax, DWORD PTR [esi+960]
+  01234	81 e1 ff ff 00
+	00		 and	 ecx, 65535		; 0000ffffH
+  0123a	0b c1		 or	 eax, ecx
+  0123c	89 86 c0 03 00
+	00		 mov	 DWORD PTR [esi+960], eax
+
+; 977  : 						break;
+
+  01242	e9 c8 fe ff ff	 jmp	 $L72229
+$L72250:
+
+; 978  : 					case    LTS_MODE_CLEAR  :
+; 979  : 						pKsd_t->modeflag &= (~lts_sync[1]);
+
+  01247	8b 54 24 1a	 mov	 edx, DWORD PTR _lts_sync$[esp+42]
+  0124b	8b 86 c0 03 00
+	00		 mov	 eax, DWORD PTR [esi+960]
+  01251	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  01257	f7 d2		 not	 edx
+  01259	23 c2		 and	 eax, edx
+  0125b	89 86 c0 03 00
+	00		 mov	 DWORD PTR [esi+960], eax
+
+; 980  : 						break;
+
+  01261	e9 a9 fe ff ff	 jmp	 $L72229
+$L72251:
+
+; 981  : 					case    LTS_MODE_ABS    :
+; 982  : 						pKsd_t->modeflag = lts_sync[1];
+
+  01266	8b 44 24 1a	 mov	 eax, DWORD PTR _lts_sync$[esp+42]
+  0126a	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  0126f	89 86 c0 03 00
+	00		 mov	 DWORD PTR [esi+960], eax
+
+; 983  : 						break;
+
+  01275	e9 95 fe ff ff	 jmp	 $L72229
+$L72252:
+
+; 984  : 					case    LTS_DIC_ALTERNATE       :
+; 985  : 						pKsd_t->pronflag |= PRON_DIC_ALTERNATE;
+
+  0127a	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  01280	0c 02		 or	 al, 2
+  01282	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 986  : 						break;
+
+  01288	e9 82 fe ff ff	 jmp	 $L72229
+$L72253:
+
+; 987  : 					case    LTS_DIC_PRIMARY :
+; 988  : 						pKsd_t->pronflag |= PRON_DIC_PRIMARY;
+
+  0128d	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  01293	0c 01		 or	 al, 1
+  01295	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 989  : 						break;
+
+  0129b	e9 6f fe ff ff	 jmp	 $L72229
+$L72254:
+
+; 990  : 					case    LTS_ACNA_NAME   :
+; 991  : 						pKsd_t->pronflag |=  PRON_ACNA_NAME;
+
+  012a0	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  012a6	0c 04		 or	 al, 4
+  012a8	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 992  : 						break;
+
+  012ae	e9 5c fe ff ff	 jmp	 $L72229
+$L72255:
+
+; 993  : 					case    LTS_DIC_NOUN :
+; 994  : 						pKsd_t->pronflag |= PRON_DIC_NOUN;
+
+  012b3	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  012b9	0c 08		 or	 al, 8
+  012bb	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 995  : 						break;
+
+  012c1	e9 49 fe ff ff	 jmp	 $L72229
+$L72256:
+
+; 996  : 					case    LTS_DIC_VERB :
+; 997  : 						pKsd_t->pronflag |= PRON_DIC_VERB;
+
+  012c6	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  012cc	0c 10		 or	 al, 16			; 00000010H
+  012ce	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 998  : 						break;
+
+  012d4	e9 36 fe ff ff	 jmp	 $L72229
+$L72257:
+
+; 999  : 					case    LTS_DIC_ADJECTIVE :
+; 1000 : 						pKsd_t->pronflag |= PRON_DIC_ADJECTIVE;
+
+  012d9	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  012df	0c 20		 or	 al, 32			; 00000020H
+  012e1	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 1001 : 						break;
+
+  012e7	e9 23 fe ff ff	 jmp	 $L72229
+$L72258:
+
+; 1002 : 					case    LTS_DIC_FUNCTION :
+; 1003 : 						pKsd_t->pronflag |= PRON_DIC_FUNCTION;
+
+  012ec	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  012f2	0c 40		 or	 al, 64			; 00000040H
+  012f4	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 1004 : 						break;
+
+  012fa	e9 10 fe ff ff	 jmp	 $L72229
+$L72259:
+
+; 1005 : 					case    LTS_DIC_INTERJECTION :
+; 1006 : 						pKsd_t->pronflag |= PRON_DIC_INTERJECTION;
+
+  012ff	8b 86 cc 03 00
+	00		 mov	 eax, DWORD PTR [esi+972]
+  01305	0c 80		 or	 al, -128		; ffffff80H
+  01307	89 86 cc 03 00
+	00		 mov	 DWORD PTR [esi+972], eax
+
+; 1007 : 						break;
+; 1008 : 
+; 1009 : 				};
+; 1010 : 			}       
+; 1011 : 			continue;       /* read the next character in the pipe */
+
+  0130d	e9 fd fd ff ff	 jmp	 $L72229
+$L72234:
+
+; 1012 : 						/* go to while (TRUE) */
+; 1013 : 		}
+; 1014 : 
+; 1015 : 		pLts_t->nitem.i_nword = nextra+1;
+; 1016 : 		pLts_t->nitem.i_word[0] &= ~PNEXTRA;
+
+  01312	80 a5 0d 09 00
+	00 9f		 and	 BYTE PTR [ebp+2317], -97 ; ffffff9fH
+
+; 1017 : 		for(i=1;i<=nextra;i++)
+
+  01319	bb 01 00 00 00	 mov	 ebx, 1
+  0131e	8d 4a 01	 lea	 ecx, DWORD PTR [edx+1]
+  01321	3b d3		 cmp	 edx, ebx
+  01323	66 89 8d 0a 09
+	00 00		 mov	 WORD PTR [ebp+2314], cx
+  0132a	7c 69		 jl	 SHORT $L72262
+  0132c	8b 44 24 2c	 mov	 eax, DWORD PTR _pLts_t$[esp+36]
+  01330	8d 6c 24 22	 lea	 ebp, DWORD PTR _local_buf$[esp+42]
+  01334	8d b8 0e 09 00
+	00		 lea	 edi, DWORD PTR [eax+2318]
+$L72260:
+
+; 1018 : 		{
+; 1019 : 			//read_pipe(linp,&(pLts_t->nitem.i_word[i]), 1);
+; 1020 : 			// fake the read_pipe
+; 1021 : 			pLts_t->nitem.i_word[i]=local_buf[i];
+
+  0133a	66 8b 45 00	 mov	 ax, WORD PTR [ebp]
+  0133e	66 89 07	 mov	 WORD PTR [edi], ax
+
+; 1022 : 
+; 1023 : 		    /* debug switch */
+; 1024 : 		    if (DT_DBG(LTS_DBG,0x001))
+
+  01341	66 8b 8e 40 06
+	00 00		 mov	 cx, WORD PTR [esi+1600]
+  01348	f6 c5 40	 test	 ch, 64			; 00000040H
+  0134b	74 1c		 je	 SHORT $L72263
+  0134d	f6 c1 01	 test	 cl, 1
+  01350	74 17		 je	 SHORT $L72263
+
+; 1025 : 		    {
+; 1026 : 			       printf("\nLTS input:*%c[%x]",pLts_t->nitem.i_word[i],pLts_t->nitem.i_word[i]);
+
+  01352	0f bf c0	 movsx	 eax, ax
+  01355	50		 push	 eax
+  01356	50		 push	 eax
+  01357	68 00 00 00 00	 push	 OFFSET FLAT:$SG72264
+  0135c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  01362	8b 54 24 1c	 mov	 edx, DWORD PTR _nextra$[esp+52]
+  01366	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72263:
+
+; 1027 : 		    }
+; 1028 : 			if(pKsd_t->halting)
+
+  01369	8b 86 34 03 00
+	00		 mov	 eax, DWORD PTR [esi+820]
+  0136f	85 c0		 test	 eax, eax
+  01371	74 13		 je	 SHORT $L72261
+
+; 1029 : 			{
+; 1030 : 				if(pLts_t->nitem.i_word[i] == SYNC)
+
+  01373	66 8b 07	 mov	 ax, WORD PTR [edi]
+  01376	66 3d 0a 1f	 cmp	 ax, 7946		; 00001f0aH
+  0137a	74 73		 je	 SHORT $L72647
+
+; 1034 : 
+; 1035 : 					return;
+; 1036 : 				}
+; 1037 : 				else if(pLts_t->nitem.i_word[i] == ((PFASCII<<PSFONT)+0xb))
+
+  0137c	66 3d 0b 00	 cmp	 ax, 11			; 0000000bH
+  01380	0f 84 87 00 00
+	00		 je	 $L72648
+$L72261:
+
+; 1017 : 		for(i=1;i<=nextra;i++)
+
+  01386	43		 inc	 ebx
+  01387	83 c5 02	 add	 ebp, 2
+  0138a	83 c7 02	 add	 edi, 2
+  0138d	3b da		 cmp	 ebx, edx
+  0138f	7e a9		 jle	 SHORT $L72260
+  01391	8b 6c 24 2c	 mov	 ebp, DWORD PTR _pLts_t$[esp+36]
+$L72262:
+
+; 1041 : 
+; 1042 : 					return;
+; 1043 : 				} 
+; 1044 : 			}
+; 1045 : 		}
+; 1046 : 		if(pKsd_t->halting == FALSE ||
+; 1047 : 		  pLts_t->nitem.i_word[0] == SYNC ||
+; 1048 : 		    pLts_t->nitem.i_word[0] == ((PFASCII<<PSFONT)+0xb))
+
+  01395	8b 86 34 03 00
+	00		 mov	 eax, DWORD PTR [esi+820]
+  0139b	85 c0		 test	 eax, eax
+  0139d	0f 84 80 00 00
+	00		 je	 $L72651
+  013a3	66 8b 85 0c 09
+	00 00		 mov	 ax, WORD PTR [ebp+2316]
+  013aa	66 3d 0a 1f	 cmp	 ax, 7946		; 00001f0aH
+  013ae	74 73		 je	 SHORT $L72651
+  013b0	66 3d 0b 00	 cmp	 ax, 11			; 0000000bH
+  013b4	74 6d		 je	 SHORT $L72651
+
+; 874  : #endif
+; 875  : #ifdef ENGLISH_UK                 
+; 876  : 	linp = pKsd_t->lang_lts[LANG_british];
+; 877  : #endif
+; 878  : #ifdef GERMAN
+; 879  : 	linp = pKsd_t->lang_lts[LANG_german];
+; 880  : #endif
+; 881  : #ifdef SPANISH_SP
+; 882  : 	linp = pKsd_t->lang_lts[LANG_spanish];
+; 883  : #endif
+; 884  : #ifdef SPANISH_LA
+; 885  : 	linp = pKsd_t->lang_lts[LANG_latin_american];
+; 886  : #endif
+; 887  : #ifdef FRENCH
+; 888  : 	linp = pKsd_t->lang_lts[LANG_french];
+; 889  : #endif
+; 890  : 
+; 891  : /*
+; 892  :  *  peek at the pipe words, handle ...
+; 893  :  */
+; 894  : 	while(TRUE)
+
+  013b6	e9 54 fd ff ff	 jmp	 $L72229
+$L72649:
+  013bb	5f		 pop	 edi
+
+; 956  : 					{
+; 957  : 						pLts_t->nitem.i_nword = 1;
+
+  013bc	66 c7 85 0a 09
+	00 00 01 00	 mov	 WORD PTR [ebp+2314], 1
+
+; 958  : 						pLts_t->nitem.i_word[0] = SYNC;
+
+  013c5	66 c7 85 0c 09
+	00 00 0a 1f	 mov	 WORD PTR [ebp+2316], 7946 ; 00001f0aH
+  013ce	5e		 pop	 esi
+  013cf	5d		 pop	 ebp
+  013d0	5b		 pop	 ebx
+
+; 1049 : 		{
+; 1050 : 			break;
+; 1051 : 		}
+; 1052 : 
+; 1053 : 	}
+; 1054 : }
+
+  013d1	83 c4 18	 add	 esp, 24			; 00000018H
+  013d4	c3		 ret	 0
+$L72650:
+  013d5	5f		 pop	 edi
+
+; 962  : 					{
+; 963  : 						pLts_t->nitem.i_nword = 1;
+
+  013d6	66 c7 85 0a 09
+	00 00 01 00	 mov	 WORD PTR [ebp+2314], 1
+
+; 964  : 						pLts_t->nitem.i_word[0] = (PFASCII<<PSFONT)+0xb;
+
+  013df	66 c7 85 0c 09
+	00 00 0b 00	 mov	 WORD PTR [ebp+2316], 11	; 0000000bH
+  013e8	5e		 pop	 esi
+  013e9	5d		 pop	 ebp
+  013ea	5b		 pop	 ebx
+
+; 1049 : 		{
+; 1050 : 			break;
+; 1051 : 		}
+; 1052 : 
+; 1053 : 	}
+; 1054 : }
+
+  013eb	83 c4 18	 add	 esp, 24			; 00000018H
+  013ee	c3		 ret	 0
+$L72647:
+
+; 1031 : 				{
+; 1032 : 					pLts_t->nitem.i_word[0] = SYNC;
+
+  013ef	8b 44 24 2c	 mov	 eax, DWORD PTR _pLts_t$[esp+36]
+  013f3	5f		 pop	 edi
+  013f4	5e		 pop	 esi
+  013f5	5d		 pop	 ebp
+  013f6	66 c7 80 0c 09
+	00 00 0a 1f	 mov	 WORD PTR [eax+2316], 7946 ; 00001f0aH
+
+; 1033 : 					pLts_t->nitem.i_nword = 1;
+
+  013ff	66 c7 80 0a 09
+	00 00 01 00	 mov	 WORD PTR [eax+2314], 1
+  01408	5b		 pop	 ebx
+
+; 1049 : 		{
+; 1050 : 			break;
+; 1051 : 		}
+; 1052 : 
+; 1053 : 	}
+; 1054 : }
+
+  01409	83 c4 18	 add	 esp, 24			; 00000018H
+  0140c	c3		 ret	 0
+$L72648:
+
+; 1038 : 				{
+; 1039 : 					pLts_t->nitem.i_nword = 1;
+
+  0140d	8b 44 24 2c	 mov	 eax, DWORD PTR _pLts_t$[esp+36]
+  01411	66 c7 80 0a 09
+	00 00 01 00	 mov	 WORD PTR [eax+2314], 1
+
+; 1040 : 					pLts_t->nitem.i_word[0] = (PFASCII<<PSFONT)+0xb;
+
+  0141a	66 c7 80 0c 09
+	00 00 0b 00	 mov	 WORD PTR [eax+2316], 11	; 0000000bH
+$L72651:
+  01423	5f		 pop	 edi
+  01424	5e		 pop	 esi
+  01425	5d		 pop	 ebp
+  01426	5b		 pop	 ebx
+
+; 1049 : 		{
+; 1050 : 			break;
+; 1051 : 		}
+; 1052 : 
+; 1053 : 	}
+; 1054 : }
+
+  01427	83 c4 18	 add	 esp, 24			; 00000018H
+  0142a	c3		 ret	 0
+  0142b	90		 npad	 1
+$L72659:
+  0142c	00 00 00 00	 DD	 $L72249
+  01430	00 00 00 00	 DD	 $L72250
+  01434	00 00 00 00	 DD	 $L72251
+  01438	00 00 00 00	 DD	 $L72252
+  0143c	00 00 00 00	 DD	 $L72254
+  01440	00 00 00 00	 DD	 $L72253
+  01444	00 00 00 00	 DD	 $L72255
+  01448	00 00 00 00	 DD	 $L72256
+  0144c	00 00 00 00	 DD	 $L72257
+  01450	00 00 00 00	 DD	 $L72258
+  01454	00 00 00 00	 DD	 $L72259
+_ls_util_next_item ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_write_item
+_TEXT	SEGMENT
+_phTTS$ = 8
+_ls_util_write_item PROC NEAR
+
+; 1077 : 	PLTS_T  pLts_t;
+; 1078 : 	PKSD_T  pKsd_t;
+; 1079 : 
+; 1080 : 	pLts_t = phTTS->pLTSThreadData;
+
+  01460	8b 4c 24 04	 mov	 ecx, DWORD PTR _phTTS$[esp-4]
+  01464	56		 push	 esi
+  01465	8b 41 10	 mov	 eax, DWORD PTR [ecx+16]
+
+; 1081 : 	pKsd_t = phTTS->pKernelShareData;
+
+  01468	8b 51 08	 mov	 edx, DWORD PTR [ecx+8]
+
+; 1082 : 
+; 1083 : 	pLts_t->citem.i_word[0] |= (pLts_t->citem.i_nword-1) << PSNEXTRA;
+
+  0146b	66 8b 88 00 09
+	00 00		 mov	 cx, WORD PTR [eax+2304]
+  01472	05 02 09 00 00	 add	 eax, 2306		; 00000902H
+  01477	8b f1		 mov	 esi, ecx
+
+; 1084 : 	ls_util_write_pipe(pKsd_t,&(pLts_t->citem.i_word[0]),pLts_t->citem.i_nword);
+
+  01479	51		 push	 ecx
+  0147a	c1 e6 0d	 shl	 esi, 13			; 0000000dH
+  0147d	81 ee 00 20 00
+	00		 sub	 esi, 8192		; 00002000H
+  01483	50		 push	 eax
+  01484	66 09 30	 or	 WORD PTR [eax], si
+  01487	52		 push	 edx
+  01488	e8 00 00 00 00	 call	 _ls_util_write_pipe
+  0148d	83 c4 0c	 add	 esp, 12			; 0000000cH
+  01490	5e		 pop	 esi
+
+; 1085 : }
+
+  01491	c3		 ret	 0
+_ls_util_write_item ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_lookup
+EXTRN	_ls_dict_blook:NEAR
+_DATA	SEGMENT
+	ORG $+1
+$SG72290 DB	0aH, '(%d)', 00H
+	ORG $+2
+$SG72291 DB	0aH, '(%d)', 00H
+	ORG $+2
+$SG72295 DB	0aH, 'Abbr Miss-hit:', 00H
+$SG72298 DB	0aH, 'Abbr Miss-hit:', 00H
+$SG72303 DB	'%c(%02x)', 00H
+	ORG $+3
+$SG72305 DB	0aH, 'Word Miss-hit:', 00H
+$SG72308 DB	0aH, 'Word Miss-hit:', 00H
+$SG72313 DB	'%c(%02x)', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_context$ = 20
+_flag$ = 8
+_ls_util_lookup PROC NEAR
+
+; 1112 : 	int     flag;
+; 1113 : 	PKSD_T  pKsd_t;
+; 1114 : 
+; 1115 : 	//static  int fileflag =0;
+; 1116 : 	//static  int fileflag2 =0;
+; 1117 : 
+; 1118 : 	pKsd_t = phTTS->pKernelShareData;
+; 1119 : 	
+; 1120 : 	flag=ls_dict_blook(phTTS,llp,rlp,context);
+
+  014a0	8b 4c 24 10	 mov	 ecx, DWORD PTR _context$[esp-4]
+  014a4	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  014a8	53		 push	 ebx
+  014a9	8b 5c 24 10	 mov	 ebx, DWORD PTR _rlp$[esp]
+  014ad	55		 push	 ebp
+  014ae	56		 push	 esi
+  014af	8b 74 24 14	 mov	 esi, DWORD PTR _llp$[esp+8]
+  014b3	57		 push	 edi
+  014b4	8b 78 08	 mov	 edi, DWORD PTR [eax+8]
+  014b7	51		 push	 ecx
+  014b8	53		 push	 ebx
+  014b9	56		 push	 esi
+  014ba	50		 push	 eax
+  014bb	e8 00 00 00 00	 call	 _ls_dict_blook
+
+; 1121 : 	
+; 1122 : 	/* debug switch */
+; 1123 : 	if (DT_DBG(LTS_DBG,0x002)) 
+
+  014c0	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__fprintf
+  014c6	8b c8		 mov	 ecx, eax
+  014c8	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  014cf	83 c4 10	 add	 esp, 16			; 00000010H
+  014d2	f6 c4 40	 test	 ah, 64			; 00000040H
+  014d5	89 4c 24 14	 mov	 DWORD PTR _flag$[esp+12], ecx
+  014d9	74 2d		 je	 SHORT $L72287
+  014db	a8 02		 test	 al, 2
+  014dd	74 29		 je	 SHORT $L72287
+
+; 1124 :     {
+; 1125 : #ifndef MSDOS
+; 1126 : 		if (pKsd_t->dbglog)			/*mfg 04/24/98 added debug support*/
+
+  014df	8b 87 44 06 00
+	00		 mov	 eax, DWORD PTR [edi+1604]
+  014e5	85 c0		 test	 eax, eax
+  014e7	74 0c		 je	 SHORT $L72288
+
+; 1127 : 		fprintf((FILE *)pKsd_t->dbglog,"\n(%d)",flag);
+
+  014e9	51		 push	 ecx
+  014ea	68 00 00 00 00	 push	 OFFSET FLAT:$SG72290
+  014ef	50		 push	 eax
+  014f0	ff d5		 call	 ebp
+  014f2	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72288:
+
+; 1128 : #endif
+; 1129 : 		printf("\n(%d)",flag);
+
+  014f5	8b 54 24 14	 mov	 edx, DWORD PTR _flag$[esp+12]
+  014f9	52		 push	 edx
+  014fa	68 00 00 00 00	 push	 OFFSET FLAT:$SG72291
+  014ff	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  01505	83 c4 08	 add	 esp, 8
+$L72287:
+
+; 1130 : 	}
+; 1131 : 	
+; 1132 : /* debug switch */
+; 1133 : 	if (DT_DBG(LTS_DBG,0x008))
+
+  01508	66 8b 87 40 06
+	00 00		 mov	 ax, WORD PTR [edi+1600]
+  0150f	f6 c4 40	 test	 ah, 64			; 00000040H
+  01512	0f 84 ae 00 00
+	00		 je	 $L72311
+  01518	a8 08		 test	 al, 8
+  0151a	0f 84 a6 00 00
+	00		 je	 $L72311
+
+; 1134 : 	  {
+; 1135 : 	    if (flag == 0)
+
+  01520	8b 44 24 14	 mov	 eax, DWORD PTR _flag$[esp+12]
+  01524	85 c0		 test	 eax, eax
+  01526	0f 85 9a 00 00
+	00		 jne	 $L72311
+
+; 1136 : 	      {
+; 1137 : 		if (context == FABBREV)
+
+  0152c	83 7c 24 20 01	 cmp	 DWORD PTR _context$[esp+12], 1
+  01531	75 4e		 jne	 SHORT $L72294
+
+; 1138 : 		  {				
+; 1139 : 		    ls_util_dump_llp_rlp(llp,rlp,"\nAbbr Miss-hit:");
+
+  01533	68 00 00 00 00	 push	 OFFSET FLAT:$SG72295
+  01538	53		 push	 ebx
+  01539	56		 push	 esi
+  0153a	e8 00 00 00 00	 call	 _ls_util_dump_llp_rlp
+
+; 1140 : 		    
+; 1141 : #ifndef MSDOS
+; 1142 : 		    if (pKsd_t->dbglog)		/*see if dbglog.txt is open*/
+
+  0153f	8b 87 44 06 00
+	00		 mov	 eax, DWORD PTR [edi+1604]
+  01545	83 c4 0c	 add	 esp, 12			; 0000000cH
+  01548	85 c0		 test	 eax, eax
+  0154a	74 7a		 je	 SHORT $L72311
+
+; 1143 : 		      {
+; 1144 : 			fprintf((FILE *)pKsd_t->dbglog,"\nAbbr Miss-hit:");		/*mfg 04/16/1998 dttest logging*/
+
+  0154c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72298
+  01551	50		 push	 eax
+  01552	ff d5		 call	 ebp
+  01554	83 c4 08	 add	 esp, 8
+
+; 1145 : 			/*mfg 04/16/1998 dttest logging*/
+; 1146 : 			while (llp != rlp)
+
+  01557	3b f3		 cmp	 esi, ebx
+  01559	74 6b		 je	 SHORT $L72311
+$L72300:
+
+; 1147 : 			  {
+; 1148 : 			    fprintf((FILE *)pKsd_t->dbglog,"%c(%02x)",llp->l_ch,llp->l_ch);
+
+  0155b	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  0155e	50		 push	 eax
+  0155f	50		 push	 eax
+  01560	8b 87 44 06 00
+	00		 mov	 eax, DWORD PTR [edi+1604]
+  01566	68 00 00 00 00	 push	 OFFSET FLAT:$SG72303
+  0156b	50		 push	 eax
+  0156c	ff d5		 call	 ebp
+
+; 1149 : 			    ++llp;
+
+  0156e	83 c6 02	 add	 esi, 2
+  01571	83 c4 10	 add	 esp, 16			; 00000010H
+  01574	3b f3		 cmp	 esi, ebx
+  01576	75 e3		 jne	 SHORT $L72300
+
+; 1166 : 					}
+; 1167 : 				}
+; 1168 : #endif
+; 1169 : 			}
+; 1170 : 		}
+; 1171 : 	}
+; 1172 : 	return(flag);
+
+  01578	8b 44 24 14	 mov	 eax, DWORD PTR _flag$[esp+12]
+  0157c	5f		 pop	 edi
+  0157d	5e		 pop	 esi
+  0157e	5d		 pop	 ebp
+  0157f	5b		 pop	 ebx
+
+; 1173 : }
+
+  01580	c3		 ret	 0
+$L72294:
+
+; 1150 : 			  }
+; 1151 : 		      }
+; 1152 : #endif
+; 1153 : 		  }
+; 1154 : 		else
+; 1155 : 		  {
+; 1156 : 		    ls_util_dump_llp_rlp(llp,rlp,"\nWord Miss-hit:");
+
+  01581	68 00 00 00 00	 push	 OFFSET FLAT:$SG72305
+  01586	53		 push	 ebx
+  01587	56		 push	 esi
+  01588	e8 00 00 00 00	 call	 _ls_util_dump_llp_rlp
+
+; 1157 : 		    
+; 1158 : #ifndef MSDOS
+; 1159 : 				if (pKsd_t->dbglog)		/*see if dbglog.txt is open*/
+
+  0158d	8b 87 44 06 00
+	00		 mov	 eax, DWORD PTR [edi+1604]
+  01593	83 c4 0c	 add	 esp, 12			; 0000000cH
+  01596	85 c0		 test	 eax, eax
+  01598	74 2c		 je	 SHORT $L72311
+
+; 1160 : 				{	
+; 1161 : 				fprintf((FILE *)pKsd_t->dbglog,"\nWord Miss-hit:");		/*mfg 04/16/1998 dttest logging*/	
+
+  0159a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72308
+  0159f	50		 push	 eax
+  015a0	ff d5		 call	 ebp
+  015a2	83 c4 08	 add	 esp, 8
+
+; 1162 : 					while (llp != rlp)
+
+  015a5	3b f3		 cmp	 esi, ebx
+  015a7	74 1d		 je	 SHORT $L72311
+$L72310:
+
+; 1163 : 					{
+; 1164 : 					fprintf((FILE *)pKsd_t->dbglog,"%c(%02x)",llp->l_ch,llp->l_ch);
+
+  015a9	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  015ac	8b 8f 44 06 00
+	00		 mov	 ecx, DWORD PTR [edi+1604]
+  015b2	50		 push	 eax
+  015b3	50		 push	 eax
+  015b4	68 00 00 00 00	 push	 OFFSET FLAT:$SG72313
+  015b9	51		 push	 ecx
+  015ba	ff d5		 call	 ebp
+
+; 1165 : 					++llp;
+
+  015bc	83 c6 02	 add	 esi, 2
+  015bf	83 c4 10	 add	 esp, 16			; 00000010H
+  015c2	3b f3		 cmp	 esi, ebx
+  015c4	75 e3		 jne	 SHORT $L72310
+$L72311:
+
+; 1166 : 					}
+; 1167 : 				}
+; 1168 : #endif
+; 1169 : 			}
+; 1170 : 		}
+; 1171 : 	}
+; 1172 : 	return(flag);
+
+  015c6	8b 44 24 14	 mov	 eax, DWORD PTR _flag$[esp+12]
+  015ca	5f		 pop	 edi
+  015cb	5e		 pop	 esi
+  015cc	5d		 pop	 ebp
+  015cd	5b		 pop	 ebx
+
+; 1173 : }
+
+  015ce	c3		 ret	 0
+_ls_util_lookup ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_pluralize
+EXTRN	_pfeat:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_ls_util_pluralize PROC NEAR
+
+; 1199 : {
+
+  015d0	56		 push	 esi
+
+; 1200 : #ifdef ENGLISH_US
+; 1201 : 	int     feats=0;
+; 1202 :     PLTS_T pLts_t;
+; 1203 :     pLts_t = phTTS->pLTSThreadData;
+
+  015d1	8b 74 24 08	 mov	 esi, DWORD PTR _phTTS$[esp]
+  015d5	33 c0		 xor	 eax, eax
+  015d7	8b 4e 10	 mov	 ecx, DWORD PTR [esi+16]
+
+; 1204 :     
+; 1205 : 	if (pLts_t->lphone < US_TOT_ALLOPHONES)
+
+  015da	66 8b 89 36 04
+	00 00		 mov	 cx, WORD PTR [ecx+1078]
+  015e1	66 83 f9 3b	 cmp	 cx, 59			; 0000003bH
+  015e5	7d 0b		 jge	 SHORT $L72319
+
+; 1206 : 		feats = pfeat[pLts_t->lphone];
+
+  015e7	0f bf c9	 movsx	 ecx, cx
+  015ea	66 8b 04 4d 00
+	00 00 00	 mov	 ax, WORD PTR _pfeat[ecx*2]
+$L72319:
+
+; 1207 : 	if ((feats&(PCONS|PSIB)) == (PCONS|PSIB)) 
+
+  015f2	8b d0		 mov	 edx, eax
+  015f4	83 e2 11	 and	 edx, 17			; 00000011H
+  015f7	80 fa 11	 cmp	 dl, 17			; 00000011H
+  015fa	75 15		 jne	 SHORT $L72320
+
+; 1208 : 	{
+; 1209 : 		ls_util_send_phone(phTTS,US_IX);
+
+  015fc	6a 12		 push	 18			; 00000012H
+  015fe	56		 push	 esi
+  015ff	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 1210 : 		ls_util_send_phone(phTTS,US_Z);
+
+  01604	6a 2a		 push	 42			; 0000002aH
+  01606	56		 push	 esi
+  01607	e8 00 00 00 00	 call	 _ls_util_send_phone
+  0160c	83 c4 10	 add	 esp, 16			; 00000010H
+  0160f	5e		 pop	 esi
+
+; 1221 : 		}
+; 1222 : 	}
+; 1223 : #endif // ENGLISH_US
+; 1224 : #ifdef ENGLISH_UK
+; 1225 : 	int     feats=0;
+; 1226 :     PLTS_T pLts_t;
+; 1227 :     pLts_t = phTTS->pLTSThreadData;
+; 1228 :     
+; 1229 : 	if (pLts_t->lphone < UK_TOT_ALLOPHONES)
+; 1230 : 		feats = pfeat[pLts_t->lphone];
+; 1231 : 	if ((feats&(PCONS|PSIB)) == (PCONS|PSIB)) 
+; 1232 : 	{
+; 1233 : 		ls_util_send_phone(phTTS,UK_IX);
+; 1234 : 		ls_util_send_phone(phTTS,UK_Z);
+; 1235 : 	} 
+; 1236 : 	else
+; 1237 : 	{ 
+; 1238 : 		if ((feats&(PCONS|PVOICE)) == PCONS)
+; 1239 : 		{
+; 1240 : 			ls_util_send_phone(phTTS,UK_S);
+; 1241 : 		}
+; 1242 : 		else
+; 1243 : 		{
+; 1244 : 			ls_util_send_phone(phTTS,UK_Z);
+; 1245 : 		}
+; 1246 : 	}
+; 1247 : #endif // ENGLISH_UK
+; 1248 : }
+
+  01610	c3		 ret	 0
+$L72320:
+
+; 1211 : 	} 
+; 1212 : 	else
+; 1213 : 	{ 
+; 1214 : 		if ((feats&(PCONS|PVOICE)) == PCONS)
+
+  01611	83 e0 09	 and	 eax, 9
+  01614	3c 01		 cmp	 al, 1
+  01616	75 0d		 jne	 SHORT $L72322
+
+; 1215 : 		{
+; 1216 : 			ls_util_send_phone(phTTS,US_S);
+
+  01618	6a 29		 push	 41			; 00000029H
+
+; 1217 : 		}
+; 1218 : 		else
+; 1219 : 		{
+; 1220 : 			ls_util_send_phone(phTTS,US_Z);
+
+  0161a	56		 push	 esi
+  0161b	e8 00 00 00 00	 call	 _ls_util_send_phone
+  01620	83 c4 08	 add	 esp, 8
+  01623	5e		 pop	 esi
+
+; 1221 : 		}
+; 1222 : 	}
+; 1223 : #endif // ENGLISH_US
+; 1224 : #ifdef ENGLISH_UK
+; 1225 : 	int     feats=0;
+; 1226 :     PLTS_T pLts_t;
+; 1227 :     pLts_t = phTTS->pLTSThreadData;
+; 1228 :     
+; 1229 : 	if (pLts_t->lphone < UK_TOT_ALLOPHONES)
+; 1230 : 		feats = pfeat[pLts_t->lphone];
+; 1231 : 	if ((feats&(PCONS|PSIB)) == (PCONS|PSIB)) 
+; 1232 : 	{
+; 1233 : 		ls_util_send_phone(phTTS,UK_IX);
+; 1234 : 		ls_util_send_phone(phTTS,UK_Z);
+; 1235 : 	} 
+; 1236 : 	else
+; 1237 : 	{ 
+; 1238 : 		if ((feats&(PCONS|PVOICE)) == PCONS)
+; 1239 : 		{
+; 1240 : 			ls_util_send_phone(phTTS,UK_S);
+; 1241 : 		}
+; 1242 : 		else
+; 1243 : 		{
+; 1244 : 			ls_util_send_phone(phTTS,UK_Z);
+; 1245 : 		}
+; 1246 : 	}
+; 1247 : #endif // ENGLISH_UK
+; 1248 : }
+
+  01624	c3		 ret	 0
+$L72322:
+
+; 1217 : 		}
+; 1218 : 		else
+; 1219 : 		{
+; 1220 : 			ls_util_send_phone(phTTS,US_Z);
+
+  01625	6a 2a		 push	 42			; 0000002aH
+  01627	56		 push	 esi
+  01628	e8 00 00 00 00	 call	 _ls_util_send_phone
+  0162d	83 c4 08	 add	 esp, 8
+  01630	5e		 pop	 esi
+
+; 1221 : 		}
+; 1222 : 	}
+; 1223 : #endif // ENGLISH_US
+; 1224 : #ifdef ENGLISH_UK
+; 1225 : 	int     feats=0;
+; 1226 :     PLTS_T pLts_t;
+; 1227 :     pLts_t = phTTS->pLTSThreadData;
+; 1228 :     
+; 1229 : 	if (pLts_t->lphone < UK_TOT_ALLOPHONES)
+; 1230 : 		feats = pfeat[pLts_t->lphone];
+; 1231 : 	if ((feats&(PCONS|PSIB)) == (PCONS|PSIB)) 
+; 1232 : 	{
+; 1233 : 		ls_util_send_phone(phTTS,UK_IX);
+; 1234 : 		ls_util_send_phone(phTTS,UK_Z);
+; 1235 : 	} 
+; 1236 : 	else
+; 1237 : 	{ 
+; 1238 : 		if ((feats&(PCONS|PVOICE)) == PCONS)
+; 1239 : 		{
+; 1240 : 			ls_util_send_phone(phTTS,UK_S);
+; 1241 : 		}
+; 1242 : 		else
+; 1243 : 		{
+; 1244 : 			ls_util_send_phone(phTTS,UK_Z);
+; 1245 : 		}
+; 1246 : 	}
+; 1247 : #endif // ENGLISH_UK
+; 1248 : }
+
+  01631	c3		 ret	 0
+_ls_util_pluralize ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_vowel
+_TEXT	SEGMENT
+_g$ = 8
+_ls_util_is_vowel PROC NEAR
+
+; 1272 : #ifdef ENGLISH
+; 1273 : 	if (g==GA || g==GE || g==GI || g==GO || g==GU || g==GY)
+
+  01640	8b 44 24 04	 mov	 eax, DWORD PTR _g$[esp-4]
+  01644	83 f8 01	 cmp	 eax, 1
+  01647	74 1c		 je	 SHORT $L72328
+  01649	83 f8 05	 cmp	 eax, 5
+  0164c	74 17		 je	 SHORT $L72328
+  0164e	83 f8 09	 cmp	 eax, 9
+  01651	74 12		 je	 SHORT $L72328
+  01653	83 f8 0f	 cmp	 eax, 15			; 0000000fH
+  01656	74 0d		 je	 SHORT $L72328
+  01658	83 f8 15	 cmp	 eax, 21			; 00000015H
+  0165b	74 08		 je	 SHORT $L72328
+  0165d	83 f8 19	 cmp	 eax, 25			; 00000019H
+  01660	74 03		 je	 SHORT $L72328
+
+; 1282 : 	return (FALSE);
+
+  01662	33 c0		 xor	 eax, eax
+
+; 1283 : }                                 
+
+  01664	c3		 ret	 0
+$L72328:
+
+; 1274 : #endif
+; 1275 : #ifdef GERMAN
+; 1276 : 	if (g==GGA || g==GGE || g==GGI || g==GGO || g==GGUu || g==GGAx|| g==GGOx || g==GGUx)
+; 1277 : #endif    	
+; 1278 : #ifdef FRENCH
+; 1279 : 	if (g==GA || g==GE || g==GI || g==GO || g==GU || g==GY)
+; 1280 : #endif
+; 1281 : 		return (TRUE);
+
+  01665	b8 01 00 00 00	 mov	 eax, 1
+
+; 1283 : }                                 
+
+  0166a	c3		 ret	 0
+_ls_util_is_vowel ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_lts_init
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_ls_util_lts_init PROC NEAR
+
+; 1299 :   pLts_t->wstate = UNK_WH;
+
+  01670	8b 44 24 04	 mov	 eax, DWORD PTR _pLts_t$[esp-4]
+  01674	33 c9		 xor	 ecx, ecx
+  01676	66 89 88 c4 08
+	00 00		 mov	 WORD PTR [eax+2244], cx
+
+; 1300 :   pLts_t->lphone = WBOUND;
+
+  0167d	66 c7 80 36 04
+	00 00 6f 00	 mov	 WORD PTR [eax+1078], 111 ; 0000006fH
+
+; 1301 :   pLts_t->fc_index = 0;
+
+  01686	89 88 bc 08 00
+	00		 mov	 DWORD PTR [eax+2236], ecx
+
+; 1302 :   pLts_t->old_fc_index = -1;
+
+  0168c	c7 80 c0 08 00
+	00 ff ff ff ff	 mov	 DWORD PTR [eax+2240], -1
+
+; 1303 : 
+; 1304 : }
+
+  01696	c3		 ret	 0
+_ls_util_lts_init ENDP
+_TEXT	ENDS
+PUBLIC	_f_fprintf
+_DATA	SEGMENT
+	ORG $+3
+$SG72338 DB	'a', 00H
+	ORG $+2
+$SG72339 DB	'debug.log', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_str$ = 8
+_f_fprintf PROC NEAR
+
+; 1325 : {
+
+  016a0	56		 push	 esi
+
+; 1326 :    FILE *dbgfp;
+; 1327 : 
+; 1328 :    dbgfp = fopen("debug.log", "a");
+
+  016a1	68 00 00 00 00	 push	 OFFSET FLAT:$SG72338
+  016a6	68 00 00 00 00	 push	 OFFSET FLAT:$SG72339
+  016ab	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+  016b1	8b f0		 mov	 esi, eax
+
+; 1329 :    fprintf(dbgfp, str);
+
+  016b3	8b 44 24 10	 mov	 eax, DWORD PTR _str$[esp+8]
+  016b7	50		 push	 eax
+  016b8	56		 push	 esi
+  016b9	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+
+; 1330 :    fclose(dbgfp);
+
+  016bf	56		 push	 esi
+  016c0	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  016c6	83 c4 14	 add	 esp, 20			; 00000014H
+  016c9	5e		 pop	 esi
+
+; 1331 : }
+
+  016ca	c3		 ret	 0
+_f_fprintf ENDP
+_TEXT	ENDS
+EXTRN	_form_class_strings:BYTE
+EXTRN	_write_pipe:NEAR
+_DATA	SEGMENT
+	ORG $+2
+$SG72366 DB	'%c', 00H
+	ORG $+1
+$SG72375 DB	0aH, '[breath_break]', 00H
+$SG72376 DB	'[breath_break]', 00H
+	ORG $+1
+$SG72380 DB	0aH, '[sync]', 00H
+$SG72381 DB	'[sync]', 00H
+	ORG $+1
+$SG72390 DB	'[%s]', 00H
+	ORG $+3
+$SG72391 DB	'[%s]', 00H
+	ORG $+3
+$SG72396 DB	'[%s]', 00H
+	ORG $+3
+$SG72397 DB	'[%s]', 00H
+	ORG $+3
+$SG72399 DB	'[rate]', 00H
+	ORG $+1
+$SG72402 DB	0aH, '[rate]', 00H
+$SG72404 DB	'[cpause]', 00H
+	ORG $+3
+$SG72407 DB	0aH, '[cpause]', 00H
+	ORG $+2
+$SG72409 DB	'[ppause]', 00H
+	ORG $+3
+$SG72412 DB	0aH, '[ppause]', 00H
+	ORG $+2
+$SG72414 DB	'[last_voice]', 00H
+	ORG $+3
+$SG72417 DB	0aH, '[last_voice]', 00H
+	ORG $+2
+$SG72419 DB	'[lts_sync]', 00H
+	ORG $+1
+$SG72422 DB	0aH, '[lts_sync]', 00H
+$SG72424 DB	'[new_speaker]', 00H
+	ORG $+2
+$SG72427 DB	0aH, '[new_speaker]', 00H
+	ORG $+1
+$SG72429 DB	'[new_param]', 00H
+$SG72432 DB	0aH, '[new_param]', 00H
+	ORG $+3
+$SG72434 DB	'[save]', 00H
+	ORG $+1
+$SG72437 DB	0aH, '[save]', 00H
+$SG72439 DB	'[index]', 00H
+$SG72442 DB	0aH, '[index]', 00H
+	ORG $+3
+$SG72444 DB	'[index_reply]', 00H
+	ORG $+2
+$SG72447 DB	0aH, '[index_reply]', 00H
+	ORG $+1
+$SG72449 DB	'[kill_task]', 00H
+$SG72452 DB	0aH, '[kill_task]', 00H
+	ORG $+3
+$SG72454 DB	'[flush_sync]', 00H
+	ORG $+3
+$SG72457 DB	0aH, '[flush_sync]', 00H
+	ORG $+2
+$SG72459 DB	'[pitch_change]', 00H
+	ORG $+1
+$SG72462 DB	0aH, '[pitch_change]', 00H
+$SG72464 DB	'[latin]', 00H
+$SG72467 DB	0aH, '[latin]', 00H
+	ORG $+3
+$SG72469 DB	'[papause]', 00H
+	ORG $+2
+$SG72472 DB	0aH, '[papause]', 00H
+	ORG $+1
+$SG72474 DB	'[cntrlk]', 00H
+	ORG $+3
+$SG72477 DB	0aH, '[cntrlk]', 00H
+	ORG $+2
+$SG72479 DB	'[reset]', 00H
+$SG72482 DB	0aH, '[reset]', 00H
+	ORG $+3
+$SG72484 DB	'[index_bookmark]', 00H
+	ORG $+3
+$SG72487 DB	0aH, '[index_bookmark]', 00H
+	ORG $+2
+$SG72489 DB	'[index_wordpos]', 00H
+$SG72492 DB	0aH, '[index_wordpos]', 00H
+	ORG $+3
+$SG72494 DB	'[index_start]', 00H
+	ORG $+2
+$SG72497 DB	0aH, '[index_start]', 00H
+	ORG $+1
+$SG72499 DB	'[index_stop]', 00H
+	ORG $+3
+$SG72502 DB	0aH, '[index_stop]', 00H
+	ORG $+2
+$SG72504 DB	'[index_sentence]', 00H
+	ORG $+3
+$SG72507 DB	0aH, '[index_sentence]', 00H
+	ORG $+2
+$SG72509 DB	'[index_volume]', 00H
+	ORG $+1
+$SG72512 DB	0aH, '[index_volume]', 00H
+$SG72518 DB	'%c%c', 00H
+	ORG $+3
+$SG72519 DB	'%c%c', 00H
+	ORG $+3
+$SG72521 DB	0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_phone$ = 12
+_count$ = 16
+_kinp$ = -4
+_wcbyte0$ = 8
+_wcbyte1$ = -8
+_ls_util_write_pipe PROC NEAR
+
+; 1353 : {
+
+  016d0	83 ec 08	 sub	 esp, 8
+  016d3	53		 push	 ebx
+  016d4	55		 push	 ebp
+  016d5	56		 push	 esi
+
+; 1354 : 		
+; 1355 :         P_PIPE  kinp;
+; 1356 : 		int i;
+; 1357 : 		short wcbyte0,wcbyte1;
+; 1358 : 		//tek 20aug98 we need phTTS to get at the phoneme-logging stuff
+; 1359 : #ifndef MSDOS
+; 1360 : 		LPTTS_HANDLE_T phTTS = pKsd_t->phTTS;
+
+  016d6	8b 74 24 18	 mov	 esi, DWORD PTR _pKsd_t$[esp+16]
+
+; 1361 : #else
+; 1362 : 		LPTTS_HANDLE_T phTTS; 
+; 1363 : #endif //MSDOS
+; 1364 : 
+; 1365 : 		//gl  02sep98 these API codes for non-msdos only
+; 1366 : #if !defined MSDOS 
+; 1367 : #if LTS_DEBUG
+; 1368 : 		{
+; 1369 : 			char szTemp[256]="l_u_w_p: ";
+; 1370 : 			int i;
+; 1371 : 			for (i=0;i<count;i++)
+; 1372 : 			{
+; 1373 : 				sprintf(szTemp,"%s %04hx ",szTemp,phone[i]);
+; 1374 : 			}
+; 1375 : 			strcat(szTemp,"\n");
+; 1376 : 			OutputDebugString(szTemp);
+; 1377 : 		}
+; 1378 : #endif //LTS_DEBUG
+; 1379 : 		// tek 20aug98 decide if we need to log and act accordingly
+; 1380 : 		// the pointer isn't null, we're logging.
+; 1381 : 		if (phTTS->szPhonemeBuffer)
+
+  016da	8b 6c 24 1c	 mov	 ebp, DWORD PTR _phone$[esp+16]
+  016de	57		 push	 edi
+  016df	8b 86 50 06 00
+	00		 mov	 eax, DWORD PTR [esi+1616]
+  016e5	8b 88 e8 00 00
+	00		 mov	 ecx, DWORD PTR [eax+232]
+  016eb	85 c9		 test	 ecx, ecx
+  016ed	0f 84 a9 00 00
+	00		 je	 $L72356
+
+; 1382 : 		{
+; 1383 : 			// loop and possibly log each..
+; 1384 : 			int iI;
+; 1385 : 			for (iI=0;iI<count;iI++)
+
+  016f3	0f bf 4c 24 24	 movsx	 ecx, WORD PTR _count$[esp+20]
+  016f8	85 c9		 test	 ecx, ecx
+  016fa	0f 8e 9c 00 00
+	00		 jle	 $L72356
+  01700	8b dd		 mov	 ebx, ebp
+  01702	89 4c 24 1c	 mov	 DWORD PTR 8+[esp+20], ecx
+$L72354:
+
+; 1386 : 			{
+; 1387 : 				short sIPhone = phone[iI]; // the whole (input) phone..
+; 1388 : 				short sMPhone = phone[iI]&0xFF; // the masked-off phone..
+
+  01706	66 8b 0b	 mov	 cx, WORD PTR [ebx]
+  01709	8a d1		 mov	 dl, cl
+  0170b	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  01711	8b fa		 mov	 edi, edx
+
+; 1389 : 				// see if it's a phoneme.. (always PFUSA??)
+; 1390 : 				/* GL 09/01/1998 BATS#758 use different language tags for each language */
+; 1391 : #ifdef ENGLISH_US
+; 1392 : 				if ( ((sIPhone>>PSFONT)&0xFF) == PFUSA)
+
+  01713	33 d2		 xor	 edx, edx
+  01715	8a d5		 mov	 dl, ch
+  01717	66 83 fa 1e	 cmp	 dx, 30			; 0000001eH
+  0171b	75 69		 jne	 SHORT $L72355
+
+; 1393 : #endif                 
+; 1394 : 
+; 1395 : #ifdef ENGLISH_UK
+; 1396 : 				if ( ((sIPhone>>PSFONT)&0xFF) == PFUK)
+; 1397 : #endif                 
+; 1398 : 
+; 1399 : #ifdef GERMAN
+; 1400 : 				if ( ((sIPhone>>PSFONT)&0xFF) == PFGR)
+; 1401 : #endif
+; 1402 :         
+; 1403 : #ifdef SPANISH_SP
+; 1404 : 				if ( ((sIPhone>>PSFONT)&0xFF) == PFSP)
+; 1405 : #endif	
+; 1406 : 
+; 1407 : #ifdef SPANISH_LA
+; 1408 : 				if ( ((sIPhone>>PSFONT)&0xFF) == PFLA)
+; 1409 : #endif	
+; 1410 : #ifdef FRENCH
+; 1411 : 				if ( ((sIPhone>>PSFONT)&0xFF) == PFFR)
+; 1412 : #endif 
+; 1413 : 				{
+; 1414 : 					// we only return the "phonemes" that are legal in 
+; 1415 : 					// a dictionary; this would be everything < TOT_ALLOPHONES
+; 1416 : 					// plus things between BLOCK_RULES and SBOUND
+; 1417 : 					if (  (sMPhone >= SBOUND)
+; 1418 : 						||((sMPhone <= BLOCK_RULES) && (sMPhone >= MAX_PHONES))
+; 1419 : 						)
+
+  0171d	66 83 ff 6c	 cmp	 di, 108			; 0000006cH
+  01721	7d 63		 jge	 SHORT $L72355
+  01723	66 83 ff 64	 cmp	 di, 100			; 00000064H
+  01727	7f 06		 jg	 SHORT $L72360
+  01729	66 83 ff 63	 cmp	 di, 99			; 00000063H
+  0172d	7d 57		 jge	 SHORT $L72355
+$L72360:
+
+; 1420 : 						continue; // not one we're interested in.
+; 1421 : 					
+; 1422 : 					// if we have room
+; 1423 : 					if (phTTS->dwPhonemeBufferPtr < (phTTS->dwPhonemeBufferSize-4))
+
+  0172f	8b 88 ec 00 00
+	00		 mov	 ecx, DWORD PTR [eax+236]
+  01735	8b a8 f0 00 00
+	00		 mov	 ebp, DWORD PTR [eax+240]
+  0173b	83 e9 04	 sub	 ecx, 4
+  0173e	3b e9		 cmp	 ebp, ecx
+  01740	73 44		 jae	 SHORT $L72355
+
+; 1424 : 					{
+; 1425 : 						// index into the arpabet table..
+; 1426 : 						int iIndex = sMPhone*2;
+; 1427 : 						phTTS->szPhonemeBuffer[phTTS->dwPhonemeBufferPtr++] 
+; 1428 : 							= pKsd_t->arpabet[iIndex];
+
+  01742	8b 96 2c 06 00
+	00		 mov	 edx, DWORD PTR [esi+1580]
+  01748	0f bf cf	 movsx	 ecx, di
+  0174b	8b b8 e8 00 00
+	00		 mov	 edi, DWORD PTR [eax+232]
+  01751	d1 e1		 shl	 ecx, 1
+  01753	8a 14 0a	 mov	 dl, BYTE PTR [edx+ecx]
+  01756	88 14 2f	 mov	 BYTE PTR [edi+ebp], dl
+  01759	8b 90 f0 00 00
+	00		 mov	 edx, DWORD PTR [eax+240]
+
+; 1429 : 						phTTS->szPhonemeBuffer[phTTS->dwPhonemeBufferPtr++] 
+; 1430 : 							= pKsd_t->arpabet[iIndex+1];
+
+  0175f	8b a8 e8 00 00
+	00		 mov	 ebp, DWORD PTR [eax+232]
+  01765	42		 inc	 edx
+  01766	89 90 f0 00 00
+	00		 mov	 DWORD PTR [eax+240], edx
+  0176c	8b be 2c 06 00
+	00		 mov	 edi, DWORD PTR [esi+1580]
+  01772	8a 4c 0f 01	 mov	 cl, BYTE PTR [edi+ecx+1]
+  01776	88 0c 2a	 mov	 BYTE PTR [edx+ebp], cl
+  01779	8b 88 f0 00 00
+	00		 mov	 ecx, DWORD PTR [eax+240]
+  0177f	41		 inc	 ecx
+  01780	89 88 f0 00 00
+	00		 mov	 DWORD PTR [eax+240], ecx
+$L72355:
+  01786	8b 4c 24 1c	 mov	 ecx, DWORD PTR 8+[esp+20]
+  0178a	83 c3 02	 add	 ebx, 2
+  0178d	49		 dec	 ecx
+  0178e	89 4c 24 1c	 mov	 DWORD PTR 8+[esp+20], ecx
+  01792	0f 85 6e ff ff
+	ff		 jne	 $L72354
+
+; 1382 : 		{
+; 1383 : 			// loop and possibly log each..
+; 1384 : 			int iI;
+; 1385 : 			for (iI=0;iI<count;iI++)
+
+  01798	8b 6c 24 20	 mov	 ebp, DWORD PTR _phone$[esp+20]
+$L72356:
+
+; 1431 : 					}
+; 1432 : 
+; 1433 : 				}
+; 1434 : 			}
+; 1435 : 		}
+; 1436 : 
+; 1437 : #endif  /* #ifndef MSDOS && __linux__ */
+; 1438 : 
+; 1439 : #ifdef ENGLISH_US
+; 1440 :         kinp = pKsd_t->lang_ph[LANG_english];
+; 1441 : #endif
+; 1442 : 
+; 1443 : #ifdef ENGLISH_UK
+; 1444 : 	kinp = pKsd_t->lang_ph[LANG_british];
+; 1445 : #endif
+; 1446 : 
+; 1447 : #ifdef SPANISH_SP
+; 1448 :         kinp = pKsd_t->lang_ph[LANG_spanish];
+; 1449 : #endif
+; 1450 : 
+; 1451 : #ifdef SPANISH_LA
+; 1452 :         kinp = pKsd_t->lang_ph[LANG_latin_american];
+; 1453 : #endif
+; 1454 : 
+; 1455 : #ifdef GERMAN
+; 1456 :         kinp = pKsd_t->lang_ph[LANG_german];
+; 1457 : #endif
+; 1458 : 
+; 1459 : #ifdef FRENCH
+; 1460 :         kinp = pKsd_t->lang_ph[LANG_french];
+; 1461 : #endif
+; 1462 : 		/* debug switch */
+; 1463 : 		/* GL 03/21/1997  dump the data before write_pipe */
+; 1464 : 		/* MFG 04/12/1998 added phonme tranlation for debug 0x4200 */
+; 1465 : 		if (DT_DBG(LTS_DBG,0x200) & ((*phone & 0xff) < PHO_SYM_TOT))
+
+  0179c	66 8b 86 40 06
+	00 00		 mov	 ax, WORD PTR [esi+1600]
+  017a3	8b 96 f4 02 00
+	00		 mov	 edx, DWORD PTR [esi+756]
+  017a9	f6 c4 40	 test	 ah, 64			; 00000040H
+  017ac	89 54 24 14	 mov	 DWORD PTR _kinp$[esp+24], edx
+  017b0	74 0c		 je	 SHORT $L72673
+  017b2	f6 c4 02	 test	 ah, 2
+  017b5	74 07		 je	 SHORT $L72673
+  017b7	bf 01 00 00 00	 mov	 edi, 1
+  017bc	eb 02		 jmp	 SHORT $L72674
+$L72673:
+  017be	33 ff		 xor	 edi, edi
+$L72674:
+  017c0	66 8b 45 00	 mov	 ax, WORD PTR [ebp]
+  017c4	33 d2		 xor	 edx, edx
+  017c6	8a c8		 mov	 cl, al
+  017c8	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  017ce	66 83 f9 7b	 cmp	 cx, 123			; 0000007bH
+  017d2	0f 9c c2	 setl	 dl
+  017d5	85 d7		 test	 edx, edi
+  017d7	0f 84 4c 06 00
+	00		 je	 $L72520
+
+; 1466 : 		{
+; 1467 : 
+; 1468 : 
+; 1469 : 			if (pKsd_t->phoneme_mode & PHONEME_ASCKY) 
+
+  017dd	f6 86 d0 03 00
+	00 02		 test	 BYTE PTR [esi+976], 2
+  017e4	74 26		 je	 SHORT $L72365
+
+; 1470 :                printf("%c",pKsd_t->ascky[(*phone & 0xff)]);
+
+  017e6	8b 8e 20 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1568]
+  017ec	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  017f2	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  017f7	33 d2		 xor	 edx, edx
+  017f9	8a 14 08	 mov	 dl, BYTE PTR [eax+ecx]
+  017fc	52		 push	 edx
+  017fd	68 00 00 00 00	 push	 OFFSET FLAT:$SG72366
+  01802	ff d7		 call	 edi
+  01804	83 c4 08	 add	 esp, 8
+
+; 1471 : 			else
+
+  01807	e9 0d 06 00 00	 jmp	 $L72369
+$L72365:
+
+; 1472 : 			{
+; 1473 : 
+; 1474 : 				switch(*phone & 0x1fff)
+; 1475 : 				{
+
+  0180c	0f bf c0	 movsx	 eax, ax
+  0180f	8b c8		 mov	 ecx, eax
+  01811	81 e1 ff 1f 00
+	00		 and	 ecx, 8191		; 00001fffH
+  01817	81 c1 00 e1 ff
+	ff		 add	 ecx, -7936		; ffffe100H
+  0181d	83 f9 19	 cmp	 ecx, 25			; 00000019H
+  01820	0f 87 8d 05 00
+	00		 ja	 $L72513
+  01826	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L72680[ecx*4]
+$L72372:
+
+; 1476 : 				case BREATH_BREAK:
+; 1477 : #ifndef MSDOS
+; 1478 : 					 if (pKsd_t->dbglog)
+
+  0182d	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01833	85 c0		 test	 eax, eax
+  01835	74 0f		 je	 SHORT $L72373
+
+; 1479 : 					 fprintf((FILE *)pKsd_t->dbglog,"\n[breath_break]");
+
+  01837	68 00 00 00 00	 push	 OFFSET FLAT:$SG72375
+  0183c	50		 push	 eax
+  0183d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01843	83 c4 08	 add	 esp, 8
+$L72373:
+
+; 1480 : #endif
+; 1481 : 					 printf("[breath_break]");
+
+  01846	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  0184c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72376
+  01851	ff d7		 call	 edi
+  01853	83 c4 04	 add	 esp, 4
+
+; 1482 : 					 break;
+
+  01856	e9 be 05 00 00	 jmp	 $L72369
+$L72377:
+
+; 1483 : 
+; 1484 : 				case SYNC:
+; 1485 : #ifndef MSDOS
+; 1486 : 					 if (pKsd_t->dbglog)
+
+  0185b	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01861	85 c0		 test	 eax, eax
+  01863	74 0f		 je	 SHORT $L72378
+
+; 1487 : 					 fprintf((FILE *)pKsd_t->dbglog,"\n[sync]");
+
+  01865	68 00 00 00 00	 push	 OFFSET FLAT:$SG72380
+  0186a	50		 push	 eax
+  0186b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01871	83 c4 08	 add	 esp, 8
+$L72378:
+
+; 1488 : #endif
+; 1489 : 					 printf("[sync]");
+
+  01874	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  0187a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72381
+  0187f	ff d7		 call	 edi
+  01881	83 c4 04	 add	 esp, 4
+
+; 1490 : 					 break;
+
+  01884	e9 90 05 00 00	 jmp	 $L72369
+$L72382:
+
+; 1491 : 
+; 1492 : 				case WORD_CLASS:
+; 1493 : #ifndef MSDOS
+; 1494 : 				//	 if (pKsd_t->dbglog)
+; 1495 : 				//mfg_debug	 fprintf((FILE *)pKsd_t->dbglog,"\n");
+; 1496 : #endif
+; 1497 : 					wcbyte0 = phone[2];
+
+  01889	8b 44 24 20	 mov	 eax, DWORD PTR _phone$[esp+20]
+  0188d	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01893	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__fprintf
+  01899	bb 00 00 00 00	 mov	 ebx, OFFSET FLAT:_form_class_strings
+  0189e	66 8b 50 04	 mov	 dx, WORD PTR [eax+4]
+
+; 1498 : 					wcbyte1 = phone[1];
+
+  018a2	66 8b 40 02	 mov	 ax, WORD PTR [eax+2]
+  018a6	89 54 24 1c	 mov	 DWORD PTR _wcbyte0$[esp+20], edx
+  018aa	89 44 24 10	 mov	 DWORD PTR _wcbyte1$[esp+24], eax
+$L72383:
+
+; 1500 : 					{
+; 1501 : 						if (i < 16)
+
+  018ae	81 fb 40 00 00
+	00		 cmp	 ebx, OFFSET FLAT:_form_class_strings+64
+  018b4	7d 38		 jge	 SHORT $L72386
+
+; 1502 : 						{	
+; 1503 : 							if ((wcbyte0 & 0001) == 1)	//check byte 0 in word class		
+
+  018b6	8a 4c 24 1c	 mov	 cl, BYTE PTR _wcbyte0$[esp+20]
+  018ba	80 e1 01	 and	 cl, 1
+  018bd	80 f9 01	 cmp	 cl, 1
+  018c0	75 25		 jne	 SHORT $L72387
+
+; 1504 : 							{
+; 1505 : #ifndef MSDOS
+; 1506 : 							if (pKsd_t->dbglog)
+
+  018c2	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  018c8	85 c0		 test	 eax, eax
+  018ca	74 0e		 je	 SHORT $L72388
+
+; 1507 : 							fprintf((FILE *)pKsd_t->dbglog,"[%s]",form_class_strings[i]);
+
+  018cc	8b 13		 mov	 edx, DWORD PTR [ebx]
+  018ce	52		 push	 edx
+  018cf	68 00 00 00 00	 push	 OFFSET FLAT:$SG72390
+  018d4	50		 push	 eax
+  018d5	ff d5		 call	 ebp
+  018d7	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72388:
+
+; 1508 : #endif
+; 1509 : 							printf("[%s]",form_class_strings[i]);
+
+  018da	8b 03		 mov	 eax, DWORD PTR [ebx]
+  018dc	50		 push	 eax
+  018dd	68 00 00 00 00	 push	 OFFSET FLAT:$SG72391
+  018e2	ff d7		 call	 edi
+  018e4	83 c4 08	 add	 esp, 8
+$L72387:
+
+; 1510 : 							}
+; 1511 : 							wcbyte0 = wcbyte0 >> 1;
+
+  018e7	66 d1 7c 24 1c	 sar	 WORD PTR _wcbyte0$[esp+20], 1
+
+; 1512 : 						}
+; 1513 : 						else
+
+  018ec	eb 36		 jmp	 SHORT $L72384
+$L72386:
+
+; 1514 : 						{
+; 1515 : 							if ((wcbyte1 & 0001) == 1)	//check byte 1 in word class		
+
+  018ee	8a 4c 24 10	 mov	 cl, BYTE PTR _wcbyte1$[esp+24]
+  018f2	80 e1 01	 and	 cl, 1
+  018f5	80 f9 01	 cmp	 cl, 1
+  018f8	75 25		 jne	 SHORT $L72393
+
+; 1516 : 							{
+; 1517 : #ifndef MSDOS
+; 1518 : 							if (pKsd_t->dbglog)
+
+  018fa	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01900	85 c0		 test	 eax, eax
+  01902	74 0e		 je	 SHORT $L72394
+
+; 1519 : 							fprintf((FILE *)pKsd_t->dbglog,"[%s]",form_class_strings[i]);
+
+  01904	8b 13		 mov	 edx, DWORD PTR [ebx]
+  01906	52		 push	 edx
+  01907	68 00 00 00 00	 push	 OFFSET FLAT:$SG72396
+  0190c	50		 push	 eax
+  0190d	ff d5		 call	 ebp
+  0190f	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72394:
+
+; 1520 : #endif
+; 1521 : 							printf("[%s]",form_class_strings[i]);
+
+  01912	8b 03		 mov	 eax, DWORD PTR [ebx]
+  01914	50		 push	 eax
+  01915	68 00 00 00 00	 push	 OFFSET FLAT:$SG72397
+  0191a	ff d7		 call	 edi
+  0191c	83 c4 08	 add	 esp, 8
+$L72393:
+
+; 1522 : 							}
+; 1523 : 							wcbyte1 = wcbyte1 >> 1;
+
+  0191f	66 d1 7c 24 10	 sar	 WORD PTR _wcbyte1$[esp+24], 1
+$L72384:
+
+; 1499 : 					for(i=0;i<32;i++)		
+
+  01924	83 c3 04	 add	 ebx, 4
+  01927	81 fb 80 00 00
+	00		 cmp	 ebx, OFFSET FLAT:_form_class_strings+128
+  0192d	0f 8c 7b ff ff
+	ff		 jl	 $L72383
+
+; 1524 : 						}
+; 1525 : 					}
+; 1526 : 						
+; 1527 : 									break;
+
+  01933	8b 6c 24 20	 mov	 ebp, DWORD PTR _phone$[esp+20]
+  01937	e9 dd 04 00 00	 jmp	 $L72369
+$L72398:
+
+; 1528 : 
+; 1529 : 
+; 1530 : 				case RATE:			printf("[rate]");
+
+  0193c	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01942	68 00 00 00 00	 push	 OFFSET FLAT:$SG72399
+  01947	ff d7		 call	 edi
+
+; 1531 : 
+; 1532 : #ifndef MSDOS
+; 1533 : 				  if (pKsd_t->dbglog)
+
+  01949	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  0194f	83 c4 04	 add	 esp, 4
+  01952	85 c0		 test	 eax, eax
+  01954	0f 84 bf 04 00
+	00		 je	 $L72369
+
+; 1534 : 				    fprintf((FILE *)pKsd_t->dbglog,"\n[rate]");
+
+  0195a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72402
+  0195f	50		 push	 eax
+  01960	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01966	83 c4 08	 add	 esp, 8
+
+; 1535 : #endif
+; 1536 : 									break;
+
+  01969	e9 ab 04 00 00	 jmp	 $L72369
+$L72403:
+
+; 1537 : 
+; 1538 : 				case CPAUSE:		printf("[cpause]");
+
+  0196e	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01974	68 00 00 00 00	 push	 OFFSET FLAT:$SG72404
+  01979	ff d7		 call	 edi
+
+; 1539 : 					
+; 1540 : #ifndef MSDOS
+; 1541 : 									if (pKsd_t->dbglog)
+
+  0197b	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01981	83 c4 04	 add	 esp, 4
+  01984	85 c0		 test	 eax, eax
+  01986	0f 84 8d 04 00
+	00		 je	 $L72369
+
+; 1542 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[cpause]");
+
+  0198c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72407
+  01991	50		 push	 eax
+  01992	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01998	83 c4 08	 add	 esp, 8
+
+; 1543 : #endif
+; 1544 : 									break;
+
+  0199b	e9 79 04 00 00	 jmp	 $L72369
+$L72408:
+
+; 1545 : 
+; 1546 : 				case PPAUSE:		printf("[ppause]");			
+
+  019a0	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  019a6	68 00 00 00 00	 push	 OFFSET FLAT:$SG72409
+  019ab	ff d7		 call	 edi
+
+; 1547 : 					
+; 1548 : #ifndef MSDOS
+; 1549 : 									if (pKsd_t->dbglog)
+
+  019ad	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  019b3	83 c4 04	 add	 esp, 4
+  019b6	85 c0		 test	 eax, eax
+  019b8	0f 84 5b 04 00
+	00		 je	 $L72369
+
+; 1550 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[ppause]");
+
+  019be	68 00 00 00 00	 push	 OFFSET FLAT:$SG72412
+  019c3	50		 push	 eax
+  019c4	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  019ca	83 c4 08	 add	 esp, 8
+
+; 1551 : #endif
+; 1552 : 									break;
+
+  019cd	e9 47 04 00 00	 jmp	 $L72369
+$L72413:
+
+; 1553 : 
+; 1554 : 				case LAST_VOICE:	printf("[last_voice]");		
+
+  019d2	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  019d8	68 00 00 00 00	 push	 OFFSET FLAT:$SG72414
+  019dd	ff d7		 call	 edi
+
+; 1555 : 					
+; 1556 : #ifndef MSDOS
+; 1557 : 									if (pKsd_t->dbglog)
+
+  019df	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  019e5	83 c4 04	 add	 esp, 4
+  019e8	85 c0		 test	 eax, eax
+  019ea	0f 84 29 04 00
+	00		 je	 $L72369
+
+; 1558 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[last_voice]");
+
+  019f0	68 00 00 00 00	 push	 OFFSET FLAT:$SG72417
+  019f5	50		 push	 eax
+  019f6	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  019fc	83 c4 08	 add	 esp, 8
+
+; 1559 : #endif
+; 1560 : 									break;
+
+  019ff	e9 15 04 00 00	 jmp	 $L72369
+$L72418:
+
+; 1561 : 
+; 1562 : 				case LTS_SYNC:		printf("[lts_sync]");		
+
+  01a04	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01a0a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72419
+  01a0f	ff d7		 call	 edi
+
+; 1563 : 					
+; 1564 : #ifndef MSDOS
+; 1565 : 									if (pKsd_t->dbglog)
+
+  01a11	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01a17	83 c4 04	 add	 esp, 4
+  01a1a	85 c0		 test	 eax, eax
+  01a1c	0f 84 f7 03 00
+	00		 je	 $L72369
+
+; 1566 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[lts_sync]");
+
+  01a22	68 00 00 00 00	 push	 OFFSET FLAT:$SG72422
+  01a27	50		 push	 eax
+  01a28	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01a2e	83 c4 08	 add	 esp, 8
+
+; 1567 : #endif
+; 1568 : 									break;
+
+  01a31	e9 e3 03 00 00	 jmp	 $L72369
+$L72423:
+
+; 1569 : 
+; 1570 : 				case NEW_SPEAKER:	printf("[new_speaker]");	
+
+  01a36	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01a3c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72424
+  01a41	ff d7		 call	 edi
+
+; 1571 : 					
+; 1572 : #ifndef MSDOS
+; 1573 : 									if (pKsd_t->dbglog)
+
+  01a43	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01a49	83 c4 04	 add	 esp, 4
+  01a4c	85 c0		 test	 eax, eax
+  01a4e	0f 84 c5 03 00
+	00		 je	 $L72369
+
+; 1574 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[new_speaker]");
+
+  01a54	68 00 00 00 00	 push	 OFFSET FLAT:$SG72427
+  01a59	50		 push	 eax
+  01a5a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01a60	83 c4 08	 add	 esp, 8
+
+; 1575 : #endif
+; 1576 : 									break;
+
+  01a63	e9 b1 03 00 00	 jmp	 $L72369
+$L72428:
+
+; 1577 : 
+; 1578 : 				case NEW_PARAM:		printf("[new_param]");		
+
+  01a68	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01a6e	68 00 00 00 00	 push	 OFFSET FLAT:$SG72429
+  01a73	ff d7		 call	 edi
+
+; 1579 : 					
+; 1580 : #ifndef MSDOS
+; 1581 : 									if (pKsd_t->dbglog)
+
+  01a75	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01a7b	83 c4 04	 add	 esp, 4
+  01a7e	85 c0		 test	 eax, eax
+  01a80	0f 84 93 03 00
+	00		 je	 $L72369
+
+; 1582 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[new_param]");
+
+  01a86	68 00 00 00 00	 push	 OFFSET FLAT:$SG72432
+  01a8b	50		 push	 eax
+  01a8c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01a92	83 c4 08	 add	 esp, 8
+
+; 1583 : #endif
+; 1584 : 									break;
+
+  01a95	e9 7f 03 00 00	 jmp	 $L72369
+$L72433:
+
+; 1585 : 
+; 1586 : 				case SAVE:			printf("[save]");			
+
+  01a9a	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01aa0	68 00 00 00 00	 push	 OFFSET FLAT:$SG72434
+  01aa5	ff d7		 call	 edi
+
+; 1587 : 					
+; 1588 : #ifndef MSDOS
+; 1589 : 									if (pKsd_t->dbglog)
+
+  01aa7	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01aad	83 c4 04	 add	 esp, 4
+  01ab0	85 c0		 test	 eax, eax
+  01ab2	0f 84 61 03 00
+	00		 je	 $L72369
+
+; 1590 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[save]");
+
+  01ab8	68 00 00 00 00	 push	 OFFSET FLAT:$SG72437
+  01abd	50		 push	 eax
+  01abe	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01ac4	83 c4 08	 add	 esp, 8
+
+; 1591 : #endif
+; 1592 : 									break;
+
+  01ac7	e9 4d 03 00 00	 jmp	 $L72369
+$L72438:
+
+; 1593 : 
+; 1594 : 				case INDEX:			printf("[index]");			
+
+  01acc	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01ad2	68 00 00 00 00	 push	 OFFSET FLAT:$SG72439
+  01ad7	ff d7		 call	 edi
+
+; 1595 : 					
+; 1596 : #ifndef MSDOS
+; 1597 : 									if (pKsd_t->dbglog)
+
+  01ad9	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01adf	83 c4 04	 add	 esp, 4
+  01ae2	85 c0		 test	 eax, eax
+  01ae4	0f 84 2f 03 00
+	00		 je	 $L72369
+
+; 1598 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index]");
+
+  01aea	68 00 00 00 00	 push	 OFFSET FLAT:$SG72442
+  01aef	50		 push	 eax
+  01af0	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01af6	83 c4 08	 add	 esp, 8
+
+; 1599 : #endif
+; 1600 : 									break;
+
+  01af9	e9 1b 03 00 00	 jmp	 $L72369
+$L72443:
+
+; 1601 : 
+; 1602 : 				case INDEX_REPLY:	printf("[index_reply]");	
+
+  01afe	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01b04	68 00 00 00 00	 push	 OFFSET FLAT:$SG72444
+  01b09	ff d7		 call	 edi
+
+; 1603 : 					
+; 1604 : #ifndef MSDOS
+; 1605 : 									if (pKsd_t->dbglog)
+
+  01b0b	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01b11	83 c4 04	 add	 esp, 4
+  01b14	85 c0		 test	 eax, eax
+  01b16	0f 84 fd 02 00
+	00		 je	 $L72369
+
+; 1606 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index_reply]");
+
+  01b1c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72447
+  01b21	50		 push	 eax
+  01b22	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01b28	83 c4 08	 add	 esp, 8
+
+; 1607 : #endif
+; 1608 : 									break;
+
+  01b2b	e9 e9 02 00 00	 jmp	 $L72369
+$L72448:
+
+; 1609 : 
+; 1610 : 				case KILL_TASK:		printf("[kill_task]");		
+
+  01b30	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01b36	68 00 00 00 00	 push	 OFFSET FLAT:$SG72449
+  01b3b	ff d7		 call	 edi
+
+; 1611 : 					
+; 1612 : #ifndef MSDOS
+; 1613 : 									if (pKsd_t->dbglog)
+
+  01b3d	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01b43	83 c4 04	 add	 esp, 4
+  01b46	85 c0		 test	 eax, eax
+  01b48	0f 84 cb 02 00
+	00		 je	 $L72369
+
+; 1614 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[kill_task]");
+
+  01b4e	68 00 00 00 00	 push	 OFFSET FLAT:$SG72452
+  01b53	50		 push	 eax
+  01b54	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01b5a	83 c4 08	 add	 esp, 8
+
+; 1615 : #endif
+; 1616 : 									break;
+
+  01b5d	e9 b7 02 00 00	 jmp	 $L72369
+$L72453:
+
+; 1617 : 
+; 1618 : 				case FLUSH_SYNC:	printf("[flush_sync]");		
+
+  01b62	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01b68	68 00 00 00 00	 push	 OFFSET FLAT:$SG72454
+  01b6d	ff d7		 call	 edi
+
+; 1619 : 					
+; 1620 : #ifndef MSDOS
+; 1621 : 									if (pKsd_t->dbglog)
+
+  01b6f	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01b75	83 c4 04	 add	 esp, 4
+  01b78	85 c0		 test	 eax, eax
+  01b7a	0f 84 99 02 00
+	00		 je	 $L72369
+
+; 1622 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[flush_sync]");
+
+  01b80	68 00 00 00 00	 push	 OFFSET FLAT:$SG72457
+  01b85	50		 push	 eax
+  01b86	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01b8c	83 c4 08	 add	 esp, 8
+
+; 1623 : #endif
+; 1624 : 									break;
+
+  01b8f	e9 85 02 00 00	 jmp	 $L72369
+$L72458:
+
+; 1625 : 
+; 1626 : 				case PITCH_CHANGE:	printf("[pitch_change]");	
+
+  01b94	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01b9a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72459
+  01b9f	ff d7		 call	 edi
+
+; 1627 : 					
+; 1628 : #ifndef MSDOS
+; 1629 : 									if (pKsd_t->dbglog)
+
+  01ba1	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01ba7	83 c4 04	 add	 esp, 4
+  01baa	85 c0		 test	 eax, eax
+  01bac	0f 84 67 02 00
+	00		 je	 $L72369
+
+; 1630 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[pitch_change]");
+
+  01bb2	68 00 00 00 00	 push	 OFFSET FLAT:$SG72462
+  01bb7	50		 push	 eax
+  01bb8	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01bbe	83 c4 08	 add	 esp, 8
+
+; 1631 : #endif
+; 1632 : 									break;
+
+  01bc1	e9 53 02 00 00	 jmp	 $L72369
+$L72463:
+
+; 1633 : 
+; 1634 : 				case LATIN:			printf("[latin]");			
+
+  01bc6	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01bcc	68 00 00 00 00	 push	 OFFSET FLAT:$SG72464
+  01bd1	ff d7		 call	 edi
+
+; 1635 : 					
+; 1636 : #ifndef MSDOS
+; 1637 : 									if (pKsd_t->dbglog)
+
+  01bd3	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01bd9	83 c4 04	 add	 esp, 4
+  01bdc	85 c0		 test	 eax, eax
+  01bde	0f 84 35 02 00
+	00		 je	 $L72369
+
+; 1638 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[latin]");
+
+  01be4	68 00 00 00 00	 push	 OFFSET FLAT:$SG72467
+  01be9	50		 push	 eax
+  01bea	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01bf0	83 c4 08	 add	 esp, 8
+
+; 1639 : #endif
+; 1640 : 									break;
+
+  01bf3	e9 21 02 00 00	 jmp	 $L72369
+$L72468:
+
+; 1641 : 
+; 1642 : 				case PAPAUSE:		printf("[papause]");		
+
+  01bf8	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01bfe	68 00 00 00 00	 push	 OFFSET FLAT:$SG72469
+  01c03	ff d7		 call	 edi
+
+; 1643 : 					
+; 1644 : #ifndef MSDOS
+; 1645 : 									if (pKsd_t->dbglog)
+
+  01c05	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01c0b	83 c4 04	 add	 esp, 4
+  01c0e	85 c0		 test	 eax, eax
+  01c10	0f 84 03 02 00
+	00		 je	 $L72369
+
+; 1646 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[papause]");
+
+  01c16	68 00 00 00 00	 push	 OFFSET FLAT:$SG72472
+  01c1b	50		 push	 eax
+  01c1c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01c22	83 c4 08	 add	 esp, 8
+
+; 1647 : #endif
+; 1648 : 									break;
+
+  01c25	e9 ef 01 00 00	 jmp	 $L72369
+$L72473:
+
+; 1649 : 
+; 1650 : 				case CNTRLK:		printf("[cntrlk]");			
+
+  01c2a	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01c30	68 00 00 00 00	 push	 OFFSET FLAT:$SG72474
+  01c35	ff d7		 call	 edi
+
+; 1651 : 					
+; 1652 : #ifndef MSDOS
+; 1653 : 									if (pKsd_t->dbglog)
+
+  01c37	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01c3d	83 c4 04	 add	 esp, 4
+  01c40	85 c0		 test	 eax, eax
+  01c42	0f 84 d1 01 00
+	00		 je	 $L72369
+
+; 1654 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[cntrlk]");
+
+  01c48	68 00 00 00 00	 push	 OFFSET FLAT:$SG72477
+  01c4d	50		 push	 eax
+  01c4e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01c54	83 c4 08	 add	 esp, 8
+
+; 1655 : #endif
+; 1656 : 									break;
+
+  01c57	e9 bd 01 00 00	 jmp	 $L72369
+$L72478:
+
+; 1657 : 
+; 1658 : 				case RESET:			printf("[reset]");			
+
+  01c5c	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01c62	68 00 00 00 00	 push	 OFFSET FLAT:$SG72479
+  01c67	ff d7		 call	 edi
+
+; 1659 : 					
+; 1660 : #ifndef MSDOS
+; 1661 : 									if (pKsd_t->dbglog)
+
+  01c69	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01c6f	83 c4 04	 add	 esp, 4
+  01c72	85 c0		 test	 eax, eax
+  01c74	0f 84 9f 01 00
+	00		 je	 $L72369
+
+; 1662 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[reset]");
+
+  01c7a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72482
+  01c7f	50		 push	 eax
+  01c80	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01c86	83 c4 08	 add	 esp, 8
+
+; 1663 : #endif
+; 1664 : 									break;
+
+  01c89	e9 8b 01 00 00	 jmp	 $L72369
+$L72483:
+
+; 1665 : //#ifdef _WIN32
+; 1666 : 				case INDEX_BOOKMARK:printf("[index_bookmark]");	
+
+  01c8e	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01c94	68 00 00 00 00	 push	 OFFSET FLAT:$SG72484
+  01c99	ff d7		 call	 edi
+
+; 1667 : 					
+; 1668 : 									if (pKsd_t->dbglog)
+
+  01c9b	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01ca1	83 c4 04	 add	 esp, 4
+  01ca4	85 c0		 test	 eax, eax
+  01ca6	0f 84 6d 01 00
+	00		 je	 $L72369
+
+; 1669 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index_bookmark]");
+
+  01cac	68 00 00 00 00	 push	 OFFSET FLAT:$SG72487
+  01cb1	50		 push	 eax
+  01cb2	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01cb8	83 c4 08	 add	 esp, 8
+
+; 1670 : 									break;
+
+  01cbb	e9 59 01 00 00	 jmp	 $L72369
+$L72488:
+
+; 1671 : 
+; 1672 : 				case INDEX_WORDPOS:	printf("[index_wordpos]");	
+
+  01cc0	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01cc6	68 00 00 00 00	 push	 OFFSET FLAT:$SG72489
+  01ccb	ff d7		 call	 edi
+
+; 1673 : 					
+; 1674 : 									if (pKsd_t->dbglog)
+
+  01ccd	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01cd3	83 c4 04	 add	 esp, 4
+  01cd6	85 c0		 test	 eax, eax
+  01cd8	0f 84 3b 01 00
+	00		 je	 $L72369
+
+; 1675 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index_wordpos]");
+
+  01cde	68 00 00 00 00	 push	 OFFSET FLAT:$SG72492
+  01ce3	50		 push	 eax
+  01ce4	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01cea	83 c4 08	 add	 esp, 8
+
+; 1676 : 									break;
+
+  01ced	e9 27 01 00 00	 jmp	 $L72369
+$L72493:
+
+; 1677 : 
+; 1678 : 				case INDEX_START:	printf("[index_start]");	
+
+  01cf2	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01cf8	68 00 00 00 00	 push	 OFFSET FLAT:$SG72494
+  01cfd	ff d7		 call	 edi
+
+; 1679 : 					
+; 1680 : 									if (pKsd_t->dbglog)
+
+  01cff	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01d05	83 c4 04	 add	 esp, 4
+  01d08	85 c0		 test	 eax, eax
+  01d0a	0f 84 09 01 00
+	00		 je	 $L72369
+
+; 1681 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index_start]");
+
+  01d10	68 00 00 00 00	 push	 OFFSET FLAT:$SG72497
+  01d15	50		 push	 eax
+  01d16	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01d1c	83 c4 08	 add	 esp, 8
+
+; 1682 : 									break;
+
+  01d1f	e9 f5 00 00 00	 jmp	 $L72369
+$L72498:
+
+; 1683 : 
+; 1684 : 				case INDEX_STOP:	printf("[index_stop]");		
+
+  01d24	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01d2a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72499
+  01d2f	ff d7		 call	 edi
+
+; 1685 : 					
+; 1686 : 									if (pKsd_t->dbglog)
+
+  01d31	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01d37	83 c4 04	 add	 esp, 4
+  01d3a	85 c0		 test	 eax, eax
+  01d3c	0f 84 d7 00 00
+	00		 je	 $L72369
+
+; 1687 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index_stop]");
+
+  01d42	68 00 00 00 00	 push	 OFFSET FLAT:$SG72502
+  01d47	50		 push	 eax
+  01d48	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01d4e	83 c4 08	 add	 esp, 8
+
+; 1688 : 									break;
+
+  01d51	e9 c3 00 00 00	 jmp	 $L72369
+$L72503:
+
+; 1689 : 
+; 1690 : 				case INDEX_SENTENCE:	printf("[index_sentence]");		
+
+  01d56	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01d5c	68 00 00 00 00	 push	 OFFSET FLAT:$SG72504
+  01d61	ff d7		 call	 edi
+
+; 1691 : 					
+; 1692 : 									if (pKsd_t->dbglog)
+
+  01d63	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01d69	83 c4 04	 add	 esp, 4
+  01d6c	85 c0		 test	 eax, eax
+  01d6e	0f 84 a5 00 00
+	00		 je	 $L72369
+
+; 1693 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index_sentence]");
+
+  01d74	68 00 00 00 00	 push	 OFFSET FLAT:$SG72507
+  01d79	50		 push	 eax
+  01d7a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01d80	83 c4 08	 add	 esp, 8
+
+; 1694 : 									break;
+
+  01d83	e9 91 00 00 00	 jmp	 $L72369
+$L72508:
+
+; 1695 : 
+; 1696 : 				case INDEX_VOLUME:	printf("[index_volume]");		
+
+  01d88	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01d8e	68 00 00 00 00	 push	 OFFSET FLAT:$SG72509
+  01d93	ff d7		 call	 edi
+
+; 1697 : 					
+; 1698 : 									if (pKsd_t->dbglog)
+
+  01d95	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01d9b	83 c4 04	 add	 esp, 4
+  01d9e	85 c0		 test	 eax, eax
+  01da0	74 77		 je	 SHORT $L72369
+
+; 1699 : 									fprintf((FILE *)pKsd_t->dbglog,"\n[index_volume]");
+
+  01da2	68 00 00 00 00	 push	 OFFSET FLAT:$SG72512
+  01da7	50		 push	 eax
+  01da8	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01dae	83 c4 08	 add	 esp, 8
+
+; 1700 : 									break;
+
+  01db1	eb 66		 jmp	 SHORT $L72369
+$L72513:
+
+; 1701 : 
+; 1702 : //#endif
+; 1703 : 				default:
+; 1704 : 					
+; 1705 : #ifndef MSDOS
+; 1706 : 				if (pKsd_t->dbglog)
+
+  01db3	8b be 44 06 00
+	00		 mov	 edi, DWORD PTR [esi+1604]
+  01db9	85 ff		 test	 edi, edi
+  01dbb	74 2f		 je	 SHORT $L72516
+
+; 1707 : 				{
+; 1708 : 					if ((int)(pKsd_t->arpabet[(*phone & 0xff)*2]) != 32) /// filter out spaces
+
+  01dbd	8b 8e 2c 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1580]
+  01dc3	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  01dc8	8d 0c 41	 lea	 ecx, DWORD PTR [ecx+eax*2]
+  01dcb	8a 01		 mov	 al, BYTE PTR [ecx]
+  01dcd	3c 20		 cmp	 al, 32			; 00000020H
+  01dcf	74 1b		 je	 SHORT $L72516
+
+; 1709 : 					{
+; 1710 : 					fprintf((FILE *)pKsd_t->dbglog,"%c%c",pKsd_t->arpabet[(*phone & 0xff)*2],pKsd_t->arpabet[(*phone & 0xff)*2 + 1]);
+
+  01dd1	33 d2		 xor	 edx, edx
+  01dd3	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  01dd8	8a 51 01	 mov	 dl, BYTE PTR [ecx+1]
+  01ddb	52		 push	 edx
+  01ddc	50		 push	 eax
+  01ddd	68 00 00 00 00	 push	 OFFSET FLAT:$SG72518
+  01de2	57		 push	 edi
+  01de3	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01de9	83 c4 10	 add	 esp, 16			; 00000010H
+$L72516:
+
+; 1711 : 					}
+; 1712 : 				}
+; 1713 : #endif
+; 1714 : 
+; 1715 : 				printf("%c%c",pKsd_t->arpabet[(*phone & 0xff)*2],pKsd_t->arpabet[(*phone & 0xff)*2 + 1]);			
+
+  01dec	8a 45 00	 mov	 al, BYTE PTR [ebp]
+  01def	8b 8e 2c 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1580]
+  01df5	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  01dfa	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__printf
+  01e00	33 d2		 xor	 edx, edx
+  01e02	8a 54 41 01	 mov	 dl, BYTE PTR [ecx+eax*2+1]
+  01e06	8d 04 41	 lea	 eax, DWORD PTR [ecx+eax*2]
+  01e09	33 c9		 xor	 ecx, ecx
+  01e0b	52		 push	 edx
+  01e0c	8a 08		 mov	 cl, BYTE PTR [eax]
+  01e0e	51		 push	 ecx
+  01e0f	68 00 00 00 00	 push	 OFFSET FLAT:$SG72519
+  01e14	ff d7		 call	 edi
+  01e16	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72369:
+
+; 1716 : 				}
+; 1717 : 			}
+; 1718 : 			if ((*phone & 0xff) == 111)
+
+  01e19	80 7d 00 6f	 cmp	 BYTE PTR [ebp], 111	; 0000006fH
+  01e1d	75 0a		 jne	 SHORT $L72520
+
+; 1719 : 			   printf("\n"); 
+
+  01e1f	68 00 00 00 00	 push	 OFFSET FLAT:$SG72521
+  01e24	ff d7		 call	 edi
+  01e26	83 c4 04	 add	 esp, 4
+$L72520:
+
+; 1720 : 
+; 1721 : 		}
+; 1722 : 		/* debug switch */  
+; 1723 : 		if (DT_DBG(LTS_DBG,0x800))
+
+  01e29	66 8b b6 40 06
+	00 00		 mov	 si, WORD PTR [esi+1600]
+  01e30	f7 c6 00 40 00
+	00		 test	 esi, 16384		; 00004000H
+  01e36	74 24		 je	 SHORT $L72523
+  01e38	f7 c6 00 08 00
+	00		 test	 esi, 2048		; 00000800H
+  01e3e	74 1c		 je	 SHORT $L72523
+
+; 1724 : 		{			
+; 1725 : 			/*mfg 04/27/98 when pipe is drained let the following pass through*/ 
+; 1726 : 			if ((*phone != SYNC) && (*phone != BREATH_BREAK) 
+; 1727 : 				&& (*phone != KILL_TASK) && (*phone != FLUSH_SYNC))
+
+  01e40	66 8b 45 00	 mov	 ax, WORD PTR [ebp]
+  01e44	66 3d 0a 1f	 cmp	 ax, 7946		; 00001f0aH
+  01e48	74 12		 je	 SHORT $L72523
+  01e4a	66 3d 0b 1f	 cmp	 ax, 7947		; 00001f0bH
+  01e4e	74 0c		 je	 SHORT $L72523
+  01e50	66 3d 0c 1f	 cmp	 ax, 7948		; 00001f0cH
+  01e54	74 06		 je	 SHORT $L72523
+  01e56	66 3d 0d 1f	 cmp	 ax, 7949		; 00001f0dH
+  01e5a	75 14		 jne	 SHORT $L72346
+$L72523:
+
+; 1728 : 			return;
+; 1729 : 		}
+; 1730 : 
+; 1731 :         write_pipe(kinp,phone,count);
+
+  01e5c	0f bf 54 24 24	 movsx	 edx, WORD PTR _count$[esp+20]
+  01e61	8b 44 24 14	 mov	 eax, DWORD PTR _kinp$[esp+24]
+  01e65	52		 push	 edx
+  01e66	55		 push	 ebp
+  01e67	50		 push	 eax
+  01e68	e8 00 00 00 00	 call	 _write_pipe
+  01e6d	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72346:
+  01e70	5f		 pop	 edi
+  01e71	5e		 pop	 esi
+  01e72	5d		 pop	 ebp
+  01e73	5b		 pop	 ebx
+
+; 1732 : 
+; 1733 :         return;
+; 1734 : }
+
+  01e74	83 c4 08	 add	 esp, 8
+  01e77	c3		 ret	 0
+$L72680:
+  01e78	00 00 00 00	 DD	 $L72398
+  01e7c	00 00 00 00	 DD	 $L72403
+  01e80	00 00 00 00	 DD	 $L72408
+  01e84	00 00 00 00	 DD	 $L72413
+  01e88	00 00 00 00	 DD	 $L72418
+  01e8c	00 00 00 00	 DD	 $L72423
+  01e90	00 00 00 00	 DD	 $L72428
+  01e94	00 00 00 00	 DD	 $L72433
+  01e98	00 00 00 00	 DD	 $L72438
+  01e9c	00 00 00 00	 DD	 $L72443
+  01ea0	00 00 00 00	 DD	 $L72377
+  01ea4	00 00 00 00	 DD	 $L72372
+  01ea8	00 00 00 00	 DD	 $L72448
+  01eac	00 00 00 00	 DD	 $L72453
+  01eb0	00 00 00 00	 DD	 $L72458
+  01eb4	00 00 00 00	 DD	 $L72463
+  01eb8	00 00 00 00	 DD	 $L72468
+  01ebc	00 00 00 00	 DD	 $L72473
+  01ec0	00 00 00 00	 DD	 $L72478
+  01ec4	00 00 00 00	 DD	 $L72483
+  01ec8	00 00 00 00	 DD	 $L72488
+  01ecc	00 00 00 00	 DD	 $L72493
+  01ed0	00 00 00 00	 DD	 $L72498
+  01ed4	00 00 00 00	 DD	 $L72382
+  01ed8	00 00 00 00	 DD	 $L72503
+  01edc	00 00 00 00	 DD	 $L72508
+_ls_util_write_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_ls_util_is_aword
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_ls_util_is_aword PROC NEAR
+
+; 1755 : 	int flag=FALSE;
+; 1756 : 	       
+; 1757 : 	if (llp >= rlp) return(FALSE);
+
+  01ee0	8b 54 24 04	 mov	 edx, DWORD PTR _llp$[esp-4]
+  01ee4	56		 push	 esi
+  01ee5	8b 74 24 0c	 mov	 esi, DWORD PTR _rlp$[esp]
+  01ee9	33 c0		 xor	 eax, eax
+  01eeb	3b d6		 cmp	 edx, esi
+  01eed	73 21		 jae	 SHORT $L72683
+$L72533:
+
+; 1758 : 	while (llp!=rlp)
+; 1759 : 	{
+; 1760 : 		if (!(IS_ALPHA(llp->l_ch))) return(FALSE);
+
+  01eef	0f bf 0a	 movsx	 ecx, WORD PTR [edx]
+  01ef2	8a 89 00 00 00
+	00		 mov	 cl, BYTE PTR _ls_char_feat[ecx]
+  01ef8	f6 c1 03	 test	 cl, 3
+  01efb	74 13		 je	 SHORT $L72683
+
+; 1761 : 		if (IS_VOWEL(llp->l_ch)) flag=TRUE;
+
+  01efd	f6 c1 40	 test	 cl, 64			; 00000040H
+  01f00	74 05		 je	 SHORT $L72536
+  01f02	b8 01 00 00 00	 mov	 eax, 1
+$L72536:
+
+; 1762 : 		++llp;
+
+  01f07	83 c2 02	 add	 edx, 2
+  01f0a	3b d6		 cmp	 edx, esi
+  01f0c	75 e1		 jne	 SHORT $L72533
+  01f0e	5e		 pop	 esi
+
+; 1763 : 	}
+; 1764 : 	return(flag);      
+; 1765 : }
+
+  01f0f	c3		 ret	 0
+$L72683:
+
+; 1758 : 	while (llp!=rlp)
+; 1759 : 	{
+; 1760 : 		if (!(IS_ALPHA(llp->l_ch))) return(FALSE);
+
+  01f10	33 c0		 xor	 eax, eax
+  01f12	5e		 pop	 esi
+
+; 1763 : 	}
+; 1764 : 	return(flag);      
+; 1765 : }
+
+  01f13	c3		 ret	 0
+_ls_util_is_aword ENDP
+_TEXT	ENDS
+END

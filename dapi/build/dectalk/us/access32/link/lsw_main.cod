@@ -1,0 +1,2094 @@
+	TITLE	D:\work\Product\dapi\src\Lts\lsw_main.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_szLocalMachineDECtalk
+PUBLIC	_szCurrentUsersDECtalk
+PUBLIC	_szMainDictDef
+PUBLIC	_szUserDictDef
+PUBLIC	_szAbbrDictDef
+PUBLIC	_szForeignDictDef
+_DATA	SEGMENT
+_szLocalMachineDECtalk DD FLAT:$SG71835
+_szCurrentUsersDECtalk DD FLAT:$SG71837
+_szMainDictDef DD FLAT:$SG71839
+_szUserDictDef DD FLAT:$SG71841
+_szAbbrDictDef DD FLAT:$SG71843
+_szForeignDictDef DD FLAT:$SG71845
+$SG71835 DB	'SOFTWARE\GW Micro, Inc.\DECtalk-OEM\4.62\US', 00H
+$SG71837 DB	'Software\GW Micro, Inc.\DECtalk\4.62\US', 00H
+$SG71839 DB	'DTALK_US.DIC', 00H
+	ORG $+3
+$SG71841 DB	'USER_US.DIC', 00H
+$SG71843 DB	'ABBR_US.DIC', 00H
+$SG71845 DB	'DTALK_FL_US.DIC', 00H
+_DATA	ENDS
+PUBLIC	_GetDictionaryNames
+PUBLIC	_lts_main@4
+EXTRN	__imp__free:NEAR
+EXTRN	__imp__malloc:NEAR
+EXTRN	__imp__SetEvent@4:NEAR
+EXTRN	_ThreadLock:NEAR
+EXTRN	_ThreadUnlock:NEAR
+EXTRN	_default_lang:NEAR
+EXTRN	_load_dictionary:NEAR
+EXTRN	_ls_task_main:NEAR
+EXTRN	_gnInstanceCounter:DWORD
+EXTRN	_tl_gnInstanceCounter:BYTE
+EXTRN	_gpufdic_index:DWORD
+EXTRN	_gpufdic_data:DWORD
+EXTRN	_gufdic_entries:DWORD
+EXTRN	_gufdic_bytes:DWORD
+EXTRN	_gufdicMapObject:DWORD
+EXTRN	_gufdicFileHandle:DWORD
+EXTRN	_gufdicMapStartAddr:DWORD
+EXTRN	_gpufordic_index:DWORD
+EXTRN	_gpufordic_data:DWORD
+EXTRN	_gufordic_entries:DWORD
+EXTRN	_gufordic_bytes:DWORD
+EXTRN	_gufordicMapObject:DWORD
+EXTRN	_gufordicFileHandle:DWORD
+EXTRN	_gufordicMapStartAddr:DWORD
+EXTRN	_ls_util_lts_init:NEAR
+EXTRN	_lsa_util_init_lang:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pLts_t$ = -2056
+_szMainDict$ = -2048
+_szUserDict$ = -1536
+_szAbbrDict$ = -512
+_szForeignDict$ = -1024
+_nDicLoad$ = -2052
+_lts_main@4 PROC NEAR
+
+; 183  : {
+
+  00000	81 ec 08 08 00
+	00		 sub	 esp, 2056		; 00000808H
+  00006	53		 push	 ebx
+  00007	55		 push	 ebp
+
+; 184  : #ifdef UNDER_CE	//29oct99 mfg convert unicode string to char string for Windows CE
+; 185  : char ch_dictionary_file_name[500];
+; 186  : #endif
+; 187  :   
+; 188  :   /* 
+; 189  :    * Added a variable to get current instance kernel share data and
+; 190  :    * initialize from phTTS structure  :MI : MVP
+; 191  :    */
+; 192  :   PKSD_T pKsd_t = phTTS->pKernelShareData;
+
+  00008	8b ac 24 14 08
+	00 00		 mov	 ebp, DWORD PTR _phTTS$[esp+2060]
+  0000f	56		 push	 esi
+  00010	57		 push	 edi
+
+; 193  :   PLTS_T pLts_t = NULL;
+; 194  : 
+; 195  : #ifdef SEPARATE_PROCESSES
+; 196  : 	kernel_share = (struct share_data *)malloc(sizeof(struct share_data));
+; 197  : #endif
+; 198  : 
+; 199  : #ifdef WIN32
+; 200  : 
+; 201  :   char szMainDict[MAX_STRING_LENGTH];
+; 202  :   char szUserDict[MAX_STRING_LENGTH];
+; 203  :   /* GL 09/25/1997 add szAbbrDict,nAdicload  to support abbr dictionary */
+; 204  :   char szAbbrDict[MAX_STRING_LENGTH];
+; 205  :   char szForeignDict[MAX_STRING_LENGTH];
+; 206  :   int nDicLoad ;
+; 207  :   int fDicLoad;
+; 208  : 
+; 209  : 
+; 210  :   if((pLts_t = (PLTS_T)malloc(sizeof(LTS_T)))== NULL)
+
+  00011	68 2c 0b 00 00	 push	 2860			; 00000b2cH
+  00016	8b 5d 08	 mov	 ebx, DWORD PTR [ebp+8]
+  00019	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__malloc
+  0001f	8b f8		 mov	 edi, eax
+  00021	83 c4 04	 add	 esp, 4
+  00024	85 ff		 test	 edi, edi
+  00026	89 7c 24 10	 mov	 DWORD PTR _pLts_t$[esp+2072], edi
+  0002a	75 12		 jne	 SHORT $L71891
+  0002c	5f		 pop	 edi
+  0002d	5e		 pop	 esi
+  0002e	5d		 pop	 ebp
+
+; 211  : 	return(MMSYSERR_NOMEM);
+
+  0002f	b8 07 00 00 00	 mov	 eax, 7
+  00034	5b		 pop	 ebx
+
+; 549  : #endif
+; 550  : }       
+
+  00035	81 c4 08 08 00
+	00		 add	 esp, 2056		; 00000808H
+  0003b	c2 04 00	 ret	 4
+$L71891:
+
+; 212  :   
+; 213  :   /* MVP :Associate LTS thread specific data handle to the current speech object*/
+; 214  :   phTTS->pLTSThreadData = pLts_t ;
+; 215  :   
+; 216  : 
+; 217  :    /* GL 09/25/1997 add szAbbrDict to support abbr dictionary */
+; 218  :   GetDictionaryNames( szMainDict, szUserDict, szAbbrDict, szForeignDict );
+
+  0003e	8d 84 24 18 04
+	00 00		 lea	 eax, DWORD PTR _szForeignDict$[esp+2072]
+  00045	8d 8c 24 18 06
+	00 00		 lea	 ecx, DWORD PTR _szAbbrDict$[esp+2072]
+  0004c	50		 push	 eax
+  0004d	8d 94 24 1c 02
+	00 00		 lea	 edx, DWORD PTR _szUserDict$[esp+2076]
+  00054	51		 push	 ecx
+  00055	8d 44 24 20	 lea	 eax, DWORD PTR _szMainDict$[esp+2080]
+  00059	52		 push	 edx
+  0005a	50		 push	 eax
+  0005b	89 7d 10	 mov	 DWORD PTR [ebp+16], edi
+  0005e	e8 00 00 00 00	 call	 _GetDictionaryNames
+
+; 219  :   if (phTTS->dictionary_file_name[0])
+
+  00063	8a 8d fc 00 00
+	00		 mov	 cl, BYTE PTR [ebp+252]
+  00069	8d 85 fc 00 00
+	00		 lea	 eax, DWORD PTR [ebp+252]
+  0006f	83 c4 10	 add	 esp, 16			; 00000010H
+  00072	84 c9		 test	 cl, cl
+  00074	74 27		 je	 SHORT $L71892
+
+; 220  :   {
+; 221  : // RDK Dictionary Names need to be char not wchar
+; 222  : #ifdef UNDER_CE	//29oct99 mfg convert unicode string to char string for Windows CE
+; 223  : 	  WideStringtoAsciiString(ch_dictionary_file_name, phTTS->dictionary_file_name, 500);
+; 224  : // #ifdef UNDER_CE
+; 225  : //	  wcscpy(szMainDict, phTTS->dictionary_file_name);
+; 226  : 	  strcpy(szMainDict,ch_dictionary_file_name);
+; 227  : #else
+; 228  : 	  strcpy(szMainDict,phTTS->dictionary_file_name);
+
+  00076	8b f8		 mov	 edi, eax
+  00078	83 c9 ff	 or	 ecx, -1
+  0007b	33 c0		 xor	 eax, eax
+  0007d	8d 54 24 18	 lea	 edx, DWORD PTR _szMainDict$[esp+2072]
+  00081	f2 ae		 repne scasb
+  00083	f7 d1		 not	 ecx
+  00085	2b f9		 sub	 edi, ecx
+  00087	8b c1		 mov	 eax, ecx
+  00089	8b f7		 mov	 esi, edi
+  0008b	8b fa		 mov	 edi, edx
+  0008d	c1 e9 02	 shr	 ecx, 2
+  00090	f3 a5		 rep movsd
+  00092	8b c8		 mov	 ecx, eax
+  00094	83 e1 03	 and	 ecx, 3
+  00097	f3 a4		 rep movsb
+  00099	8b 7c 24 10	 mov	 edi, DWORD PTR _pLts_t$[esp+2072]
+$L71892:
+
+; 229  : #endif
+; 230  :   }
+; 231  :   /*
+; 232  :    * MVP : Load the main dictionary only once for all instances of DECtalk
+; 233  :    *		  Speech engine.
+; 234  :    */
+; 235  :   /* GL 09/25/1997 use the array for dictionary entry structure */
+; 236  :   /*               also add UK_english support */
+; 237  :   /*               comment out the abbr dictionary section for now */
+; 238  :   // tek 27may98 bats 689: lock this to avoid a collosion
+; 239  : 
+; 240  :   if (!ThreadLock(&tl_gnInstanceCounter,5))
+
+  0009d	6a 05		 push	 5
+  0009f	68 00 00 00 00	 push	 OFFSET FLAT:_tl_gnInstanceCounter
+  000a4	e8 00 00 00 00	 call	 _ThreadLock
+  000a9	83 c4 08	 add	 esp, 8
+  000ac	85 c0		 test	 eax, eax
+  000ae	75 12		 jne	 SHORT $L71893
+  000b0	5f		 pop	 edi
+  000b1	5e		 pop	 esi
+  000b2	5d		 pop	 ebp
+
+; 241  : 	  return (MMSYSERR_ERROR);
+
+  000b3	b8 01 00 00 00	 mov	 eax, 1
+  000b8	5b		 pop	 ebx
+
+; 549  : #endif
+; 550  : }       
+
+  000b9	81 c4 08 08 00
+	00		 add	 esp, 2056		; 00000808H
+  000bf	c2 04 00	 ret	 4
+$L71893:
+
+; 242  : 
+; 243  :   if(!gnInstanceCounter || phTTS->dictionary_file_name[0])
+
+  000c2	a1 00 00 00 00	 mov	 eax, DWORD PTR _gnInstanceCounter
+  000c7	85 c0		 test	 eax, eax
+  000c9	0f 84 aa 00 00
+	00		 je	 $L71895
+  000cf	8a 85 fc 00 00
+	00		 mov	 al, BYTE PTR [ebp+252]
+  000d5	84 c0		 test	 al, al
+  000d7	0f 85 9c 00 00
+	00		 jne	 $L71895
+
+; 322  : 
+; 323  :   }
+; 324  :   else
+; 325  :   {
+; 326  : /* GL 09/25/1997 use the array for dictionary entry structure */
+; 327  : /*               also add UK_english support */
+; 328  : 		pKsd_t->fdic_index[DICT_LANG] = gpufdic_index;
+
+  000dd	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _gpufdic_index
+  000e3	89 0b		 mov	 DWORD PTR [ebx], ecx
+
+; 329  : 		pKsd_t->fdic_data[DICT_LANG] = gpufdic_data;
+
+  000e5	8b 15 00 00 00
+	00		 mov	 edx, DWORD PTR _gpufdic_data
+  000eb	89 53 1c	 mov	 DWORD PTR [ebx+28], edx
+
+; 330  : 		pKsd_t->fdic_entries[DICT_LANG] = gufdic_entries;
+
+  000ee	a1 00 00 00 00	 mov	 eax, DWORD PTR _gufdic_entries
+  000f3	89 43 38	 mov	 DWORD PTR [ebx+56], eax
+
+; 331  : 		pKsd_t->fdic_bytes[DICT_LANG] = gufdic_bytes;
+
+  000f6	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _gufdic_bytes
+  000fc	89 4b 54	 mov	 DWORD PTR [ebx+84], ecx
+
+; 332  : 		pKsd_t->fdicMapObject[DICT_LANG]=gufdicMapObject;
+
+  000ff	8b 15 00 00 00
+	00		 mov	 edx, DWORD PTR _gufdicMapObject
+  00105	89 93 c0 01 00
+	00		 mov	 DWORD PTR [ebx+448], edx
+
+; 333  : 		pKsd_t->fdicFileHandle[DICT_LANG]=gufdicFileHandle;
+
+  0010b	a1 00 00 00 00	 mov	 eax, DWORD PTR _gufdicFileHandle
+  00110	89 83 dc 01 00
+	00		 mov	 DWORD PTR [ebx+476], eax
+
+; 334  : 		pKsd_t->fdicMapStartAddr[DICT_LANG]=gufdicFileHandle;
+
+  00116	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _gufdicFileHandle
+  0011c	89 8b f8 01 00
+	00		 mov	 DWORD PTR [ebx+504], ecx
+
+; 335  : 
+; 336  : 		pKsd_t->foreigndic_index[DICT_LANG] = gpufordic_index;
+
+  00122	8b 15 00 00 00
+	00		 mov	 edx, DWORD PTR _gpufordic_index
+  00128	89 93 50 01 00
+	00		 mov	 DWORD PTR [ebx+336], edx
+
+; 337  : 		pKsd_t->foreigndic_data[DICT_LANG] = gpufordic_data;
+
+  0012e	a1 00 00 00 00	 mov	 eax, DWORD PTR _gpufordic_data
+  00133	89 83 6c 01 00
+	00		 mov	 DWORD PTR [ebx+364], eax
+
+; 338  : 		pKsd_t->foreigndic_entries[DICT_LANG] = gufordic_entries;
+
+  00139	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _gufordic_entries
+  0013f	89 8b 88 01 00
+	00		 mov	 DWORD PTR [ebx+392], ecx
+
+; 339  : 		pKsd_t->foreigndic_bytes[DICT_LANG] = gufordic_bytes;
+
+  00145	8b 15 00 00 00
+	00		 mov	 edx, DWORD PTR _gufordic_bytes
+  0014b	89 93 a4 01 00
+	00		 mov	 DWORD PTR [ebx+420], edx
+
+; 340  : 		pKsd_t->foreigndicMapObject[DICT_LANG]=gufordicMapObject;
+
+  00151	a1 00 00 00 00	 mov	 eax, DWORD PTR _gufordicMapObject
+  00156	89 83 14 02 00
+	00		 mov	 DWORD PTR [ebx+532], eax
+
+; 341  : 		pKsd_t->foreigndicFileHandle[DICT_LANG]=gufordicFileHandle;
+
+  0015c	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _gufordicFileHandle
+  00162	89 8b 30 02 00
+	00		 mov	 DWORD PTR [ebx+560], ecx
+
+; 342  : 		pKsd_t->foreigndicMapStartAddr[DICT_LANG]=gufordicMapStartAddr;
+
+  00168	8b 15 00 00 00
+	00		 mov	 edx, DWORD PTR _gufordicMapStartAddr
+  0016e	89 93 4c 02 00
+	00		 mov	 DWORD PTR [ebx+588], edx
+  00174	e9 30 01 00 00	 jmp	 $L71904
+$L71895:
+
+; 244  :   {	nDicLoad = load_dictionary( phTTS,
+; 245  : 						&(pKsd_t->fdic_index[DICT_LANG]),
+; 246  : 						&(pKsd_t->fdic_data[DICT_LANG]),
+; 247  : 						&(pKsd_t->fdic_entries[DICT_LANG]),
+; 248  : 						&(pKsd_t->fdic_bytes[DICT_LANG]),
+; 249  : 						szMainDict,
+; 250  : 						TRUE,
+; 251  : 						TRUE,
+; 252  : 						(HANDLE*)&(pKsd_t->fdicMapObject[DICT_LANG]),
+; 253  : 						(HANDLE*)&(pKsd_t->fdicFileHandle[DICT_LANG]),
+; 254  : 						(LPVOID*)&(pKsd_t->fdicMapStartAddr[DICT_LANG]),
+; 255  : 						MEMMAP_ON);
+
+  00179	8d b3 f8 01 00
+	00		 lea	 esi, DWORD PTR [ebx+504]
+  0017f	8d bb dc 01 00
+	00		 lea	 edi, DWORD PTR [ebx+476]
+  00185	6a 01		 push	 1
+  00187	8d 83 c0 01 00
+	00		 lea	 eax, DWORD PTR [ebx+448]
+  0018d	56		 push	 esi
+  0018e	57		 push	 edi
+  0018f	50		 push	 eax
+  00190	6a 01		 push	 1
+  00192	8d 44 24 2c	 lea	 eax, DWORD PTR _szMainDict$[esp+2092]
+  00196	6a 01		 push	 1
+  00198	8d 4b 54	 lea	 ecx, DWORD PTR [ebx+84]
+  0019b	50		 push	 eax
+  0019c	8d 43 38	 lea	 eax, DWORD PTR [ebx+56]
+  0019f	8d 53 1c	 lea	 edx, DWORD PTR [ebx+28]
+  001a2	51		 push	 ecx
+  001a3	50		 push	 eax
+  001a4	52		 push	 edx
+  001a5	53		 push	 ebx
+  001a6	55		 push	 ebp
+  001a7	e8 00 00 00 00	 call	 _load_dictionary
+  001ac	89 44 24 44	 mov	 DWORD PTR _nDicLoad$[esp+2120], eax
+
+; 256  : 
+; 257  : 		fDicLoad = load_dictionary( phTTS,
+; 258  : 						&(pKsd_t->foreigndic_index[DICT_LANG]),
+; 259  : 						&(pKsd_t->foreigndic_data[DICT_LANG]),
+; 260  : 						&(pKsd_t->foreigndic_entries[DICT_LANG]),
+; 261  : 						&(pKsd_t->foreigndic_bytes[DICT_LANG]),
+; 262  : 						szForeignDict,
+; 263  : 						FALSE,
+; 264  : 						FALSE,
+; 265  : 						(HANDLE*)&(pKsd_t->foreigndicMapObject[DICT_LANG]),
+; 266  : 						(HANDLE*)&(pKsd_t->foreigndicFileHandle[DICT_LANG]),
+; 267  : 						(LPVOID*)&(pKsd_t->foreigndicMapStartAddr[DICT_LANG]),
+; 268  : 						MEMMAP_ON);
+
+  001b0	8d 83 4c 02 00
+	00		 lea	 eax, DWORD PTR [ebx+588]
+  001b6	6a 01		 push	 1
+  001b8	8d 8b 30 02 00
+	00		 lea	 ecx, DWORD PTR [ebx+560]
+  001be	50		 push	 eax
+  001bf	8d 83 14 02 00
+	00		 lea	 eax, DWORD PTR [ebx+532]
+  001c5	51		 push	 ecx
+  001c6	50		 push	 eax
+  001c7	6a 00		 push	 0
+  001c9	8d 8c 24 5c 04
+	00 00		 lea	 ecx, DWORD PTR _szForeignDict$[esp+2140]
+  001d0	6a 00		 push	 0
+  001d2	8d 83 a4 01 00
+	00		 lea	 eax, DWORD PTR [ebx+420]
+  001d8	51		 push	 ecx
+  001d9	50		 push	 eax
+  001da	8d 83 88 01 00
+	00		 lea	 eax, DWORD PTR [ebx+392]
+  001e0	8d 93 50 01 00
+	00		 lea	 edx, DWORD PTR [ebx+336]
+  001e6	50		 push	 eax
+  001e7	8d 83 6c 01 00
+	00		 lea	 eax, DWORD PTR [ebx+364]
+  001ed	50		 push	 eax
+  001ee	52		 push	 edx
+  001ef	55		 push	 ebp
+  001f0	e8 00 00 00 00	 call	 _load_dictionary
+
+; 269  : 
+; 270  : 
+; 271  : 
+; 272  : //		nAdicLoad = load_dictionary( phTTS,
+; 273  : //						&(pKsd_t->adic[LANG_english]),
+; 274  : //						&(pKsd_t->adic_entries[LANG_english]),
+; 275  : //						szAbbrDict,
+; 276  : //						TRUE,
+; 277  : //						TRUE );
+; 278  : 
+; 279  : 
+; 280  : 		/*MVP : On the following errors notify TextToSpeechStartup by 
+; 281  : 			returning the error.
+; 282  : 		*/
+; 283  : 		if(nDicLoad == MMSYSERR_INVALPARAM || nDicLoad == MMSYSERR_NOMEM ||
+; 284  :  			nDicLoad == MMSYSERR_ERROR)
+
+  001f5	8b 44 24 74	 mov	 eax, DWORD PTR _nDicLoad$[esp+2168]
+  001f9	83 c4 60	 add	 esp, 96			; 00000060H
+  001fc	83 f8 0b	 cmp	 eax, 11			; 0000000bH
+  001ff	0f 84 5a 01 00
+	00		 je	 $L71878
+  00205	83 f8 07	 cmp	 eax, 7
+  00208	0f 84 51 01 00
+	00		 je	 $L71878
+  0020e	83 f8 01	 cmp	 eax, 1
+  00211	0f 84 48 01 00
+	00		 je	 $L71878
+
+; 285  : 		{
+; 286  : #ifdef DEBUG
+; 287  : 			MessageBox(NULL,szMainDict,_T("Error loading dictionary"), MB_ICONSTOP | MB_OK);
+; 288  : #endif
+; 289  : 			return (nDicLoad);
+; 290  : 		}
+; 291  : 
+; 292  : 		/* GL 09/25/1997 support Abbr dictionary load error checking */
+; 293  : 		/*               comment out for now */
+; 294  : //		if(nAdicLoad == MMSYSERR_INVALPARAM || nAdicLoad == MMSYSERR_NOMEM ||
+; 295  : // 			nAdicLoad == MMSYSERR_ERROR)
+; 296  : //		{
+; 297  : //#ifdef DEBUG
+; 298  : //			MessageBox(NULL,szAbbrDict,"Error loading Abbr. dictionary", MB_ICONSTOP | MB_OK);
+; 299  : //#endif
+; 300  : //			return (nAdicLoad);
+; 301  : //		}
+; 302  : 
+; 303  : 		//gnInstanceCounter++; // tek 27may98 bats 689. Don't do this here.
+; 304  : 
+; 305  : /* GL 09/25/1997 use the array for dictionary entry structure */
+; 306  : /*               also add UK_english support */
+; 307  : 		gpufdic_index = pKsd_t->fdic_index[DICT_LANG];
+
+  00217	8b 13		 mov	 edx, DWORD PTR [ebx]
+  00219	89 15 00 00 00
+	00		 mov	 DWORD PTR _gpufdic_index, edx
+
+; 308  : 		gpufdic_data = pKsd_t->fdic_data[DICT_LANG];
+
+  0021f	8b 43 1c	 mov	 eax, DWORD PTR [ebx+28]
+  00222	a3 00 00 00 00	 mov	 DWORD PTR _gpufdic_data, eax
+
+; 309  : 		gufdic_entries = pKsd_t->fdic_entries[DICT_LANG];
+
+  00227	8b 4b 38	 mov	 ecx, DWORD PTR [ebx+56]
+  0022a	89 0d 00 00 00
+	00		 mov	 DWORD PTR _gufdic_entries, ecx
+
+; 310  : 		gufdic_bytes = pKsd_t->fdic_bytes[DICT_LANG];
+
+  00230	8b 53 54	 mov	 edx, DWORD PTR [ebx+84]
+  00233	89 15 00 00 00
+	00		 mov	 DWORD PTR _gufdic_bytes, edx
+
+; 311  : 		gufdicMapObject=pKsd_t->fdicMapObject[DICT_LANG];
+
+  00239	8b 83 c0 01 00
+	00		 mov	 eax, DWORD PTR [ebx+448]
+  0023f	a3 00 00 00 00	 mov	 DWORD PTR _gufdicMapObject, eax
+
+; 312  : 		gufdicFileHandle=pKsd_t->fdicFileHandle[DICT_LANG];
+
+  00244	8b 0f		 mov	 ecx, DWORD PTR [edi]
+  00246	89 0d 00 00 00
+	00		 mov	 DWORD PTR _gufdicFileHandle, ecx
+
+; 313  : 		gufdicMapStartAddr=pKsd_t->fdicMapStartAddr[DICT_LANG];
+
+  0024c	8b 16		 mov	 edx, DWORD PTR [esi]
+  0024e	89 15 00 00 00
+	00		 mov	 DWORD PTR _gufdicMapStartAddr, edx
+
+; 314  : 
+; 315  : 		gpufordic_index = pKsd_t->foreigndic_index[DICT_LANG];
+
+  00254	8b 83 50 01 00
+	00		 mov	 eax, DWORD PTR [ebx+336]
+  0025a	a3 00 00 00 00	 mov	 DWORD PTR _gpufordic_index, eax
+
+; 316  : 		gpufordic_data = pKsd_t->foreigndic_data[DICT_LANG];
+
+  0025f	8b 8b 6c 01 00
+	00		 mov	 ecx, DWORD PTR [ebx+364]
+  00265	89 0d 00 00 00
+	00		 mov	 DWORD PTR _gpufordic_data, ecx
+
+; 317  : 		gufordic_entries = pKsd_t->foreigndic_entries[DICT_LANG];
+
+  0026b	8b 93 88 01 00
+	00		 mov	 edx, DWORD PTR [ebx+392]
+  00271	89 15 00 00 00
+	00		 mov	 DWORD PTR _gufordic_entries, edx
+
+; 318  : 		gufordic_bytes = pKsd_t->foreigndic_bytes[DICT_LANG];
+
+  00277	8b 83 a4 01 00
+	00		 mov	 eax, DWORD PTR [ebx+420]
+  0027d	a3 00 00 00 00	 mov	 DWORD PTR _gufordic_bytes, eax
+
+; 319  : 		gufordicMapObject=pKsd_t->foreigndicMapObject[DICT_LANG];
+
+  00282	8b 8b 14 02 00
+	00		 mov	 ecx, DWORD PTR [ebx+532]
+
+; 320  : 		gufordicFileHandle=pKsd_t->foreigndicFileHandle[DICT_LANG];
+; 321  : 		gufordicMapStartAddr=pKsd_t->foreigndicMapStartAddr[DICT_LANG];
+
+  00288	8b 7c 24 10	 mov	 edi, DWORD PTR _pLts_t$[esp+2072]
+  0028c	89 0d 00 00 00
+	00		 mov	 DWORD PTR _gufordicMapObject, ecx
+  00292	8b 93 30 02 00
+	00		 mov	 edx, DWORD PTR [ebx+560]
+  00298	89 15 00 00 00
+	00		 mov	 DWORD PTR _gufordicFileHandle, edx
+  0029e	8b 83 4c 02 00
+	00		 mov	 eax, DWORD PTR [ebx+588]
+  002a4	a3 00 00 00 00	 mov	 DWORD PTR _gufordicMapStartAddr, eax
+$L71904:
+
+; 343  : 
+; 344  :   }
+; 345  : 
+; 346  : /* GL 09/25/1997 use the array for dictionary entry structure */
+; 347  : /*               also add UK_english support */
+; 348  :   nDicLoad = load_dictionary( phTTS,
+; 349  : 				  &(pKsd_t->udic_index[DICT_LANG]),
+; 350  : 				  &(pKsd_t->udic_data[DICT_LANG]),
+; 351  : 				  &(pKsd_t->udic_entries[DICT_LANG]),
+; 352  : 				  &(pKsd_t->udic_bytes[DICT_LANG]),
+; 353  : 				  szUserDict,
+; 354  : 				  FALSE,
+; 355  : 				  TRUE,
+; 356  : 				  NULL,
+; 357  : 				  NULL,
+; 358  : 				  NULL,
+; 359  : 				  MEMMAP_OFF );
+
+  002a9	6a 00		 push	 0
+  002ab	6a 00		 push	 0
+  002ad	6a 00		 push	 0
+  002af	6a 00		 push	 0
+  002b1	6a 01		 push	 1
+  002b3	8d 8c 24 2c 02
+	00 00		 lea	 ecx, DWORD PTR _szUserDict$[esp+2092]
+  002ba	6a 00		 push	 0
+  002bc	8d 93 c4 00 00
+	00		 lea	 edx, DWORD PTR [ebx+196]
+  002c2	51		 push	 ecx
+  002c3	8d 83 a8 00 00
+	00		 lea	 eax, DWORD PTR [ebx+168]
+  002c9	52		 push	 edx
+  002ca	8d 8b 8c 00 00
+	00		 lea	 ecx, DWORD PTR [ebx+140]
+  002d0	50		 push	 eax
+  002d1	8d 53 70	 lea	 edx, DWORD PTR [ebx+112]
+  002d4	51		 push	 ecx
+  002d5	52		 push	 edx
+  002d6	55		 push	 ebp
+  002d7	e8 00 00 00 00	 call	 _load_dictionary
+  002dc	8b f0		 mov	 esi, eax
+  002de	83 c4 30	 add	 esp, 48			; 00000030H
+
+; 360  : 
+; 361  : 
+; 362  :  /*MVP : On the following errors notify TextToSpeechStartup 
+; 363  : 		  by returning the error.
+; 364  :   */
+; 365  : 
+; 366  :   // tek 27may98 bats 689:
+; 367  :   // do the right thing based on whether we managed to load or not..
+; 368  :   if(nDicLoad == MMSYSERR_INVALPARAM || nDicLoad == MMSYSERR_NOMEM ||
+; 369  : 		nDicLoad == MMSYSERR_ERROR)
+
+  002e1	83 fe 0b	 cmp	 esi, 11			; 0000000bH
+  002e4	74 6a		 je	 SHORT $L71909
+  002e6	83 fe 07	 cmp	 esi, 7
+  002e9	74 65		 je	 SHORT $L71909
+  002eb	83 fe 01	 cmp	 esi, 1
+  002ee	74 60		 je	 SHORT $L71909
+
+; 374  :   }
+; 375  :   else
+; 376  :   {
+; 377  : 	  // bump the count, then unlock.
+; 378  : 	  gnInstanceCounter++;
+
+  002f0	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _gnInstanceCounter
+
+; 379  : 	  ThreadUnlock(&tl_gnInstanceCounter);
+
+  002f6	68 00 00 00 00	 push	 OFFSET FLAT:_tl_gnInstanceCounter
+  002fb	41		 inc	 ecx
+  002fc	89 0d 00 00 00
+	00		 mov	 DWORD PTR _gnInstanceCounter, ecx
+  00302	e8 00 00 00 00	 call	 _ThreadUnlock
+
+; 380  :   }
+; 381  : 
+; 382  :   SetEvent(phTTS->hMallocSuccessEvent);  /*MVP :Set the malloc success,load dictionary success event */
+
+  00307	8b 45 1c	 mov	 eax, DWORD PTR [ebp+28]
+  0030a	83 c4 04	 add	 esp, 4
+  0030d	50		 push	 eax
+  0030e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 383  :   
+; 384  : #endif /* #ifdef WIN32 */
+; 385  : 
+; 386  : #if defined (__osf__) || defined (__linux__)
+; 387  :   int nDicLoad ;
+; 388  :   int fDicLoad;
+; 389  : 
+; 390  : 
+; 391  :   char main_dict_name[1000];
+; 392  :   char foreign_dict_name[1000];
+; 393  :   char user_dict_name[1000];
+; 394  : 
+; 395  :   linux_get_dict_names(main_dict_name,user_dict_name,foreign_dict_name);
+; 396  :   if (phTTS->dictionary_file_name[0])
+; 397  :   {
+; 398  : 	  strcpy(main_dict_name,phTTS->dictionary_file_name);
+; 399  :   }
+; 400  :   /* Initialize thread error field to no error */
+; 401  :   phTTS->uiThreadError = MMSYSERR_NOERROR;
+; 402  : 
+; 403  :   if((pLts_t = (PLTS_T)calloc(1,sizeof(LTS_T)))== NULL)
+; 404  : 	phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 405  :   else 
+; 406  :   {
+; 407  :     /* MVP :Associate LTS thread specific data handle to the 
+; 408  :           current speech object */
+; 409  :     phTTS->pLTSThreadData = pLts_t ;
+; 410  : 
+; 411  : /* GL 09/25/1997 use the array for dictionary entry structure */
+; 412  : /*               also add UK_english support */
+; 413  : /*               comment out the abbr dictionary section for now */
+; 414  : 
+; 415  :     nDicLoad = load_dictionary( (void **)&(pKsd_t->fdic_index[DICT_LANG]),
+; 416  : 			(void **)&(pKsd_t->fdic_data[DICT_LANG]),
+; 417  : 		   (unsigned int *)&(pKsd_t->fdic_entries[DICT_LANG]),
+; 418  : 		   (unsigned int *)&(pKsd_t->fdic_bytes[DICT_LANG]),
+; 419  : 		   main_dict_name,
+; 420  :       		   TRUE,
+; 421  : 				(HANDLE*)&(pKsd_t->fdicMapObject[DICT_LANG]),
+; 422  : 				(HANDLE*)&(pKsd_t->fdicFileHandle[DICT_LANG]),
+; 423  : 				(LPVOID*)&(pKsd_t->fdicMapStartAddr[DICT_LANG]),
+; 424  : 						MEMMAP_ON);
+; 425  : 
+; 426  :     fDicLoad = load_dictionary( (void **)&(pKsd_t->foreigndic_index[DICT_LANG]),
+; 427  : 			(void **)&(pKsd_t->foreigndic_data[DICT_LANG]),
+; 428  : 		   (unsigned int *)&(pKsd_t->foreigndic_entries[DICT_LANG]),
+; 429  : 		   (unsigned int *)&(pKsd_t->foreigndic_bytes[DICT_LANG]),
+; 430  : 		   foreign_dict_name,
+; 431  :       		   FALSE,
+; 432  : 				(HANDLE*)&(pKsd_t->foreigndicMapObject[DICT_LANG]),
+; 433  : 				(HANDLE*)&(pKsd_t->foreigndicFileHandle[DICT_LANG]),
+; 434  : 				(LPVOID*)&(pKsd_t->foreigndicMapStartAddr[DICT_LANG]),
+; 435  : 						MEMMAP_ON);
+; 436  : 
+; 437  : //nAdicLoad = load_dictionary( &(pKsd_t->adic[LANG_english]),
+; 438  :       //		   &(pKsd_t->adic_entries[LANG_english]),
+; 439  :       //		   "/usr/lib/dtk/abbr_us.dic",
+; 440  :       //		   TRUE );
+; 441  : 
+; 442  :     if( nDicLoad == MMSYSERR_INVALPARAM || nDicLoad == MMSYSERR_NOMEM ||
+; 443  : 	nDicLoad == MMSYSERR_ERROR)
+; 444  :     {
+; 445  :       fprintf(stderr,"DECtalk cannot run without the dictionary file %s\n",
+; 446  : 				  main_dict_name);
+; 447  :       phTTS->uiThreadError = nDicLoad;
+; 448  :     }
+; 449  : 
+; 450  : 	/* GL 09/25/1997 support Abbr dictionary load error checking */
+; 451  : 	/*               comment out for now */
+; 452  : //    if( nAdicLoad == MMSYSERR_INVALPARAM || nAdicLoad == MMSYSERR_NOMEM ||
+; 453  : //	nAdicLoad == MMSYSERR_ERROR)
+; 454  : //    {
+; 455  : //      fprintf(stderr,"DECtalk cannot run without the abbr. dictionary file %s\n",
+; 456  : //				  "/usr/lib/dtk/abbr.dic");
+; 457  : //      phTTS->uiThreadError = nAdicLoad;
+; 458  : //    }
+; 459  : 
+; 460  :     /*
+; 461  :      * Look for an ini file in the users login directory
+; 462  :      */
+; 463  :     if (phTTS->uiThreadError == MMSYSERR_NOERROR)
+; 464  :     {
+; 465  : 
+; 466  :       /*
+; 467  :        * Make sure we have a valid HOME environment set.
+; 468  :        */
+; 469  :       if( user_dict_name[0] )
+; 470  :       {
+; 471  : /* GL 09/25/1997 use the array for dictionary entry structure */
+; 472  : /*               also add UK_english support */
+; 473  :         load_dictionary( (void **)&(pKsd_t->udic_index[DICT_LANG]),
+; 474  :         		   (void **)&(pKsd_t->udic_data[DICT_LANG]),
+; 475  :         		   (unsigned int *)&(pKsd_t->udic_entries[DICT_LANG]),
+; 476  : 			   (unsigned int *)&(pKsd_t->udic_bytes[DICT_LANG]),
+; 477  :         		   user_dict_name,
+; 478  :         		   FALSE,
+; 479  : 				  NULL,
+; 480  : 				  NULL,
+; 481  : 				  NULL,
+; 482  : 				  MEMMAP_OFF );
+; 483  :       }
+; 484  :     }
+; 485  :   }
+; 486  : 
+; 487  :   /* 
+; 488  :    * CP: Set the event, even if malloc eerror occurred. User
+; 489  :    * will look at uiThreadError for actual error code.
+; 490  :    */
+; 491  :   OP_SetEvent(phTTS->hMallocSuccessEvent);
+; 492  :   if (phTTS->uiThreadError != MMSYSERR_NOERROR)
+; 493  :   {
+; 494  :     OP_ExitThread((void *)phTTS->uiThreadError);
+; 495  :     OP_THREAD_RETURN;
+; 496  :   }
+; 497  : 
+; 498  : #endif /* #ifdef __osf__ */
+; 499  : 
+; 500  : ls_util_lts_init (pLts_t, pKsd_t); 
+
+  00314	53		 push	 ebx
+  00315	57		 push	 edi
+  00316	e8 00 00 00 00	 call	 _ls_util_lts_init
+
+; 501  : 
+; 502  : /* JDB: language dependent... */
+; 503  : #ifdef ENGLISH_US
+; 504  : #ifdef ACNA
+; 505  :   	lsa_util_init_lang();
+
+  0031b	e8 00 00 00 00	 call	 _lsa_util_init_lang
+
+; 506  : #endif
+; 507  : 	default_lang(pKsd_t,LANG_english,LANG_lts_ready);  
+
+  00320	6a 01		 push	 1
+  00322	6a 00		 push	 0
+  00324	53		 push	 ebx
+  00325	e8 00 00 00 00	 call	 _default_lang
+
+; 508  : #endif
+; 509  : /* GL 09/25/1997 add UK_english support */
+; 510  : #ifdef ENGLISH_UK
+; 511  : #ifdef ACNA
+; 512  :   	lsa_util_init_lang();
+; 513  : #endif
+; 514  : 	default_lang(pKsd_t,LANG_british,LANG_lts_ready);  
+; 515  : #endif
+; 516  : 
+; 517  : #ifdef SPANISH_SP
+; 518  :     default_lang(pKsd_t,LANG_spanish,LANG_lts_ready);
+; 519  : #endif
+; 520  : 
+; 521  : #ifdef SPANISH_LA
+; 522  :     default_lang(pKsd_t,LANG_latin_american,LANG_lts_ready);
+; 523  : #endif
+; 524  : 
+; 525  : #ifdef SPANISH
+; 526  : /* GL 11/12/1998, BATS#800 need to initialize these variables for Spanish */
+; 527  : 	pLts_t->ord = 0;
+; 528  :    	pLts_t->dic_offset = 0;
+; 529  :    	pLts_t->flag =0;
+; 530  : #endif
+; 531  : 
+; 532  : #ifdef GERMAN
+; 533  :    default_lang(pKsd_t,LANG_german,LANG_lts_ready);
+; 534  : #endif
+; 535  : 
+; 536  : #ifdef FRENCH
+; 537  :    default_lang(pKsd_t,LANG_french,LANG_lts_ready);
+; 538  : #endif
+; 539  : 
+; 540  : 	ls_task_main(phTTS);
+
+  0032a	55		 push	 ebp
+  0032b	e8 00 00 00 00	 call	 _ls_task_main
+
+; 541  : 	/* Free here thread specific data structure MVP */
+; 542  : 	if(pLts_t)
+; 543  : 		free(pLts_t);
+
+  00330	57		 push	 edi
+  00331	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__free
+  00337	83 c4 1c	 add	 esp, 28			; 0000001cH
+
+; 544  : 	phTTS->pLTSThreadData = pLts_t = NULL;
+
+  0033a	c7 45 10 00 00
+	00 00		 mov	 DWORD PTR [ebp+16], 0
+
+; 545  : #if defined __osf__ || defined __linux__
+; 546  : 	return;
+; 547  : #else
+; 548  : 	return MMSYSERR_NOERROR; // NAL warning removal
+
+  00341	33 c0		 xor	 eax, eax
+  00343	5f		 pop	 edi
+  00344	5e		 pop	 esi
+  00345	5d		 pop	 ebp
+  00346	5b		 pop	 ebx
+
+; 549  : #endif
+; 550  : }       
+
+  00347	81 c4 08 08 00
+	00		 add	 esp, 2056		; 00000808H
+  0034d	c2 04 00	 ret	 4
+$L71909:
+
+; 370  :   {
+; 371  : 	  // just unlock; no instance increment
+; 372  : 	  ThreadUnlock(&tl_gnInstanceCounter);
+
+  00350	68 00 00 00 00	 push	 OFFSET FLAT:_tl_gnInstanceCounter
+  00355	e8 00 00 00 00	 call	 _ThreadUnlock
+  0035a	83 c4 04	 add	 esp, 4
+
+; 373  : 	  return(nDicLoad);
+
+  0035d	8b c6		 mov	 eax, esi
+$L71878:
+  0035f	5f		 pop	 edi
+  00360	5e		 pop	 esi
+  00361	5d		 pop	 ebp
+  00362	5b		 pop	 ebx
+
+; 549  : #endif
+; 550  : }       
+
+  00363	81 c4 08 08 00
+	00		 add	 esp, 2056		; 00000808H
+  00369	c2 04 00	 ret	 4
+_lts_main@4 ENDP
+_TEXT	ENDS
+PUBLIC	_IsFileAccessible
+EXTRN	__imp___access:NEAR
+_TEXT	SEGMENT
+_szFileName$ = 8
+_IsFileAccessible PROC NEAR
+
+; 562  : 	if (!_access(szFileName,0)) // check for existence only
+
+  00370	8b 44 24 04	 mov	 eax, DWORD PTR _szFileName$[esp-4]
+  00374	6a 00		 push	 0
+  00376	50		 push	 eax
+  00377	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___access
+  0037d	83 c4 08	 add	 esp, 8
+  00380	f7 d8		 neg	 eax
+  00382	1b c0		 sbb	 eax, eax
+  00384	40		 inc	 eax
+
+; 563  : 	{
+; 564  : 		return (TRUE);
+; 565  : 	}
+; 566  : 	else
+; 567  : 	{
+; 568  : 		return (FALSE);
+; 569  : 	}
+; 570  : }
+
+  00385	c3		 ret	 0
+_IsFileAccessible ENDP
+_TEXT	ENDS
+PUBLIC	_FindFileOnPath
+EXTRN	__imp___searchenv:NEAR
+_DATA	SEGMENT
+$SG72142 DB	'PATH', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_szResultString$ = 8
+_szFileName$ = 12
+_FindFileOnPath PROC NEAR
+
+; 574  : 	// find szFileName on PATH; return TRUE if successful.
+; 575  : 	// WARNING: make sure the destination string is big enough!!
+; 576  : 	_searchenv(szFileName, "PATH", szResultString);
+
+  00390	8b 44 24 08	 mov	 eax, DWORD PTR _szFileName$[esp-4]
+  00394	56		 push	 esi
+  00395	8b 74 24 08	 mov	 esi, DWORD PTR _szResultString$[esp]
+  00399	57		 push	 edi
+  0039a	56		 push	 esi
+  0039b	68 00 00 00 00	 push	 OFFSET FLAT:$SG72142
+  003a0	50		 push	 eax
+  003a1	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___searchenv
+
+; 577  : 	if (  (strlen(szResultString) != 0)
+; 578  : 		&&(IsFileAccessible(szResultString)) )
+
+  003a7	8b fe		 mov	 edi, esi
+  003a9	83 c9 ff	 or	 ecx, -1
+  003ac	33 c0		 xor	 eax, eax
+  003ae	83 c4 0c	 add	 esp, 12			; 0000000cH
+  003b1	f2 ae		 repne scasb
+  003b3	f7 d1		 not	 ecx
+  003b5	49		 dec	 ecx
+  003b6	74 15		 je	 SHORT $L72143
+  003b8	56		 push	 esi
+  003b9	e8 00 00 00 00	 call	 _IsFileAccessible
+  003be	83 c4 04	 add	 esp, 4
+  003c1	85 c0		 test	 eax, eax
+  003c3	74 08		 je	 SHORT $L72143
+  003c5	5f		 pop	 edi
+
+; 579  : 	{
+; 580  : 		return (TRUE);
+
+  003c6	b8 01 00 00 00	 mov	 eax, 1
+  003cb	5e		 pop	 esi
+
+; 585  : 	}
+; 586  : }
+
+  003cc	c3		 ret	 0
+$L72143:
+  003cd	5f		 pop	 edi
+
+; 581  : 	}
+; 582  : 	else
+; 583  : 	{
+; 584  : 		return (FALSE);
+
+  003ce	33 c0		 xor	 eax, eax
+  003d0	5e		 pop	 esi
+
+; 585  : 	}
+; 586  : }
+
+  003d1	c3		 ret	 0
+_FindFileOnPath ENDP
+_TEXT	ENDS
+PUBLIC	_FindFileInCurrentDirectory
+EXTRN	__imp___getcwd:NEAR
+_BSS	SEGMENT
+$SG72202 DB	01H DUP (?)
+_BSS	ENDS
+_TEXT	SEGMENT
+_szResultString$ = 8
+_szFileName$ = 12
+_szTempBuf$ = -520
+_FindFileInCurrentDirectory PROC NEAR
+
+; 590  : {
+
+  003e0	81 ec 08 02 00
+	00		 sub	 esp, 520		; 00000208H
+
+; 591  : 	// look in the current directory for a file, return TRUE is successful
+; 592  : 	// WARNING: make sure the destination string is big enough!
+; 593  : 
+; 594  : 	char szTempBuf[_MAX_PATH*2]="";
+
+  003e6	a0 00 00 00 00	 mov	 al, BYTE PTR $SG72202
+  003eb	57		 push	 edi
+  003ec	88 44 24 04	 mov	 BYTE PTR _szTempBuf$[esp+524], al
+  003f0	b9 81 00 00 00	 mov	 ecx, 129		; 00000081H
+  003f5	33 c0		 xor	 eax, eax
+  003f7	8d 7c 24 05	 lea	 edi, DWORD PTR _szTempBuf$[esp+525]
+  003fb	f3 ab		 rep stosd
+  003fd	66 ab		 stosw
+
+; 595  : 	int	iStringLength=0;
+; 596  : 	if (!_getcwd(szTempBuf, _MAX_PATH))
+
+  003ff	8d 4c 24 04	 lea	 ecx, DWORD PTR _szTempBuf$[esp+524]
+  00403	68 04 01 00 00	 push	 260			; 00000104H
+  00408	51		 push	 ecx
+  00409	aa		 stosb
+  0040a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___getcwd
+  00410	83 c4 08	 add	 esp, 8
+  00413	85 c0		 test	 eax, eax
+  00415	75 08		 jne	 SHORT $L72204
+  00417	5f		 pop	 edi
+
+; 618  : 	{
+; 619  : 		return (TRUE);
+; 620  : 	}
+; 621  : 	else
+; 622  : 	{
+; 623  : 		return (FALSE);
+; 624  : 	}
+; 625  : }
+
+  00418	81 c4 08 02 00
+	00		 add	 esp, 520		; 00000208H
+  0041e	c3		 ret	 0
+$L72204:
+
+; 597  : 	{
+; 598  : 		//oops, error?
+; 599  : 		return (FALSE);
+; 600  : 	}
+; 601  : 
+; 602  : 	// correct for the possible missing '\' at the end of the path
+; 603  : 	iStringLength = strlen(szTempBuf);
+
+  0041f	8d 7c 24 04	 lea	 edi, DWORD PTR _szTempBuf$[esp+524]
+  00423	83 c9 ff	 or	 ecx, -1
+  00426	33 c0		 xor	 eax, eax
+  00428	f2 ae		 repne scasb
+  0042a	f7 d1		 not	 ecx
+  0042c	49		 dec	 ecx
+
+; 604  : 	if (iStringLength == 0)
+
+  0042d	75 08		 jne	 SHORT $L72205
+  0042f	5f		 pop	 edi
+
+; 618  : 	{
+; 619  : 		return (TRUE);
+; 620  : 	}
+; 621  : 	else
+; 622  : 	{
+; 623  : 		return (FALSE);
+; 624  : 	}
+; 625  : }
+
+  00430	81 c4 08 02 00
+	00		 add	 esp, 520		; 00000208H
+  00436	c3		 ret	 0
+$L72205:
+
+; 605  : 	{
+; 606  : 		// oops, error?
+; 607  : 		return (FALSE);
+; 608  : 	}
+; 609  : 	if (szTempBuf[iStringLength] != '\\')
+
+  00437	80 7c 0c 04 5c	 cmp	 BYTE PTR _szTempBuf$[esp+ecx+524], 92 ; 0000005cH
+  0043c	74 0a		 je	 SHORT $L72206
+
+; 610  : 	{
+; 611  : 		szTempBuf[iStringLength] = '\\';
+
+  0043e	c6 44 0c 04 5c	 mov	 BYTE PTR _szTempBuf$[esp+ecx+524], 92 ; 0000005cH
+
+; 612  : 		szTempBuf[iStringLength+1] = '\0';
+
+  00443	c6 44 0c 05 00	 mov	 BYTE PTR _szTempBuf$[esp+ecx+525], 0
+$L72206:
+
+; 613  : 	}
+; 614  : 	// glue it together
+; 615  : 	strcat(szTempBuf,szFileName);
+
+  00448	8b bc 24 14 02
+	00 00		 mov	 edi, DWORD PTR _szFileName$[esp+520]
+  0044f	83 c9 ff	 or	 ecx, -1
+  00452	33 c0		 xor	 eax, eax
+  00454	53		 push	 ebx
+  00455	f2 ae		 repne scasb
+  00457	f7 d1		 not	 ecx
+  00459	2b f9		 sub	 edi, ecx
+  0045b	56		 push	 esi
+  0045c	8d 54 24 0c	 lea	 edx, DWORD PTR _szTempBuf$[esp+532]
+  00460	8b f7		 mov	 esi, edi
+  00462	8b d9		 mov	 ebx, ecx
+  00464	8b fa		 mov	 edi, edx
+  00466	83 c9 ff	 or	 ecx, -1
+  00469	f2 ae		 repne scasb
+  0046b	8b cb		 mov	 ecx, ebx
+  0046d	4f		 dec	 edi
+  0046e	c1 e9 02	 shr	 ecx, 2
+  00471	f3 a5		 rep movsd
+  00473	8b cb		 mov	 ecx, ebx
+  00475	83 e1 03	 and	 ecx, 3
+  00478	f3 a4		 rep movsb
+
+; 616  : 	strcpy(szResultString, szTempBuf);
+
+  0047a	8d 7c 24 0c	 lea	 edi, DWORD PTR _szTempBuf$[esp+532]
+  0047e	83 c9 ff	 or	 ecx, -1
+  00481	f2 ae		 repne scasb
+  00483	f7 d1		 not	 ecx
+  00485	2b f9		 sub	 edi, ecx
+  00487	8b c1		 mov	 eax, ecx
+  00489	8b f7		 mov	 esi, edi
+  0048b	8b bc 24 18 02
+	00 00		 mov	 edi, DWORD PTR _szResultString$[esp+528]
+  00492	c1 e9 02	 shr	 ecx, 2
+  00495	f3 a5		 rep movsd
+  00497	8b c8		 mov	 ecx, eax
+  00499	83 e1 03	 and	 ecx, 3
+  0049c	f3 a4		 rep movsb
+
+; 617  : 	if (IsFileAccessible(szTempBuf))
+
+  0049e	8d 4c 24 0c	 lea	 ecx, DWORD PTR _szTempBuf$[esp+532]
+  004a2	51		 push	 ecx
+  004a3	e8 00 00 00 00	 call	 _IsFileAccessible
+  004a8	83 c4 04	 add	 esp, 4
+  004ab	f7 d8		 neg	 eax
+  004ad	1b c0		 sbb	 eax, eax
+  004af	5e		 pop	 esi
+  004b0	5b		 pop	 ebx
+  004b1	5f		 pop	 edi
+  004b2	f7 d8		 neg	 eax
+
+; 618  : 	{
+; 619  : 		return (TRUE);
+; 620  : 	}
+; 621  : 	else
+; 622  : 	{
+; 623  : 		return (FALSE);
+; 624  : 	}
+; 625  : }
+
+  004b4	81 c4 08 02 00
+	00		 add	 esp, 520		; 00000208H
+  004ba	c3		 ret	 0
+_FindFileInCurrentDirectory ENDP
+_TEXT	ENDS
+EXTRN	__imp___strdate:NEAR
+EXTRN	__imp___strtime:NEAR
+EXTRN	__imp__RegOpenKeyExA@20:NEAR
+EXTRN	__imp__RegQueryValueExA@24:NEAR
+EXTRN	__imp__fclose:NEAR
+EXTRN	__imp__fflush:NEAR
+EXTRN	__imp__fopen:NEAR
+EXTRN	__imp__fprintf:NEAR
+EXTRN	__imp__RegCloseKey@4:NEAR
+_DATA	SEGMENT
+	ORG $+3
+$SG72229 DB	'UserDict', 00H
+	ORG $+3
+$SG72237 DB	'a+', 00H
+	ORG $+1
+$SG72238 DB	'\dtdic.log', 00H
+	ORG $+1
+$SG72242 DB	'%s %s : Dictionary key %s not found; using default name', 0aH
+	DB	00H
+	ORG $+3
+$SG72247 DB	'MainDict', 00H
+	ORG $+3
+$SG72250 DB	'a+', 00H
+	ORG $+1
+$SG72251 DB	'\dtdic.log', 00H
+	ORG $+1
+$SG72255 DB	'MainDict', 00H
+	ORG $+3
+$SG72256 DB	'%s %s : Dictionary key %s not found; using default name', 0aH
+	DB	00H
+	ORG $+3
+$SG72260 DB	'ForeignDict', 00H
+$SG72263 DB	'a+', 00H
+	ORG $+1
+$SG72264 DB	'\dtdic.log', 00H
+	ORG $+1
+$SG72268 DB	'ForeignDict', 00H
+$SG72269 DB	'%s %s : Foreign Dictionary key %s not found; using defau'
+	DB	'lt name', 0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_szMainDict$ = 8
+_szUserDict$ = 12
+_szForeignDict$ = 20
+_hKey$ = -140
+_dwType$ = -132
+_cbData$ = -136
+_szDateBuf$72240 = -64
+_szTimeBuf$72241 = -128
+_szDateBuf$72253 = -128
+_szTimeBuf$72254 = -64
+_szDateBuf$72266 = -128
+_szTimeBuf$72267 = -64
+_GetDictionaryNames PROC NEAR
+
+; 672  : {
+
+  004c0	81 ec 8c 00 00
+	00		 sub	 esp, 140		; 0000008cH
+
+; 673  :   HKEY hKey;
+; 674  :   DWORD dwType;
+; 675  :   DWORD cbData;
+; 676  : 
+; 677  : #ifdef UNDER_CE	
+; 678  :   TCHAR wszMainDict[MAX_STRING_LENGTH]; // wide char type needed for windows CE mfg 01/06/1999
+; 679  :   TCHAR wszUserDict[MAX_STRING_LENGTH]; // wide char type needed for windows CE mfg 01/01/1999
+; 680  :   TCHAR wszForeignDict[MAX_STRING_LENGTH]; // wide char type needed for windows CE mfg 01/01/1999
+; 681  : #endif
+; 682  : 
+; 683  : #ifdef FORCE_WINDICTDIRS
+; 684  :   char stemp[MAX_STRING_LENGTH+9];
+; 685  : #endif
+; 686  : 
+; 687  : #ifdef DEMO
+; 688  : #ifndef UNDER_CE
+; 689  :   // tek 25feb98 lots of changes here to be more rational about looking for the dictionaries.
+; 690  :   // the first place we look is the old parse-the-command-line place, and if
+; 691  :   // that fails we then look in the "current directory", and then finally on the
+; 692  :   // PATH. Note that the user dictionary and the main dictionary go through this 
+; 693  :   // process separately, so they may not end up coming from the same place; this
+; 694  :   // is probably good, because this would allow a common main dictionary (placed
+; 695  :   // on the path), and separate user dictionaries (in the "current", or "working",
+; 696  :   // directory).
+; 697  : 
+; 698  :   // this is undoubtedly not unicode compatible
+; 699  : 
+; 700  :   char szResultPath[_MAX_PATH*2]="";
+; 701  : #endif // UNDER_CE
+; 702  :   LPTSTR cmd_line = GetCommandLine();
+; 703  :   char new_cmd_line[512];
+; 704  : #ifndef UNDER_CE
+; 705  :   char temp[20], szDefUserDic[256]="user.dic";// tek 25feb98 we'll need this default later..
+; 706  : #else
+; 707  :   char temp[20];
+; 708  : #endif // UNDER_CE
+; 709  :   int cmd_ptr = 0;
+; 710  : 
+; 711  :   while (cmd_line[cmd_ptr] != '\0' && cmd_line[cmd_ptr] != ' ')	cmd_ptr++;
+; 712  :   while (cmd_line[cmd_ptr] != '\\' && cmd_ptr != 0)				cmd_ptr--;
+; 713  :   if (cmd_ptr != 0)	cmd_ptr++;
+; 714  :   cmd_line[cmd_ptr] = '\0';
+; 715  : 
+; 716  : #ifndef UNDER_CE
+; 717  :   // tek 25feb98 we have to do this step before we ever use the cmdline-based
+; 718  :   // string.. 
+; 719  : 	if (cmd_line[0] == '"')	strcpy(new_cmd_line,cmd_line+1);	// Win95 addes a " to the beginning
+; 720  : 	else					strcpy(new_cmd_line,cmd_line);  
+; 721  : #endif // UNDER_CE
+; 722  : 
+; 723  : 
+; 724  : #ifndef UNDER_CE
+; 725  :   sprintf(szUserDict,"%s%s",cmd_line,szDefUserDic);  // tek 25feb98 be consistent
+; 726  : #else
+; 727  :   sprintf(szUserDict,"%s%s",cmd_line,"user.dic");
+; 728  : #endif // UNDER_CE
+; 729  : 
+; 730  :   /* DEMO_DICT_DEF is defined in coop.h -- ncs 06aug97 */
+; 731  : 	strcpy(temp,szMainDictDef);
+; 732  : 
+; 733  : #ifdef UNDER_CE
+; 734  : 	if (cmd_line[0] == '"')	strcpy(new_cmd_line,cmd_line+1);	// Win95 addes a " to the beginning
+; 735  : 	else					strcpy(new_cmd_line,cmd_line);  
+; 736  : #endif // UNDER_CE
+; 737  : 	sprintf(szMainDict, "%s%s", new_cmd_line, temp);
+; 738  : 	sprintf(szForeignDict, "%s%s", new_cmd_line, szForeignDictDef);
+; 739  : 
+; 740  : #ifndef UNDER_CE
+; 741  : 	// tek 25feb98 OK, we have the defaults. Now go try to find the existing files.
+; 742  : 	// main dictionary..
+; 743  : 	// first, the "old way".. 
+; 744  : 	if (IsFileAccessible(szMainDict))
+; 745  : 	{
+; 746  : 		// do nothing, it's OK
+; 747  : 	}
+; 748  : 	else if (FindFileInCurrentDirectory(szResultPath, szMainDictDef))
+; 749  : 	{
+; 750  : 		strcpy(szMainDict, szResultPath); //use this one
+; 751  : 	}
+; 752  : 	else if (FindFileOnPath(szResultPath, szMainDictDef))
+; 753  : 	{
+; 754  : 		strcpy(szMainDict, szResultPath); // use this one
+; 755  : 	}
+; 756  : 	else
+; 757  : 	{
+; 758  : 		//the file is invalid, and we're in trouble.
+; 759  : 		// not much we can do here.
+; 760  : #if LTS_DEBUG
+; 761  : 		OutputDebugString("Failed to find MAIN dictionary\n");
+; 762  : #endif //LTS_DEBUG
+; 763  : 	}
+; 764  : 
+; 765  : 
+; 766  : 	// same thing for the user dictionary..
+; 767  : 	// first, the "old way".. 
+; 768  : 	if (IsFileAccessible(szUserDict))
+; 769  : 	{
+; 770  : 		// do nothing, it's OK
+; 771  : 	}
+; 772  : 	else if (FindFileInCurrentDirectory(szResultPath, szDefUserDic))
+; 773  : 	{
+; 774  : 		strcpy(szUserDict, szResultPath); //use this one
+; 775  : 	}
+; 776  : 	else if (FindFileOnPath(szResultPath, szDefUserDic))
+; 777  : 	{
+; 778  : 		strcpy(szUserDict, szResultPath); // use this one
+; 779  : 	}
+; 780  : 	else
+; 781  : 	{
+; 782  : 		//the file is invalid, and we're in trouble.
+; 783  : 		// not much we can do here.
+; 784  : #if LTS_DEBUG
+; 785  : 		OutputDebugString("Failed to find USER dictionary\n");
+; 786  : #endif //LTS_DEBUG
+; 787  : 	}
+; 788  : 
+; 789  : 	if (IsFileAccessible(szForeignDict))
+; 790  : 	{
+; 791  : 		// do nothing, it's OK
+; 792  : 	}
+; 793  : 	else if (FindFileInCurrentDirectory(szResultPath, szForeignDictDef))
+; 794  : 	{
+; 795  : 		strcpy(szForeignDict, szResultPath); //use this one
+; 796  : 	}
+; 797  : 	else if (FindFileOnPath(szResultPath, szForeignDictDef))
+; 798  : 	{
+; 799  : 		strcpy(szForeignDict, szResultPath); // use this one
+; 800  : 	}
+; 801  : 	else
+; 802  : 	{
+; 803  : 		//the file is invalid, and we're in trouble.
+; 804  : 		// not much we can do here.
+; 805  : #if LTS_DEBUG
+; 806  : 		OutputDebugString("Failed to find foreign dictionary\n");
+; 807  : #endif //LTS_DEBUG
+; 808  : 	}
+; 809  : 
+; 810  : 	
+; 811  : 	// if we're in debug, print the results..
+; 812  : #if LTS_DEBUG
+; 813  : 	{
+; 814  : 		char szTemp[_MAX_PATH*3]="";
+; 815  : 		sprintf(szTemp, "Main dictionary at %s\n",szMainDict);
+; 816  : 		OutputDebugString(szTemp);
+; 817  : 		sprintf(szTemp, "User dictionary at %s\n",szUserDict);
+; 818  : 		OutputDebugString(szTemp);
+; 819  : 	}
+; 820  : #endif //LTS_DEBUG
+; 821  : #endif // UNDER_CE
+; 822  : 
+; 823  : 	return;
+; 824  : #endif
+; 825  : 
+; 826  : 
+; 827  : #ifndef CUP28PROJECT
+; 828  : #ifdef UNDER_CE
+; 829  : 	DeleteFile(_T("\\dtdic.log"));	// Delete file if it exist
+; 830  : #endif
+; 831  : #endif
+; 832  :   /********************************************************************/
+; 833  :   /*  Get the user dictionary.                                        */
+; 834  :   /********************************************************************/
+; 835  :   // RDK Changed to use FORCE_WINDICTDIRS to force for Windows Directory for User Dictionary
+; 836  : #ifdef FORCE_WINDICTDIRS
+; 837  : 	sprintf(szUserDict,"%s","\\windows\\user.dic");
+; 838  : #else
+; 839  :   if ( RegOpenKeyEx( HKEY_CURRENT_USER,
+; 840  : 			 szCurrentUsersDECtalk,
+; 841  : 			 0,
+; 842  : 			 KEY_QUERY_VALUE,
+; 843  : 			 &hKey ) != ERROR_SUCCESS )
+
+  004c6	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR _szCurrentUsersDECtalk
+  004cc	8d 44 24 00	 lea	 eax, DWORD PTR _hKey$[esp+140]
+  004d0	53		 push	 ebx
+  004d1	55		 push	 ebp
+  004d2	56		 push	 esi
+  004d3	57		 push	 edi
+  004d4	50		 push	 eax
+  004d5	6a 01		 push	 1
+  004d7	6a 00		 push	 0
+  004d9	51		 push	 ecx
+  004da	68 01 00 00 80	 push	 -2147483647		; 80000001H
+  004df	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__RegOpenKeyExA@20
+  004e5	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__RegQueryValueExA@24
+  004eb	85 c0		 test	 eax, eax
+  004ed	74 2a		 je	 SHORT $L72224
+
+; 844  :   {
+; 845  : 	strcpy( szUserDict, szUserDictDef );
+
+  004ef	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR _szUserDictDef
+  004f5	83 c9 ff	 or	 ecx, -1
+  004f8	33 c0		 xor	 eax, eax
+  004fa	f2 ae		 repne scasb
+  004fc	f7 d1		 not	 ecx
+  004fe	2b f9		 sub	 edi, ecx
+  00500	8b d1		 mov	 edx, ecx
+  00502	8b f7		 mov	 esi, edi
+  00504	8b bc 24 a4 00
+	00 00		 mov	 edi, DWORD PTR _szUserDict$[esp+152]
+  0050b	c1 e9 02	 shr	 ecx, 2
+  0050e	f3 a5		 rep movsd
+  00510	8b ca		 mov	 ecx, edx
+  00512	83 e1 03	 and	 ecx, 3
+  00515	f3 a4		 rep movsb
+
+; 846  :   }
+; 847  :   else
+
+  00517	eb 5a		 jmp	 SHORT $L72225
+$L72224:
+
+; 848  :   {
+; 849  : 	cbData = MAX_STRING_LENGTH;
+; 850  : 
+; 851  : 	if ( RegQueryValueEx( hKey,
+; 852  : #ifndef UNDER_CE
+; 853  : 			  "UserDict",
+; 854  : #else
+; 855  : 			  TEXT("UserDict"),
+; 856  : #endif
+; 857  : 			  NULL,
+; 858  : 			  &dwType,
+; 859  : #ifndef UNDER_CE
+; 860  : 			  (LPBYTE)szUserDict,
+; 861  : #else
+; 862  : 			  (LPBYTE)wszUserDict,
+; 863  : #endif
+; 864  : 			  &cbData ) != ERROR_SUCCESS )
+
+  00519	8b 9c 24 a4 00
+	00 00		 mov	 ebx, DWORD PTR _szUserDict$[esp+152]
+  00520	8b 54 24 10	 mov	 edx, DWORD PTR _hKey$[esp+156]
+  00524	8d 44 24 14	 lea	 eax, DWORD PTR _cbData$[esp+156]
+  00528	8d 4c 24 18	 lea	 ecx, DWORD PTR _dwType$[esp+156]
+  0052c	50		 push	 eax
+  0052d	53		 push	 ebx
+  0052e	51		 push	 ecx
+  0052f	6a 00		 push	 0
+  00531	68 00 00 00 00	 push	 OFFSET FLAT:$SG72229
+  00536	52		 push	 edx
+  00537	c7 44 24 2c 00
+	02 00 00	 mov	 DWORD PTR _cbData$[esp+180], 512 ; 00000200H
+  0053f	ff d5		 call	 ebp
+  00541	85 c0		 test	 eax, eax
+  00543	74 23		 je	 SHORT $L72228
+
+; 865  : 	{
+; 866  : 	  strcpy( szUserDict, szUserDictDef );
+
+  00545	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR _szUserDictDef
+  0054b	83 c9 ff	 or	 ecx, -1
+  0054e	33 c0		 xor	 eax, eax
+  00550	f2 ae		 repne scasb
+  00552	f7 d1		 not	 ecx
+  00554	2b f9		 sub	 edi, ecx
+  00556	8b c1		 mov	 eax, ecx
+  00558	8b f7		 mov	 esi, edi
+  0055a	8b fb		 mov	 edi, ebx
+  0055c	c1 e9 02	 shr	 ecx, 2
+  0055f	f3 a5		 rep movsd
+  00561	8b c8		 mov	 ecx, eax
+  00563	83 e1 03	 and	 ecx, 3
+  00566	f3 a4		 rep movsb
+$L72228:
+
+; 867  : 	}
+; 868  : #ifdef UNDER_CE //convert wide string to char string for windows CE
+; 869  : WideStringtoAsciiString(szUserDict, wszUserDict, MAX_STRING_LENGTH);
+; 870  : #endif
+; 871  : 	RegCloseKey( hKey );
+
+  00568	8b 4c 24 10	 mov	 ecx, DWORD PTR _hKey$[esp+156]
+  0056c	51		 push	 ecx
+  0056d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__RegCloseKey@4
+$L72225:
+
+; 872  :   }
+; 873  : 
+; 874  : #endif // FORCE_WINDICTDIRS
+; 875  : 
+; 876  :   /********************************************************************/
+; 877  :   /*  Get the main and abbreviation dictionary.                                        */
+; 878  :   /********************************************************************/
+; 879  :   if(!gnInstanceCounter)
+
+  00573	a1 00 00 00 00	 mov	 eax, DWORD PTR _gnInstanceCounter
+  00578	85 c0		 test	 eax, eax
+  0057a	0f 85 38 02 00
+	00		 jne	 $L72243
+
+; 880  :   {
+; 881  :                 /* GL 09/25/1997 add abbreviation dictionary support */
+; 882  : 		/*               will need modify the installation to create the*/
+; 883  : 	    /*               registry entry, comment out for now */
+; 884  : #if 0
+; 885  : 	    if ( RegOpenKeyEx( HKEY_LOCAL_MACHINE,
+; 886  : 				 szLocalMachineAbbrDECtalk,
+; 887  : 				 0,
+; 888  : 				KEY_QUERY_VALUE,
+; 889  : 				&hKey ) != ERROR_SUCCESS )
+; 890  : 		{
+; 891  : 			strcpy( szAbbrDict, szAbbrDictDef );
+; 892  : 		}
+; 893  : 		else
+; 894  : 		{
+; 895  : 			cbData = MAX_STRING_LENGTH;
+; 896  : 
+; 897  : 			if ( RegQueryValueEx( hKey,
+; 898  : 					"AbbrDict",
+; 899  : 					NULL,
+; 900  : 					&dwType,
+; 901  : 					(LPBYTE)szAbbrDict,
+; 902  : 					&cbData ) != ERROR_SUCCESS )
+; 903  : 			{
+; 904  : 				strcpy( szAbbrDict, szAbbrDictDef );
+; 905  : 			}
+; 906  : 
+; 907  : 			RegCloseKey( hKey );
+; 908  : 		}
+; 909  : #endif // 0
+; 910  : /* *************************************************************** */
+; 911  : 
+; 912  :   // RDK Changed to use FORCE_WINDICTDIRS to force for Windows Directory for User Dictionary
+; 913  : #ifdef FORCE_WINDICTDIRS
+; 914  : 		sprintf(stemp, "%s",("\\windows\\"));
+; 915  : 		strcpy(szMainDict,  stemp);			// do the Main Dictionary
+; 916  : 		strcat(szMainDict, szMainDictDef);
+; 917  : 		strcpy( szForeignDict, stemp );		// do the Foreign Dictionary
+; 918  : 		strcat(szForeignDict, szForeignDictDef);
+; 919  : #else
+; 920  : 		if ( RegOpenKeyEx( HKEY_LOCAL_MACHINE,
+; 921  : 			szLocalMachineDECtalk,
+; 922  : 			0,
+; 923  : 			KEY_QUERY_VALUE,
+; 924  : 			&hKey ) != ERROR_SUCCESS )
+
+  00580	a1 00 00 00 00	 mov	 eax, DWORD PTR _szLocalMachineDECtalk
+  00585	8d 54 24 10	 lea	 edx, DWORD PTR _hKey$[esp+156]
+  00589	52		 push	 edx
+  0058a	6a 01		 push	 1
+  0058c	6a 00		 push	 0
+  0058e	50		 push	 eax
+  0058f	68 02 00 00 80	 push	 -2147483646		; 80000002H
+  00594	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__RegOpenKeyExA@20
+  0059a	85 c0		 test	 eax, eax
+  0059c	0f 84 b7 00 00
+	00		 je	 $L72234
+
+; 925  : 		{
+; 926  : #ifdef WIN32
+; 927  : //#ifndef UNDER_CE
+; 928  : 			// tek 14may98 log the fact that we are using the default dictionary name
+; 929  : #ifdef UNDER_CE
+; 930  : #ifndef CUP28PROJECT
+; 931  : 			HANDLE hFile;
+; 932  : 			char temp[MAX_STRING_LENGTH];
+; 933  : 			DWORD dwRw;
+; 934  : 
+; 935  : 			// open for write, handle EOF
+; 936  : 			hFile = CreateFile(_T("\\dtdic.log"), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS,
+; 937  : 				               FILE_ATTRIBUTE_NORMAL,NULL);
+; 938  : 			if (hFile)
+; 939  : 			{	// Big S because it's unicode
+; 940  : 				sprintf(temp, "Dictionary key %S not found; using default name\n", szLocalMachineDECtalk);
+; 941  : 				WriteFile( hFile, temp, sizeof(temp), &dwRw, NULL);
+; 942  : 				CloseHandle(hFile);
+; 943  : 			}
+; 944  : #endif // CUP28PROJECT
+; 945  : 
+; 946  : // RDK This should not be a wchar
+; 947  : //			wcscpy( szMainDict, szMainDictDef );
+; 948  : //			wcscpy( szForeignDict, szForeignDictDef );
+; 949  : 			strcpy( szMainDict, szMainDictDef );
+; 950  : 			strcpy( szForeignDict, szForeignDictDef );
+; 951  : #else
+; 952  : 			FILE *fpDicLogFile = NULL;
+; 953  : 			fpDicLogFile = fopen("\\dtdic.log","a+"); // open for append, handle EOF
+
+  005a2	68 00 00 00 00	 push	 OFFSET FLAT:$SG72237
+  005a7	68 00 00 00 00	 push	 OFFSET FLAT:$SG72238
+  005ac	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+  005b2	8b f0		 mov	 esi, eax
+  005b4	83 c4 08	 add	 esp, 8
+
+; 954  : 			if (fpDicLogFile)
+
+  005b7	85 f6		 test	 esi, esi
+  005b9	74 43		 je	 SHORT $L72239
+
+; 955  : 			{
+; 956  : 				char szDateBuf[64];
+; 957  : 				char szTimeBuf[64];
+; 958  : 				// log the pertinent info
+; 959  : 				_strdate(szDateBuf);
+
+  005bb	8d 4c 24 5c	 lea	 ecx, DWORD PTR _szDateBuf$72240[esp+156]
+  005bf	51		 push	 ecx
+  005c0	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strdate
+
+; 960  : 				_strtime(szTimeBuf);
+
+  005c6	8d 54 24 20	 lea	 edx, DWORD PTR _szTimeBuf$72241[esp+160]
+  005ca	52		 push	 edx
+  005cb	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strtime
+
+; 961  : 				fprintf(fpDicLogFile,"%s %s : Dictionary key %s not found; using default name\n",
+; 962  : 					szDateBuf, szTimeBuf, szLocalMachineDECtalk);
+
+  005d1	a1 00 00 00 00	 mov	 eax, DWORD PTR _szLocalMachineDECtalk
+  005d6	8d 4c 24 24	 lea	 ecx, DWORD PTR _szTimeBuf$72241[esp+164]
+  005da	50		 push	 eax
+  005db	8d 54 24 68	 lea	 edx, DWORD PTR _szDateBuf$72240[esp+168]
+  005df	51		 push	 ecx
+  005e0	52		 push	 edx
+  005e1	68 00 00 00 00	 push	 OFFSET FLAT:$SG72242
+  005e6	56		 push	 esi
+  005e7	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+
+; 963  : 				fflush(fpDicLogFile);
+
+  005ed	56		 push	 esi
+  005ee	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fflush
+
+; 964  : 				fclose(fpDicLogFile);
+
+  005f4	56		 push	 esi
+  005f5	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  005fb	83 c4 24	 add	 esp, 36			; 00000024H
+$L72239:
+
+; 965  : 			}
+; 966  : //#endif //UNDER_CE
+; 967  : //#endif //WIN32
+; 968  : 			strcpy( szMainDict, szMainDictDef );
+
+  005fe	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR _szMainDictDef
+  00604	83 c9 ff	 or	 ecx, -1
+  00607	33 c0		 xor	 eax, eax
+  00609	f2 ae		 repne scasb
+  0060b	f7 d1		 not	 ecx
+  0060d	2b f9		 sub	 edi, ecx
+  0060f	8b c1		 mov	 eax, ecx
+  00611	8b f7		 mov	 esi, edi
+  00613	8b bc 24 a0 00
+	00 00		 mov	 edi, DWORD PTR _szMainDict$[esp+152]
+  0061a	c1 e9 02	 shr	 ecx, 2
+  0061d	f3 a5		 rep movsd
+  0061f	8b c8		 mov	 ecx, eax
+
+; 969  : 			strcpy( szForeignDict, szForeignDictDef );
+
+  00621	33 c0		 xor	 eax, eax
+  00623	83 e1 03	 and	 ecx, 3
+  00626	f3 a4		 rep movsb
+  00628	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR _szForeignDictDef
+  0062e	83 c9 ff	 or	 ecx, -1
+  00631	f2 ae		 repne scasb
+  00633	f7 d1		 not	 ecx
+  00635	2b f9		 sub	 edi, ecx
+  00637	8b d1		 mov	 edx, ecx
+  00639	8b f7		 mov	 esi, edi
+  0063b	8b bc 24 ac 00
+	00 00		 mov	 edi, DWORD PTR _szForeignDict$[esp+152]
+  00642	c1 e9 02	 shr	 ecx, 2
+  00645	f3 a5		 rep movsd
+  00647	8b ca		 mov	 ecx, edx
+  00649	83 e1 03	 and	 ecx, 3
+  0064c	f3 a4		 rep movsb
+  0064e	5f		 pop	 edi
+  0064f	5e		 pop	 esi
+  00650	5d		 pop	 ebp
+  00651	5b		 pop	 ebx
+
+; 1084 : 		}
+; 1085 : 
+; 1086 :   }
+; 1087 : 
+; 1088 : }
+
+  00652	81 c4 8c 00 00
+	00		 add	 esp, 140		; 0000008cH
+  00658	c3		 ret	 0
+$L72234:
+
+; 970  : #endif //UNDER_CE
+; 971  : #endif //  
+; 972  : 
+; 973  : 		}
+; 974  : 		else
+; 975  : 		{
+; 976  : 			cbData = MAX_STRING_LENGTH;
+; 977  : 			
+; 978  : 			if ( RegQueryValueEx( hKey,
+; 979  : #ifndef UNDER_CE
+; 980  : 				"MainDict",
+; 981  : #else			
+; 982  : 				TEXT("MainDict"),
+; 983  : #endif
+; 984  : 				NULL,
+; 985  : 				&dwType,
+; 986  : #ifndef UNDER_CE
+; 987  : 				(LPBYTE)szMainDict,
+; 988  : #else
+; 989  : 				(LPBYTE)wszMainDict,
+; 990  : #endif
+; 991  : 				&cbData ) != ERROR_SUCCESS )
+
+  00659	8b 9c 24 a0 00
+	00 00		 mov	 ebx, DWORD PTR _szMainDict$[esp+152]
+  00660	8b 54 24 10	 mov	 edx, DWORD PTR _hKey$[esp+156]
+  00664	8d 44 24 14	 lea	 eax, DWORD PTR _cbData$[esp+156]
+  00668	8d 4c 24 18	 lea	 ecx, DWORD PTR _dwType$[esp+156]
+  0066c	50		 push	 eax
+  0066d	53		 push	 ebx
+  0066e	51		 push	 ecx
+  0066f	6a 00		 push	 0
+  00671	68 00 00 00 00	 push	 OFFSET FLAT:$SG72247
+  00676	52		 push	 edx
+  00677	c7 44 24 2c 00
+	02 00 00	 mov	 DWORD PTR _cbData$[esp+180], 512 ; 00000200H
+  0067f	ff d5		 call	 ebp
+  00681	85 c0		 test	 eax, eax
+  00683	74 7e		 je	 SHORT $L72246
+
+; 992  : 			{
+; 993  : #ifdef WIN32
+; 994  : //#ifndef UNDER_CE
+; 995  : 				// tek 14may98 log the fact that we are using the default dictionary name
+; 996  : #ifdef UNDER_CE
+; 997  : #ifndef CUP28PROJECT
+; 998  : 				HANDLE hFile;
+; 999  : 				char temp[MAX_STRING_LENGTH];
+; 1000 : 				DWORD dwRw;
+; 1001 : 
+; 1002 : 				// open for write, handle EOF
+; 1003 : 				hFile = CreateFile(_T("\\dtdic.log"), GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS,
+; 1004 : 					               FILE_ATTRIBUTE_NORMAL,NULL);
+; 1005 : 				if (hFile)
+; 1006 : 				{	sprintf(temp, "Dictionary key MainDict not found; using default name\n");
+; 1007 : 					WriteFile( hFile, temp, sizeof(temp), &dwRw, NULL);
+; 1008 : 					CloseHandle(hFile);
+; 1009 : 				}
+; 1010 : #endif // CUP28PROJECT
+; 1011 : 
+; 1012 : //mfg				wcscpy( szMainDict, szMainDictDef );
+; 1013 : // RDK This should not be a wchar
+; 1014 : 					strcpy( szMainDict, szMainDictDef );
+; 1015 : #else
+; 1016 : 				FILE *fpDicLogFile = NULL;
+; 1017 : 				fpDicLogFile = fopen("\\dtdic.log","a+"); // open for append, handle EOF
+
+  00685	68 00 00 00 00	 push	 OFFSET FLAT:$SG72250
+  0068a	68 00 00 00 00	 push	 OFFSET FLAT:$SG72251
+  0068f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+  00695	8b f0		 mov	 esi, eax
+  00697	83 c4 08	 add	 esp, 8
+
+; 1018 : 				if (fpDicLogFile)
+
+  0069a	85 f6		 test	 esi, esi
+  0069c	74 42		 je	 SHORT $L72252
+
+; 1019 : 				{
+; 1020 : 					char szDateBuf[64];
+; 1021 : 					char szTimeBuf[64];
+; 1022 : 					// log the pertinent info
+; 1023 : 					_strdate(szDateBuf);
+
+  0069e	8d 44 24 1c	 lea	 eax, DWORD PTR _szDateBuf$72253[esp+156]
+  006a2	50		 push	 eax
+  006a3	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strdate
+
+; 1024 : 					_strtime(szTimeBuf);
+
+  006a9	8d 4c 24 60	 lea	 ecx, DWORD PTR _szTimeBuf$72254[esp+160]
+  006ad	51		 push	 ecx
+  006ae	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strtime
+
+; 1025 : 					fprintf(fpDicLogFile,"%s %s : Dictionary key %s not found; using default name\n",
+; 1026 : 						szDateBuf, szTimeBuf, "MainDict");
+
+  006b4	8d 54 24 64	 lea	 edx, DWORD PTR _szTimeBuf$72254[esp+164]
+  006b8	68 00 00 00 00	 push	 OFFSET FLAT:$SG72255
+  006bd	8d 44 24 28	 lea	 eax, DWORD PTR _szDateBuf$72253[esp+168]
+  006c1	52		 push	 edx
+  006c2	50		 push	 eax
+  006c3	68 00 00 00 00	 push	 OFFSET FLAT:$SG72256
+  006c8	56		 push	 esi
+  006c9	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+
+; 1027 : 					fflush(fpDicLogFile);
+
+  006cf	56		 push	 esi
+  006d0	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fflush
+
+; 1028 : 					fclose(fpDicLogFile);
+
+  006d6	56		 push	 esi
+  006d7	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  006dd	83 c4 24	 add	 esp, 36			; 00000024H
+$L72252:
+
+; 1029 : 				}
+; 1030 : 				strcpy( szMainDict, szMainDictDef );
+
+  006e0	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR _szMainDictDef
+  006e6	83 c9 ff	 or	 ecx, -1
+  006e9	33 c0		 xor	 eax, eax
+  006eb	f2 ae		 repne scasb
+  006ed	f7 d1		 not	 ecx
+  006ef	2b f9		 sub	 edi, ecx
+  006f1	8b d1		 mov	 edx, ecx
+  006f3	8b f7		 mov	 esi, edi
+  006f5	8b fb		 mov	 edi, ebx
+  006f7	c1 e9 02	 shr	 ecx, 2
+  006fa	f3 a5		 rep movsd
+  006fc	8b ca		 mov	 ecx, edx
+  006fe	83 e1 03	 and	 ecx, 3
+  00701	f3 a4		 rep movsb
+$L72246:
+
+; 1031 : #endif //UNDER_CE
+; 1032 : #endif //WIN32
+; 1033 : 			}
+; 1034 : #ifdef UNDER_CE //convert wide string to char string for windows CE
+; 1035 : WideStringtoAsciiString(szMainDict, wszMainDict, MAX_STRING_LENGTH);
+; 1036 : #endif	
+; 1037 : 
+; 1038 : 			cbData = MAX_STRING_LENGTH;
+; 1039 : 			
+; 1040 : 			if ( RegQueryValueEx( hKey,
+; 1041 : #ifndef UNDER_CE
+; 1042 : 				"ForeignDict",
+; 1043 : #else			
+; 1044 : 				TEXT("ForeignDict"),
+; 1045 : #endif
+; 1046 : 				NULL,
+; 1047 : 				&dwType,
+; 1048 : #ifndef UNDER_CE
+; 1049 : 				(LPBYTE)szForeignDict,
+; 1050 : #else
+; 1051 : 				(LPBYTE)wszForeignDict,
+; 1052 : #endif
+; 1053 : 				&cbData ) != ERROR_SUCCESS )
+
+  00703	8b 9c 24 ac 00
+	00 00		 mov	 ebx, DWORD PTR _szForeignDict$[esp+152]
+  0070a	8b 54 24 10	 mov	 edx, DWORD PTR _hKey$[esp+156]
+  0070e	8d 44 24 14	 lea	 eax, DWORD PTR _cbData$[esp+156]
+  00712	8d 4c 24 18	 lea	 ecx, DWORD PTR _dwType$[esp+156]
+  00716	50		 push	 eax
+  00717	53		 push	 ebx
+  00718	51		 push	 ecx
+  00719	6a 00		 push	 0
+  0071b	68 00 00 00 00	 push	 OFFSET FLAT:$SG72260
+  00720	52		 push	 edx
+  00721	c7 44 24 2c 00
+	02 00 00	 mov	 DWORD PTR _cbData$[esp+180], 512 ; 00000200H
+  00729	ff d5		 call	 ebp
+  0072b	85 c0		 test	 eax, eax
+  0072d	74 7e		 je	 SHORT $L72259
+
+; 1054 : 			{
+; 1055 : #ifdef WIN32
+; 1056 : #ifndef UNDER_CE
+; 1057 : 				// tek 14may98 log the fact that we are using the default dictionary name
+; 1058 : 				FILE *fpDicLogFile = NULL;
+; 1059 : 				fpDicLogFile = fopen("\\dtdic.log","a+"); // open for append, handle EOF
+
+  0072f	68 00 00 00 00	 push	 OFFSET FLAT:$SG72263
+  00734	68 00 00 00 00	 push	 OFFSET FLAT:$SG72264
+  00739	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fopen
+  0073f	8b f0		 mov	 esi, eax
+  00741	83 c4 08	 add	 esp, 8
+
+; 1060 : 				if (fpDicLogFile)
+
+  00744	85 f6		 test	 esi, esi
+  00746	74 42		 je	 SHORT $L72265
+
+; 1061 : 				{
+; 1062 : 					char szDateBuf[64];
+; 1063 : 					char szTimeBuf[64];
+; 1064 : 					// log the pertinent info
+; 1065 : 					_strdate(szDateBuf);
+
+  00748	8d 44 24 1c	 lea	 eax, DWORD PTR _szDateBuf$72266[esp+156]
+  0074c	50		 push	 eax
+  0074d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strdate
+
+; 1066 : 					_strtime(szTimeBuf);
+
+  00753	8d 4c 24 60	 lea	 ecx, DWORD PTR _szTimeBuf$72267[esp+160]
+  00757	51		 push	 ecx
+  00758	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strtime
+
+; 1067 : 					fprintf(fpDicLogFile,"%s %s : Foreign Dictionary key %s not found; using default name\n",
+; 1068 : 						szDateBuf, szTimeBuf, "ForeignDict");
+
+  0075e	8d 54 24 64	 lea	 edx, DWORD PTR _szTimeBuf$72267[esp+164]
+  00762	68 00 00 00 00	 push	 OFFSET FLAT:$SG72268
+  00767	8d 44 24 28	 lea	 eax, DWORD PTR _szDateBuf$72266[esp+168]
+  0076b	52		 push	 edx
+  0076c	50		 push	 eax
+  0076d	68 00 00 00 00	 push	 OFFSET FLAT:$SG72269
+  00772	56		 push	 esi
+  00773	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+
+; 1069 : 					fflush(fpDicLogFile);
+
+  00779	56		 push	 esi
+  0077a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fflush
+
+; 1070 : 					fclose(fpDicLogFile);
+
+  00780	56		 push	 esi
+  00781	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  00787	83 c4 24	 add	 esp, 36			; 00000024H
+$L72265:
+
+; 1071 : 				}
+; 1072 : 				strcpy( szForeignDict, szForeignDictDef );
+
+  0078a	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR _szForeignDictDef
+  00790	83 c9 ff	 or	 ecx, -1
+  00793	33 c0		 xor	 eax, eax
+  00795	f2 ae		 repne scasb
+  00797	f7 d1		 not	 ecx
+  00799	2b f9		 sub	 edi, ecx
+  0079b	8b d1		 mov	 edx, ecx
+  0079d	8b f7		 mov	 esi, edi
+  0079f	8b fb		 mov	 edi, ebx
+  007a1	c1 e9 02	 shr	 ecx, 2
+  007a4	f3 a5		 rep movsd
+  007a6	8b ca		 mov	 ecx, edx
+  007a8	83 e1 03	 and	 ecx, 3
+  007ab	f3 a4		 rep movsb
+$L72259:
+
+; 1073 : #endif
+; 1074 : #endif //FOREIGNDICT_DTDIC_LOG
+; 1075 : #endif //WIN32
+; 1076 : 			}
+; 1077 : 
+; 1078 : #ifdef UNDER_CE //convert wide string to char string for windows CE
+; 1079 : WideStringtoAsciiString(szForeignDict, wszForeignDict, MAX_STRING_LENGTH);
+; 1080 : #endif	
+; 1081 : 
+; 1082 : 
+; 1083 : 			RegCloseKey( hKey );
+
+  007ad	8b 44 24 10	 mov	 eax, DWORD PTR _hKey$[esp+156]
+  007b1	50		 push	 eax
+  007b2	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__RegCloseKey@4
+$L72243:
+  007b8	5f		 pop	 edi
+  007b9	5e		 pop	 esi
+  007ba	5d		 pop	 ebp
+  007bb	5b		 pop	 ebx
+
+; 1084 : 		}
+; 1085 : 
+; 1086 :   }
+; 1087 : 
+; 1088 : }
+
+  007bc	81 c4 8c 00 00
+	00		 add	 esp, 140		; 0000008cH
+  007c2	c3		 ret	 0
+_GetDictionaryNames ENDP
+_TEXT	ENDS
+PUBLIC	_LTSLibMain
+_TEXT	SEGMENT
+_LTSLibMain PROC NEAR
+
+; 1115 : 
+; 1116 : 
+; 1117 : 	// Initialize the C run-time before calling any of your code.
+; 1118 : 	if( ul_reason_being_called == DLL_PROCESS_ATTACH ||
+; 1119 : 		ul_reason_being_called == DLL_THREAD_ATTACH )
+; 1120 : 	{
+; 1121 : #if 0 // This section of code breaks durning build. ie. This won't compile.
+; 1122 :       // Could the BOOL line above the LibMain function also be a problem?
+; 1123 : 		if( !_CRT_INIT( hInst, ul_reason_being_called, lpReserved ) )
+; 1124 : 			return( FALSE );
+; 1125 : #endif // Broken code.
+; 1126 : 	}
+; 1127 : 
+; 1128 : 	switch(ul_reason_being_called)
+; 1129 : 	{
+; 1130 : 		/*
+; 1131 : 		 * DLL is attaching to a process.It could be
+; 1132 : 		 * while process getting loaded (The process 
+; 1133 : 		 * might have used load-time dynamic linking i.e
+; 1134 : 		 * built using dectalk.lib import library)
+; 1135 : 		 * OR   
+; 1136 : 		 * Process made a call to LoadLibrary(dectalk.dll)
+; 1137 : 		 */
+; 1138 : 	case DLL_PROCESS_ATTACH :
+; 1139 : 	  /* does licensing happen here? tek 23jan97 */
+; 1140 : 
+; 1141 : 	break;
+; 1142 : 
+; 1143 : 	case DLL_THREAD_ATTACH:
+; 1144 : 		break;
+; 1145 : 	case DLL_THREAD_DETACH:
+; 1146 : 		break;
+; 1147 : 	case DLL_PROCESS_DETACH :
+; 1148 : 		break;
+; 1149 : 	}
+; 1150 : 
+; 1151 : 	return(TRUE);
+
+  007d0	b8 01 00 00 00	 mov	 eax, 1
+
+; 1152 : //  return( 1 );
+; 1153 : //  UNREFERENCED_PARAMETER( hInst );
+; 1154 : //  UNREFERENCED_PARAMETER( ul_reason_being_called );
+; 1155 : //  UNREFERENCED_PARAMETER( lpReserved );
+; 1156 : }
+
+  007d5	c3		 ret	 0
+_LTSLibMain ENDP
+_TEXT	ENDS
+END

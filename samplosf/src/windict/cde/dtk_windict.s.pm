@@ -1,0 +1,35 @@
+/* XPM */
+static char * dtk_windict_s_pm[] = {
+/* width height ncolors cpp [x_hot y_hot] */
+"24 24 5 1 0 0",
+/* colors */
+" 	s iconColor2	m white	c white",
+".	c #000000008080",
+"X	s iconColor1	m black	c black",
+"o	s iconColor6	m white	c yellow",
+"O	c #808080808080",
+/* pixels */
+" .....XX    X    XXXXXX ",
+" .. ..      X         X ",
+" .. ..  XXX X         XX",
+" .....      X         X ",
+" .. ..X X X X X XXXXX Xo",
+" .. ..      X         X ",
+"            X         X ",
+"XoXXXXX XXX X XXXXXXX Xo",
+"XoX         X         X ",
+"XoX         X         X ",
+"X XX XX X X X XXXXXXX Xo",
+"XoX         X         X ",
+"XoX         X         X ",
+"X XXX X X X X XXXXX X Xo",
+"XoX         X         X ",
+"XoX         X         Xo",
+"X XX XX XXX X XXXX      ",
+"XoX         X      .....",
+"XoX         X         ..",
+"X XXXXX     X        .. ",
+"XoX         X        .  ",
+"XoXXXXXo  oXXX  o  ..   ",
+"X oo ooXXXXXOXXXXX .....",
+"XXXXXXX    XXX     ....."};

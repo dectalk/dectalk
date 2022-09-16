@@ -1,0 +1,277 @@
+	TITLE	D:\work\Product\dapi\src\nt\SPC.C
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_spcget
+EXTRN	__imp__malloc:NEAR
+_TEXT	SEGMENT
+_spc_type$ = 8
+_spcget	PROC NEAR
+
+; 87   : {
+
+  00000	56		 push	 esi
+  00001	57		 push	 edi
+
+; 88   :     unsigned short * spc_buffer = (unsigned short *)NULL;
+; 89   :     int nwords = spc_size( spc_type );
+
+  00002	8b 7c 24 0c	 mov	 edi, DWORD PTR _spc_type$[esp+4]
+  00006	33 f6		 xor	 esi, esi
+  00008	57		 push	 edi
+  00009	e8 00 00 00 00	 call	 _spc_size
+  0000e	83 c4 04	 add	 esp, 4
+
+; 90   : 
+; 91   :     if ( nwords > 0 )
+
+  00011	85 c0		 test	 eax, eax
+  00013	7e 19		 jle	 SHORT $L71399
+
+; 92   :     {
+; 93   : 	spc_buffer = (unsigned short *)malloc( nwords * sizeof( unsigned short ) );
+
+  00015	03 c0		 add	 eax, eax
+  00017	50		 push	 eax
+  00018	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__malloc
+  0001e	83 c4 04	 add	 esp, 4
+
+; 94   : 	if ( spc_buffer != (unsigned short *)NULL )
+
+  00021	85 c0		 test	 eax, eax
+  00023	74 03		 je	 SHORT $L71398
+
+; 95   : 	    spc_buffer[0] = spc_type;
+
+  00025	66 89 38	 mov	 WORD PTR [eax], di
+$L71398:
+  00028	5f		 pop	 edi
+
+; 96   :     }
+; 97   : 
+; 98   :     return( (void *)(spc_buffer+1) );
+
+  00029	83 c0 02	 add	 eax, 2
+  0002c	5e		 pop	 esi
+
+; 99   : }
+
+  0002d	c3		 ret	 0
+$L71399:
+
+; 96   :     }
+; 97   : 
+; 98   :     return( (void *)(spc_buffer+1) );
+
+  0002e	8d 46 02	 lea	 eax, DWORD PTR [esi+2]
+  00031	5f		 pop	 edi
+  00032	5e		 pop	 esi
+
+; 99   : }
+
+  00033	c3		 ret	 0
+_spcget	ENDP
+_spc_type$ = 8
+_spc_size PROC NEAR
+
+; 59   : 	//tek 01aug97 bats 404 support for packet subtypes
+; 60   : //#ifdef _WIN32
+; 61   : 	spc_type &= SPC_TYPE_MASK;
+
+  00040	8b 44 24 04	 mov	 eax, DWORD PTR _spc_type$[esp-4]
+  00044	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+
+; 62   : //#endif //_WIN32
+; 63   :     switch( spc_type )
+; 64   :     {
+
+  00049	83 f8 08	 cmp	 eax, 8
+  0004c	77 1f		 ja	 SHORT $L71363
+  0004e	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71401[eax*4]
+$L71359:
+
+; 65   : 	case SPC_type_voice:
+; 66   : 	    return( VOICE_PARS + 1 );
+
+  00055	b8 1b 00 00 00	 mov	 eax, 27			; 0000001bH
+
+; 75   :     }
+; 76   : }
+
+  0005a	c3		 ret	 0
+$L71360:
+
+; 67   : 	case SPC_type_speaker:
+; 68   : 	    return( SPDEF_PARS + 1 );
+
+  0005b	b8 19 00 00 00	 mov	 eax, 25			; 00000019H
+
+; 75   :     }
+; 76   : }
+
+  00060	c3		 ret	 0
+$L71361:
+
+; 69   : 	case SPC_type_sync:
+; 70   : 	    return( SYNC_PARS + 1 );
+
+  00061	b8 01 00 00 00	 mov	 eax, 1
+
+; 75   :     }
+; 76   : }
+
+  00066	c3		 ret	 0
+$L71362:
+
+; 71   : 	case SPC_type_index:
+; 72   : 	    return( INDEX_PARS + 1 );
+
+  00067	b8 03 00 00 00	 mov	 eax, 3
+
+; 75   :     }
+; 76   : }
+
+  0006c	c3		 ret	 0
+$L71363:
+
+; 73   : 	default:
+; 74   : 	    return( 0 );
+
+  0006d	33 c0		 xor	 eax, eax
+
+; 75   :     }
+; 76   : }
+
+  0006f	c3		 ret	 0
+$L71401:
+  00070	00 00 00 00	 DD	 $L71359
+  00074	00 00 00 00	 DD	 $L71360
+  00078	00 00 00 00	 DD	 $L71363
+  0007c	00 00 00 00	 DD	 $L71363
+  00080	00 00 00 00	 DD	 $L71363
+  00084	00 00 00 00	 DD	 $L71363
+  00088	00 00 00 00	 DD	 $L71363
+  0008c	00 00 00 00	 DD	 $L71362
+  00090	00 00 00 00	 DD	 $L71361
+_spc_size ENDP
+_TEXT	ENDS
+PUBLIC	_spcwrite
+EXTRN	__imp__free:NEAR
+EXTRN	_write_pipe:NEAR
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_spc_buffer$ = 12
+_spcwrite PROC NEAR
+
+; 108  : {
+
+  000a0	57		 push	 edi
+
+; 109  :     int nwords;
+; 110  : 
+; 111  :   /* index back to spc_type word */
+; 112  :     spc_buffer--;
+
+  000a1	8b 7c 24 0c	 mov	 edi, DWORD PTR _spc_buffer$[esp]
+  000a5	83 ef 02	 sub	 edi, 2
+
+; 113  : 
+; 114  :     /* check for valid pointer */
+; 115  :     if ( spc_buffer == (unsigned short *)NULL ) return( 0 );
+
+  000a8	75 04		 jne	 SHORT $L71386
+  000aa	33 c0		 xor	 eax, eax
+  000ac	5f		 pop	 edi
+
+; 127  : }
+
+  000ad	c3		 ret	 0
+$L71386:
+
+; 116  : 
+; 117  :     /* find size of SPC packet */
+; 118  :     nwords = spc_size( spc_buffer[0] );
+
+  000ae	66 8b 07	 mov	 ax, WORD PTR [edi]
+  000b1	56		 push	 esi
+  000b2	50		 push	 eax
+  000b3	e8 00 00 00 00	 call	 _spc_size
+  000b8	8b f0		 mov	 esi, eax
+  000ba	83 c4 04	 add	 esp, 4
+
+; 119  : 
+; 120  :     if ( nwords > 0 )
+
+  000bd	85 f6		 test	 esi, esi
+  000bf	7e 15		 jle	 SHORT $L71387
+
+; 121  : 	write_pipe( pKsd_t->vtm_pipe, spc_buffer, (UINT)nwords );
+
+  000c1	8b 4c 24 0c	 mov	 ecx, DWORD PTR _pKsd_t$[esp+4]
+  000c5	56		 push	 esi
+  000c6	57		 push	 edi
+  000c7	8b 91 9c 02 00
+	00		 mov	 edx, DWORD PTR [ecx+668]
+  000cd	52		 push	 edx
+  000ce	e8 00 00 00 00	 call	 _write_pipe
+  000d3	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71387:
+
+; 122  : 
+; 123  :     /* free buffer */
+; 124  :     free( spc_buffer );
+
+  000d6	57		 push	 edi
+  000d7	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__free
+  000dd	83 c4 04	 add	 esp, 4
+
+; 125  : 
+; 126  :     return(nwords);
+
+  000e0	8b c6		 mov	 eax, esi
+  000e2	5e		 pop	 esi
+  000e3	5f		 pop	 edi
+
+; 127  : }
+
+  000e4	c3		 ret	 0
+_spcwrite ENDP
+_TEXT	ENDS
+PUBLIC	_spcfree
+_TEXT	SEGMENT
+_spc_buffer$ = 8
+_spcfree PROC NEAR
+
+; 132  : 	free(--spc_buffer);
+
+  000f0	8b 44 24 04	 mov	 eax, DWORD PTR _spc_buffer$[esp-4]
+  000f4	83 c0 fe	 add	 eax, -2			; fffffffeH
+  000f7	50		 push	 eax
+  000f8	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__free
+  000fe	59		 pop	 ecx
+
+; 133  : }
+
+  000ff	c3		 ret	 0
+_spcfree ENDP
+_TEXT	ENDS
+END

@@ -1,0 +1,967 @@
+/****************************************************************************
+*   sapiaut.idl
+*
+*   This is the interface definition file for the Microsoft Speech API
+*   Version 5.0.
+*
+*   It contains definitions for the Automation layer.
+*
+*   Copyright 1998, 1999 Microsoft Corporation All Rights Reserved.
+*****************************************************************************/
+
+//--- Includes --------------------------------------------------------------
+import "oaidl.idl";
+import "ocidl.idl";
+
+interface _SpTokenCollection;
+interface _SpPhraseElementCollection;
+interface _SpPhraseReplacementCollection;
+interface ISpeechVoiceStatus;
+interface ISpeechRecoInstance;
+interface ISpeechRecoContext;
+interface ISpeechRecoStatus;
+interface ISpeechRecoResult;
+interface ISpeechRecoGrammar;
+interface ISpeechPhrase;
+interface ISpeechPhraseAlt;
+interface ISpeechPhraseBuilder;
+interface ISpeechDataKey;
+interface ISpeechToken;
+interface ISpeechStream;
+interface ISpeechAudio;
+interface ISpeechResourceManager;
+interface ISpeechRecoResultTimes;
+interface ISpeechTextSelectionInfo;
+interface ISpeechPhraseInfo;
+interface ISpeechPhraseElement;
+interface ISpeechPhraseProperty;
+interface ISpeechPhraseReplacement;
+interface ISpeechPhraseRule;
+
+//--- ISpeechDataKey ----------------------------------------------------------
+[
+    object,
+    uuid(CE17C09B-4EFA-44d5-A4C9-59D9585AB0CD),
+    dual,
+    helpstring("ISpeechDataKey Interface"),
+    pointer_default(unique)
+]
+interface ISpeechDataKey : IDispatch
+{
+    [helpstring("SetValue")] 
+        HRESULT SetValue( [in]const BSTR bstrValueName, [in]const VARIANT* pvtData );
+    [helpstring("GetValue")] 
+        HRESULT GetValue( [in]const BSTR bstrValueName, [out,retval]VARIANT* pvtData );
+    [helpstring("OpenKey")] 
+        HRESULT OpenKey( [in]const BSTR bstrSubKeyName, [out,retval]ISpeechDataKey** ppSubKey );
+    [helpstring("CreateKey")] 
+        HRESULT CreateKey( [in]const BSTR bstrSubKeyName, [out,retval]ISpeechDataKey** ppSubKey );
+    [helpstring("DeleteKey")] 
+        HRESULT DeleteKey( [in]const BSTR bstrSubKeyName );
+    [helpstring("DeleteValue")] 
+        HRESULT DeleteValue( [in]const BSTR bstrValueName );
+    [helpstring("EnumKeys")] 
+        HRESULT EnumKeys( [in]long Index, [out,retval]BSTR* pbstrSubKeyName );
+    [helpstring("EnumValues")] 
+        HRESULT EnumValues( [in]long Index, [out,retval]BSTR* pbstrValueName );
+};
+
+//--- ISpeechToken ---------------------------------------------------------
+
+typedef enum SPTOKENUITYPE
+{
+    SPTOKUI_EngineProperties,
+    SPTOKUI_AddRemoveWord,
+    SPTOKUI_UserTraining,
+    SPTOKUI_MicTraining,
+    SPTOKUI_NUM_TYPES
+} SPTOKENUITYPE;
+
+#define CLSCTXALL (CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER | CLSCTX_LOCAL_SERVER | CLSCTX_REMOTE_SERVER)
+
+[
+    object,
+    uuid(C74A3ADC-B727-4500-A84A-B526721C8B8C),
+    dual,
+    helpstring("ISpeechToken Interface"),
+    pointer_default(unique)
+]
+interface ISpeechToken : ISpeechDataKey
+{
+    [propget, helpstring("Format"), id(1)] 
+        HRESULT ID( [out,retval]BSTR* pObjectId );
+
+    [propget, helpstring("Description"), id(2)] 
+        HRESULT Description( [in,lcid]long Locale, [out,retval]BSTR* pDescription );
+
+    //--- Methods
+    [helpstring("CreateInstance")] 
+        HRESULT CreateInstance( [in,defaultvalue(CLSCTXALL)] CLSCTX eClsContext,
+                                [out, retval]IUnknown **ppObject);
+    [helpstring("Remove")] 
+        HRESULT Remove( [in]BSTR ObjectStgCLSID );
+
+    [helpstring("GetStorageFileName")] 
+        HRESULT GetStorageFileName( [in]BSTR clsidCaller,
+                                    [in]BSTR KeyName,
+                                    [in]long Folder,
+                                    [out,retval]BSTR* pFilePath );
+    [helpstring("RemoveStorageFileName")] 
+        HRESULT RemoveStorageFileName( [in]BSTR clsidCaller,
+                                       [in]BSTR KeyName,
+                                       [in]BOOL fDeleteFile);
+                
+    [helpstring("IsUISupported")] 
+        HRESULT IsUISupported( [in]const VARIANT* pTypeOfUI,
+                               [in]const VARIANT* pExtraData,
+                               [out,retval] BOOL *pfSupported );
+
+    [helpstring("DisplayUI")] 
+        HRESULT DisplayUI( [in]long hWnd,
+                           [in]BSTR pszTitle,
+                           [in]const VARIANT* pTypeOfUI,
+                           [in]const VARIANT* pExtraData,
+                           [in]long lTypeSpecificFlags );
+};
+
+//--- ISpeechStream ---------------------------------------------------------
+
+typedef enum SPSEEKORG
+{
+    SPSO_SET = STREAM_SEEK_SET,
+    SPSO_CUR = STREAM_SEEK_CUR,
+    SPSO_END = STREAM_SEEK_END
+} SPSEEKORG;
+
+[
+    object,
+    uuid(269316DF-57BD-11D2-9EEE-00C04F797396),
+    dual,
+    helpstring("ISpeechStream Interface"),
+    pointer_default(unique)
+]
+interface ISpeechStream : IDispatch
+{
+    [propget, helpstring("Format"), id(1)] 
+        HRESULT Format([out, retval] SPSTREAMFORMAT* peFormat);
+    [propput, helpstring("Format"), id(1)] 
+        HRESULT Format([in] SPSTREAMFORMAT eFormat);
+    [propget, helpstring("Length"), id(2)] 
+        HRESULT Length([out, retval] double* pLength);
+    [propput, helpstring("Length"), id(2)] 
+        HRESULT Length([in] double Length);
+    [propget, helpstring("Position"), id(3)] 
+        HRESULT Position([out, retval] double* pPos);
+    [propput, helpstring("Position"), id(3)] 
+        HRESULT Position([in] double Pos);
+    [helpstring("Open"), id(5)] 
+        HRESULT Open([in] BSTR FileName,
+                     [in, defaultvalue(SPFM_OPEN_READONLY)] SPFILEMODE eMode,
+                     [in, defaultvalue(0)]BOOL fDoEvents );
+    [helpstring("Close"), id(6)] 
+        HRESULT Close(void);
+    [helpstring("Seek"), id(7)] 
+        HRESULT Seek([in] double Pos, [in, defaultvalue(SPSO_CUR)] SPSEEKORG eOrg);
+};
+
+//--- ISpeechAudio ----------------------------------------------------------
+typedef enum DISPIDSPA
+{
+    DISPIDSPA_StreamPos   = 1,
+    DISPIDSPA_DevicePos   = 2,
+    DISPIDSPA_State       = 3,
+    DISPIDSPA_BufferSize  = 4,
+    DISPIDSPA_MinNotify   = 5,
+    DISPIDSPA_EventBias   = 6
+} DISPIDSPA;
+
+[
+    object,
+    uuid(CFF8E175-019E-11d3-A08E-00C04F8EF9B5),
+    dual,
+    helpstring("ISpeechAudio Interface"),
+    pointer_default(unique)
+]
+interface ISpeechAudio : IDispatch
+{
+    [propget, helpstring("StreamPos"), id(DISPIDSPA_StreamPos)] 
+        HRESULT StreamPos([out, retval] double* pStreamPos);
+    [propget, helpstring("DevicePos"), id(DISPIDSPA_DevicePos)] 
+        HRESULT DevicePos([out, retval] double* pDevicePos);
+    [propget, helpstring("State"), id(DISPIDSPA_State)] 
+        HRESULT State([out, retval] SPAUDIOSTATE * pState);
+    [propput, helpstring("State"), id(DISPIDSPA_State)] 
+        HRESULT State([in] SPAUDIOSTATE State);
+    [propget, helpstring("Gets the number of seconds buffered"), id(DISPIDSPA_BufferSize)] 
+        HRESULT BufferSize([out, retval] float* pSecsBuffered);
+    [propput, helpstring("Sets the number of seconds buffered"), id(DISPIDSPA_BufferSize)] 
+        HRESULT BufferSize([in] float SecsBuffered);
+    [propget, helpstring("Gets the minimum number of seconds to elapsed between notificaitons"), id(DISPIDSPA_MinNotify)] 
+        HRESULT MinNotify([out, retval] float* pMinSecsNotify);
+    [propput, helpstring("Sets the minimum number of seconds to elapsed between notificaitons"), id(DISPIDSPA_MinNotify)] 
+        HRESULT MinNotify([in] float MinSecsNotify);
+    [propget, helpstring("Gets the bias of events in seconds"), id(DISPIDSPA_EventBias)] 
+        HRESULT EventBias([out, retval] float* pEventBiasSecs);
+    [propput, helpstring("Sets the bias of events in seconds"), id(DISPIDSPA_EventBias)] 
+        HRESULT EventBias([in] float EventBiasSecs);
+
+};
+
+//--- ISpeechVoice ----------------------------------------------------------
+// This is the TTS voice automation interface.
+
+typedef enum DISPIDSPV
+{
+    DISPIDSPV_Status = 1,
+    DISPIDSPV_Voices,
+    DISPIDSPV_VoiceId,
+    DISPIDSPV_InitialSpeak,
+    DISPIDSPV_Rate,
+    DISPIDSPV_Volume,
+    DISPIDSPV_Output,
+    DISPIDSPV_AOFChanges,
+    DISPIDSPV_DoEvents,
+    DISPIDSPV_Priority,
+    DISPIDSPV_AlertBoundary,
+    DISPIDSPV_SyncSpeakTimeout
+} DISPIDSPV;
+
+[
+    object,
+    uuid(269316D8-57BD-11D2-9EEE-00C04F797396),
+    dual,
+    helpstring("ISpeechVoice Interface"),
+    pointer_default(unique)
+]
+interface ISpeechVoice : IDispatch
+{
+    [propget, helpstring("Status"), id(DISPIDSPV_Status)] 
+        HRESULT Status([out, retval] ISpeechVoiceStatus** ppStatus);
+    [propget, helpstring("Voices"), id(DISPIDSPV_Voices)] 
+        HRESULT Voices([out, retval] _SpTokenCollection** ppColl);
+    [propget, helpstring("VoiceId"), id(DISPIDSPV_VoiceId)] 
+        HRESULT VoiceId([out, retval]VARIANT* pVoiceId );
+    [propput, helpstring("VoiceId"), id(DISPIDSPV_VoiceId)] 
+        HRESULT VoiceId([in]const VARIANT* pVoiceId );
+    [propget, helpstring("Gets the audio output object"), id(DISPIDSPV_Output)]  
+        HRESULT Output([out, retval]VARIANT* ppOutput);
+    [propput, helpstring("Sets the audio output object"), id(DISPIDSPV_Output)] 
+        HRESULT Output( [in,defaultvalue(0)]const VARIANT* pOutput );
+    [propget, helpstring("Rate"), id(DISPIDSPV_Rate)] 
+        HRESULT Rate([out, retval] long* pRateAdjust);
+    [propput, helpstring("Rate"), id(DISPIDSPV_Rate)] 
+        HRESULT Rate([in] long RateAdjust);
+    [propget, helpstring("Volume"), id(DISPIDSPV_Volume)] 
+        HRESULT Volume([out, retval] long* pulVolume);
+    [propput, helpstring("Volume"), id(DISPIDSPV_Volume)] 
+        HRESULT Volume([in] long ulVolume);
+    [propput, helpstring("AllowOutputFmtChanges"), id(DISPIDSPV_AOFChanges)] 
+        HRESULT AllowOutputFmtChanges([in, defaultvalue(TRUE)] BOOL fAllow );
+    [propget, helpstring("AllowOutputFmtChanges"), id(DISPIDSPV_AOFChanges)] 
+        HRESULT AllowOutputFmtChanges([out,retval] BOOL* pfAllow );
+    [propput, helpstring("DoEvents"), id(DISPIDSPV_DoEvents)] 
+        HRESULT DoEvents([in, defaultvalue(TRUE)] BOOL fDoEvents );
+    [propget, helpstring("DoEvents"), id(DISPIDSPV_DoEvents)] 
+        HRESULT DoEvents([out,retval] BOOL* pfDoEvents );
+    [propput, helpstring("Priority"), id(DISPIDSPV_Priority)] 
+        HRESULT Priority([in] SPVPRIORITY ePriority );
+    [propget, helpstring("Priority"), id(DISPIDSPV_Priority)] 
+        HRESULT Priority([out,retval] SPVPRIORITY* pePriority );
+    [propput, helpstring("AlertBoundary"), id(DISPIDSPV_AlertBoundary)] 
+        HRESULT AlertBoundary( [in] SPEVENTENUM eBoundary );
+    [propget, helpstring("AlertBoundary"), id(DISPIDSPV_AlertBoundary)] 
+        HRESULT AlertBoundary( [out,retval] SPEVENTENUM* peBoundary );
+    [propput, helpstring("SyncSpeakTimeout"), id(DISPIDSPV_SyncSpeakTimeout)] 
+        HRESULT SyncSpeakTimeout([in] long msTimeout );
+    [propget, helpstring("SyncSpeakTimeout"), id(DISPIDSPV_SyncSpeakTimeout)] 
+        HRESULT SyncSpeakTimeout([out,retval] long* pmsTimeout );
+
+    //--- Methods
+    [helpstring("Speak")] 
+        HRESULT Speak( [in] VARIANT* pInput,
+                       [in, defaultvalue(SPF_DEFAULT)] SPEAKFLAGS eFlags,
+                       [out, retval]long* plStreamNum );
+    [helpstring("Pauses the voices rendering.")] 
+        HRESULT Pause( void );
+    [helpstring("Resumes the voices rendering.")] 
+        HRESULT Resume( void );
+    [helpstring("Skips rendering the specified number of items.")] 
+        HRESULT Skip( [in]const BSTR Type, [in]long lNumItems, [out,retval]long* pNumSkipped );
+};
+
+//--- ISpeechVoiceStatus ----------------------------------------------------
+// This is the TTS voice status automation interface.
+[
+    object,
+    uuid(8BE47B07-57F6-11d2-9EEE-00C04F797396),
+    dual,
+    helpstring("ISpeechVoiceStatus Interface"),
+    pointer_default(unique)
+]
+interface ISpeechVoiceStatus : IDispatch
+{
+    [propget, helpstring("CurrentStream"), id(1)] 
+        HRESULT CurrentStream([out, retval] long* pVal);
+    [propget, helpstring("LastStreamQueued"), id(2)] 
+        HRESULT LastStreamQueued([out, retval] long* pVal);
+    [propget, helpstring("RunningState"), id(3)] 
+        HRESULT RunningState([out, retval] long* pVal);
+    [propget, helpstring("InputWordPos"), id(4)] 
+        HRESULT InputWordPos([out, retval] double* pVal);
+    [propget, helpstring("InputWordLen"), id(5)] 
+        HRESULT InputWordLen([out, retval] double* pVal);
+    [propget, helpstring("InputSentencePos"), id(6)] 
+        HRESULT InputSentencePos([out, retval] double* pVal);
+    [propget, helpstring("InputSentenceLen"), id(7)] 
+        HRESULT InputSentenceLen([out, retval] double* pVal);
+    [propget, helpstring("Bookmark"), id(8)] 
+        HRESULT Bookmark([out, retval] BSTR* pVal);
+    [propget, helpstring("PhonemeId"), id(9)] 
+        HRESULT PhonemeId([out, retval] short* pVal);
+    [propget, helpstring("VisemeId"), id(10)] 
+        HRESULT VisemeId([out, retval] short* pVal);
+};
+
+//--- _SpTokenCollection --------------------------------------------------------
+// This is the automation interface for the token builder
+[
+    object,
+    uuid(9285B776-2E7B-4bc0-B53E-580EB6FA967F),
+    dual,
+    helpstring("_SpTokenCollection Interface"),
+    pointer_default(unique)
+]
+interface _SpTokenCollection : IDispatch
+{
+    [propget, helpstring("Count")] 
+        HRESULT Count([out, retval] long* pVal);
+    [id(DISPID_VALUE), helpstring("Item")] 
+        HRESULT Item([in] const VARIANT* pIndex, [out, retval]ISpeechToken** ppToken );
+    [id(DISPID_NEWENUM), propget, helpstring("Enumerates the tokens"), restricted] 
+        HRESULT _NewEnum([out, retval] IUnknown** ppEnumVARIANT);
+};
+
+//--- _SpPhraseElementCollection ----------------------------------------------
+[
+    object,
+    uuid(0626B328-3478-467d-A0B3-D0853B93DDA3),
+    dual,
+    helpstring("_SpPhraseElementCollection Interface"),
+    pointer_default(unique)
+]
+interface _SpPhraseElementCollection : IDispatch
+{
+    [propget, helpstring("Count")] 
+        HRESULT Count([out, retval] long* pVal);
+    [id(DISPID_VALUE), helpstring("Item")] 
+        HRESULT Item([in] const VARIANT* pIndex, [out, retval]ISpeechPhraseElement** ppElts );
+    [id(DISPID_NEWENUM), propget, helpstring("Enumerates the tokens"), restricted] 
+        HRESULT _NewEnum([out, retval] IUnknown** ppEnumVARIANT);
+};
+
+//--- _SpPhraseReplacementCollection ------------------------------------------
+[
+    object,
+    uuid(38BC662F-2257-4525-959E-2069D2596C05),
+    dual,
+    helpstring("_SpPhraseReplacementCollection Interface"),
+    pointer_default(unique)
+]
+interface _SpPhraseReplacementCollection : IDispatch
+{
+    [propget, helpstring("Count")] 
+        HRESULT Count([out, retval] long* pVal);
+    [id(DISPID_VALUE), helpstring("Item")] 
+        HRESULT Item([in] const VARIANT* pIndex, [out, retval]ISpeechPhraseReplacement** ppReps );
+    [id(DISPID_NEWENUM), propget, helpstring("Enumerates the tokens"), restricted] 
+        HRESULT _NewEnum([out, retval] IUnknown** ppEnumVARIANT);
+};
+
+//--- ISpeechRecoStatus --------------------------------------------------
+// This is the automation interface for the SR recognition context status object
+typedef [hidden] enum DISPIDSPRS
+{
+    DISPIDSPRS_NumPhrases = 1,
+    DISPIDSPRS_CurrentStream,
+    DISPIDSPRS_CurrentStreamPos,
+    DISPIDSPRS_StateFlags,
+    DISPIDSPRS_DataOptionFlags,
+    DISPIDSPRS_Interference,
+    DISPIDSPRS_UIRequest
+} DISPIDSPRS;
+
+[
+    object,
+    uuid(BFF9E781-53EC-484e-BB8A-0E1B5551E35C),
+    dual,
+    helpstring("ISpeechRecoStatus Interface"),
+    pointer_default(unique)
+]
+interface ISpeechRecoStatus : IDispatch
+{
+    //--- Properties
+    [propget, helpstring("NumPhrases"), id(DISPIDSPRS_NumPhrases)] 
+        HRESULT NumPhrases([out,retval]long* pNumPhrases );
+    [propget, helpstring("CurrentStream"), id(DISPIDSPRS_CurrentStream)] 
+        HRESULT CurrentStream([out,retval]long* pCurrentStream );
+    [propget, helpstring("CurrentStreamPos"), id(DISPIDSPRS_CurrentStreamPos)] 
+        HRESULT CurrentStreamPos([out,retval]double* pCurrentStreamPos );
+    [propget, helpstring("StateFlags"), id(DISPIDSPRS_StateFlags)] 
+        HRESULT StateFlags([out,retval]long* pStateFlags );
+    [propget, helpstring("DataOptionFlags"), id(DISPIDSPRS_DataOptionFlags)] 
+        HRESULT DataOptionFlags([out,retval]long* pDataOptionFlags );
+    [propget, helpstring("Interference"), id(DISPIDSPRS_Interference)] 
+        HRESULT Interference([out,retval]long* pInterference );
+    [propget, helpstring("RequestTypeOfUI"), id(DISPIDSPRS_UIRequest)] 
+        HRESULT RequestTypeOfUI([out,retval]BSTR* pbstrRequestTypeOfUI );
+};
+
+//--- ISpeechRecoContext --------------------------------------------------
+// This is the automation interface for the SR recognition context object
+typedef [hidden] enum DISPIDSPRC
+{
+    DISPIDSPRC_RecoInstance = 1,
+    DISPIDSPRC_Status,
+    DISPIDSPRC_Voice,
+    DISPIDSPRC_VoicePauseEvent
+} DISPIDSPRC;
+
+[
+    object,
+    uuid(580AA49D-7E1E-4809-B8E2-57DA806104B8),
+    dual,
+    helpstring("ISpeechRecoContext Interface"),
+    pointer_default(unique)
+]
+interface ISpeechRecoContext : IDispatch
+{
+    //--- Properties
+    [propget, helpstring("RecoInstance"), id(DISPIDSPRC_RecoInstance)] 
+        HRESULT RecoInstance( [out,retval]ISpeechRecoInstance** ppRecoInstance );
+    [propget, helpstring("Status"), id(DISPIDSPRC_Status)] 
+        HRESULT Status([out,retval]ISpeechRecoStatus** ppStatus );
+    [propget, helpstring("Voice"), id(DISPIDSPRC_Voice)] 
+        HRESULT Voice([out,retval]ISpeechVoice **ppVoice );
+    [propput, helpstring("VoicePauseEvent"), id(DISPIDSPRC_VoicePauseEvent)] 
+        HRESULT VoicePauseEvent( [in]VARIANT* EventInterest );
+
+    //--- Methods
+    // BUGBUG -- Fix automation methods!!!
+//    [helpstring("SetDataOptions")] 
+//        HRESULT SetDataOptions( [in]SPRECOFLAGS eFlags, [in]SPSTREAMFORMAT eFormat );
+    [helpstring("CreateGrammar")] 
+        HRESULT CreateGrammar( [in]long GrammarId, [out,retval]ISpeechRecoGrammar** ppGrammar );
+    [helpstring("CreateResult")] 
+        HRESULT CreateResult( [in]VARIANT* pvtPhraseBlob, [out]ISpeechRecoResult **ppResult );
+//    [helpstring("Pause")] 
+//        HRESULT Pause( [in, defaultvalue(0)]long lReserved );
+//    [helpstring("Resume")] 
+//        HRESULT Resume( [in, defaultvalue(0)]long lReserved );
+};
+
+//--- ISpeechRecoInstance --------------------------------------------------
+// This is the automation interface for the SR recognition instance object
+typedef [hidden] enum DISPIDSPRI
+{
+    DISPIDSPRI_Recognizer = 1,
+    DISPIDSPRI_AIFC,
+    DISPIDSPRI_Input,
+    DISPIDSPRI_IsShared,
+    DISPIDSPRI_InputState,
+    DISPIDSPRI_RecoContext
+} DISPIDSPRI;
+
+[
+    object,
+    uuid(2D5F1C0C-BD75-4b08-9478-3B11FEA2586C),
+    dual,
+    helpstring("ISpeechRecoInstance Interface"),
+    pointer_default(unique)
+]
+interface ISpeechRecoInstance : IDispatch
+{
+    //--- Properties
+    [propput, helpstring("Recognizer"), id(DISPIDSPRI_Recognizer)] 
+        HRESULT Recognizer( [in]ISpeechToken* pRecognizer );
+    [propget, helpstring("Recognizer"), id(DISPIDSPRI_Recognizer)] 
+        HRESULT Recognizer( [out,retval]ISpeechToken** ppRecognizer );
+    [propput, helpstring("AllowInputFmtChanges"), id(DISPIDSPRI_AIFC)] 
+        HRESULT AllowInputFmtChanges([in, defaultvalue(TRUE)] BOOL fAllow );
+    [propget, helpstring("AllowInputFmtChanges"), id(DISPIDSPRI_AIFC)] 
+        HRESULT AllowInputFmtChanges([out,retval] BOOL* pfAllow );
+    [propput, helpstring("Input"), id(DISPIDSPRI_Input)] 
+        HRESULT Input( [in,defaultvalue(0)]IUnknown* pInput );
+    [propget, helpstring("Input"), id(DISPIDSPRI_Input)] 
+        HRESULT Input( [out,retval]VARIANT* ppInput );
+    [propget, helpstring("IsShared"), id(DISPIDSPRI_IsShared)] 
+        HRESULT IsShared( [out,retval]BOOL* pIsShared );
+    [propput, helpstring("InputState"), id(DISPIDSPRI_InputState)] 
+        HRESULT InputState([in] SPAUDIOSTATE eNewState );
+    [propget, helpstring("InputState"), id(DISPIDSPRI_InputState)] 
+        HRESULT InputState([out,retval] SPAUDIOSTATE* peNewState );
+    [propget, helpstring("RecoContext"), id(DISPIDSPRI_RecoContext)] 
+        HRESULT RecoContext([out,retval]ISpeechRecoContext** ppNewCtxt );
+};
+
+//--- ISpeechRecoResultTimes --------------------------------------------------
+typedef [hidden] enum DISPIDSPRRT
+{
+    DISPIDSPRRT_StreamTime = 1,
+    DISPIDSPRRT_Length,
+    DISPIDSPRRT_TickCount,
+    DISPIDSPRRT_Start
+} DISPIDSPRRT;
+
+[
+    object,
+    uuid(62B3B8FB-F6E7-41be-BDCB-056B1C29EFC0),
+    dual,
+    helpstring("ISpeechRecoResultTimes Interface"),
+    pointer_default(unique)
+]
+interface ISpeechRecoResultTimes : IDispatch
+{
+    [propget, helpstring("StreamTime"), id(DISPIDSPRRT_StreamTime)] 
+        HRESULT StreamTime([out,retval]double* Time );
+    [propget, helpstring("Length"), id(DISPIDSPRRT_Length)] 
+        HRESULT Length([out,retval]double* Length );
+    [propget, helpstring("TickCount"), id(DISPIDSPRRT_TickCount)] 
+        HRESULT TickCount([out,retval]long* Count );
+    [propget, helpstring("Start"), id(DISPIDSPRRT_Start)] 
+        HRESULT Start([out,retval]double* Start );
+};
+
+//--- _SpPhraseAltCollection --------------------------------------------------------
+[
+    object,
+    uuid(B238B6D5-F276-4c3d-A6C1-2974801C3CC2),
+    dual,
+    helpstring("_SpPhraseAltCollection Interface"),
+    pointer_default(unique)
+]
+interface _SpPhraseAltCollection : IDispatch
+{
+    [propget, helpstring("Count")] 
+        HRESULT Count([out, retval] long* pVal);
+    [id(DISPID_VALUE), helpstring("Item")] 
+        HRESULT Item([in] const VARIANT* pIndex, [out, retval]ISpeechPhraseAlt **Phrase );
+    [id(DISPID_NEWENUM), propget, helpstring("Enumerates the alternates"), restricted] 
+        HRESULT _NewEnum([out, retval] IUnknown** ppEnumVARIANT);
+};
+
+//--- ISpeechRecoResult -------------------------------------------------------
+// This is the automation interface for the SR recognition result object
+typedef [hidden] enum DISPIDSPRR
+{
+    DISPIDSPRR_GrammarId = 1,
+    DISPIDSPRR_ResultTimes,
+    DISPIDSPRR_AudioFormat
+} DISPIDSPRR;
+
+[
+    object,
+    uuid(ED2879CF-CED9-4ee6-A534-DE0191D5468D),
+    dual,
+    helpstring("ISpeechRecoResult Interface"),
+    pointer_default(unique)
+]
+interface ISpeechRecoResult : IDispatch
+{
+    //--- Properties
+    [propget, helpstring("GrammarId"), id(DISPIDSPRR_GrammarId)] 
+        HRESULT GrammarId( [out,retval]long* GrammarId );
+    [propget, helpstring("ResultTimes"), id(DISPIDSPRR_ResultTimes)] 
+        HRESULT ResultTimes( [out,retval]ISpeechRecoResultTimes** Times );
+    [propput, helpstring("AudioFormat"), id(DISPIDSPRR_AudioFormat)] 
+        HRESULT AudioFormat( [in]SPSTREAMFORMAT eFormat );
+    [propget, helpstring("AudioFormat"), id(DISPIDSPRR_AudioFormat)] 
+        HRESULT AudioFormat( [out,retval]SPSTREAMFORMAT* peFormat );
+
+    //--- Methods
+    [helpstring("GetAlternates")] 
+        HRESULT GetAlternates( [in] long lStartElement,
+                               [in] long cElements,
+                               [in] long lRequestCount,
+                               [out,retval] _SpPhraseAltCollection** Alts );
+    [helpstring("GetAudio")] 
+        HRESULT GetAudio( [in] long lStartElement,
+                          [in] long cElements,
+                          [out,retval] ISpeechStream **Stream );
+    [helpstring("GetAudio")] 
+        HRESULT SpeakAudio( [in] long lStartElement,
+                            [in] long cElements,
+                            [in, defaultvalue(SPF_DEFAULT)] SPEAKFLAGS eFlags,
+                            [out,retval]long* StreamNumber );
+    [helpstring("Serialize")] 
+        HRESULT Serialize( [in]long lFlags, [out,retval] VARIANT* ResultBlock );
+};
+
+//--- ISpeechRecoGrammar ------------------------------------------------------
+// This is the automation interface for the SR grammar object
+typedef [hidden] enum DISPIDSPRG
+{
+    DISPIDSPRG_GrammarId = 1,
+    DISPIDSPRG_RecoContext,
+    DISPIDSPRG_State
+} DISPIDSPRG;
+
+[
+    object,
+    uuid(B6D6F79F-2158-4e50-B5BC-9A9CCD852A09),
+    dual,
+    helpstring("ISpeechRecoGrammar Interface"),
+    pointer_default(unique)
+]
+interface ISpeechRecoGrammar : IDispatch
+{
+    //--- Properties
+    [propget, helpstring("GrammarId"), id(DISPIDSPRG_GrammarId)] 
+        HRESULT GrammarId( [out,retval]long* GrammarId );
+    [propget, helpstring("RecoContext"), id(DISPIDSPRG_RecoContext)] 
+        HRESULT RecoContext( [out,retval] ISpeechRecoContext** RecoCtxt );
+    [propput, helpstring("State"), id(DISPIDSPRG_State)] 
+        HRESULT State( [in]SPGRAMMARSTATE eGrammarState );
+    [propget, helpstring("State"), id(DISPIDSPRG_State)] 
+        HRESULT State( [out,retval]SPGRAMMARSTATE* peGrammarState);
+
+    //--- Methods
+    [helpstring("InitEmptyDynamicCmd")] 
+        HRESULT InitEmptyDynamicCmd( [in]LANGID LanguageId );
+    [helpstring("LoadCmdFromFile")] 
+        HRESULT LoadCmdFromFile( [in]const BSTR FileName, [in]BOOL fIsDynamic );
+    [helpstring("LoadCmdFromObject")] 
+        HRESULT LoadCmdFromObject( [in]BSTR ClassId,
+                                   [in]const BSTR GrammarName,
+                                   [in]BOOL fIsDynamic );
+    [helpstring("LoadCmdFromResource")] 
+        HRESULT LoadCmdFromResource( [in]long hModule,
+                                     [in]const BSTR ResourceName,
+                                     [in]const BSTR ResourceType,
+                                     [in]LANGID LanguageId,
+                                     [in]BOOL fIsDynamic );
+    [helpstring("LoadCmdFromMemory")] 
+        HRESULT LoadCmdFromMemory( [in] VARIANT CfgHeader, [in] BOOL fIsDynamic );
+    [helpstring("LoadCmdFromProprietaryGrammar")] 
+        HRESULT LoadCmdFromProprietaryGrammar( [in]BSTR guidParam,
+                                               [in]const BSTR StringParam,
+                                               [in]VARIANT vDataPrarm );
+    [helpstring("UnloadCmd")] 
+        HRESULT UnloadCmd( void );
+    [helpstring("SetRuleState")] 
+        HRESULT SetRuleState( [in]const BSTR Name, [in]const BSTR Value,
+                              [in]BOOL fActivate, [in]BOOL fAutoPause );
+    [helpstring("SetRuleIdState")] 
+        HRESULT SetRuleIdState( [in]long lRuleId, [in]BOOL fActive, [in]BOOL fAutoPause );
+    [helpstring("LoadDictation")] 
+        HRESULT LoadDictation( [in] const BSTR TopicName );
+    [helpstring("UnloadDictation")] 
+        HRESULT UnloadDictation( void );
+    [helpstring("SetDictationState")] 
+        HRESULT SetDictationState( [in]BOOL fDictationActive );
+    [helpstring("SetWordSequenceData")] 
+        HRESULT SetWordSequenceData( [in]BSTR Text, [in]long TextLen, [in]ISpeechTextSelectionInfo* Info );
+    [helpstring("SetTextSelection")] 
+        HRESULT SetTextSelection( [in]ISpeechTextSelectionInfo* Info );
+    [helpstring("IsPronounceable")] 
+    	HRESULT IsPronounceable( [in]const BSTR Word, [out,retval]BOOL* pfIsPronounciable );
+};
+
+//--- ISpeechPhrase -----------------------------------------------------------
+typedef [hidden] enum DISPIDSPP
+{
+    DISPIDSPP_Phrase  = 1,
+    DISPIDSPP_SerializedPhrase,
+    DISPIDSPP_UseTextReplacements,
+    DISPIDSPP_Text,
+    DISPIDSPP_DisplayAttributes,
+    DISPIDSPP_NextId
+} DISPIDSPP;
+
+[
+    object,
+    uuid(388FC4F2-D37E-4878-89DC-1A25FAE9CB4F),
+    dual,
+    helpstring("ISpeechPhrase Interface"),
+    pointer_default(unique)
+]
+interface ISpeechPhrase : IDispatch
+{
+    //--- Properties
+    [propget, helpstring("Phrase"), id(DISPIDSPP_Phrase)] 
+        HRESULT Phrase( [out,retval]ISpeechPhraseInfo** ppPhraseInfo );
+    [propget, helpstring("SerializedPhrase"), id(DISPIDSPP_SerializedPhrase)] 
+        HRESULT SerializedPhrase( [out,retval]VARIANT* pvtPhrase );
+    [propput, helpstring("UseTextReplacements"), id(DISPIDSPP_UseTextReplacements)] 
+        HRESULT UseTextReplacements( [in]BOOL fUseTextReplacements );
+    [propget, helpstring("UseTextReplacements"), id(DISPIDSPP_UseTextReplacements)] 
+        HRESULT UseTextReplacements( [out,retval]BOOL* fUseTextReplacements );
+    [propget, helpstring("Text"), id(DISPIDSPP_Text)] 
+        HRESULT Text( [out,retval]BSTR* Text );
+    [propget, helpstring("DisplayAttributes"), id(DISPIDSPP_DisplayAttributes)] 
+        HRESULT DisplayAttributes( [out,retval]long* DisplayAttributes );
+
+    //--- Methods
+    [helpstring("Discard")] 
+        HRESULT Discard( [in]long lValueTypes );
+};
+
+//--- ISpeechPhraseAlt --------------------------------------------------------
+typedef [hidden] enum DISPIDSPPA
+{
+    DISPIDSPPA_Parent = DISPIDSPP_NextId,
+    DISPIDSPPA_ParentStartElement,
+    DISPIDSPPA_NumParentElements,
+    DISPIDSPPA_StartElement,
+    DISPIDSPPA_NumElements
+} DISPIDSPPA;
+
+[
+    object,
+    uuid(27864A2A-2B9F-4cb8-92D3-0D2722FD1E73),
+    dual,
+    helpstring("ISpeechPhraseAlt Interface"),
+    pointer_default(unique)
+]
+interface ISpeechPhraseAlt : ISpeechPhrase
+{
+    [propget, helpstring("Parent"), id(DISPIDSPPA_Parent)] 
+        HRESULT Parent( [out,retval]ISpeechPhrase** ppParent );
+    [propget, helpstring("ParentStartElement"), id(DISPIDSPPA_ParentStartElement)] 
+        HRESULT ParentStartElement( [out,retval]long* pParentStartElt );
+    [propget, helpstring("NumParentElements"), id(DISPIDSPPA_NumParentElements)] 
+        HRESULT NumParentElements( [out,retval]long* pNumParentElts );
+    [propget, helpstring("StartElement"), id(DISPIDSPPA_StartElement)] 
+        HRESULT StartElement( [out,retval]long* pStartElt );
+    [propget, helpstring("NumElements"), id(DISPIDSPPA_NumElements)] 
+        HRESULT NumElements( [out,retval]long* pNumElts );
+    [helpstring("Commit")] 
+        HRESULT Commit( void );
+};
+
+//--- ISpeechTextSelectionInfo ------------------------------------------------
+typedef [hidden] enum DISPIDSPTSI
+{
+    DISPIDSPTSI_ActiveOffset = 1,
+    DISPIDSPTSI_ActiveLength,
+    DISPIDSPTSI_SelectionOffset,
+    DISPIDSPTSI_SelectionLength
+} DISPIDSPTSI;
+
+[
+    object,
+    uuid(8A808EF3-C682-4140-90F4-50DC1F7B38FA),
+    dual,
+    helpstring("ISpeechTextSelectionInfo Interface"),
+    pointer_default(unique)
+]
+interface ISpeechTextSelectionInfo : IDispatch
+{
+    [propput, helpstring("ActiveOffset"), id(DISPIDSPTSI_ActiveOffset)]
+        HRESULT ActiveOffset( [in]long ActiveOffset );
+    [propget, helpstring("ActiveOffset"), id(DISPIDSPTSI_ActiveOffset)]
+        HRESULT ActiveOffset( [out, retval]long* ActiveOffset );
+    [propput, helpstring("ActiveLength"), id(DISPIDSPTSI_ActiveLength)]
+        HRESULT ActiveLength( [in]long ActiveLength );
+    [propget, helpstring("ActiveLength"), id(DISPIDSPTSI_ActiveLength)]
+        HRESULT ActiveLength( [out, retval]long* ActiveLength );
+    [propput, helpstring("SelectionOffset"), id(DISPIDSPTSI_SelectionOffset)]
+        HRESULT SelectionOffset( [in]long SelectionOffset );
+    [propget, helpstring("SelectionOffset"), id(DISPIDSPTSI_SelectionOffset)]
+        HRESULT SelectionOffset( [out, retval]long* SelectionOffset );
+    [propput, helpstring("SelectionLength"), id(DISPIDSPTSI_SelectionLength)]
+        HRESULT SelectionLength( [in]long SelectionLength );
+    [propget, helpstring("SelectionLength"), id(DISPIDSPTSI_SelectionLength)]
+        HRESULT SelectionLength( [out, retval]long* SelectionLength );
+};
+
+//--- ISpeechPhraseInfo -------------------------------------------------------
+typedef [hidden] enum DISPIDSPPI
+{
+    DISPIDSPPI_Format = 1,
+    DISPIDSPTSI_LanguageId,
+    DISPIDSPTSI_StartTime,
+    DISPIDSPTSI_AudioStreamPosition,
+    DISPIDSPTSI_AudioSizeBytes,
+    DISPIDSPTSI_AudioSizeTime,
+    DISPIDSPTSI_Rule,
+    DISPIDSPTSI_Properties,
+    DISPIDSPTSI_Elements,
+    DISPIDSPTSI_Replacements
+} DISPIDSPPI;
+
+[
+    object,
+    uuid(961559CF-4E67-4662-8BF0-D93F1FCD61B3),
+    dual,
+    helpstring("ISpeechPhraseInfo Interface"),
+    pointer_default(unique)
+]
+interface ISpeechPhraseInfo : IDispatch
+{
+    [propget, helpstring("Format"), id(DISPIDSPPI_Format)] 
+        HRESULT Format([out, retval] SPSTREAMFORMAT* peFormat );
+    [propget, helpstring("LanguageId"), id(DISPIDSPTSI_LanguageId)]
+        HRESULT LanguageId( [out, retval]LANGID* LanguageId );
+    [propget, helpstring("StartTime"), id(DISPIDSPTSI_StartTime)]
+        HRESULT StartTime( [out, retval]double* pStartTime );
+    [propget, helpstring("AudioStreamPosition"), id(DISPIDSPTSI_AudioStreamPosition)]
+        HRESULT AudioStreamPosition( [out, retval]double* pAudioStreamPosition );
+    [propget, helpstring("AudioSizeBytes"), id(DISPIDSPTSI_AudioSizeBytes)]
+        HRESULT AudioSizeBytes( [out, retval]long* pAudioSizeBytes );
+    [propget, helpstring("AudioSizeTime"), id(DISPIDSPTSI_AudioSizeTime)]
+        HRESULT AudioSizeTime( [out, retval]long* pAudioSizeTime );
+    [propget, helpstring("Rule"), id(DISPIDSPTSI_Rule)]
+        HRESULT Rule( [out, retval]ISpeechPhraseRule** ppRule );
+    [propget, helpstring("Properties"), id(DISPIDSPTSI_Properties)]
+        HRESULT Properties( [out, retval]ISpeechPhraseProperty** ppProperty );
+    [propget, helpstring("Elements"), id(DISPIDSPTSI_Elements)]
+        HRESULT Elements( [out, retval]_SpPhraseElementCollection** ppColl );
+    [propget, helpstring("Replacements"), id(DISPIDSPTSI_Replacements)]
+        HRESULT Replacements( [out, retval]_SpPhraseReplacementCollection** ppColl );
+};
+
+//--- ISpeechPhraseElement ----------------------------------------------------
+typedef [hidden] enum DISPIDSPPE
+{
+    DISPIDSPPE_AudioStreamOffset = 1,
+    DISPIDSPPE_AudioTimeOffset,
+    DISPIDSPPE_AudioSizeBytes,
+    DISPIDSPPE_AudioSizeTime,
+    DISPIDSPPE_DisplayText,
+    DISPIDSPPE_LexicalForm,
+    DISPIDSPPE_Pronunciation,
+    DISPIDSPPE_DisplayAttributes,
+    DISPIDSPPE_RequiredConfidence,
+    DISPIDSPPE_ActualConfidence
+} DISPIDSPPE;
+
+[
+    object,
+    uuid(E6176F96-E373-4801-B223-3B62C068C0B4),
+    dual,
+    helpstring("ISpeechPhraseElement Interface"),
+    pointer_default(unique)
+]
+interface ISpeechPhraseElement : IDispatch
+{
+    [propget, helpstring("AudioStreamOffset"), id(DISPIDSPPE_AudioStreamOffset)]
+        HRESULT AudioStreamOffset( [out, retval]long* pAudioStreamOffset );
+    [propget, helpstring("AudioTimeOffset"), id(DISPIDSPPE_AudioTimeOffset)]
+        HRESULT AudioTimeOffset( [out, retval]long* pAudioTimeOffset );
+    [propget, helpstring("AudioSizeBytes"), id(DISPIDSPPE_AudioSizeBytes)]
+        HRESULT AudioSizeBytes( [out, retval]long* pAudioSizeBytes );
+    [propget, helpstring("AudioSizeTime"), id(DISPIDSPPE_AudioSizeTime)]
+        HRESULT AudioSizeTime( [out, retval]long* pAudioSizeTime );
+    [propget, helpstring("DisplayText"), id(DISPIDSPPE_DisplayText)]
+        HRESULT DisplayText( [out, retval]BSTR* pDisplayText );
+    [propget, helpstring("LexicalForm"), id(DISPIDSPPE_LexicalForm)]
+        HRESULT LexicalForm( [out, retval]BSTR* pLexicalForm );
+    [propget, helpstring("Pronunciation"), id(DISPIDSPPE_Pronunciation)]
+        HRESULT Pronunciation( [out, retval]BSTR* pPronunciation );
+    [propget, helpstring("DisplayAttributes"), id(DISPIDSPPE_DisplayAttributes)]
+        HRESULT DisplayAttributes( [out, retval]long* pDisplayAttributes );
+    [propget, helpstring("RequiredConfidence"), id(DISPIDSPPE_RequiredConfidence)]
+        HRESULT RequiredConfidence( [out, retval]long* pRequiredConfidence );
+    [propget, helpstring("ActualConfidence"), id(DISPIDSPPE_ActualConfidence)]
+        HRESULT ActualConfidence( [out, retval]long* pActualConfidence );
+};
+
+//--- ISpeechPhraseProperty ---------------------------------------------------
+typedef [hidden] enum DISPIDSPPPR
+{
+    DISPIDSPPPR_Name = 1,
+    DISPIDSPPPR_Id,
+    DISPIDSPPPR_Value,
+    DISPIDSPPPR_FirstElement,
+    DISPIDSPPPR_NumElements,
+    DISPIDSPPPR_Sibling,
+    DISPIDSPPPR_Child
+} DISPIDSPPPR;
+
+[
+    object,
+    uuid(CE563D48-961E-4732-A2E1-378A42B430BE),
+    dual,
+    helpstring("ISpeechPhraseProperty Interface"),
+    pointer_default(unique)
+]
+interface ISpeechPhraseProperty : IDispatch
+{
+    [propget, helpstring("Name"), id(DISPIDSPPPR_Name)]
+        HRESULT Name( [out, retval]BSTR* Name );
+    [propget, helpstring("Id"), id(DISPIDSPPPR_Id)]
+        HRESULT Id( [out, retval]long* Id );
+    [propget, helpstring("Value"), id(DISPIDSPPPR_Value)]
+        HRESULT Value( [out, retval]VARIANT* Value );
+    [propget, helpstring("FirstElement"), id(DISPIDSPPPR_FirstElement)]
+        HRESULT FirstElement( [out, retval]long* FirstElement );
+    [propget, helpstring("NumElements"), id(DISPIDSPPPR_NumElements)]
+        HRESULT NumElements( [out, retval]long* NumElements );
+    [propget, helpstring("Sibling"), id(DISPIDSPPPR_Sibling)]
+        HRESULT Sibling( [out, retval]ISpeechPhraseProperty** ppSibling );
+    [propget, helpstring("Child"), id(DISPIDSPPPR_Child)]
+        HRESULT Child( [out, retval]ISpeechPhraseProperty** ppChild );
+};
+
+//--- ISpeechPhraseReplacement ------------------------------------------------
+typedef [hidden] enum DISPIDSPPR
+{
+    DISPIDSPPR_DisplayAttributes = 1,
+    DISPIDSPPR_Text,
+    DISPIDSPPR_FirstElement,
+    DISPIDSPPR_NumElements
+} DISPIDSPPR;
+
+[
+    object,
+    uuid(2890A410-53A7-4fb5-94EC-06D4998E3D02),
+    dual,
+    helpstring("ISpeechPhraseReplacement Interface"),
+    pointer_default(unique)
+]
+interface ISpeechPhraseReplacement : IDispatch
+{
+    [propget, helpstring("DisplayAttributes"), id(DISPIDSPPR_DisplayAttributes)] 
+        HRESULT DisplayAttributes( [out,retval]long* DisplayAttributes );
+    [propget, helpstring("Text"), id(DISPIDSPPR_Text)]
+        HRESULT Text( [out, retval]BSTR* Text );
+    [propget, helpstring("FirstElement"), id(DISPIDSPPR_FirstElement)]
+        HRESULT FirstElement( [out, retval]long* FirstElement );
+    [propget, helpstring("NumElements"), id(DISPIDSPPR_NumElements)]
+        HRESULT NumElements( [out, retval]long* NumElements );
+};
+
+//--- ISpeechPhraseRule -------------------------------------------------------
+typedef [hidden] enum DISPIDSPPRL
+{
+    DISPIDSPPRL_Name = 1,
+    DISPIDSPPRL_Id,
+    DISPIDSPPRL_FirstElement,
+    DISPIDSPPRL_NumElements,
+    DISPIDSPPRL_Sibling,
+    DISPIDSPPRL_Child
+} DISPIDSPPRL;
+
+[
+    object,
+    uuid(A7BFE112-A4A0-48d9-B602-C313843F6964),
+    dual,
+    helpstring("ISpeechPhraseRule Interface"),
+    pointer_default(unique)
+]
+interface ISpeechPhraseRule : IDispatch
+{
+    [propget, helpstring("Name"), id(DISPIDSPPRL_Name)]
+        HRESULT Name( [out, retval]BSTR* Name );
+    [propget, helpstring("Id"), id(DISPIDSPPRL_Id)]
+        HRESULT Id( [out, retval]long* Id );
+    [propget, helpstring("FirstElement"), id(DISPIDSPPRL_FirstElement)]
+        HRESULT FirstElement( [out, retval]long* FirstElement );
+    [propget, helpstring("NumElements"), id(DISPIDSPPRL_NumElements)]
+        HRESULT NumElements( [out, retval]long* NumElements );
+    [propget, helpstring("Sibling"), id(DISPIDSPPRL_Sibling)]
+        HRESULT Sibling( [out, retval]ISpeechPhraseProperty** ppSibling );
+    [propget, helpstring("Child"), id(DISPIDSPPRL_Child)]
+        HRESULT Child( [out, retval]ISpeechPhraseProperty** ppChild );
+};
+

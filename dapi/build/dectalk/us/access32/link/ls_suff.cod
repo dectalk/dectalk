@@ -1,0 +1,1300 @@
+	TITLE	D:\work\Product\dapi\src\Lts\ls_suff.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_form_class_strings
+_DATA	SEGMENT
+_form_class_strings DD FLAT:$SG71848
+	DD	FLAT:$SG71849
+	DD	FLAT:$SG71850
+	DD	FLAT:$SG71851
+	DD	FLAT:$SG71852
+	DD	FLAT:$SG71853
+	DD	FLAT:$SG71854
+	DD	FLAT:$SG71855
+	DD	FLAT:$SG71856
+	DD	FLAT:$SG71857
+	DD	FLAT:$SG71858
+	DD	FLAT:$SG71859
+	DD	FLAT:$SG71860
+	DD	FLAT:$SG71861
+	DD	FLAT:$SG71862
+	DD	FLAT:$SG71863
+	DD	FLAT:$SG71864
+	DD	FLAT:$SG71865
+	DD	FLAT:$SG71866
+	DD	FLAT:$SG71867
+	DD	FLAT:$SG71868
+	DD	FLAT:$SG71869
+	DD	FLAT:$SG71870
+	DD	FLAT:$SG71871
+	DD	FLAT:$SG71872
+	DD	FLAT:$SG71873
+	DD	FLAT:$SG71874
+	DD	FLAT:$SG71875
+	DD	FLAT:$SG71876
+	DD	FLAT:$SG71877
+	DD	FLAT:$SG71878
+	DD	FLAT:$SG71879
+$SG71848 DB	'adj', 00H
+$SG71849 DB	'adv', 00H
+$SG71850 DB	'art', 00H
+$SG71851 DB	'aux', 00H
+$SG71852 DB	'be', 00H
+	ORG $+1
+$SG71853 DB	'bev', 00H
+$SG71854 DB	'conj', 00H
+	ORG $+3
+$SG71855 DB	'ed', 00H
+	ORG $+1
+$SG71856 DB	'have', 00H
+	ORG $+3
+$SG71857 DB	'ing', 00H
+$SG71858 DB	'noun', 00H
+	ORG $+3
+$SG71859 DB	'pos', 00H
+$SG71860 DB	'prep', 00H
+	ORG $+3
+$SG71861 DB	'pron', 00H
+	ORG $+3
+$SG71862 DB	'subj', 00H
+	ORG $+3
+$SG71863 DB	'that', 00H
+	ORG $+3
+$SG71864 DB	'to', 00H
+	ORG $+1
+$SG71865 DB	'verb', 00H
+	ORG $+3
+$SG71866 DB	'who', 00H
+$SG71867 DB	'neg', 00H
+$SG71868 DB	'intr', 00H
+	ORG $+3
+$SG71869 DB	'ref', 00H
+$SG71870 DB	'part', 00H
+	ORG $+3
+$SG71871 DB	'func', 00H
+	ORG $+3
+$SG71872 DB	'conj', 00H
+	ORG $+3
+$SG71873 DB	'char', 00H
+	ORG $+3
+$SG71874 DB	'refr', 00H
+	ORG $+3
+$SG71875 DB	'unused', 00H
+	ORG $+1
+$SG71876 DB	'unused', 00H
+	ORG $+1
+$SG71877 DB	'mark', 00H
+	ORG $+3
+$SG71878 DB	'cont', 00H
+	ORG $+3
+$SG71879 DB	'homo', 00H
+_DATA	ENDS
+PUBLIC	_ls_suff_suffix_find
+PUBLIC	_ls_suff_append_pron
+EXTRN	_suffix_table:BYTE
+EXTRN	_suffix_index:BYTE
+EXTRN	_ls_lower:BYTE
+EXTRN	_ls_dict_find_word:NEAR
+EXTRN	_ls_dict_ufind_word:NEAR
+EXTRN	__imp__fprintf:NEAR
+EXTRN	__imp__printf:NEAR
+_DATA	SEGMENT
+	ORG $+3
+$SG71826 DB	0aH, 'HITS(%s)', 00H
+	ORG $+2
+$SG71827 DB	0aH, 'HITS(%s)', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_str_end$ = 12
+_which_dic$ = 16
+_stat$ = -136
+_si$ = -140
+_save_str$ = -128
+_pKsd_t$ = -132
+_ls_suff_suffix_find PROC NEAR
+
+; 111  : {
+
+  00000	81 ec 8c 00 00
+	00		 sub	 esp, 140		; 0000008cH
+
+; 112  : 	unsigned char   _far *bp;                       /* base text string seach */
+; 113  : 	unsigned char   _far *sp;                       /* suffix string seach */
+; 114  : 	unsigned char   _far *np;                       /* replacement string save */
+; 115  : 	unsigned char   _far *sbp;                      /* saved base pointer to recurse */
+; 116  : 	/* GL 04/21/1997  add this for OSF build */
+; 117  : 	U32     i,stat=0;
+; 118  : 	U32		si;
+; 119  : 
+; 120  : 	struct  suff_rule       *stp;
+; 121  : 	unsigned char   save_str[128];
+; 122  : #ifdef GERMAN
+; 123  : 	short hit_tail=0;
+; 124  : 	short hit_suff=0;
+; 125  : #endif
+; 126  : 
+; 127  : 	PLTS_T  pLts_t;
+; 128  : 	PKSD_T  pKsd_t;
+; 129  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00006	8b 8c 24 90 00
+	00 00		 mov	 ecx, DWORD PTR _phTTS$[esp+136]
+  0000d	53		 push	 ebx
+  0000e	55		 push	 ebp
+  0000f	33 c0		 xor	 eax, eax
+  00011	8b 51 08	 mov	 edx, DWORD PTR [ecx+8]
+
+; 130  : 	pLts_t = phTTS->pLTSThreadData;
+
+  00014	8b 59 10	 mov	 ebx, DWORD PTR [ecx+16]
+  00017	89 54 24 10	 mov	 DWORD PTR _pKsd_t$[esp+148], edx
+
+; 131  : 	
+; 132  : #ifdef LSSUFFDEBUG
+; 133  : 		printf("ls_suff_suffix_find; comp_str = %s str_end = %s\n",pLts_t->comp_str,str_end);
+; 134  : #endif
+; 135  : 
+; 136  :     /* GL 07/25/1997 For BATS#416  pick up the right index for international character */
+; 137  : 	/* this change will match to suffix compiler character grouping */
+; 138  : 	/* if(IS_LOWER_ALPHA(ls_lower[*str_end]) == false)*/
+; 139  : 	if (ls_lower[*str_end] < 'a' || ls_lower[*str_end] > 'z')
+
+  0001b	8b 94 24 9c 00
+	00 00		 mov	 edx, DWORD PTR _str_end$[esp+144]
+  00022	33 c9		 xor	 ecx, ecx
+  00024	56		 push	 esi
+  00025	8a 0a		 mov	 cl, BYTE PTR [edx]
+  00027	57		 push	 edi
+  00028	89 44 24 14	 mov	 DWORD PTR _stat$[esp+156], eax
+  0002c	8a 89 00 00 00
+	00		 mov	 cl, BYTE PTR _ls_lower[ecx]
+  00032	80 f9 61	 cmp	 cl, 97			; 00000061H
+  00035	72 18		 jb	 SHORT $L71791
+  00037	80 f9 7a	 cmp	 cl, 122			; 0000007aH
+  0003a	77 13		 ja	 SHORT $L71791
+
+; 141  : 	else
+; 142  : 		si = suffix_index[ls_lower[*str_end] - 'a'];
+
+  0003c	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00042	8b 0c 8d 7c fe
+	ff ff		 mov	 ecx, DWORD PTR _suffix_index[ecx*4-388]
+  00049	89 4c 24 10	 mov	 DWORD PTR _si$[esp+156], ecx
+  0004d	eb 0a		 jmp	 SHORT $L71936
+$L71791:
+
+; 140  : 		si = suffix_index[26];
+
+  0004f	8b 15 68 00 00
+	00		 mov	 edx, DWORD PTR _suffix_index+104
+  00055	89 54 24 10	 mov	 DWORD PTR _si$[esp+156], edx
+$L71936:
+
+; 143  : #ifdef LSSUFFDEBUG
+; 144  : 		printf("suffix_find si = %04X\n",si); 
+; 145  : #endif
+; 146  : 
+; 147  : 	while(si != 0xffff)
+
+  00059	81 7c 24 10 ff
+	ff 00 00	 cmp	 DWORD PTR _si$[esp+156], 65535 ; 0000ffffH
+  00061	0f 84 d7 01 00
+	00		 je	 $L71795
+$L71794:
+
+; 148  : 	{
+; 149  : 		stp = (struct suff_rule *)&suffix_table[si];
+; 150  : 		bp = str_end;
+; 151  : 		sp = &stp->rule[0];
+
+  00067	8b 54 24 10	 mov	 edx, DWORD PTR _si$[esp+156]
+  0006b	8b 8c 24 a4 00
+	00 00		 mov	 ecx, DWORD PTR _str_end$[esp+152]
+  00072	8d b2 08 00 00
+	00		 lea	 esi, DWORD PTR _suffix_table[edx+8]
+
+; 152  : 		while(*sp != SF_STRIP && *sp != SF_FC)
+
+  00078	8a 92 08 00 00
+	00		 mov	 dl, BYTE PTR _suffix_table[edx+8]
+  0007e	80 fa fe	 cmp	 dl, 254			; 000000feH
+  00081	74 2d		 je	 SHORT $L71943
+  00083	eb 04		 jmp	 SHORT $L71798
+$L71953:
+  00085	8b 44 24 14	 mov	 eax, DWORD PTR _stat$[esp+156]
+$L71798:
+  00089	80 fa fd	 cmp	 dl, 253			; 000000fdH
+  0008c	74 22		 je	 SHORT $L71943
+
+; 153  : 		{
+; 154  : 			if(ls_lower[*bp] != *sp || bp == pLts_t->str_vowel)
+
+  0008e	33 c0		 xor	 eax, eax
+  00090	8a 01		 mov	 al, BYTE PTR [ecx]
+  00092	38 90 00 00 00
+	00		 cmp	 BYTE PTR _ls_lower[eax], dl
+  00098	75 12		 jne	 SHORT $L71954
+  0009a	3b 8b b8 04 00
+	00		 cmp	 ecx, DWORD PTR [ebx+1208]
+  000a0	74 0a		 je	 SHORT $L71954
+  000a2	8a 56 01	 mov	 dl, BYTE PTR [esi+1]
+
+; 155  : 				break;
+; 156  : 			bp--;
+
+  000a5	49		 dec	 ecx
+
+; 157  : 			sp++;
+
+  000a6	46		 inc	 esi
+  000a7	80 fa fe	 cmp	 dl, 254			; 000000feH
+  000aa	75 d9		 jne	 SHORT $L71953
+$L71954:
+
+; 152  : 		while(*sp != SF_STRIP && *sp != SF_FC)
+
+  000ac	8b 44 24 14	 mov	 eax, DWORD PTR _stat$[esp+156]
+$L71943:
+
+; 158  : 		}
+; 159  : 
+; 160  : 		/*
+; 161  : 		 *  for form class hits, just set the fc field ...
+; 162  : 		 */
+; 163  : 		
+; 164  : 		if(which_dic && (*sp == SF_FC))
+
+  000b0	66 83 bc 24 a8
+	00 00 00 00	 cmp	 WORD PTR _which_dic$[esp+152], 0
+  000b9	74 09		 je	 SHORT $L71802
+  000bb	80 3e fd	 cmp	 BYTE PTR [esi], 253	; 000000fdH
+  000be	0f 84 87 01 00
+	00		 je	 $L71945
+$L71802:
+
+; 167  : 			return(MISS);
+; 168  : 		}
+; 169  : 		/*
+; 170  : 		 *  if the suffix can be stripped, look for a striping rule starting
+; 171  : 		 *  with / and see if it can be applied ...
+; 172  : 		 */
+; 173  : 		if(*sp++ == SF_STRIP)
+
+  000c4	8a 16		 mov	 dl, BYTE PTR [esi]
+  000c6	46		 inc	 esi
+  000c7	80 fa fe	 cmp	 dl, 254			; 000000feH
+  000ca	0f 85 54 01 00
+	00		 jne	 $L71809
+
+; 174  : 		{
+; 175  : 			for(i=0;(save_str[i] = pLts_t->comp_str[i]);i++);
+
+  000d0	8a 93 38 04 00
+	00		 mov	 dl, BYTE PTR [ebx+1080]
+  000d6	8d bb 38 04 00
+	00		 lea	 edi, DWORD PTR [ebx+1080]
+  000dc	84 d2		 test	 dl, dl
+  000de	88 54 24 1c	 mov	 BYTE PTR _save_str$[esp+156], dl
+  000e2	74 10		 je	 SHORT $L71806
+  000e4	8d 6c 24 1c	 lea	 ebp, DWORD PTR _save_str$[esp+156]
+$L71804:
+  000e8	8a 57 01	 mov	 dl, BYTE PTR [edi+1]
+  000eb	47		 inc	 edi
+  000ec	45		 inc	 ebp
+  000ed	84 d2		 test	 dl, dl
+  000ef	88 55 00	 mov	 BYTE PTR [ebp], dl
+  000f2	75 f4		 jne	 SHORT $L71804
+$L71806:
+
+; 176  : 			sbp = bp;
+; 177  : 
+; 178  : 			while(*sp != SF_END)
+
+  000f4	8a 16		 mov	 dl, BYTE PTR [esi]
+  000f6	8b e9		 mov	 ebp, ecx
+  000f8	80 fa ff	 cmp	 dl, 255			; 000000ffH
+  000fb	0f 84 23 01 00
+	00		 je	 $L71809
+$L71808:
+
+; 179  : 			{
+; 180  : 				if(*sp++ == SF_REPLACE)
+
+  00101	46		 inc	 esi
+  00102	80 fa fc	 cmp	 dl, 252			; 000000fcH
+  00105	0f 85 0e 01 00
+	00		 jne	 $L71810
+
+; 181  : 				{
+; 182  : 					while(*sp == ls_lower[*bp])
+
+  0010b	33 d2		 xor	 edx, edx
+  0010d	8a 11		 mov	 dl, BYTE PTR [ecx]
+  0010f	8b fa		 mov	 edi, edx
+  00111	8a 16		 mov	 dl, BYTE PTR [esi]
+  00113	3a 97 00 00 00
+	00		 cmp	 dl, BYTE PTR _ls_lower[edi]
+  00119	75 12		 jne	 SHORT $L71813
+$L71812:
+
+; 183  : 					{
+; 184  : 						sp++;
+
+  0011b	46		 inc	 esi
+
+; 185  : 						bp--;
+
+  0011c	49		 dec	 ecx
+  0011d	33 d2		 xor	 edx, edx
+  0011f	8a 11		 mov	 dl, BYTE PTR [ecx]
+  00121	8b fa		 mov	 edi, edx
+  00123	8a 16		 mov	 dl, BYTE PTR [esi]
+  00125	3a 97 00 00 00
+	00		 cmp	 dl, BYTE PTR _ls_lower[edi]
+  0012b	74 ee		 je	 SHORT $L71812
+$L71813:
+
+; 186  : 					}
+; 187  : 					if(*sp++ == SF_REPLACE_WITH)
+
+  0012d	8a 16		 mov	 dl, BYTE PTR [esi]
+  0012f	46		 inc	 esi
+  00130	80 fa fb	 cmp	 dl, 251			; 000000fbH
+  00133	0f 85 de 00 00
+	00		 jne	 $L71831
+
+; 188  : 					{
+; 189  : 						np = bp+1;
+
+  00139	8d 51 01	 lea	 edx, DWORD PTR [ecx+1]
+
+; 190  : #ifdef GERMAN
+; 191  : 						if ((*np == 'e' && *(np+1) == 0) ||
+; 192  : 						    (*np == 'e' && *(np+1) == 'r' && *(np+2) == 0)  ||
+; 193  : 						    (*np == 'e' && *(np+1) == 'n' && *(np+2) == 0)  ||
+; 194  : 						    (*np == 'e' && *(np+1) == 's' && *(np+2) == 0))
+; 195  : 							hit_suff = 1;
+; 196  : #endif
+; 197  : 						while(*sp != SF_REPLACE_END)
+
+  0013c	8a 0e		 mov	 cl, BYTE PTR [esi]
+  0013e	80 f9 fa	 cmp	 cl, 250			; 000000faH
+  00141	74 0c		 je	 SHORT $L71817
+$L71816:
+
+; 198  : 						{
+; 199  : 							*np++ = *sp++;
+
+  00143	88 0a		 mov	 BYTE PTR [edx], cl
+  00145	8a 4e 01	 mov	 cl, BYTE PTR [esi+1]
+  00148	42		 inc	 edx
+  00149	46		 inc	 esi
+  0014a	80 f9 fa	 cmp	 cl, 250			; 000000faH
+  0014d	75 f4		 jne	 SHORT $L71816
+$L71817:
+
+; 200  : 						}
+; 201  : 						*np++ = 0;
+; 202  : 						sp++;
+
+  0014f	46		 inc	 esi
+  00150	c6 02 00	 mov	 BYTE PTR [edx], 0
+
+; 203  : 						if(*sp == SF_RECURSE)
+
+  00153	80 3e f9	 cmp	 BYTE PTR [esi], 249	; 000000f9H
+  00156	75 1c		 jne	 SHORT $L71818
+
+; 204  : 						{
+; 205  : 							sp++;
+; 206  : #ifdef LSSUFFDEBUG
+; 207  : 								printf("suffix_find recursion bp = %s np = %s save_str = %s\n",bp,np,save_str);
+; 208  : #endif
+; 209  : 							stat = ls_suff_suffix_find(phTTS,np-1,which_dic);
+
+  00158	8b 84 24 a8 00
+	00 00		 mov	 eax, DWORD PTR _which_dic$[esp+152]
+  0015f	8b 8c 24 a0 00
+	00 00		 mov	 ecx, DWORD PTR _phTTS$[esp+152]
+  00166	50		 push	 eax
+  00167	52		 push	 edx
+  00168	51		 push	 ecx
+  00169	46		 inc	 esi
+  0016a	e8 00 00 00 00	 call	 _ls_suff_suffix_find
+  0016f	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 210  : #ifdef LSSUFFDEBUG
+; 211  : 								printf("out of recursion\n");
+; 212  : #endif
+; 213  : 						}
+; 214  : 						else
+
+  00172	eb 66		 jmp	 SHORT $L71959
+$L71818:
+
+; 215  : 						{
+; 216  : #ifdef GERMAN
+; 217  : 							/* GL 04/28/98, BATS#659  set up the offset for dictionary send_phone() call */
+; 218  : 							hit_tail=0;
+; 219  : 							for(i=0;pLts_t->comp_str[i];i++)
+; 220  : 							{
+; 221  : 								if (pLts_t->comp_str[i] == 'i' &&
+; 222  : 								    pLts_t->comp_str[i+1] == 'g' &&
+; 223  : 								    pLts_t->comp_str[i+2] == 0)
+; 224  : 									hit_tail = 1;
+; 225  : 								if (pLts_t->comp_str[i] == 'i' &&
+; 226  : 								    pLts_t->comp_str[i+1] == 'v' &&
+; 227  : 								    pLts_t->comp_str[i+2] == 0)
+; 228  : 									hit_tail = 3;
+; 229  : 							}
+; 230  : #endif
+; 231  : 							pLts_t->fc_struct[pLts_t->fc_index] = stp->fc;
+
+  00174	8b 4c 24 10	 mov	 ecx, DWORD PTR _si$[esp+156]
+  00178	8b 93 bc 08 00
+	00		 mov	 edx, DWORD PTR [ebx+2236]
+  0017e	8b 89 04 00 00
+	00		 mov	 ecx, DWORD PTR _suffix_table[ecx+4]
+  00184	89 8c 93 bc 04
+	00 00		 mov	 DWORD PTR [ebx+edx*4+1212], ecx
+
+; 232  : 							/* GL 11/05/1997 BATS#510 */
+; 233  : 							if(pKsd_t->udic_entries[pKsd_t->lang_curr] != 0)
+
+  0018b	8b 4c 24 18	 mov	 ecx, DWORD PTR _pKsd_t$[esp+156]
+  0018f	8b 91 b8 02 00
+	00		 mov	 edx, DWORD PTR [ecx+696]
+  00195	8b bc 91 a8 00
+	00 00		 mov	 edi, DWORD PTR [ecx+edx*4+168]
+  0019c	85 ff		 test	 edi, edi
+  0019e	74 16		 je	 SHORT $L71820
+
+; 234  : 							{
+; 235  : 								/* GL 06/19/1997  add one more argument */
+; 236  : #ifdef GERMAN
+; 237  : 								stat=ls_dict_ufind_word(phTTS,0,(short)(hit_tail & hit_suff)); // NAL warning removal
+; 238  : #else
+; 239  : 								stat=ls_dict_ufind_word(phTTS,0);
+
+  001a0	8b 84 24 a0 00
+	00 00		 mov	 eax, DWORD PTR _phTTS$[esp+152]
+  001a7	6a 00		 push	 0
+  001a9	50		 push	 eax
+  001aa	e8 00 00 00 00	 call	 _ls_dict_ufind_word
+  001af	83 c4 08	 add	 esp, 8
+  001b2	89 44 24 14	 mov	 DWORD PTR _stat$[esp+156], eax
+$L71820:
+
+; 240  : #endif
+; 241  : 							}
+; 242  : 
+; 243  : 							if(DICT_ENTRY !=0 && stat != HIT)
+
+  001b6	8b 4c 24 18	 mov	 ecx, DWORD PTR _pKsd_t$[esp+156]
+  001ba	8b 51 38	 mov	 edx, DWORD PTR [ecx+56]
+  001bd	85 d2		 test	 edx, edx
+  001bf	74 1d		 je	 SHORT $L71821
+  001c1	83 f8 01	 cmp	 eax, 1
+  001c4	0f 84 a5 00 00
+	00		 je	 $L71944
+
+; 244  : 							{
+; 245  : #ifdef GERMAN
+; 246  : 								stat = ls_dict_find_word(phTTS,(short)(hit_tail & hit_suff)); // NAL warning removal
+; 247  : #else
+; 248  : 								stat = ls_dict_find_word(phTTS);
+
+  001ca	8b 94 24 a0 00
+	00 00		 mov	 edx, DWORD PTR _phTTS$[esp+152]
+  001d1	52		 push	 edx
+  001d2	e8 00 00 00 00	 call	 _ls_dict_find_word
+  001d7	83 c4 04	 add	 esp, 4
+$L71959:
+  001da	89 44 24 14	 mov	 DWORD PTR _stat$[esp+156], eax
+$L71821:
+
+; 249  : #endif
+; 250  : 							}
+; 251  : 						}
+; 252  : 						if(stat == HIT)
+
+  001de	83 f8 01	 cmp	 eax, 1
+  001e1	0f 84 88 00 00
+	00		 je	 $L71944
+
+; 277  : 						}
+; 278  : 						else 
+; 279  : 						{
+; 280  : 							pLts_t->fc_struct[pLts_t->fc_index] = 0;
+
+  001e7	8b 8b bc 08 00
+	00		 mov	 ecx, DWORD PTR [ebx+2236]
+
+; 281  : 						}
+; 282  : 						for(i=0;(pLts_t->comp_str[i] = save_str[i]);i++);
+
+  001ed	8d bb 38 04 00
+	00		 lea	 edi, DWORD PTR [ebx+1080]
+  001f3	c7 84 8b bc 04
+	00 00 00 00 00
+	00		 mov	 DWORD PTR [ebx+ecx*4+1212], 0
+  001fe	8a 4c 24 1c	 mov	 cl, BYTE PTR _save_str$[esp+156]
+  00202	84 c9		 test	 cl, cl
+  00204	88 0f		 mov	 BYTE PTR [edi], cl
+  00206	74 0f		 je	 SHORT $L71831
+
+; 277  : 						}
+; 278  : 						else 
+; 279  : 						{
+; 280  : 							pLts_t->fc_struct[pLts_t->fc_index] = 0;
+
+  00208	8d 54 24 1c	 lea	 edx, DWORD PTR _save_str$[esp+156]
+$L71829:
+
+; 281  : 						}
+; 282  : 						for(i=0;(pLts_t->comp_str[i] = save_str[i]);i++);
+
+  0020c	8a 4a 01	 mov	 cl, BYTE PTR [edx+1]
+  0020f	42		 inc	 edx
+  00210	47		 inc	 edi
+  00211	84 c9		 test	 cl, cl
+  00213	88 0f		 mov	 BYTE PTR [edi], cl
+  00215	75 f5		 jne	 SHORT $L71829
+$L71831:
+
+; 283  : 					} /* if(*sp++ == SF_REPLACE_WITH) */
+; 284  : 					bp = sbp;
+
+  00217	8b cd		 mov	 ecx, ebp
+$L71810:
+
+; 176  : 			sbp = bp;
+; 177  : 
+; 178  : 			while(*sp != SF_END)
+
+  00219	8a 16		 mov	 dl, BYTE PTR [esi]
+  0021b	80 fa ff	 cmp	 dl, 255			; 000000ffH
+  0021e	0f 85 dd fe ff
+	ff		 jne	 $L71808
+$L71809:
+
+; 285  : 				} /* if(*sp++ == SF_REPLACE) */
+; 286  : 			} /* while(*sp != SF_END) */
+; 287  : 		} /* if(*sp++ == SF_STRIP) */
+; 288  : 		si = stp->next;
+
+  00224	8b 54 24 10	 mov	 edx, DWORD PTR _si$[esp+156]
+  00228	8b 8a 00 00 00
+	00		 mov	 ecx, DWORD PTR _suffix_table[edx]
+  0022e	81 f9 ff ff 00
+	00		 cmp	 ecx, 65535		; 0000ffffH
+  00234	89 4c 24 10	 mov	 DWORD PTR _si$[esp+156], ecx
+  00238	0f 85 29 fe ff
+	ff		 jne	 $L71794
+$L71795:
+  0023e	5f		 pop	 edi
+  0023f	5e		 pop	 esi
+  00240	5d		 pop	 ebp
+
+; 289  : #ifdef LSSUFFDEBUG
+; 290  : 			printf("suffix_find new si = %04X\n",si); 
+; 291  : #endif
+; 292  : 	}/*     while(si != 0xffff)*/
+; 293  : 	return(MISS);
+
+  00241	33 c0		 xor	 eax, eax
+  00243	5b		 pop	 ebx
+
+; 294  : }
+
+  00244	81 c4 8c 00 00
+	00		 add	 esp, 140		; 0000008cH
+  0024a	c3		 ret	 0
+$L71945:
+
+; 165  : 		{
+; 166  : 			pLts_t->fc_struct[pLts_t->fc_index] = stp->fc;
+
+  0024b	8b 4c 24 10	 mov	 ecx, DWORD PTR _si$[esp+156]
+  0024f	8b 83 bc 08 00
+	00		 mov	 eax, DWORD PTR [ebx+2236]
+  00255	5f		 pop	 edi
+  00256	5e		 pop	 esi
+  00257	8b 91 04 00 00
+	00		 mov	 edx, DWORD PTR _suffix_table[ecx+4]
+  0025d	5d		 pop	 ebp
+  0025e	89 94 83 bc 04
+	00 00		 mov	 DWORD PTR [ebx+eax*4+1212], edx
+
+; 289  : #ifdef LSSUFFDEBUG
+; 290  : 			printf("suffix_find new si = %04X\n",si); 
+; 291  : #endif
+; 292  : 	}/*     while(si != 0xffff)*/
+; 293  : 	return(MISS);
+
+  00265	33 c0		 xor	 eax, eax
+  00267	5b		 pop	 ebx
+
+; 294  : }
+
+  00268	81 c4 8c 00 00
+	00		 add	 esp, 140		; 0000008cH
+  0026e	c3		 ret	 0
+$L71944:
+
+; 253  : 						{
+; 254  : 							/* debug switch */
+; 255  : 							if (DT_DBG(LTS_DBG,0x004))
+
+  0026f	8b 44 24 18	 mov	 eax, DWORD PTR _pKsd_t$[esp+156]
+  00273	66 8b 80 40 06
+	00 00		 mov	 ax, WORD PTR [eax+1600]
+  0027a	f6 c4 40	 test	 ah, 64			; 00000040H
+  0027d	74 3d		 je	 SHORT $L71823
+  0027f	a8 04		 test	 al, 4
+  00281	74 39		 je	 SHORT $L71823
+
+; 256  : 							{
+; 257  : #ifndef MSDOS
+; 258  :                            	if(pKsd_t->dbglog)
+
+  00283	8b 4c 24 18	 mov	 ecx, DWORD PTR _pKsd_t$[esp+156]
+  00287	8b 81 44 06 00
+	00		 mov	 eax, DWORD PTR [ecx+1604]
+  0028d	85 c0		 test	 eax, eax
+  0028f	74 16		 je	 SHORT $L71824
+
+; 259  : 							fprintf((FILE *)pKsd_t->dbglog,"\nHITS(%s)",pLts_t->comp_str); /*mfg 04/24/98 added debug log support*/
+
+  00291	8d 93 38 04 00
+	00		 lea	 edx, DWORD PTR [ebx+1080]
+  00297	52		 push	 edx
+  00298	68 00 00 00 00	 push	 OFFSET FLAT:$SG71826
+  0029d	50		 push	 eax
+  0029e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  002a4	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71824:
+
+; 260  : #endif
+; 261  : 							printf("\nHITS(%s)",pLts_t->comp_str);
+
+  002a7	81 c3 38 04 00
+	00		 add	 ebx, 1080		; 00000438H
+  002ad	53		 push	 ebx
+  002ae	68 00 00 00 00	 push	 OFFSET FLAT:$SG71827
+  002b3	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  002b9	83 c4 08	 add	 esp, 8
+$L71823:
+
+; 262  : 							}
+; 263  : #ifdef GERMAN
+; 264  : 							/* GL 04/28/98, send "g" for -en, -er, -es, -e */
+; 265  : 							if ((hit_tail & hit_suff) != 0 && hit_tail == 1)
+; 266  : 							{
+; 267  : 								ls_util_send_phone(phTTS,GR_G);
+; 268  : 							}
+; 269  : 							/* GL 04/28/98, send "v" for -en, -er, -es, -e */
+; 270  : 							if ((hit_tail & hit_suff) != 0 && hit_tail == 3)
+; 271  : 							{
+; 272  : 								ls_util_send_phone(phTTS,GR_V);
+; 273  : 							}
+; 274  : #endif
+; 275  : 							ls_suff_append_pron(phTTS,sp);
+
+  002bc	8b 84 24 a0 00
+	00 00		 mov	 eax, DWORD PTR _phTTS$[esp+152]
+  002c3	56		 push	 esi
+  002c4	50		 push	 eax
+  002c5	e8 00 00 00 00	 call	 _ls_suff_append_pron
+  002ca	83 c4 08	 add	 esp, 8
+
+; 276  : 							return(HIT);
+
+  002cd	b8 01 00 00 00	 mov	 eax, 1
+  002d2	5f		 pop	 edi
+  002d3	5e		 pop	 esi
+  002d4	5d		 pop	 ebp
+  002d5	5b		 pop	 ebx
+
+; 294  : }
+
+  002d6	81 c4 8c 00 00
+	00		 add	 esp, 140		; 0000008cH
+  002dc	c3		 ret	 0
+_ls_suff_suffix_find ENDP
+_TEXT	ENDS
+EXTRN	_pfeat:BYTE
+EXTRN	_ls_util_send_phone:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pb$ = 12
+_ls_suff_append_pron PROC NEAR
+
+; 311  : {
+
+  002e0	56		 push	 esi
+
+; 312  : 	PLTS_T  pLts_t;
+; 313  : 
+; 314  : 	pLts_t = phTTS->pLTSThreadData;
+; 315  : 
+; 316  : 	while(*pb != SF_END)
+
+  002e1	8b 74 24 0c	 mov	 esi, DWORD PTR _pb$[esp]
+  002e5	57		 push	 edi
+  002e6	8b 7c 24 0c	 mov	 edi, DWORD PTR _phTTS$[esp+4]
+  002ea	8a 06		 mov	 al, BYTE PTR [esi]
+  002ec	8b 4f 10	 mov	 ecx, DWORD PTR [edi+16]
+  002ef	3c ff		 cmp	 al, 255			; 000000ffH
+  002f1	74 4d		 je	 SHORT $L71846
+$L71839:
+
+; 317  : 	{
+; 318  : 		if(*pb++ == SF_PHONES)
+
+  002f3	46		 inc	 esi
+  002f4	3c f8		 cmp	 al, 248			; 000000f8H
+  002f6	75 23		 jne	 SHORT $L71843
+
+; 319  : 	    {
+; 320  : 			/* GL 07/16/1997 for BATS#402 fix the documents problem */
+; 321  : 			/* break two *pb++ to two different statements */
+; 322  : 			int temp;
+; 323  : 			temp = *pb++ & pfeat[pLts_t->lphone];
+
+  002f8	0f bf 81 36 04
+	00 00		 movsx	 eax, WORD PTR [ecx+1078]
+  002ff	33 d2		 xor	 edx, edx
+  00301	66 8b 14 45 00
+	00 00 00	 mov	 dx, WORD PTR _pfeat[eax*2]
+  00309	8b c2		 mov	 eax, edx
+  0030b	33 d2		 xor	 edx, edx
+  0030d	8a 16		 mov	 dl, BYTE PTR [esi]
+  0030f	23 c2		 and	 eax, edx
+  00311	46		 inc	 esi
+
+; 324  : 			if(temp == *pb++)
+
+  00312	33 d2		 xor	 edx, edx
+  00314	8a 16		 mov	 dl, BYTE PTR [esi]
+  00316	46		 inc	 esi
+  00317	3b c2		 cmp	 eax, edx
+  00319	74 09		 je	 SHORT $L71962
+$L71843:
+
+; 312  : 	PLTS_T  pLts_t;
+; 313  : 
+; 314  : 	pLts_t = phTTS->pLTSThreadData;
+; 315  : 
+; 316  : 	while(*pb != SF_END)
+
+  0031b	8a 06		 mov	 al, BYTE PTR [esi]
+  0031d	3c ff		 cmp	 al, 255			; 000000ffH
+  0031f	75 d2		 jne	 SHORT $L71839
+  00321	5f		 pop	 edi
+  00322	5e		 pop	 esi
+
+; 328  : 				break;
+; 329  : 			}
+; 330  : 		}
+; 331  : 	}
+; 332  : }
+
+  00323	c3		 ret	 0
+$L71962:
+
+; 325  : 			{
+; 326  : 				while(*pb != SF_PHONES_END)
+
+  00324	8a 06		 mov	 al, BYTE PTR [esi]
+  00326	3c f7		 cmp	 al, 247			; 000000f7H
+  00328	74 16		 je	 SHORT $L71846
+$L71845:
+
+; 327  : 					ls_util_send_phone(phTTS,*pb++);
+
+  0032a	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0032f	46		 inc	 esi
+  00330	50		 push	 eax
+  00331	57		 push	 edi
+  00332	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00337	8a 06		 mov	 al, BYTE PTR [esi]
+  00339	83 c4 08	 add	 esp, 8
+  0033c	3c f7		 cmp	 al, 247			; 000000f7H
+  0033e	75 ea		 jne	 SHORT $L71845
+$L71846:
+  00340	5f		 pop	 edi
+  00341	5e		 pop	 esi
+
+; 328  : 				break;
+; 329  : 			}
+; 330  : 		}
+; 331  : 	}
+; 332  : }
+
+  00342	c3		 ret	 0
+_ls_suff_append_pron ENDP
+_TEXT	ENDS
+PUBLIC	_ls_suff_print_fc
+EXTRN	_TextToSpeechErrorHandler:NEAR
+EXTRN	__imp__EnterCriticalSection@4:NEAR
+EXTRN	__imp__LeaveCriticalSection@4:NEAR
+_DATA	SEGMENT
+	ORG $+2
+$SG71894 DB	0aH, '[:form ', 00H
+	ORG $+3
+$SG71897 DB	0aH, '[:form ', 00H
+	ORG $+3
+$SG71908 DB	' %s fc ', 00H
+$SG71911 DB	'%s fc ', 00H
+	ORG $+1
+$SG71915 DB	0aH, '  %d : unknown. ', 0aH, 00H
+	ORG $+1
+$SG71918 DB	0aH, '  %d : unknown. ', 0aH, 00H
+	ORG $+1
+$SG71922 DB	'/ ', 00H
+	ORG $+1
+$SG71925 DB	']', 0aH, 00H
+	ORG $+1
+$SG71928 DB	']', 0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_j$ = 8
+_pLts_t$ = -4
+_pKsd_t$ = -8
+_ls_suff_print_fc PROC NEAR
+
+; 451  : {
+
+  00350	83 ec 0c	 sub	 esp, 12			; 0000000cH
+  00353	53		 push	 ebx
+
+; 452  :   int i,j;
+; 453  :   S32 fc_mask;
+; 454  :   PLTS_T  pLts_t;
+; 455  :   PKSD_T  pKsd_t;
+; 456  :   pKsd_t = phTTS->pKernelShareData;
+
+  00354	8b 5c 24 14	 mov	 ebx, DWORD PTR _phTTS$[esp+12]
+  00358	56		 push	 esi
+  00359	57		 push	 edi
+
+; 457  :   pLts_t = phTTS->pLTSThreadData;
+
+  0035a	8b 7b 10	 mov	 edi, DWORD PTR [ebx+16]
+  0035d	8b 73 08	 mov	 esi, DWORD PTR [ebx+8]
+  00360	89 74 24 10	 mov	 DWORD PTR _pKsd_t$[esp+24], esi
+  00364	89 7c 24 14	 mov	 DWORD PTR _pLts_t$[esp+24], edi
+
+; 458  : 
+; 459  :   /* GL 09/29/98  don't display while there is no data */
+; 460  :   if (pLts_t->fc_index == 0) return;
+
+  00368	8b 87 bc 08 00
+	00		 mov	 eax, DWORD PTR [edi+2236]
+  0036e	85 c0		 test	 eax, eax
+  00370	0f 84 ce 01 00
+	00		 je	 $L71885
+
+; 461  : 
+; 462  : #ifdef WIN32
+; 463  :   EnterCriticalSection( phTTS->pcsLogFile );
+
+  00376	8b 83 c8 00 00
+	00		 mov	 eax, DWORD PTR [ebx+200]
+  0037c	55		 push	 ebp
+  0037d	50		 push	 eax
+  0037e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 464  : #endif
+; 465  : #if defined (__osf__) || defined (__linux__)
+; 466  :   /* GL 04/21/1997  change this as the latest OSF code */
+; 467  :   /* ToggleLogfileMutex( MUTEX_RESERVE ); */
+; 468  :   OP_LockMutex( phTTS->pcsLogFile );
+; 469  : #endif
+; 470  : 	
+; 471  :   
+; 472  : #ifndef MSDOS
+; 473  :   if (pKsd_t->dbglog)	/*mfg 04/28/98 added debug support*/
+
+  00384	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  0038a	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__fprintf
+  00390	85 c0		 test	 eax, eax
+  00392	74 0b		 je	 SHORT $L71892
+
+; 474  : 		fprintf((FILE *)pKsd_t->dbglog,"\n[:form ");
+
+  00394	68 00 00 00 00	 push	 OFFSET FLAT:$SG71894
+  00399	50		 push	 eax
+  0039a	ff d5		 call	 ebp
+  0039c	83 c4 08	 add	 esp, 8
+$L71892:
+
+; 475  : #endif
+; 476  : 
+; 477  : #ifdef PRINTFDEBUG
+; 478  :   printf("\n[:form ");
+; 479  : #endif
+; 480  :   if (pKsd_t->logflag & LOG_FORM_TYPES)
+
+  0039f	f6 86 c4 03 00
+	00 08		 test	 BYTE PTR [esi+964], 8
+  003a6	74 22		 je	 SHORT $L71896
+
+; 481  :   {
+; 482  : 	if ( fprintf( phTTS->pLogFile, "\n[:form ") < 0 )
+
+  003a8	8b 8b 9c 00 00
+	00		 mov	 ecx, DWORD PTR [ebx+156]
+  003ae	68 00 00 00 00	 push	 OFFSET FLAT:$SG71897
+  003b3	51		 push	 ecx
+  003b4	ff d5		 call	 ebp
+  003b6	83 c4 08	 add	 esp, 8
+  003b9	85 c0		 test	 eax, eax
+  003bb	7d 0d		 jge	 SHORT $L71896
+
+; 483  : 	{
+; 484  : #ifndef LDS_BUILD
+; 485  : 		TextToSpeechErrorHandler( phTTS,
+; 486  : 			      ERROR_WRITING_FILE,
+; 487  : 			      0L );
+
+  003bd	6a 00		 push	 0
+  003bf	6a 05		 push	 5
+  003c1	53		 push	 ebx
+  003c2	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  003c7	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71896:
+
+; 488  : #endif
+; 489  : 	}
+; 490  :   }
+; 491  :   for( j = 1; j <= pLts_t->fc_index; j++ )
+
+  003ca	8b 87 bc 08 00
+	00		 mov	 eax, DWORD PTR [edi+2236]
+  003d0	b9 01 00 00 00	 mov	 ecx, 1
+  003d5	3b c1		 cmp	 eax, ecx
+  003d7	89 4c 24 20	 mov	 DWORD PTR _j$[esp+24], ecx
+  003db	0f 8c 15 01 00
+	00		 jl	 $L71900
+  003e1	8d 97 c0 04 00
+	00		 lea	 edx, DWORD PTR [edi+1216]
+  003e7	89 54 24 10	 mov	 DWORD PTR -12+[esp+28], edx
+$L71898:
+
+; 492  :   {
+; 493  :     if( pLts_t->fc_struct[j] )
+
+  003eb	8b 44 24 10	 mov	 eax, DWORD PTR -12+[esp+28]
+  003ef	83 38 00	 cmp	 DWORD PTR [eax], 0
+  003f2	74 77		 je	 SHORT $L71901
+
+; 494  :     {
+; 495  :       fc_mask = 1;
+
+  003f4	bf 01 00 00 00	 mov	 edi, 1
+  003f9	be 00 00 00 00	 mov	 esi, OFFSET FLAT:_form_class_strings
+$L71902:
+
+; 496  : 
+; 497  :       for( i = 0; i < 32; i++ )
+; 498  :       {
+; 499  : 		if( pLts_t->fc_struct[j] & fc_mask )
+
+  003fe	8b 4c 24 10	 mov	 ecx, DWORD PTR -12+[esp+28]
+  00402	85 39		 test	 DWORD PTR [ecx], edi
+  00404	74 4e		 je	 SHORT $L71910
+
+; 500  : 		{
+; 501  : #ifdef PRINTFDEBUG
+; 502  : 			printf("%s fc ",form_class_strings[i] );
+; 503  : #endif
+; 504  : #ifndef MSDOS
+; 505  : 			if (pKsd_t->dbglog)	/*mfg 04/28/98 added debug support*/
+
+  00406	8b 54 24 14	 mov	 edx, DWORD PTR _pKsd_t$[esp+28]
+  0040a	8b 82 44 06 00
+	00		 mov	 eax, DWORD PTR [edx+1604]
+  00410	85 c0		 test	 eax, eax
+  00412	74 0e		 je	 SHORT $L71906
+
+; 506  : 				fprintf((FILE *)pKsd_t->dbglog," %s fc ",form_class_strings[i] );
+
+  00414	8b 0e		 mov	 ecx, DWORD PTR [esi]
+  00416	51		 push	 ecx
+  00417	68 00 00 00 00	 push	 OFFSET FLAT:$SG71908
+  0041c	50		 push	 eax
+  0041d	ff d5		 call	 ebp
+  0041f	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71906:
+
+; 507  : #endif
+; 508  : 
+; 509  : 			if (pKsd_t->logflag & LOG_FORM_TYPES)
+
+  00422	8b 54 24 14	 mov	 edx, DWORD PTR _pKsd_t$[esp+28]
+  00426	f6 82 c4 03 00
+	00 08		 test	 BYTE PTR [edx+964], 8
+  0042d	74 25		 je	 SHORT $L71910
+
+; 510  : 			{
+; 511  : 				if ( fprintf( phTTS->pLogFile, "%s fc ",form_class_strings[i] ) < 0 )
+
+  0042f	8b 06		 mov	 eax, DWORD PTR [esi]
+  00431	8b 8b 9c 00 00
+	00		 mov	 ecx, DWORD PTR [ebx+156]
+  00437	50		 push	 eax
+  00438	68 00 00 00 00	 push	 OFFSET FLAT:$SG71911
+  0043d	51		 push	 ecx
+  0043e	ff d5		 call	 ebp
+  00440	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00443	85 c0		 test	 eax, eax
+  00445	7d 0d		 jge	 SHORT $L71910
+
+; 512  : 				{
+; 513  : #ifndef LDS_BUILD
+; 514  : 					TextToSpeechErrorHandler( phTTS,
+; 515  : 				      ERROR_WRITING_FILE,
+; 516  : 				      0L );
+
+  00447	6a 00		 push	 0
+  00449	6a 05		 push	 5
+  0044b	53		 push	 ebx
+  0044c	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  00451	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71910:
+  00454	83 c6 04	 add	 esi, 4
+
+; 517  : #endif
+; 518  : 				}
+; 519  : 			}
+; 520  : 		}
+; 521  : 		fc_mask = fc_mask << 1;
+
+  00457	d1 e7		 shl	 edi, 1
+  00459	81 fe 80 00 00
+	00		 cmp	 esi, OFFSET FLAT:_form_class_strings+128
+  0045f	7c 9d		 jl	 SHORT $L71902
+
+; 522  :       }
+; 523  :     }
+; 524  :     else
+
+  00461	8b 74 24 14	 mov	 esi, DWORD PTR _pKsd_t$[esp+28]
+  00465	8b 7c 24 18	 mov	 edi, DWORD PTR _pLts_t$[esp+28]
+  00469	eb 46		 jmp	 SHORT $L71917
+$L71901:
+
+; 525  :     {
+; 526  : #ifdef PRINTFDEBUG
+; 527  :       printf("\n  %d : unknown. \n",j);
+; 528  : #endif
+; 529  : #ifndef MSDOS
+; 530  : 	  if (pKsd_t->dbglog)	/*mfg 04/28/98 added debug support*/
+
+  0046b	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  00471	85 c0		 test	 eax, eax
+  00473	74 0c		 je	 SHORT $L71913
+
+; 531  : 		fprintf((FILE *)pKsd_t->dbglog,"\n  %d : unknown. \n",j);
+
+  00475	51		 push	 ecx
+  00476	68 00 00 00 00	 push	 OFFSET FLAT:$SG71915
+  0047b	50		 push	 eax
+  0047c	ff d5		 call	 ebp
+  0047e	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71913:
+
+; 532  : #endif
+; 533  : 	  if (pKsd_t->logflag & LOG_FORM_TYPES)
+
+  00481	f6 86 c4 03 00
+	00 08		 test	 BYTE PTR [esi+964], 8
+  00488	74 27		 je	 SHORT $L71917
+
+; 534  : 	  {
+; 535  : 		if ( fprintf( phTTS->pLogFile, "\n  %d : unknown. \n",j) < 0 )
+
+  0048a	8b 54 24 20	 mov	 edx, DWORD PTR _j$[esp+24]
+  0048e	8b 83 9c 00 00
+	00		 mov	 eax, DWORD PTR [ebx+156]
+  00494	52		 push	 edx
+  00495	68 00 00 00 00	 push	 OFFSET FLAT:$SG71918
+  0049a	50		 push	 eax
+  0049b	ff d5		 call	 ebp
+  0049d	83 c4 0c	 add	 esp, 12			; 0000000cH
+  004a0	85 c0		 test	 eax, eax
+  004a2	7d 0d		 jge	 SHORT $L71917
+
+; 536  : 		{
+; 537  : #ifndef LDS_BUILD
+; 538  : 			TextToSpeechErrorHandler( phTTS,
+; 539  : 				  ERROR_WRITING_FILE,
+; 540  : 				  0L );
+
+  004a4	6a 00		 push	 0
+  004a6	6a 05		 push	 5
+  004a8	53		 push	 ebx
+  004a9	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  004ae	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71917:
+
+; 541  : #endif
+; 542  : 		}
+; 543  : 	  }
+; 544  :     }
+; 545  : 	if (j < pLts_t->fc_index)
+
+  004b1	8b 4c 24 20	 mov	 ecx, DWORD PTR _j$[esp+24]
+  004b5	8b 87 bc 08 00
+	00		 mov	 eax, DWORD PTR [edi+2236]
+  004bb	3b c8		 cmp	 ecx, eax
+  004bd	7d 15		 jge	 SHORT $L71899
+
+; 546  : 	{
+; 547  : #ifdef PRINTFDEBUG
+; 548  : 		printf("/ ");
+; 549  : #endif
+; 550  : #ifndef MSDOS
+; 551  : 		if (pKsd_t->dbglog)	/*mfg 04/28/98 added debug support*/
+
+  004bf	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  004c5	85 c0		 test	 eax, eax
+  004c7	74 0b		 je	 SHORT $L71899
+
+; 552  : 			fprintf((FILE *)pKsd_t->dbglog,"/ ");
+
+  004c9	68 00 00 00 00	 push	 OFFSET FLAT:$SG71922
+  004ce	50		 push	 eax
+  004cf	ff d5		 call	 ebp
+  004d1	83 c4 08	 add	 esp, 8
+$L71899:
+  004d4	8b 4c 24 20	 mov	 ecx, DWORD PTR _j$[esp+24]
+  004d8	8b 54 24 10	 mov	 edx, DWORD PTR -12+[esp+28]
+  004dc	8b 87 bc 08 00
+	00		 mov	 eax, DWORD PTR [edi+2236]
+  004e2	41		 inc	 ecx
+  004e3	83 c2 04	 add	 edx, 4
+  004e6	3b c8		 cmp	 ecx, eax
+  004e8	89 4c 24 20	 mov	 DWORD PTR _j$[esp+24], ecx
+  004ec	89 54 24 10	 mov	 DWORD PTR -12+[esp+28], edx
+  004f0	0f 8e f5 fe ff
+	ff		 jle	 $L71898
+$L71900:
+
+; 553  : #endif
+; 554  : 	}
+; 555  : 
+; 556  :   }
+; 557  : 
+; 558  : #ifdef PRINTFDEBUG
+; 559  :   printf("]\n");
+; 560  : #endif
+; 561  : #ifndef MSDOS
+; 562  : 	if (pKsd_t->dbglog)	/*mfg 04/28/98 added debug support*/
+
+  004f6	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  004fc	85 c0		 test	 eax, eax
+  004fe	74 0b		 je	 SHORT $L71923
+
+; 563  : 		fprintf((FILE *)pKsd_t->dbglog,"]\n");
+
+  00500	68 00 00 00 00	 push	 OFFSET FLAT:$SG71925
+  00505	50		 push	 eax
+  00506	ff d5		 call	 ebp
+  00508	83 c4 08	 add	 esp, 8
+$L71923:
+
+; 564  : #endif
+; 565  : 
+; 566  :   if (pKsd_t->logflag & LOG_FORM_TYPES)
+
+  0050b	f6 86 c4 03 00
+	00 08		 test	 BYTE PTR [esi+964], 8
+  00512	74 22		 je	 SHORT $L71927
+
+; 567  :   {
+; 568  : 	if ( fprintf( phTTS->pLogFile, "]\n") < 0 )
+
+  00514	8b 93 9c 00 00
+	00		 mov	 edx, DWORD PTR [ebx+156]
+  0051a	68 00 00 00 00	 push	 OFFSET FLAT:$SG71928
+  0051f	52		 push	 edx
+  00520	ff d5		 call	 ebp
+  00522	83 c4 08	 add	 esp, 8
+  00525	85 c0		 test	 eax, eax
+  00527	7d 0d		 jge	 SHORT $L71927
+
+; 569  : 	{
+; 570  : #ifndef LDS_BUILD
+; 571  : 		TextToSpeechErrorHandler( phTTS,
+; 572  : 			      ERROR_WRITING_FILE,
+; 573  : 			      0L );
+
+  00529	6a 00		 push	 0
+  0052b	6a 05		 push	 5
+  0052d	53		 push	 ebx
+  0052e	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  00533	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71927:
+
+; 574  : #endif
+; 575  : 	}
+; 576  :   }
+; 577  : 
+; 578  : #ifdef WIN32
+; 579  :   LeaveCriticalSection( phTTS->pcsLogFile );
+
+  00536	8b 83 c8 00 00
+	00		 mov	 eax, DWORD PTR [ebx+200]
+  0053c	50		 push	 eax
+  0053d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00543	5d		 pop	 ebp
+$L71885:
+  00544	5f		 pop	 edi
+  00545	5e		 pop	 esi
+  00546	5b		 pop	 ebx
+
+; 580  : #endif
+; 581  : #if defined (__osf__) || defined (__linux__)
+; 582  :   /* GL 04/21/1997  change this as the latest OSF code */
+; 583  :   /*ToggleLogfileMutex( MUTEX_RELEASE );*/
+; 584  :   OP_UnlockMutex( phTTS->pcsLogFile );
+; 585  : #endif
+; 586  : 
+; 587  : }
+
+  00547	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0054a	c3		 ret	 0
+_ls_suff_print_fc ENDP
+_TEXT	ENDS
+END

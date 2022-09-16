@@ -1,0 +1,163 @@
+	TITLE	D:\work\Product\dapi\src\Cmd\Cmd_init.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_cmd_init
+EXTRN	_cm_cmd_reset_comm:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_bResetAll$ = 12
+_cmd_init PROC NEAR
+
+; 68   : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+
+  00000	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00004	56		 push	 esi
+  00005	57		 push	 edi
+
+; 69   : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 70   : 
+; 71   : 	cm_cmd_reset_comm( pCmd_t, STATE_NORMAL );
+
+  00006	6a 00		 push	 0
+  00008	8b 70 0c	 mov	 esi, DWORD PTR [eax+12]
+  0000b	8b 78 08	 mov	 edi, DWORD PTR [eax+8]
+  0000e	56		 push	 esi
+  0000f	e8 00 00 00 00	 call	 _cm_cmd_reset_comm
+
+; 72   : 
+; 73   : 	if ( bResetAll )
+
+  00014	8b 44 24 18	 mov	 eax, DWORD PTR _bResetAll$[esp+12]
+  00018	83 c4 08	 add	 esp, 8
+  0001b	85 c0		 test	 eax, eax
+  0001d	74 32		 je	 SHORT $L71253
+
+; 74   : 	{
+; 75   : 		/*esc_seq->type = 0;  */           /* MVP MI */
+; 76   : 		pKsd_t->phoneme_mode = PHONEME_OFF | PHONEME_SPEAK;
+
+  0001f	c7 87 d0 03 00
+	00 05 00 00 00	 mov	 DWORD PTR [edi+976], 5
+
+; 77   : 		pCmd_t->error_mode = ERROR_speak;
+
+  00029	c7 86 08 05 00
+	00 03 00 00 00	 mov	 DWORD PTR [esi+1288], 3
+
+; 78   : 		pCmd_t->punct_mode = PUNCT_some;
+
+  00033	c7 86 0c 05 00
+	00 01 00 00 00	 mov	 DWORD PTR [esi+1292], 1
+
+; 79   : 		pCmd_t->last_punct = 0;
+
+  0003d	c7 86 14 05 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+1300], 0
+
+; 80   : 		/* timeout = 0;    MVP MI */
+; 81   : 		pKsd_t->pitch_delta = 35;
+
+  00047	c7 87 18 04 00
+	00 23 00 00 00	 mov	 DWORD PTR [edi+1048], 35 ; 00000023H
+$L71253:
+  00051	5f		 pop	 edi
+  00052	5e		 pop	 esi
+
+; 82   : 	}
+; 83   :   /*    return;*/
+; 84   : }
+
+  00053	c3		 ret	 0
+_cmd_init ENDP
+_TEXT	ENDS
+PUBLIC	_FreeCMDThreadMemory
+EXTRN	__imp__free:NEAR
+_TEXT	SEGMENT
+_pCmd_t$ = 8
+_FreeCMDThreadMemory PROC NEAR
+
+; 112  : {
+
+  00060	56		 push	 esi
+
+; 113  : 	/* Free the esc_seq pointer */
+; 114  : 	if(pCmd_t->esc_seq)
+
+  00061	8b 74 24 08	 mov	 esi, DWORD PTR _pCmd_t$[esp]
+  00065	57		 push	 edi
+  00066	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+  0006c	8b 86 24 05 00
+	00		 mov	 eax, DWORD PTR [esi+1316]
+  00072	85 c0		 test	 eax, eax
+  00074	74 06		 je	 SHORT $L71258
+
+; 115  : 		free(pCmd_t->esc_seq);
+
+  00076	50		 push	 eax
+  00077	ff d7		 call	 edi
+  00079	83 c4 04	 add	 esp, 4
+$L71258:
+
+; 116  : 	pCmd_t->esc_seq = NULL;
+; 117  : 
+; 118  : 	/* Free the cm pointer */
+; 119  : 	if(pCmd_t->cm)
+
+  0007c	8b 86 ec 02 00
+	00		 mov	 eax, DWORD PTR [esi+748]
+  00082	c7 86 24 05 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+1316], 0
+  0008c	85 c0		 test	 eax, eax
+  0008e	74 06		 je	 SHORT $L71260
+
+; 120  : 		free(pCmd_t->cm);
+
+  00090	50		 push	 eax
+  00091	ff d7		 call	 edi
+  00093	83 c4 04	 add	 esp, 4
+$L71260:
+
+; 121  : 	pCmd_t->cm = NULL;
+; 122  : 
+; 123  : 	/* Free the structure pointer */
+; 124  : 	if(pCmd_t)
+
+  00096	85 f6		 test	 esi, esi
+  00098	c7 86 ec 02 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+748], 0
+  000a2	74 06		 je	 SHORT $L71262
+
+; 125  : 		free(pCmd_t);
+
+  000a4	56		 push	 esi
+  000a5	ff d7		 call	 edi
+  000a7	83 c4 04	 add	 esp, 4
+$L71262:
+  000aa	5f		 pop	 edi
+  000ab	5e		 pop	 esi
+
+; 126  : 	pCmd_t = NULL;
+; 127  : 
+; 128  : }
+
+  000ac	c3		 ret	 0
+_FreeCMDThreadMemory ENDP
+_TEXT	ENDS
+END

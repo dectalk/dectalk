@@ -1,0 +1,635 @@
+<HTML>
+<HEAD>
+<META NAME="generator" CONTENT="RoboHELP by eHelp Corporation www.ehelp.com">
+<title>DECtalk Software Help</title>
+<!-- version 4.00.00 -->
+<META HTTP-EQUIV="content-type" CONTENT="text/html; charset=iso-8859-1">
+</HEAD>
+<SCRIPT language="JavaScript">
+<!--
+
+var gArrayCsh = new Array();
+
+var gbstrWindowOption = "";
+var gbstrURL = "";
+
+function CshEntityItem(strAliasId, nTopicNum, strUrl) 
+{
+    this.strAliasId = strAliasId;
+    this.nTopicNum = nTopicNum;
+    this.strUrl = strUrl;
+}
+
+
+//Try to get to topic number from hash string
+function GetTopicNumberAuto(strMayBeNumber)
+{
+   var nNum = -1;
+   if (strMayBeNumber.length >= 1)
+   {
+		var strTmp = strMayBeNumber;
+		var iEnd = strTmp.length;
+		for (var i=0; i<iEnd; i++)
+		{
+			  var ch = strTmp.charAt(i);
+			  if (!((ch == "0") || (ch == "1") ||
+			        (ch == "2") || (ch == "3") ||
+			        (ch == "4") || (ch == "5") ||
+			        (ch == "6") || (ch == "7") ||
+			        (ch == "8") || (ch == "9")))
+			      return GetTopicNumberById(strTmp);
+		}
+		nNum = parseInt(strTmp);
+   }
+   return nNum;
+}
+
+function GetTopicNumber(strHashString)
+{
+	var nTopicEndPos = strHashString.indexOf(',')
+	if (nTopicEndPos == -1) { // no window option.
+		return GetTopicNumberOnly(strHashString);
+	}
+	else {
+		gbstrWindowOption = strHashString.substring(nTopicEndPos + 1, strHashString.length);
+		return GetTopicNumberOnly(strHashString.substring(0, nTopicEndPos));		
+	}
+}
+
+function GetTopicNumberOnly(strTopicString)
+{
+	var nEqualPos = strTopicString.indexOf('=');
+	if (nEqualPos == -1) {
+		return GetTopicNumberAuto(strTopicString);
+	}
+	else {
+		var strValue=strTopicString.substring(nEqualPos + 1, strTopicString.length);
+		if (strTopicString.toLowerCase().indexOf("topicnumber") == 0) {
+			return parseInt(strValue);
+		} else if (strTopicString.toLowerCase().indexOf("topicid") == 0) {
+			return GetTopicNumberById(strValue);
+		} else if (strTopicString.toLowerCase().indexOf("remoteurl") == 0) {
+			gbstrURL = strValue;
+			return -1;
+		}
+
+	}
+}
+
+//Find HomePage of the WebHelp system
+function FindHomePage()
+{
+   //Home page for "XXX_csh.html" or "XXX_csh.htm"
+   //should be "XXX.html" or "XXX.htm"
+
+   var strTmp = location.toString();
+   var nPos = strTmp.indexOf("#");
+   if (nPos != -1)
+   {
+      strHomePage = strTmp.substring(0, nPos);
+   }
+   else
+   {
+      strHomePage = strTmp;
+   }
+   var nPos1 = strHomePage.indexOf("_csh.html");
+   var nPos = strHomePage.indexOf("_csh.htm");
+   if (nPos != -1)
+   {
+      strHomePage = strHomePage.substring(0,nPos);
+      if (nPos1 != -1)
+        strHomePage += ".html";
+      else
+        strHomePage += ".htm";
+   }
+   RedirectTo(strHomePage);
+}
+
+//Redirect page to...
+function RedirectTo(strUrl)
+{
+//   alert(strUrl);
+//   alert(gbstrWindowOption);
+   if (gbstrWindowOption.length != 0) {
+		var wnd = window.open(strUrl, "HelpStub", gbstrWindowOption);
+		// close current window and rename the stub window to current window.
+		wnd.focus();
+		close();
+   }
+   else {
+	document.location.href = strUrl;
+	window.focus();
+  }
+}
+
+//Prompt the user that we can not find...
+function FailToFind(strMsg)
+{
+    //alert(strMsg);
+    FindHomePage();
+}
+
+//Find topic by topic number (defined in h file)
+function FindTopicByTopicNum(nTopicNum)
+{
+   var i = 0;
+   var iEnd = gArrayCsh.length;
+   for (i=0; i<iEnd; i++)
+   {
+      if (gArrayCsh[i].nTopicNum == nTopicNum)
+      {
+	     RedirectTo(gArrayCsh[i].strUrl);
+	     return true;
+	  }
+   }
+   FailToFind("Fail to find topic assocaite with topic number: " + nTopicNum);
+   return false;
+}
+
+//Find topic by topic id (alias id defined in ali file)
+function GetTopicNumberById(strTopicId)
+{
+   var i = 0;
+   var iEnd = gArrayCsh.length;
+   for (i=0; i<iEnd; i++)
+   {
+	if (gArrayCsh[i].strAliasId == strTopicId)
+	{
+	    return gArrayCsh[i].nTopicNum;
+	 }
+   }
+   gbstrURL = strTopicId;
+   return -1;
+}
+
+//Set Context-sensitive help entity...
+function SetCsh(n, strAliasId, nTopicNum, strUrl)
+{
+   gArrayCsh[n] = new CshEntityItem(strAliasId,nTopicNum,strUrl);
+}
+
+
+//Assign the gArrayCsh array
+//SetCsh(i,TopicId,nTopic,strUrl);
+SetCsh(0,"IDH_MAIN_INDEX",1,"idh_main_index.htm");
+SetCsh(1,"What_s_New_in_DECtalk_V4_61",2,"what_s_new_in_dectalk_v4_61.htm");
+SetCsh(2,"What_s_New_in_DECtalk_Software_V4.6",4,"what_s_new_in_dectalk_software_v4_6.htm");
+SetCsh(3,"Introduction_to_DECtalk_Software",1001,"introduction_to_dectalk_software.htm");
+SetCsh(4,"Features_and_Functions",1002,"features_and_functions.htm");
+SetCsh(5,"Components",1003,"components.htm");
+SetCsh(6,"Sample_Program_Applet",1004,"sample_program_applet.htm");
+SetCsh(7,"Speak_Program_Applet",1005,"speak_program_applet.htm");
+SetCsh(8,"Text_to_Speech_DDE_Server",1006,"text_to_speech_dde_server.htm");
+SetCsh(9,"Programming_Aids",1007,"programming_aids.htm");
+SetCsh(10,"DECtalk_Software_APIs",1008,"dectalk_software_apis.htm");
+SetCsh(11,"Voice_Control_Commands",1009,"voice_control_commands.htm");
+SetCsh(12,"DECtalk_Software_Dictionaries",1010,"dectalk_software_dictionaries.htm");
+SetCsh(13,"Using_the_Components",1011,"using_the_components.htm");
+SetCsh(14,"Application_Programmer",1012,"application_programmer.htm");
+SetCsh(15,"General_User",1013,"general_user.htm");
+SetCsh(16,"How_It_Works",1014,"how_it_works.htm");
+SetCsh(17,"IDH_NT_APPS_Using_the_Program_Applets_to_Learn_DECtalk_Software_Basics",1015,"idh_nt_apps_using_the_program_applets_to_learn_dectalk_software_basics.htm");
+SetCsh(18,"IDH_NT_APPS_About_the_Sample_Applet",1016,"idh_nt_apps_about_the_sample_applet.htm");
+SetCsh(19,"IDH_NT_APPS_Starting_the_Sample_Applet_and_Opening_a_Text_File",1017,"idh_nt_apps_starting_the_sample_applet_and_opening_a_text_file.htm");
+SetCsh(20,"IDH_NT_APPS_To_start_the_Sample_Applet_and_open_a_text_file",1018,"idh_nt_apps_to_start_the_sample_applet_and_open_a_text_file.htm");
+SetCsh(21,"IDH_NT_APPS_To_speak_a_file_using_drag_and_drop",1019,"idh_nt_apps_to_speak_a_file_using_drag_and_drop.htm");
+SetCsh(22,"IDH_NT_APPS_Inserting_Voice_Control_Commands_Syntax_Rules",1020,"idh_nt_apps_inserting_voice_control_commands_syntax_rules.htm");
+SetCsh(23,"Additional_Syntax_Rules",1021,"additional_syntax_rules.htm");
+SetCsh(24,"IDH_NT_APPS_Changing_Voice_Selections",1022,"idh_nt_apps_changing_voice_selections.htm");
+SetCsh(25,"IDH_NT_APPS_DECtalk_Voices_and_Their_Associated_Values",1023,"idh_nt_apps_dectalk_voices_and_their_associated_values.htm");
+SetCsh(26,"IDH_NT_APPS_Changing_DECtalk_Software_Voices",1024,"idh_nt_apps_changing_dectalk_software_voices.htm");
+SetCsh(27,"IDH_NT_APPS_To_change_voices_using_the_Speaking_Voice_Menu",1025,"idh_nt_apps_to_change_voices_using_the_speaking_voice_menu.htm");
+SetCsh(28,"IDH_NT_APPS_To_Change_Voices_Using_Voice_Control_Commands",1026,"idh_nt_apps_to_change_voices_using_voice_control_commands.htm");
+SetCsh(29,"IDH_NT_APPS_Editing_a_Text_File_and_Changing_the_Speaking_Rate",1027,"idh_nt_apps_editing_a_text_file_and_changing_the_speaking_rate.htm");
+SetCsh(30,"IDH_NT_APPS_To_edit_a_text_file_from_the_Sample_Applet",1028,"idh_nt_apps_to_edit_a_text_file_from_the_sample_applet.htm");
+SetCsh(31,"IDH_NT_APPS_To_play_selected_text_from_the_Sample_Applet",1029,"idh_nt_apps_to_play_selected_text_from_the_sample_applet.htm");
+SetCsh(32,"IDH_NT_APPS_To_change_the_speaking_rate_from_the_Sample_Applet",1030,"idh_nt_apps_to_change_the_speaking_rate_from_the_sample_applet.htm");
+SetCsh(33,"IDH_NT_APPS_Components_of_the_User_Dictionary_Build_Tool",1031,"idh_nt_apps_components_of_the_user_dictionary_build_tool.htm");
+SetCsh(34,"IDH_NT_APPS_Overview_of_the_User_Dictionary_Build_Tool",1032,"idh_nt_apps_overview_of_the_user_dictionary_build_tool.htm");
+SetCsh(35,"IDH_NT_APPS_Building_a_User_Dictionary",1033,"idh_nt_apps_building_a_user_dictionary.htm");
+SetCsh(36,"IDH_NT_APPS_To_build_a_User_Dictionary",1034,"idh_nt_apps_to_build_a_user_dictionary.htm");
+SetCsh(37,"IDH_NT_APPS_Saving_and_Compiling_the_Dictionary",1035,"idh_nt_apps_saving_and_compiling_the_dictionary.htm");
+SetCsh(38,"IDH_NT_APPS_To_save_and_compile_the_User_Dictionary",1036,"idh_nt_apps_to_save_and_compile_the_user_dictionary.htm");
+SetCsh(39,"IDH_NT_APPS_Using_the_DECtalk_Software_Speak_Applet1",1037,"idh_nt_apps_using_the_dectalk_software_speak_applet1.htm");
+SetCsh(40,"IDH_NT_APPS_Using_the_DECtalk_Software_Speak_Applet",1038,"idh_nt_apps_using_the_dectalk_software_speak_applet.htm");
+SetCsh(41,"IDH_NT_APPS_To_edit_and_play_text_from_the_DECtalk_Speak_Applet",1039,"idh_nt_apps_to_edit_and_play_text_from_the_dectalk_speak_applet.htm");
+SetCsh(42,"IDH_NT_APPS_To_change_the_speaking_rate_from_the_DECtalk_Speak_Applet",1040,"idh_nt_apps_to_change_the_speaking_rate_from_the_dectalk_speak_applet.htm");
+SetCsh(43,"IDH_NT_APPS_To_load_a_User_Dictionary_from_the_DECtalk_Speak_Applet",1041,"idh_nt_apps_to_load_a_user_dictionary_from_the_dectalk_speak_applet.htm");
+SetCsh(44,"IDH_NT_APPS_To_save_text_as_a_WAVE_file_from_the_DECtalk_Speak_Application",1042,"idh_nt_apps_to_save_text_as_a_wave_file_from_the_dectalk_speak_application.htm");
+SetCsh(45,"IDH_NT_APPS_Highlighting_Text_as_it_is_Spoken_Illustrated",1043,"idh_nt_apps_highlighting_text_as_it_is_spoken_illustrated.htm");
+SetCsh(46,"IDH_NT_APPS_To_highlight_text_as_it_is_spoken",1044,"idh_nt_apps_to_highlight_text_as_it_is_spoken.htm");
+SetCsh(47,"IDH_NT_APPS_Running_DECtalk_Software_from_Other_Applications",1045,"idh_nt_apps_running_dectalk_software_from_other_applications.htm");
+SetCsh(48,"IDH_NT_APPS_Creating_a_Word_Macro",1046,"idh_nt_apps_creating_a_word_macro.htm");
+SetCsh(49,"IDH_NT_APPS_To_create_a_Word_Macro_and_associate_it_with_a_file_or_template",1047,"idh_nt_apps_to_create_a_word_macro_and_associate_it_with_a_file_or_template.htm");
+SetCsh(50,"IDH_NT_APPS_Associating_the_Macro_with_aTool_Bar_Button",1048,"idh_nt_apps_associating_the_macro_with_atool_bar_button.htm");
+SetCsh(51,"IDH_NT_APPS_To_associate_a_macro_with_a_tool_bar_button",1049,"idh_nt_apps_to_associate_a_macro_with_a_tool_bar_button.htm");
+SetCsh(52,"IDH_NT_APPS_Launching_and_Configuring_the_DECtalk_TTS_Server",1050,"idh_nt_apps_launching_and_configuring_the_dectalk_tts_server.htm");
+SetCsh(53,"IDH_NT_APPS_To_launch_and_configure_the_DECtalk_Software_Text_to_Speech_Server",1051,"idh_nt_apps_to_launch_and_configure_the_dectalk_software_text_to_speech_server.htm");
+SetCsh(54,"IDH_NT_APPS_Speaking_Text_with_the_DECtalk_Software_TTS_Server",1052,"idh_nt_apps_speaking_text_with_the_dectalk_software_tts_server.htm");
+SetCsh(55,"IDH_NT_APPS_To_speak_text_with_the_DECtalk_TTS_Server",1053,"idh_nt_apps_to_speak_text_with_the_dectalk_tts_server.htm");
+SetCsh(56,"IDH_NT_APPS_Using_the_Say_Command_Line_Applet",1054,"idh_nt_apps_using_the_say_command_line_applet.htm");
+SetCsh(57,"IDH_NT_APPS_Help_Options",1055,"idh_nt_apps_help_options.htm");
+SetCsh(58,"IDH_NT_APPS_Output_Options",1056,"idh_nt_apps_output_options.htm");
+SetCsh(59,"IDH_NT_APPS_Input_Options",1057,"idh_nt_apps_input_options.htm");
+SetCsh(60,"IDH_NT_APPS_Dictionary_Options",1058,"idh_nt_apps_dictionary_options.htm");
+SetCsh(61,"IDH_NT_APPS_allophone",1059,"idh_nt_apps_allophone.htm");
+SetCsh(62,"IDH_NT_APPS_applet",1060,"idh_nt_apps_applet.htm");
+SetCsh(63,"IDH_NT_APPS_arpabet",1061,"idh_nt_apps_arpabet.htm");
+SetCsh(64,"IDH_NT_APPS_clause_boundary",1062,"idh_nt_apps_clause_boundary.htm");
+SetCsh(65,"IDH_NT_APPS_clause_mode",1063,"idh_nt_apps_clause_mode.htm");
+SetCsh(66,"IDH_NT_APPS_clause_terminator",1064,"idh_nt_apps_clause_terminator.htm");
+SetCsh(67,"IDH_NT_APPS_comma_pause",1065,"idh_nt_apps_comma_pause.htm");
+SetCsh(68,"IDH_NT_APPS__DIC_file",1066,"idh_nt_apps__dic_file.htm");
+SetCsh(69,"IDH_NT_APPS_emphatic_stress",1067,"idh_nt_apps_emphatic_stress.htm");
+SetCsh(70,"IDH_NT_APPS_falling_intonation",1068,"idh_nt_apps_falling_intonation.htm");
+SetCsh(71,"IDH_NT_APPS_flush",1069,"idh_nt_apps_flush.htm");
+SetCsh(72,"IDH_NT_APPS_heuristic",1070,"idh_nt_apps_heuristic.htm");
+SetCsh(73,"IDH_NT_APPS_homograph",1071,"idh_nt_apps_homograph.htm");
+SetCsh(74,"IDH_NT_APPS_index_marker_flag",1072,"idh_nt_apps_index_marker_flag.htm");
+SetCsh(75,"IDH_NT_APPS_intonation",1073,"idh_nt_apps_intonation.htm");
+SetCsh(76,"IDH_NT_APPS_letter_mode",1074,"idh_nt_apps_letter_mode.htm");
+SetCsh(77,"IDH_NT_APPS_log_file",1075,"idh_nt_apps_log_file.htm");
+SetCsh(78,"IDH_NT_APPS_morpheme",1076,"idh_nt_apps_morpheme.htm");
+SetCsh(79,"IDH_NT_APPS_period_pause",1077,"idh_nt_apps_period_pause.htm");
+SetCsh(80,"IDH_NT_APPS_phoneme",1078,"idh_nt_apps_phoneme.htm");
+SetCsh(81,"IDH_NT_APPS_phoneme_arpabet_command",1079,"idh_nt_apps_phoneme_arpabet_command.htm");
+SetCsh(82,"IDH_NT_APPS_phoneme_string",1080,"idh_nt_apps_phoneme_string.htm");
+SetCsh(83,"IDH_NT_APPS_phonemicize",1081,"idh_nt_apps_phonemicize.htm");
+SetCsh(84,"IDH_NT_APPS_phonemic_mode",1082,"idh_nt_apps_phonemic_mode.htm");
+SetCsh(85,"IDH_NT_APPS_phonemic_transcription",1083,"idh_nt_apps_phonemic_transcription.htm");
+SetCsh(86,"IDH_NT_APPS_phrase_boundary",1084,"idh_nt_apps_phrase_boundary.htm");
+SetCsh(87,"IDH_NT_APPS_pitch_control_symbols",1085,"idh_nt_apps_pitch_control_symbols.htm");
+SetCsh(88,"IDH_NT_APPS_primary_stress",1086,"idh_nt_apps_primary_stress.htm");
+SetCsh(89,"IDH_NT_APPS_proper_name",1087,"idh_nt_apps_proper_name.htm");
+SetCsh(90,"IDH_NT_APPS_secondary_stress",1088,"idh_nt_apps_secondary_stress.htm");
+SetCsh(91,"IDH_NT_APPS_silence_phonemes",1089,"idh_nt_apps_silence_phonemes.htm");
+SetCsh(92,"IDH_NT_APPS_syntactic_function_words",1090,"idh_nt_apps_syntactic_function_words.htm");
+SetCsh(93,"IDH_NT_APPS__TAB_file",1091,"idh_nt_apps__tab_file.htm");
+SetCsh(94,"IDH_NT_APPS_user_dictionary",1092,"idh_nt_apps_user_dictionary.htm");
+SetCsh(95,"IDH_NT_APPS_user_dictionary_builder",1093,"idh_nt_apps_user_dictionary_builder.htm");
+SetCsh(96,"IDH_NT_APPS_voice_control_command",1094,"idh_nt_apps_voice_control_command.htm");
+SetCsh(97,"IDH_NT_APPS_WAVE_file",1095,"idh_nt_apps_wave_file.htm");
+SetCsh(98,"IDH_NT_APPS_wave_form_output",1096,"idh_nt_apps_wave_form_output.htm");
+SetCsh(99,"IDH_NT_APPS_word_boundary",1097,"idh_nt_apps_word_boundary.htm");
+SetCsh(100,"IDH_NT_APPS_word_mode",1098,"idh_nt_apps_word_mode.htm");
+SetCsh(101,"Default_Locations_for_Dictionaries",1099,"default_locations_for_dictionaries.htm");
+SetCsh(102,"dynamic_engine",1100,"dynamic_engine.htm");
+SetCsh(103,"static_engine",1101,"static_engine.htm");
+SetCsh(104,"log_file_mode",1102,"log_file_mode.htm");
+SetCsh(105,"speech_to_memory_mode",1103,"speech_to_memory_mode.htm");
+SetCsh(106,"startup_function",1104,"startup_function.htm");
+SetCsh(107,"startup_state",1105,"startup_state.htm");
+SetCsh(108,"wave_file_mode",1106,"wave_file_mode.htm");
+SetCsh(109,"IDH_SDK_1_Introduction_to_the_DECtalk_Software_API",2001,"idh_sdk_1_introduction_to_the_dectalk_software_api.htm");
+SetCsh(110,"IDH_SDK_1_Core_API_Functions_1",2002,"idh_sdk_1_core_api_functions_1.htm");
+SetCsh(111,"IDH_SDK_1_Audio_Output_Control_Functions_1",2003,"idh_sdk_1_audio_output_control_functions_1.htm");
+SetCsh(112,"IDH_SDK_1_Blocking_Synchronization_Function_1",2004,"idh_sdk_1_blocking_synchronization_function_1.htm");
+SetCsh(113,"IDH_SDK_1_Control_and_Status_Functions_1",2005,"idh_sdk_1_control_and_status_functions_1.htm");
+SetCsh(114,"IDH_SDK_1_Special_Text_To_Speech_Modes_1",2006,"idh_sdk_1_special_text_to_speech_modes_1.htm");
+SetCsh(115,"IDH_SDK_1_Loading_and_Unloading_a_User_Dictionary_1",2007,"idh_sdk_1_loading_and_unloading_a_user_dictionary_1.htm");
+SetCsh(116,"IDH_SDK_1_The_Core_API_Functions",2008,"idh_sdk_1_the_core_api_functions.htm");
+SetCsh(117,"IDH_SDK_1_Controlling_Queuing_with_Flags",2009,"idh_sdk_1_controlling_queuing_with_flags.htm");
+SetCsh(118,"IDH_SDK_1_Important_Text_Queuing_Information",2010,"idh_sdk_1_important_text_queuing_information.htm");
+SetCsh(119,"IDH_SDK_1_Clause_Based_Synthesis",2011,"idh_sdk_1_clause_based_synthesis.htm");
+SetCsh(120,"IDH_SDK_1_Callback_Routines_and_Window_Procedures",2012,"idh_sdk_1_callback_routines_and_window_procedures.htm");
+SetCsh(121,"IDH_SDK_1_Error_Messages",2013,"idh_sdk_1_error_messages.htm");
+SetCsh(122,"IDH_SDK_1_Index_Mark_Messages",2014,"idh_sdk_1_index_mark_messages.htm");
+SetCsh(123,"IDH_SDK_1_Buffer_Messages",2015,"idh_sdk_1_buffer_messages.htm");
+SetCsh(124,"IDH_SDK_1_Callback_Routine_Example",2016,"idh_sdk_1_callback_routine_example.htm");
+SetCsh(125,"IDH_SDK_1_Window_Procedure_Example",2017,"idh_sdk_1_window_procedure_example.htm");
+SetCsh(126,"IDH_SDK_1_Audio_Output_Control_Functions",2018,"idh_sdk_1_audio_output_control_functions.htm");
+SetCsh(127,"IDH_SDK_1_Blocking_Synchronization_Function",2019,"idh_sdk_1_blocking_synchronization_function.htm");
+SetCsh(128,"IDH_SDK_1_Control_and_Status_Functions",2020,"idh_sdk_1_control_and_status_functions.htm");
+SetCsh(129,"IDH_SDK_1_Special_Text_To_Speech_Modes",2021,"idh_sdk_1_special_text_to_speech_modes.htm");
+SetCsh(130,"IDH_SDK_1_Wave_File_Mode",2022,"idh_sdk_1_wave_file_mode.htm");
+SetCsh(131,"IDH_SDK_1_Log_File_Mode",2023,"idh_sdk_1_log_file_mode.htm");
+SetCsh(132,"IDH_SDK_1_Speech_To_Memory_Mode",2024,"idh_sdk_1_speech_to_memory_mode.htm");
+SetCsh(133,"IDH_SDK_1_Initialization_of_Memory_Buffers",2025,"idh_sdk_1_initialization_of_memory_buffers.htm");
+SetCsh(134,"IDH_SDK_1_TTS_BUFFER_T_Structure_ttsapi_h",2026,"idh_sdk_1_tts_buffer_t_structure_ttsapi_h.htm");
+SetCsh(135,"IDH_SDK_1_TTS_PHONEME_T_Structure_ttsapi_h",2027,"idh_sdk_1_tts_phoneme_t_structure_ttsapi_h.htm");
+SetCsh(136,"IDH_SDK_1_TTS_INDEX_T_Structure_ttsapi_h",2028,"idh_sdk_1_tts_index_t_structure_ttsapi_h.htm");
+SetCsh(137,"IDH_SDK_1_Return_of_Memory_Buffers",2029,"idh_sdk_1_return_of_memory_buffers.htm");
+SetCsh(138,"IDH_SDK_1_Dictionary_Functions_UNIX_only",2030,"idh_sdk_1_dictionary_functions_unix_only.htm");
+SetCsh(139,"IDH_SDK_1_Creating_a_User_Dictionary",2031,"idh_sdk_1_creating_a_user_dictionary.htm");
+SetCsh(140,"IDH_SDK_1_Loading_of_the_Main_Pronunciation_Dictionary",2032,"idh_sdk_1_loading_of_the_main_pronunciation_dictionary.htm");
+SetCsh(141,"IDH_SDK_1_Loading_of_the_User_Dictionary",2033,"idh_sdk_1_loading_of_the_user_dictionary.htm");
+SetCsh(142,"IDH_SDK_1_Dictionary_Functions_Windows_only",2034,"idh_sdk_1_dictionary_functions_windows_only.htm");
+SetCsh(143,"IDH_SDK_1_Creating_a_User_Dictionary_2",2035,"idh_sdk_1_creating_a_user_dictionary_2.htm");
+SetCsh(144,"IDH_SDK_1_Loading_the_Main_Pronunciation_Dictionary",2036,"idh_sdk_1_loading_the_main_pronunciation_dictionary.htm");
+SetCsh(145,"IDH_SDK_1_Loading_the_User_Dictionary",2037,"idh_sdk_1_loading_the_user_dictionary.htm");
+SetCsh(146,"IDH_SDK_1_Sample_Programs_UNIX_only",2038,"idh_sdk_1_sample_programs_unix_only.htm");
+SetCsh(147,"IDH_SDK_1_Building_Sample_Programs",2039,"idh_sdk_1_building_sample_programs.htm");
+SetCsh(148,"IDH_SDK_1_Header_Files",2040,"idh_sdk_1_header_files.htm");
+SetCsh(149,"IDH_SDK_1_Shareable_Libraries",2041,"idh_sdk_1_shareable_libraries.htm");
+SetCsh(150,"IDH_SDK_1_Sample_Programs_Windows_only",2042,"idh_sdk_1_sample_programs_windows_only.htm");
+SetCsh(151,"How_to_do_Multi_Language_Programming",2043,"how_to_do_multi_language_programming.htm");
+SetCsh(152,"Starting_a_language",2044,"starting_a_language.htm");
+SetCsh(153,"Selecting_a_Language",2045,"selecting_a_language.htm");
+SetCsh(154,"Closing_a_language",2046,"closing_a_language.htm");
+SetCsh(155,"Multi_Language_Programming_Example",2047,"multi_language_programming_example.htm");
+SetCsh(156,"Phoneme_Notifications",2048,"phoneme_notifications.htm");
+SetCsh(157,"Phoneme_Identifiers_and_Phonemic_Symbols_English",2049,"phoneme_identifiers_and_phonemic_symbols_english.htm");
+SetCsh(158,"Loading_the_Main_Dictionary_Static_Engine",2050,"loading_the_main_dictionary_static_engine.htm");
+SetCsh(159,"Registry_Entry_Information",2051,"registry_entry_information.htm");
+SetCsh(160,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(161,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(162,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(163,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(164,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(165,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(166,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(167,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(168,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(169,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(170,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(171,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(172,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(173,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(174,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(175,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(176,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(177,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(178,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(179,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(180,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(181,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(182,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(183,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(184,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(185,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(186,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(187,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(188,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(189,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(190,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(191,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(192,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(193,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(194,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(195,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(196,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(197,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(198,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(199,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(200,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(201,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(202,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(203,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(204,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(205,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(206,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(207,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(208,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(209,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(210,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(211,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(212,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(213,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(214,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(215,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(216,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(217,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(218,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(219,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(220,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(221,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(222,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(223,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(224,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(225,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(226,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(227,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(228,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(229,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(230,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(231,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(232,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(233,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(234,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(235,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(236,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(237,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(238,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(239,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(240,"TTS_CAPS_T_Structure_ttsapi.h",2052,"tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(241,"IDH_SDK_2_DECtalk_Software_API_Function_Calls",3001,"idh_sdk_2_dectalk_software_api_function_calls.htm");
+SetCsh(242,"IDH_SDK_2_TextToSpeechAddBuffer",3002,"idh_sdk_2_texttospeechaddbuffer.htm");
+SetCsh(243,"IDH_SDK_2_TextToSpeechCloseInMemory",3003,"idh_sdk_2_texttospeechcloseinmemory.htm");
+SetCsh(244,"IDH_SDK_2_TextToSpeechCloseLogFile",3004,"idh_sdk_2_texttospeechcloselogfile.htm");
+SetCsh(245,"IDH_SDK_2_TextToSpeechCloseWaveOutFile",3005,"idh_sdk_2_texttospeechclosewaveoutfile.htm");
+SetCsh(246,"IDH_SDK_2_TextToSpeechGetCaps",3006,"idh_sdk_2_texttospeechgetcaps.htm");
+SetCsh(247,"IDH_SDK_2_TextToSpeechGetLanguage",3007,"idh_sdk_2_texttospeechgetlanguage.htm");
+SetCsh(248,"IDH_SDK_2_TextToSpeechGetRate",3008,"idh_sdk_2_texttospeechgetrate.htm");
+SetCsh(249,"IDH_SDK_2_TextToSpeechGetSpeaker",3009,"idh_sdk_2_texttospeechgetspeaker.htm");
+SetCsh(250,"IDH_SDK_2_TextToSpeechGetStatus",3010,"idh_sdk_2_texttospeechgetstatus.htm");
+SetCsh(251,"IDH_SDK_2_TextToSpeechLoadUserDictionary",3011,"idh_sdk_2_texttospeechloaduserdictionary.htm");
+SetCsh(252,"IDH_SDK_2_TextToSpeechOpenInMemory",3012,"idh_sdk_2_texttospeechopeninmemory.htm");
+SetCsh(253,"IDH_SDK_2_TextToSpeechOpenLogFile",3013,"idh_sdk_2_texttospeechopenlogfile.htm");
+SetCsh(254,"IDH_SDK_2_TextToSpeechOpenWaveOutFile",3014,"idh_sdk_2_texttospeechopenwaveoutfile.htm");
+SetCsh(255,"IDH_SDK_2_TextToSpeechPause",3015,"idh_sdk_2_texttospeechpause.htm");
+SetCsh(256,"IDH_SDK_2_TextToSpeechReset",3016,"idh_sdk_2_texttospeechreset.htm");
+SetCsh(257,"IDH_SDK_2_TextToSpeechResume",3017,"idh_sdk_2_texttospeechresume.htm");
+SetCsh(258,"IDH_SDK_2_TextToSpeechReturnBuffer",3018,"idh_sdk_2_texttospeechreturnbuffer.htm");
+SetCsh(259,"IDH_SDK_2_TextToSpeechSetLanguage",3019,"idh_sdk_2_texttospeechsetlanguage.htm");
+SetCsh(260,"IDH_SDK_2_TextToSpeechSetRate",3020,"idh_sdk_2_texttospeechsetrate.htm");
+SetCsh(261,"IDH_SDK_2_TextToSpeechSetSpeaker",3021,"idh_sdk_2_texttospeechsetspeaker.htm");
+SetCsh(262,"IDH_SDK_2_TextToSpeechShutdown",3022,"idh_sdk_2_texttospeechshutdown.htm");
+SetCsh(263,"IDH_SDK_2_TextToSpeechSpeak",3023,"idh_sdk_2_texttospeechspeak.htm");
+SetCsh(264,"IDH_SDK_2_TextToSpeechStartup_Windows_only",3024,"idh_sdk_2_texttospeechstartup_windows_only.htm");
+SetCsh(265,"IDH_SDK_2_TextToSpeechStartup_UNIX_only",3025,"idh_sdk_2_texttospeechstartup_unix_only.htm");
+SetCsh(266,"IDH_SDK_2_TextToSpeechStartupEx",3026,"idh_sdk_2_texttospeechstartupex.htm");
+SetCsh(267,"IDH_SDK_2_TextToSpeechSync",3027,"idh_sdk_2_texttospeechsync.htm");
+SetCsh(268,"IDH_SDK_2_TextToSpeechUnloadUserDictionary",3028,"idh_sdk_2_texttospeechunloaduserdictionary.htm");
+SetCsh(269,"IDH_SDK_2_TextToSpeechVersion",3029,"idh_sdk_2_texttospeechversion.htm");
+SetCsh(270,"IDH_INPUT_CHARACTER_COUNT_0_ttsapi_h",3030,"idh_input_character_count_0_ttsapi_h.htm");
+SetCsh(271,"IDH_STATUS_SPEAKING_1_ttsapi_h",3031,"idh_status_speaking_1_ttsapi_h.htm");
+SetCsh(272,"IDH_WAVE_OUT_DEVICE_ID_2_ttsapi_h",3032,"idh_wave_out_device_id_2_ttsapi_h.htm");
+SetCsh(273,"IDH_Paul_0_ttsapi_h",3033,"idh_paul_0_ttsapi_h.htm");
+SetCsh(274,"IDH_HARRY_2_ttsapi_h",3034,"idh_harry_2_ttsapi_h.htm");
+SetCsh(275,"IDH_FRANK_3_ttsapi_h",3035,"idh_frank_3_ttsapi_h.htm");
+SetCsh(276,"IDH_DENNIS_4_ttsapi_h",3036,"idh_dennis_4_ttsapi_h.htm");
+SetCsh(277,"IDH_BETTY_1_ttsapi_h",3037,"idh_betty_1_ttsapi_h.htm");
+SetCsh(278,"IDH_URSULA_6_ttsapi_h",3038,"idh_ursula_6_ttsapi_h.htm");
+SetCsh(279,"IDH_WENDY_8_ttsapi_h",3039,"idh_wendy_8_ttsapi_h.htm");
+SetCsh(280,"IDH_RITA_7_ttsapi_h",3040,"idh_rita_7_ttsapi_h.htm");
+SetCsh(281,"IDH_KIT_5_ttsapi_h",3041,"idh_kit_5_ttsapi_h.htm");
+SetCsh(282,"IDH_WAVE_FORMAT_1M08_0X00000001_mmsystem_h",3042,"idh_wave_format_1m08_0x00000001_mmsystem_h.htm");
+SetCsh(283,"IDH_WAVE_FORMAT_1M16_0X00000004_mmsystem",3043,"idh_wave_format_1m16_0x00000004_mmsystem.htm");
+SetCsh(284,"IDH_WAVE_FORMAT_08M08_0x00001000_ttsapi_h",3044,"idh_wave_format_08m08_0x00001000_ttsapi_h.htm");
+SetCsh(285,"IDH_LOG_TEXT_0X00000001_ttsapi_h",3045,"idh_log_text_0x00000001_ttsapi_h.htm");
+SetCsh(286,"IDH_LOG_PHONEMES_0X00000002_ttsapi_h",3046,"idh_log_phonemes_0x00000002_ttsapi_h.htm");
+SetCsh(287,"IDH_LOG_SYLLABLES_0X00000010_ttsapi_h",3047,"idh_log_syllables_0x00000010_ttsapi_h.htm");
+SetCsh(288,"IDH_FALSE_0",3048,"idh_false_0.htm");
+SetCsh(289,"IDH_TRUE_1",3049,"idh_true_1.htm");
+SetCsh(290,"IDH_TTS_FORCE_0x00000001_ttsapi_h",3050,"idh_tts_force_0x00000001_ttsapi_h.htm");
+SetCsh(291,"IDH_typedef_DWORD_LANGUAGE_T_ttsapi_h",3051,"idh_typedef_dword_language_t_ttsapi_h.htm");
+SetCsh(292,"IDH_TTS_NORMAL_0x00000000_ttsapi_h",3052,"idh_tts_normal_0x00000000_ttsapi_h.htm");
+SetCsh(293,"IDH_OWN_AUDIO_DEVICE_0x00000001_ttsapi_h",3053,"idh_own_audio_device_0x00000001_ttsapi_h.htm");
+SetCsh(294,"IDH_REPORT_OPEN_ERROR_0x00000002_ttsapi_h",3054,"idh_report_open_error_0x00000002_ttsapi_h.htm");
+SetCsh(295,"IDH_DO_NOT_USE_AUDIO_DEVICE_0x80000000_ttsapi_h",3055,"idh_do_not_use_audio_device_0x80000000_ttsapi_h.htm");
+SetCsh(296,"IDH_SDK_2_TTS_CAPS_T_Structure_ttsapi_h",3056,"idh_sdk_2_tts_caps_t_structure_ttsapi_h.htm");
+SetCsh(297,"IDH_SDK_2_The_LANGAUGE_PARAMS_T_Structure_ttsapi_h",3057,"idh_sdk_2_the_langauge_params_t_structure_ttsapi_h.htm");
+SetCsh(298,"IDH_SDK_2_TTS_AMERICAN_ENGLISH_1_ttsapi_h",3058,"idh_sdk_2_tts_american_english_1_ttsapi_h.htm");
+SetCsh(299,"IDH_SDK_2_PROPER_NAME_PRONUNCIATION_0x00000001_ttsapi_h",3059,"idh_sdk_2_proper_name_pronunciation_0x00000001_ttsapi_h.htm");
+SetCsh(300,"IDH_SDK_2_TTS_FORCE_0x00000001_ttsapi_h_2",3060,"idh_sdk_2_tts_force_0x00000001_ttsapi_h_2.htm");
+SetCsh(301,"IDH_SDK_2_typedef_DWORD_LANGUAGE_T_ttsapi_h",3061,"idh_sdk_2_typedef_dword_language_t_ttsapi_h.htm");
+SetCsh(302,"IDH_SDK_2_typedef_DWORD_SPEAKER_T_ttsapi_h",3062,"idh_sdk_2_typedef_dword_speaker_t_ttsapi_h.htm");
+SetCsh(303,"TextToSpeechCloseLang",3063,"texttospeechcloselang.htm");
+SetCsh(304,"TextToSpeechEnumLangs",3064,"texttospeechenumlangs.htm");
+SetCsh(305,"TextToSpeechGetFeatures",3065,"texttospeechgetfeatures.htm");
+SetCsh(306,"TextToSpeechSelectLang",3066,"texttospeechselectlang.htm");
+SetCsh(307,"TextToSpeechStartLang",3067,"texttospeechstartlang.htm");
+SetCsh(308,"TextToSpeechTyping",3068,"texttospeechtyping.htm");
+SetCsh(309,"TextToSpeechVersionEx",3069,"texttospeechversionex.htm");
+SetCsh(310,"IDH_SDK_3_Customizing_a_DECtalk_Software_Voice",3501,"idh_sdk_3_customizing_a_dectalk_software_voice.htm");
+SetCsh(311,"IDH_SDK_3_Design_Voice_dv",3502,"idh_sdk_3_design_voice_dv.htm");
+SetCsh(312,"IDH_SDK_3_Definitions_of_DECtalk_Software_Voices",3503,"idh_sdk_3_definitions_of_dectalk_software_voices.htm");
+SetCsh(313,"IDH_SDK_3_Changing_Gender_and_Head_Size",3504,"idh_sdk_3_changing_gender_and_head_size.htm");
+SetCsh(314,"IDH_SDK_3_Sex_sx",3505,"idh_sdk_3_sex_sx.htm");
+SetCsh(315,"IDH_SDK_3_Head_Size_hs",3506,"idh_sdk_3_head_size_hs.htm");
+SetCsh(316,"IDH_SDK_3_Higher_Formants_f4_f5_b4_and_b5",3507,"idh_sdk_3_higher_formants_f4_f5_b4_and_b5.htm");
+SetCsh(317,"IDH_SDK_3_Changing_Voice_Quality",3508,"idh_sdk_3_changing_voice_quality.htm");
+SetCsh(318,"IDH_SDK_3_Breathiness_br",3509,"idh_sdk_3_breathiness_br.htm");
+SetCsh(319,"IDH_SDK_3_Lax_Breathiness_lx",3510,"idh_sdk_3_lax_breathiness_lx.htm");
+SetCsh(320,"IDH_SDK_3_Smoothness_sm",3511,"idh_sdk_3_smoothness_sm.htm");
+SetCsh(321,"IDH_SDK_3_Richness_ri",3512,"idh_sdk_3_richness_ri.htm");
+SetCsh(322,"IDH_SDK_3_Nopen_Fixed_nf",3513,"idh_sdk_3_nopen_fixed_nf.htm");
+SetCsh(323,"IDH_SDK_3_Laryngealization_la",3514,"idh_sdk_3_laryngealization_la.htm");
+SetCsh(324,"IDH_SDK_3_Changing_Pitch_and_Intonation",3515,"idh_sdk_3_changing_pitch_and_intonation.htm");
+SetCsh(325,"IDH_SDK_3_Baseline_Fall_bf",3516,"idh_sdk_3_baseline_fall_bf.htm");
+SetCsh(326,"IDH_SDK_3_Hat_Rise_hr",3517,"idh_sdk_3_hat_rise_hr.htm");
+SetCsh(327,"IDH_SDK_3_Stress_Rise_sr",3518,"idh_sdk_3_stress_rise_sr.htm");
+SetCsh(328,"IDH_SDK_3_Assertiveness_as",3519,"idh_sdk_3_assertiveness_as.htm");
+SetCsh(329,"IDH_SDK_3_Quickness_qu",3520,"idh_sdk_3_quickness_qu.htm");
+SetCsh(330,"IDH_SDK_3_Average_Pitch_ap_and_Pitch_Range_pr",3521,"idh_sdk_3_average_pitch_ap_and_pitch_range_pr.htm");
+SetCsh(331,"IDH_SDK_3_Changing_Relative_Gains_and_Avoiding_Overloads",3522,"idh_sdk_3_changing_relative_gains_and_avoiding_overloads.htm");
+SetCsh(332,"IDH_SDK_3_Loudness_g5",3523,"idh_sdk_3_loudness_g5.htm");
+SetCsh(333,"IDH_SDK_3_Sound_Source_Gains_gv_gh_gf_and_gn",3524,"idh_sdk_3_sound_source_gains_gv_gh_gf_and_gn.htm");
+SetCsh(334,"IDH_SDK_3_Cascade_Vocal_Tract_Gains_g1_g2_g3_and_g4",3525,"idh_sdk_3_cascade_vocal_tract_gains_g1_g2_g3_and_g4.htm");
+SetCsh(335,"IDH_SDK_3_Saving_Changes_to_Val_s_Voice",3526,"idh_sdk_3_saving_changes_to_val_s_voice.htm");
+SetCsh(336,"IDH_SDK_3_Save_save",3527,"idh_sdk_3_save_save.htm");
+SetCsh(337,"IDH_REF_1_DECtalk_Software_In_Line_Commands_Overview",4001,"idh_ref_1_dectalk_software_in_line_commands_overview.htm");
+SetCsh(338,"IDH_REF_1_Comma_Pause_comma",4002,"idh_ref_1_comma_pause_comma.htm");
+SetCsh(339,"IDH_REF_1_Dial_Tones_dial",4003,"idh_ref_1_dial_tones_dial.htm");
+SetCsh(340,"IDH_REF_1_Error_error",4004,"idh_ref_1_error_error.htm");
+SetCsh(341,"IDH_REF_1_Index_Mark_index_mark",4005,"idh_ref_1_index_mark_index_mark.htm");
+SetCsh(342,"IDH_REF_1_Log_log",4006,"idh_ref_1_log_log.htm");
+SetCsh(343,"IDH_REF_1_Mode_mode",4007,"idh_ref_1_mode_mode.htm");
+SetCsh(344,"IDH_REF_1_Europe_Mode_Example",4008,"idh_ref_1_europe_mode_example.htm");
+SetCsh(345,"IDH_REF_1_Math_Mode_Example",4009,"idh_ref_1_math_mode_example.htm");
+SetCsh(346,"IDH_REF_1_Name_Mode_Example",4010,"idh_ref_1_name_mode_example.htm");
+SetCsh(347,"IDH_REF_1_Voice_Selection_voice",4011,"idh_ref_1_voice_selection_voice.htm");
+SetCsh(348,"IDH_REF_1_Period_Pause_period",4012,"idh_ref_1_period_pause_period.htm");
+SetCsh(349,"IDH_REF_1_Phoneme_Interpretation_phoneme",4013,"idh_ref_1_phoneme_interpretation_phoneme.htm");
+SetCsh(350,"IDH_REF_1_Play_Wave_Files_play",4014,"idh_ref_1_play_wave_files_play.htm");
+SetCsh(351,"IDH_REF_1_Pronounce_pron",4015,"idh_ref_1_pronounce_pron.htm");
+SetCsh(352,"IDH_REF_1_Punctuation_punc",4016,"idh_ref_1_punctuation_punc.htm");
+SetCsh(353,"IDH_REF_1_Rate_Selection_rate",4017,"idh_ref_1_rate_selection_rate.htm");
+SetCsh(354,"IDH_REF_1_Say_say",4018,"idh_ref_1_say_say.htm");
+SetCsh(355,"IDH_REF_1_Skip_skip_XX",4019,"idh_ref_1_skip_skip_xx.htm");
+SetCsh(356,"IDH_REF_1_Sync_sync",4020,"idh_ref_1_sync_sync.htm");
+SetCsh(357,"IDH_REF_1_Tone_tone",4021,"idh_ref_1_tone_tone.htm");
+SetCsh(358,"IDH_REF_1_Volume_volume",4022,"idh_ref_1_volume_volume.htm");
+SetCsh(359,"IDH_REF_1_Monaural_Volume_Control",4023,"idh_ref_1_monaural_volume_control.htm");
+SetCsh(360,"IDH_REF_1_Stereo_Volume_Control",4024,"idh_ref_1_stereo_volume_control.htm");
+SetCsh(361,"Email_Mode_Example",4025,"email_mode_example.htm");
+SetCsh(362,"Pitch_pitch",4027,"pitch_pitch.htm");
+SetCsh(363,"Dial_Tones_dial",4028,"dial_tones_dial.htm");
+SetCsh(364,"IDH_REF_2_Using_In_Line_Commands",4501,"idh_ref_2_using_in_line_commands.htm");
+SetCsh(365,"IDH_REF_2_Changing_Rhythm_Stress_and_Intonation",4502,"idh_ref_2_changing_rhythm_stress_and_intonation.htm");
+SetCsh(366,"IDH_REF_2_Developing_an_Electronic_Mail_Reading_Application",4503,"idh_ref_2_developing_an_electronic_mail_reading_application.htm");
+SetCsh(367,"IDH_REF_2_Example_of_the_use_of_pauses_in_numerical_strings",4504,"idh_ref_2_example_of_the_use_of_pauses_in_numerical_strings.htm");
+SetCsh(368,"IDH_REF_2_Optimizing_the_Quality_of_Spoken_Text",4505,"idh_ref_2_optimizing_the_quality_of_spoken_text.htm");
+SetCsh(369,"IDH_REF_2_Index_Marks_for_Speech_Status",4506,"idh_ref_2_index_marks_for_speech_status.htm");
+SetCsh(370,"IDH_REF_2_Speaking_Rate",4507,"idh_ref_2_speaking_rate.htm");
+SetCsh(371,"IDH_REF_2_Adjusting_Period_and_Comma_Pause_Durations",4508,"idh_ref_2_adjusting_period_and_comma_pause_durations.htm");
+SetCsh(372,"IDH_REF_2_Text_Tuning_Example",4509,"idh_ref_2_text_tuning_example.htm");
+SetCsh(373,"IDH_REF_2_Avoiding_Common_Errors",4510,"idh_ref_2_avoiding_common_errors.htm");
+SetCsh(374,"IDH_REF_3_DECtalk_Software_Reference_Tables",5001,"idh_ref_3_dectalk_software_reference_tables.htm");
+SetCsh(375,"IDH_REF_3_Phonemic_Symbols",5002,"idh_ref_3_phonemic_symbols.htm");
+SetCsh(376,"IDH_REF_3_Phonemic_Symbols_2",5003,"idh_ref_3_phonemic_symbols_2.htm");
+SetCsh(377,"IDH_REF_3_Stress_and_Syntactic_Symbols",5004,"idh_ref_3_stress_and_syntactic_symbols.htm");
+SetCsh(378,"IDH_REF_3_Stress_Symbols",5005,"idh_ref_3_stress_symbols.htm");
+SetCsh(379,"IDH_REF_3_Syntactic_Symbols",5006,"idh_ref_3_syntactic_symbols.htm");
+SetCsh(380,"IDH_REF_3_Tone_Table",5007,"idh_ref_3_tone_table.htm");
+SetCsh(381,"IDH_REF_3_Phonemic_Syntax_for_Singing",5008,"idh_ref_3_phonemic_syntax_for_singing.htm");
+SetCsh(382,"IDH_REF_3_Tone_Table_2",5009,"idh_ref_3_tone_table_2.htm");
+SetCsh(383,"IDH_REF_3_DECtalk_Software_Singing_Happy_Birthday",5010,"idh_ref_3_dectalk_software_singing_happy_birthday.htm");
+SetCsh(384,"IDH_REF_3_Homographs",5011,"idh_ref_3_homographs.htm");
+SetCsh(385,"IDH_REF_3_Homograph_Phonetics_A",5012,"idh_ref_3_homograph_phonetics_a.htm");
+SetCsh(386,"IDH_REF_3_Homograph_Phonetics_B_C",5013,"idh_ref_3_homograph_phonetics_b_c.htm");
+SetCsh(387,"IDH_REF_3_Homograph_Phonetics_D_G",5014,"idh_ref_3_homograph_phonetics_d_g.htm");
+SetCsh(388,"IDH_REF_3_Homograph_Phonetics_I_L",5015,"idh_ref_3_homograph_phonetics_i_l.htm");
+SetCsh(389,"IDH_REF_3_Homograph_Phonetics_M_P",5016,"idh_ref_3_homograph_phonetics_m_p.htm");
+SetCsh(390,"IDH_REF_3_Homograph_Phonetics_R",5017,"idh_ref_3_homograph_phonetics_r.htm");
+SetCsh(391,"IDH_REF_3_Homograph_Phonetics_S_W",5018,"idh_ref_3_homograph_phonetics_s_w.htm");
+SetCsh(392,"Phonemes_in_Unicode_Sequence",5019,"phonemes_in_unicode_sequence.htm");
+SetCsh(393,"Supported_SAPI_functions",5020,"supported_sapi_functions.htm");
+SetCsh(394,"Supported_SAPI_Version_5_Features",5021,"supported_sapi_version_5_features.htm");
+SetCsh(395,"Phonemic_Symbols_U_K_English",5022,"phonemic_symbols_u_k_english.htm");
+SetCsh(396,"Phonemic_Symbols_Castilian_Spanish",5023,"phonemic_symbols_castilian_spanish.htm");
+SetCsh(397,"Phonemic_Symbols_Latin_American_Spanish",5024,"phonemic_symbols_latin_american_spanish.htm");
+SetCsh(398,"Phonemic_Symbols_German",5025,"phonemic_symbols_german.htm");
+SetCsh(399,"Phonemic_Symbols_French",5026,"phonemic_symbols_french.htm");
+SetCsh(400,"Preprocessor_Rules_for_Parsing",5501,"preprocessor_rules_for_parsing.htm");
+SetCsh(401,"Parsing_Email",5502,"parsing_email.htm");
+SetCsh(402,"Parsing_Punctuation",5503,"parsing_punctuation.htm");
+SetCsh(403,"Interpreting_Punctuation_Marks_as_Words",5504,"interpreting_punctuation_marks_as_words.htm");
+SetCsh(404,"Interpreting_Punctuation_Marks_as_Punctuation",5505,"interpreting_punctuation_marks_as_punctuation.htm");
+SetCsh(405,"General_Parsing_Rules",5506,"general_parsing_rules.htm");
+SetCsh(406,"German",5507,"german.htm");
+SetCsh(407,"Spanish_Castilian_and_Latin_American",5508,"spanish_castilian_and_latin_american.htm");
+SetCsh(408,"English_UK",5509,"english_uk.htm");
+SetCsh(409,"English_US_UK",5510,"english_us_uk.htm");
+SetCsh(410,"Email",5511,"email.htm");
+SetCsh(411,"Rules",5512,"rules.htm");
+SetCsh(412,"Punctuation",5513,"punctuation.htm");
+
+
+
+//Find CSH according to hash string after this page
+if (location.hash.length > 0)
+{
+   // VH 05/16/00 now support 
+   // id/number. this is autodetected. 
+   // that is to say if the input is digital, it is supposed as topicnumber. if not supposed as topicid. if not a topicid it will be treated as remoteurl.
+   // TopicID=
+   // TopicNumber=
+   // RemoteURL=   
+   // and WindowsOptions
+   // with the format #a=xxx,b=xxx,c=xxx...
+   var strHashString = location.hash.toString();
+   // change ? to : for remote URL. because java applet have some problem to pass a URL with two : inside the URL so we changed it. 
+   // so here need to change it back.
+   strHashString = strHashString.substring(1,strHashString.length);
+   strHashString = strHashString.replace("%072%057%057", "://");
+   var nTopicNum = GetTopicNumber(strHashString);
+
+   if (nTopicNum != -1)
+   {
+      FindTopicByTopicNum(nTopicNum);
+   }
+   else
+   {
+      if (gbstrURL.length > 0) 
+	RedirectTo(gbstrURL);
+      else
+      	FindHomePage();
+   }
+}
+else
+{
+   FindHomePage();
+}
+//-->
+</SCRIPT>
+<NOSCRIPT>
+ <p> Your browser does not support JavaScript. WebHelp Context-Sensitive Help requires JavaScript support to run.</p>
+</NOSCRIPT>
+</HTML>
+
+
+
+
+
+

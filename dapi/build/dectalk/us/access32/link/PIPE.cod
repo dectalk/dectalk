@@ -1,0 +1,3856 @@
+	TITLE	D:\work\Product\dapi\src\nt\PIPE.C
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_create_pipe
+EXTRN	__imp__free:NEAR
+EXTRN	__imp__malloc:NEAR
+EXTRN	__imp__InitializeCriticalSection@4:NEAR
+EXTRN	__imp__DeleteCriticalSection@4:NEAR
+EXTRN	__imp__CreateEventA@16:NEAR
+EXTRN	__imp__CloseHandle@4:NEAR
+_TEXT	SEGMENT
+_uiType$ = 8
+_uiPipeLength$ = 12
+_create_pipe PROC NEAR
+
+; 173  : {
+
+  00000	53		 push	 ebx
+  00001	55		 push	 ebp
+
+; 174  :   LPPIPE_T pPipe;
+; 175  :   void * pBuffer;
+; 176  : 
+; 177  :   /********************************************************************/
+; 178  :   /*  Allocate the pipe structure and the pipe memory.                */
+; 179  :   /********************************************************************/
+; 180  : 
+; 181  :   pPipe = (LPPIPE_T) malloc( sizeof( PIPE_T ));
+
+  00002	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__malloc
+  00008	56		 push	 esi
+  00009	57		 push	 edi
+  0000a	6a 3c		 push	 60			; 0000003cH
+  0000c	ff d5		 call	 ebp
+  0000e	8b f0		 mov	 esi, eax
+  00010	83 c4 04	 add	 esp, 4
+
+; 182  : 
+; 183  :   if ( pPipe == NULL )
+
+  00013	85 f6		 test	 esi, esi
+
+; 184  :     return( NULL );
+
+  00015	0f 84 fe 00 00
+	00		 je	 $L69168
+
+; 185  : 
+; 186  :   /********************************************************************/
+; 187  :   /*  Allocate the pipe queue.                                        */
+; 188  :   /********************************************************************/
+; 189  : 
+; 190  :   switch ( uiType )
+; 191  :   {
+
+  0001b	8b 44 24 14	 mov	 eax, DWORD PTR _uiType$[esp+12]
+  0001f	83 f8 06	 cmp	 eax, 6
+  00022	0f 87 f1 00 00
+	00		 ja	 $L69168
+  00028	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L69583[eax*4]
+$L69147:
+
+; 192  :   case BYTE_PIPE:
+; 193  : 
+; 194  :     pBuffer =
+; 195  :       ( BYTE_T * )malloc( uiPipeLength * sizeof(BYTE_T));
+
+  0002f	8b 5c 24 18	 mov	 ebx, DWORD PTR _uiPipeLength$[esp+12]
+  00033	53		 push	 ebx
+
+; 196  : 
+; 197  :     break;
+
+  00034	eb 40		 jmp	 SHORT $L69580
+$L69150:
+
+; 198  : 
+; 199  :   case WORD_PIPE:
+; 200  : 
+; 201  :     pBuffer =
+; 202  :       ( WORD_T * )malloc( uiPipeLength * sizeof(WORD_T));
+
+  00036	8b 5c 24 18	 mov	 ebx, DWORD PTR _uiPipeLength$[esp+12]
+  0003a	8d 04 1b	 lea	 eax, DWORD PTR [ebx+ebx]
+  0003d	50		 push	 eax
+
+; 203  : 
+; 204  :     break;
+
+  0003e	eb 36		 jmp	 SHORT $L69580
+$L69153:
+
+; 205  : 
+; 206  :   case DWORD_PIPE:
+; 207  : 
+; 208  :     pBuffer =
+; 209  :       ( DWORD_T * )malloc( uiPipeLength * sizeof(DWORD_T));
+
+  00040	8b 5c 24 18	 mov	 ebx, DWORD PTR _uiPipeLength$[esp+12]
+  00044	8d 0c 9d 00 00
+	00 00		 lea	 ecx, DWORD PTR [ebx*4]
+  0004b	51		 push	 ecx
+
+; 210  : 
+; 211  :     break;
+
+  0004c	eb 28		 jmp	 SHORT $L69580
+$L69159:
+
+; 212  : 
+; 213  :   case QWORD_PIPE:
+; 214  : 
+; 215  :     pBuffer =
+; 216  :       ( QWORD_T * )malloc( uiPipeLength * sizeof(QWORD_T));
+; 217  : 
+; 218  :     break;
+; 219  : 
+; 220  :   case FLOAT_PIPE:
+; 221  : 
+; 222  :     pBuffer = ( float * )malloc( uiPipeLength * sizeof(float));
+
+  0004e	8b 5c 24 18	 mov	 ebx, DWORD PTR _uiPipeLength$[esp+12]
+  00052	8d 04 9d 00 00
+	00 00		 lea	 eax, DWORD PTR [ebx*4]
+  00059	50		 push	 eax
+
+; 223  : 
+; 224  :     break;
+
+  0005a	eb 1a		 jmp	 SHORT $L69580
+$L69162:
+
+; 225  : 
+; 226  :   case DOUBLE_PIPE:
+; 227  : 
+; 228  :     pBuffer = ( double * )malloc( uiPipeLength * sizeof(double));
+
+  0005c	8b 5c 24 18	 mov	 ebx, DWORD PTR _uiPipeLength$[esp+12]
+  00060	8d 0c dd 00 00
+	00 00		 lea	 ecx, DWORD PTR [ebx*8]
+  00067	51		 push	 ecx
+
+; 229  : 
+; 230  :     break;
+
+  00068	eb 0c		 jmp	 SHORT $L69580
+$L69156:
+
+; 231  : 
+; 232  :   case VOID_PTR_PIPE:
+; 233  : 
+; 234  :     pBuffer = ( void * )malloc( uiPipeLength * sizeof(void *));
+
+  0006a	8b 5c 24 18	 mov	 ebx, DWORD PTR _uiPipeLength$[esp+12]
+  0006e	8d 14 9d 00 00
+	00 00		 lea	 edx, DWORD PTR [ebx*4]
+  00075	52		 push	 edx
+$L69580:
+  00076	ff d5		 call	 ebp
+  00078	8b f8		 mov	 edi, eax
+  0007a	83 c4 04	 add	 esp, 4
+
+; 235  : 
+; 236  :     break;
+; 237  : 
+; 238  :   default:
+; 239  : 
+; 240  :     return( NULL );
+; 241  : 
+; 242  :     break;
+; 243  :   }
+; 244  : 
+; 245  :   if ( pBuffer == NULL )
+
+  0007d	85 ff		 test	 edi, edi
+  0007f	75 11		 jne	 SHORT $L69171
+
+; 246  :   {
+; 247  :     free( pPipe );
+
+  00081	56		 push	 esi
+  00082	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__free
+
+; 316  : #endif
+; 317  : #if defined (__osf__) || defined (__linux__)
+; 318  : 	OP_DestroyMutex( pPipe->pcsPipe );
+; 319  : #endif
+; 320  :     free( pPipe );
+
+  00088	83 c4 04	 add	 esp, 4
+  0008b	33 c0		 xor	 eax, eax
+  0008d	5f		 pop	 edi
+  0008e	5e		 pop	 esi
+  0008f	5d		 pop	 ebp
+  00090	5b		 pop	 ebx
+
+; 353  : }
+
+  00091	c3		 ret	 0
+$L69171:
+
+; 248  :     return( NULL );
+; 249  :   }
+; 250  : 
+; 251  :   /********************************************************************/
+; 252  :   /*  Allocate the pipe critical section object.                      */
+; 253  :   /********************************************************************/
+; 254  : 
+; 255  : /* TQL 05/21/1997  change this for OSF build */
+; 256  : /* GL 06/04/1997  for BATS#381 should use WIN32 instead of MSDEV */
+; 257  : #ifdef WIN32
+; 258  :   pPipe->pcsPipe =
+; 259  :     ( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
+
+  00092	6a 18		 push	 24			; 00000018H
+  00094	ff d5		 call	 ebp
+
+; 260  : #endif
+; 261  : #if defined (__osf__) || defined (__linux__)
+; 262  :   pPipe->pcsPipe = OP_CreateMutex();
+; 263  : #endif
+; 264  : 
+; 265  :   if ( pPipe->pcsPipe == NULL )
+
+  00096	33 ed		 xor	 ebp, ebp
+  00098	83 c4 04	 add	 esp, 4
+  0009b	3b c5		 cmp	 eax, ebp
+  0009d	89 46 34	 mov	 DWORD PTR [esi+52], eax
+  000a0	75 16		 jne	 SHORT $L69176
+
+; 266  :   {
+; 267  :     free( pBuffer );
+
+  000a2	57		 push	 edi
+  000a3	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+  000a9	ff d7		 call	 edi
+
+; 268  :     free( pPipe );
+
+  000ab	56		 push	 esi
+  000ac	ff d7		 call	 edi
+  000ae	83 c4 08	 add	 esp, 8
+  000b1	33 c0		 xor	 eax, eax
+  000b3	5f		 pop	 edi
+  000b4	5e		 pop	 esi
+  000b5	5d		 pop	 ebp
+  000b6	5b		 pop	 ebx
+
+; 353  : }
+
+  000b7	c3		 ret	 0
+$L69176:
+
+; 269  :     return( NULL );
+; 270  :   }
+; 271  : 
+; 272  :   /********************************************************************/
+; 273  :   /*  Initialize the pipe critical section object.                    */
+; 274  :   /********************************************************************/
+; 275  : 
+; 276  : /* TQL 05/21/1997  change this for OSF build */
+; 277  : /* GL 06/04/1997  for BATS#381 should be used in WIN32 instead of osf */
+; 278  : #ifdef WIN32
+; 279  :   InitializeCriticalSection( pPipe->pcsPipe );
+
+  000b8	50		 push	 eax
+  000b9	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__InitializeCriticalSection@4
+
+; 280  : #endif
+; 281  : 
+; 282  :   /********************************************************************/
+; 283  :   /*  Initialize the pipe structure.                                  */
+; 284  :   /********************************************************************/
+; 285  : 
+; 286  :   pPipe->usGuard1 = GUARD1;
+; 287  :   pPipe->usGuard2 = GUARD2;
+; 288  :   pPipe->pStart = pBuffer;
+; 289  :   pPipe->pInput = pBuffer;
+; 290  :   pPipe->pOutput = pBuffer;
+; 291  :   pPipe->uiInputPosition = 0;
+; 292  :   pPipe->uiOutputPosition = 0;
+; 293  :   pPipe->uiLength = uiPipeLength;
+; 294  :   pPipe->uiCount = 0;
+; 295  :   pPipe->uiType = uiType;
+
+  000bf	8b 44 24 14	 mov	 eax, DWORD PTR _uiType$[esp+12]
+
+; 296  :   pPipe->uiState = PIPE_NORMAL;
+; 297  : 
+; 298  :   /********************************************************************/
+; 299  :   /*  Initialize the pipe Not Empty Event.                            */
+; 300  :   /********************************************************************/
+; 301  : 
+; 302  : /* TQL 05/21/1997  change this for OSF build */
+; 303  : #ifdef WIN32
+; 304  :   pPipe->hNotEmptyEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
+
+  000c3	55		 push	 ebp
+  000c4	55		 push	 ebp
+  000c5	89 5e 18	 mov	 DWORD PTR [esi+24], ebx
+  000c8	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__CreateEventA@16
+  000ce	6a 01		 push	 1
+  000d0	55		 push	 ebp
+  000d1	66 c7 06 ad 8b	 mov	 WORD PTR [esi], 35757	; 00008badH
+  000d6	66 c7 46 38 0d
+	f0		 mov	 WORD PTR [esi+56], 61453 ; 0000f00dH
+  000dc	89 7e 04	 mov	 DWORD PTR [esi+4], edi
+  000df	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  000e2	89 7e 0c	 mov	 DWORD PTR [esi+12], edi
+  000e5	89 6e 10	 mov	 DWORD PTR [esi+16], ebp
+  000e8	89 6e 14	 mov	 DWORD PTR [esi+20], ebp
+  000eb	89 6e 1c	 mov	 DWORD PTR [esi+28], ebp
+  000ee	89 46 20	 mov	 DWORD PTR [esi+32], eax
+  000f1	89 6e 24	 mov	 DWORD PTR [esi+36], ebp
+  000f4	ff d3		 call	 ebx
+
+; 305  : #endif
+; 306  : #if defined (__osf__) || defined (__linux__)
+; 307  :   pPipe->hNotEmptyEvent = OP_CreateEvent( TRUE, FALSE );
+; 308  : #endif
+; 309  : 
+; 310  :   if ( pPipe->hNotEmptyEvent == NULL )
+
+  000f6	3b c5		 cmp	 eax, ebp
+  000f8	89 46 28	 mov	 DWORD PTR [esi+40], eax
+  000fb	75 23		 jne	 SHORT $L69181
+
+; 311  :   {
+; 312  :     free( pBuffer );
+
+  000fd	57		 push	 edi
+  000fe	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+  00104	ff d7		 call	 edi
+
+; 313  : /* TQL 05/21/1997  change this for OSF build */
+; 314  : #ifdef WIN32
+; 315  :     DeleteCriticalSection( pPipe->pcsPipe );
+
+  00106	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  00109	83 c4 04	 add	 esp, 4
+  0010c	51		 push	 ecx
+  0010d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__DeleteCriticalSection@4
+
+; 316  : #endif
+; 317  : #if defined (__osf__) || defined (__linux__)
+; 318  : 	OP_DestroyMutex( pPipe->pcsPipe );
+; 319  : #endif
+; 320  :     free( pPipe );
+
+  00113	56		 push	 esi
+  00114	ff d7		 call	 edi
+  00116	83 c4 04	 add	 esp, 4
+$L69168:
+  00119	5f		 pop	 edi
+  0011a	5e		 pop	 esi
+  0011b	5d		 pop	 ebp
+  0011c	33 c0		 xor	 eax, eax
+  0011e	5b		 pop	 ebx
+
+; 353  : }
+
+  0011f	c3		 ret	 0
+$L69181:
+
+; 321  :     return( NULL );
+; 322  :   }
+; 323  : 
+; 324  :   /********************************************************************/
+; 325  :   /*  Initialize the pipe Not Full Event.                             */
+; 326  :   /********************************************************************/
+; 327  : 
+; 328  : /* TQL 05/21/1997  change this for OSF build */
+; 329  : #ifdef WIN32
+; 330  :   pPipe->hNotFullEvent = CreateEvent( NULL, TRUE, TRUE, NULL );
+
+  00120	55		 push	 ebp
+  00121	6a 01		 push	 1
+  00123	6a 01		 push	 1
+  00125	55		 push	 ebp
+  00126	ff d3		 call	 ebx
+
+; 331  : #endif
+; 332  : #if defined (__osf__) || defined (__linux__)
+; 333  :   pPipe->hNotFullEvent = OP_CreateEvent( TRUE, TRUE );
+; 334  : #endif
+; 335  : 
+; 336  :   if ( pPipe->hNotFullEvent == NULL )
+
+  00128	3b c5		 cmp	 eax, ebp
+  0012a	89 46 2c	 mov	 DWORD PTR [esi+44], eax
+  0012d	75 2d		 jne	 SHORT $L69186
+
+; 337  :   {
+; 338  :     free( pBuffer );
+
+  0012f	57		 push	 edi
+  00130	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+  00136	ff d7		 call	 edi
+
+; 339  : /* TQL 05/21/1997  change this for OSF build */
+; 340  : #ifdef WIN32
+; 341  :     DeleteCriticalSection( pPipe->pcsPipe );
+
+  00138	8b 56 34	 mov	 edx, DWORD PTR [esi+52]
+  0013b	83 c4 04	 add	 esp, 4
+  0013e	52		 push	 edx
+  0013f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__DeleteCriticalSection@4
+
+; 342  :     CloseHandle( pPipe->hNotEmptyEvent );
+
+  00145	8b 46 28	 mov	 eax, DWORD PTR [esi+40]
+  00148	50		 push	 eax
+  00149	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CloseHandle@4
+  0014f	56		 push	 esi
+  00150	ff d7		 call	 edi
+  00152	83 c4 04	 add	 esp, 4
+  00155	33 c0		 xor	 eax, eax
+  00157	5f		 pop	 edi
+  00158	5e		 pop	 esi
+  00159	5d		 pop	 ebp
+  0015a	5b		 pop	 ebx
+
+; 353  : }
+
+  0015b	c3		 ret	 0
+$L69186:
+
+; 343  : #endif
+; 344  : #if defined (__osf__) || defined (__linux__)
+; 345  :     OP_DestroyMutex( pPipe->pcsPipe );
+; 346  :     OP_DestroyEvent( pPipe->hNotEmptyEvent );
+; 347  : #endif
+; 348  :     free( pPipe );
+; 349  :     return( NULL );
+; 350  :   }
+; 351  : 
+; 352  :   return( pPipe );
+
+  0015c	8b c6		 mov	 eax, esi
+  0015e	5f		 pop	 edi
+  0015f	5e		 pop	 esi
+  00160	5d		 pop	 ebp
+  00161	5b		 pop	 ebx
+
+; 353  : }
+
+  00162	c3		 ret	 0
+  00163	90		 npad	 1
+$L69583:
+  00164	00 00 00 00	 DD	 $L69147
+  00168	00 00 00 00	 DD	 $L69150
+  0016c	00 00 00 00	 DD	 $L69153
+  00170	00 00 00 00	 DD	 $L69156
+  00174	00 00 00 00	 DD	 $L69159
+  00178	00 00 00 00	 DD	 $L69162
+  0017c	00 00 00 00	 DD	 $L69156
+_create_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_write_pipe
+EXTRN	__fltused:NEAR
+EXTRN	__imp__EnterCriticalSection@4:NEAR
+EXTRN	__imp__LeaveCriticalSection@4:NEAR
+EXTRN	__imp__SetEvent@4:NEAR
+EXTRN	__imp__ResetEvent@4:NEAR
+EXTRN	__imp__WaitForSingleObject@8:NEAR
+_TEXT	SEGMENT
+_pPipe$ = 8
+_pItems$ = 12
+_uiNumberToWrite$ = 16
+_write_pipe PROC NEAR
+
+; 387  : {
+
+  00180	53		 push	 ebx
+
+; 388  :   UINT i;
+; 389  :   UINT uiRemaining;
+; 390  :   /* check the pipe guards.. */
+; 391  : #if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+; 392  :   assert ( ( pPipe->usGuard1 == GUARD1) 
+; 393  : 	  &&( pPipe->usGuard2 == GUARD2) );
+; 394  : #endif
+; 395  : 
+; 396  : 
+; 397  :   /********************************************************************/
+; 398  :   /*  Block if the pipe resource is busy.                             */
+; 399  :   /********************************************************************/
+; 400  : 
+; 401  : /* TQL 05/21/1997  change this for OSF build */
+; 402  : #ifdef WIN32
+; 403  :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00181	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__EnterCriticalSection@4
+  00187	55		 push	 ebp
+  00188	56		 push	 esi
+  00189	8b 74 24 10	 mov	 esi, DWORD PTR _pPipe$[esp+8]
+  0018d	57		 push	 edi
+  0018e	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00191	50		 push	 eax
+  00192	ff d3		 call	 ebx
+
+; 404  : #endif
+; 405  : #if defined (__osf__) || defined (__linux__)
+; 406  :   OP_LockMutex( pPipe->pcsPipe );
+; 407  : #endif
+; 408  : 
+; 409  : 
+; 410  :   /********************************************************************/
+; 411  :   /*  If there's not enough room for the items then block.            */
+; 412  :   /*  write_pipe must own pPipe->uiCount during the compare in case   */
+; 413  :   /*  multiple threads are trying to write the pipe at the same time. */
+; 414  :   /********************************************************************/
+; 415  : 
+; 416  :   while ( pPipe->uiCount + uiNumberToWrite >= pPipe->uiLength )
+
+  00194	8b 56 1c	 mov	 edx, DWORD PTR [esi+28]
+  00197	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+  0019b	8b 46 18	 mov	 eax, DWORD PTR [esi+24]
+  0019e	03 d1		 add	 edx, ecx
+  001a0	3b d0		 cmp	 edx, eax
+  001a2	72 3c		 jb	 SHORT $L69200
+
+; 417  :   {
+; 418  : /* TQL 05/21/1997  change this for OSF build */
+; 419  : #ifdef WIN32
+; 420  :     ResetEvent( pPipe->hNotFullEvent );
+; 421  : 
+; 422  :     LeaveCriticalSection( pPipe->pcsPipe );
+; 423  : 
+; 424  :     WaitForSingleObject( pPipe->hNotFullEvent, INFINITE );
+
+  001a4	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__ResetEvent@4
+  001aa	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__WaitForSingleObject@8
+$L69199:
+  001b0	8b 46 2c	 mov	 eax, DWORD PTR [esi+44]
+  001b3	50		 push	 eax
+  001b4	ff d5		 call	 ebp
+  001b6	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  001b9	51		 push	 ecx
+  001ba	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  001c0	8b 56 2c	 mov	 edx, DWORD PTR [esi+44]
+  001c3	6a ff		 push	 -1
+  001c5	52		 push	 edx
+  001c6	ff d7		 call	 edi
+
+; 425  : 
+; 426  :     EnterCriticalSection( pPipe->pcsPipe );
+
+  001c8	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  001cb	50		 push	 eax
+  001cc	ff d3		 call	 ebx
+  001ce	8b 4e 1c	 mov	 ecx, DWORD PTR [esi+28]
+  001d1	8b 54 24 1c	 mov	 edx, DWORD PTR _uiNumberToWrite$[esp+12]
+  001d5	8b 46 18	 mov	 eax, DWORD PTR [esi+24]
+  001d8	03 ca		 add	 ecx, edx
+  001da	3b c8		 cmp	 ecx, eax
+  001dc	73 d2		 jae	 SHORT $L69199
+
+; 404  : #endif
+; 405  : #if defined (__osf__) || defined (__linux__)
+; 406  :   OP_LockMutex( pPipe->pcsPipe );
+; 407  : #endif
+; 408  : 
+; 409  : 
+; 410  :   /********************************************************************/
+; 411  :   /*  If there's not enough room for the items then block.            */
+; 412  :   /*  write_pipe must own pPipe->uiCount during the compare in case   */
+; 413  :   /*  multiple threads are trying to write the pipe at the same time. */
+; 414  :   /********************************************************************/
+; 415  : 
+; 416  :   while ( pPipe->uiCount + uiNumberToWrite >= pPipe->uiLength )
+
+  001de	8b ca		 mov	 ecx, edx
+$L69200:
+
+; 427  : #endif
+; 428  : 
+; 429  : #if defined (__osf__) || defined (__linux__)
+; 430  : 	OP_ResetEvent( pPipe->hNotFullEvent );
+; 431  : 
+; 432  :     OP_UnlockMutex( pPipe->pcsPipe );
+; 433  : 
+; 434  :     OP_WaitForEvent( pPipe->hNotFullEvent, OP_INFINITE );
+; 435  : 
+; 436  :     OP_LockMutex( pPipe->pcsPipe );
+; 437  : #endif
+; 438  : 
+; 439  :   }
+; 440  : 
+; 441  :   /********************************************************************/
+; 442  :   /*  There is enough space in the pipe.                              */
+; 443  :   /*  Test to see if the data will wrap around the circular queue.    */
+; 444  :   /********************************************************************/
+; 445  : 
+; 446  :   if ( pPipe->uiInputPosition + uiNumberToWrite > pPipe->uiLength )
+
+  001e0	8b 56 10	 mov	 edx, DWORD PTR [esi+16]
+  001e3	8b 46 18	 mov	 eax, DWORD PTR [esi+24]
+  001e6	8d 3c 0a	 lea	 edi, DWORD PTR [edx+ecx]
+  001e9	3b f8		 cmp	 edi, eax
+  001eb	0f 86 f5 02 00
+	00		 jbe	 $L69201
+
+; 447  :   {
+; 448  :     /******************************************************************/
+; 449  :     /*  The data will wrap around the circular queue.                 */
+; 450  :     /******************************************************************/
+; 451  : 
+; 452  :     uiRemaining = pPipe->uiLength - pPipe->uiInputPosition;
+
+  001f1	2b c2		 sub	 eax, edx
+  001f3	8b d0		 mov	 edx, eax
+
+; 453  : 
+; 454  :     switch ( pPipe->uiType )
+; 455  :     {
+
+  001f5	8b 46 20	 mov	 eax, DWORD PTR [esi+32]
+  001f8	83 f8 06	 cmp	 eax, 6
+  001fb	0f 87 95 02 00
+	00		 ja	 $L69283
+  00201	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L69645[eax*4]
+$L69206:
+
+; 456  :     case BYTE_PIPE:
+; 457  : 
+; 458  :       for ( i = 0; i < uiRemaining; i++ )
+
+  00208	85 d2		 test	 edx, edx
+  0020a	76 1b		 jbe	 SHORT $L69635
+  0020c	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00210	8b fa		 mov	 edi, edx
+$L69207:
+
+; 459  :        *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+
+  00212	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  00215	8a 18		 mov	 bl, BYTE PTR [eax]
+  00217	88 5d 00	 mov	 BYTE PTR [ebp], bl
+  0021a	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  0021d	43		 inc	 ebx
+  0021e	40		 inc	 eax
+  0021f	4f		 dec	 edi
+  00220	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  00223	75 ed		 jne	 SHORT $L69207
+
+; 456  :     case BYTE_PIPE:
+; 457  : 
+; 458  :       for ( i = 0; i < uiRemaining; i++ )
+
+  00225	eb 04		 jmp	 SHORT $L69209
+$L69635:
+  00227	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69209:
+
+; 460  : 
+; 461  :       pPipe->pInput = pPipe->pStart;
+
+  0022b	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+
+; 462  : 
+; 463  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  0022e	3b d1		 cmp	 edx, ecx
+  00230	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  00233	73 75		 jae	 SHORT $L69291
+  00235	8b e9		 mov	 ebp, ecx
+  00237	2b ea		 sub	 ebp, edx
+$L69212:
+
+; 464  :        *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+
+  00239	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  0023c	8a 18		 mov	 bl, BYTE PTR [eax]
+  0023e	88 1f		 mov	 BYTE PTR [edi], bl
+  00240	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00243	47		 inc	 edi
+  00244	40		 inc	 eax
+  00245	4d		 dec	 ebp
+  00246	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  00249	75 ee		 jne	 SHORT $L69212
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  0024b	8b c1		 mov	 eax, ecx
+  0024d	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  0024f	e9 fa 03 00 00	 jmp	 $L69644
+$L69217:
+
+; 465  : 
+; 466  :       break;
+; 467  : 
+; 468  :     case WORD_PIPE:
+; 469  : 
+; 470  :       for ( i = 0; i < uiRemaining; i++ )
+
+  00254	85 d2		 test	 edx, edx
+  00256	bb 02 00 00 00	 mov	 ebx, 2
+  0025b	76 23		 jbe	 SHORT $L69636
+  0025d	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00261	8b fa		 mov	 edi, edx
+$L69218:
+
+; 471  :        *((WORD_T *)pPipe->pInput)++ = *((WORD_T *)pItems)++;
+
+  00263	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  00266	66 8b 28	 mov	 bp, WORD PTR [eax]
+  00269	66 89 2b	 mov	 WORD PTR [ebx], bp
+  0026c	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  0026f	bb 02 00 00 00	 mov	 ebx, 2
+  00274	03 eb		 add	 ebp, ebx
+  00276	03 c3		 add	 eax, ebx
+  00278	4f		 dec	 edi
+  00279	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  0027c	75 e5		 jne	 SHORT $L69218
+
+; 465  : 
+; 466  :       break;
+; 467  : 
+; 468  :     case WORD_PIPE:
+; 469  : 
+; 470  :       for ( i = 0; i < uiRemaining; i++ )
+
+  0027e	eb 04		 jmp	 SHORT $L69220
+$L69636:
+  00280	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69220:
+
+; 472  : 
+; 473  :       pPipe->pInput = pPipe->pStart;
+
+  00284	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+
+; 474  : 
+; 475  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  00287	3b d1		 cmp	 edx, ecx
+  00289	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  0028c	73 1c		 jae	 SHORT $L69291
+
+; 472  : 
+; 473  :       pPipe->pInput = pPipe->pStart;
+
+  0028e	2b ca		 sub	 ecx, edx
+$L69223:
+
+; 476  :        *((WORD_T *)pPipe->pInput)++ = *((WORD_T *)pItems)++;
+
+  00290	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00293	66 8b 28	 mov	 bp, WORD PTR [eax]
+  00296	03 c3		 add	 eax, ebx
+  00298	66 89 2f	 mov	 WORD PTR [edi], bp
+  0029b	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  0029e	03 fb		 add	 edi, ebx
+  002a0	49		 dec	 ecx
+  002a1	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  002a4	75 ea		 jne	 SHORT $L69223
+$L69643:
+
+; 537  : 
+; 538  :       break;
+
+  002a6	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+$L69291:
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  002aa	8b c1		 mov	 eax, ecx
+  002ac	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  002ae	e9 9b 03 00 00	 jmp	 $L69644
+$L69228:
+
+; 477  : 
+; 478  :       break;
+; 479  : 
+; 480  :     case DWORD_PIPE:
+; 481  : 
+; 482  :       for ( i = 0; i < uiRemaining; i++ )
+
+  002b3	85 d2		 test	 edx, edx
+  002b5	b9 04 00 00 00	 mov	 ecx, 4
+  002ba	76 1c		 jbe	 SHORT $L69637
+  002bc	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  002c0	8b fa		 mov	 edi, edx
+$L69229:
+
+; 483  :        *((DWORD_T *)pPipe->pInput)++ = *((DWORD_T *)pItems)++;
+
+  002c2	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  002c5	8b 28		 mov	 ebp, DWORD PTR [eax]
+  002c7	03 c1		 add	 eax, ecx
+  002c9	89 2b		 mov	 DWORD PTR [ebx], ebp
+  002cb	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  002ce	03 d9		 add	 ebx, ecx
+  002d0	4f		 dec	 edi
+  002d1	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  002d4	75 ec		 jne	 SHORT $L69229
+
+; 477  : 
+; 478  :       break;
+; 479  : 
+; 480  :     case DWORD_PIPE:
+; 481  : 
+; 482  :       for ( i = 0; i < uiRemaining; i++ )
+
+  002d6	eb 04		 jmp	 SHORT $L69231
+$L69637:
+  002d8	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69231:
+
+; 484  : 
+; 485  :       pPipe->pInput = pPipe->pStart;
+
+  002dc	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  002df	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+
+; 486  : 
+; 487  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  002e2	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToWrite$[esp+12]
+  002e6	3b d7		 cmp	 edx, edi
+  002e8	73 bc		 jae	 SHORT $L69643
+
+; 484  : 
+; 485  :       pPipe->pInput = pPipe->pStart;
+
+  002ea	2b fa		 sub	 edi, edx
+$L69234:
+
+; 488  :        *((DWORD_T *)pPipe->pInput)++ = *((DWORD_T *)pItems)++;
+
+  002ec	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  002ef	8b 28		 mov	 ebp, DWORD PTR [eax]
+  002f1	03 c1		 add	 eax, ecx
+  002f3	89 2b		 mov	 DWORD PTR [ebx], ebp
+  002f5	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  002f8	03 d9		 add	 ebx, ecx
+  002fa	4f		 dec	 edi
+  002fb	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  002fe	75 ec		 jne	 SHORT $L69234
+
+; 537  : 
+; 538  :       break;
+
+  00300	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  00304	8b c1		 mov	 eax, ecx
+  00306	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  00308	e9 41 03 00 00	 jmp	 $L69644
+$L69239:
+
+; 489  : 
+; 490  :       break;
+; 491  : 
+; 492  :     case QWORD_PIPE:
+; 493  : 
+; 494  :       for ( i = 0; i < uiRemaining; i++ )
+
+  0030d	85 d2		 test	 edx, edx
+  0030f	b9 04 00 00 00	 mov	 ecx, 4
+  00314	76 1c		 jbe	 SHORT $L69638
+  00316	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  0031a	8b fa		 mov	 edi, edx
+$L69240:
+
+; 495  :        *((QWORD_T *)pPipe->pInput)++ = *((QWORD_T *)pItems)++;
+
+  0031c	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  0031f	8b 28		 mov	 ebp, DWORD PTR [eax]
+  00321	03 c1		 add	 eax, ecx
+  00323	89 2b		 mov	 DWORD PTR [ebx], ebp
+  00325	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  00328	03 d9		 add	 ebx, ecx
+  0032a	4f		 dec	 edi
+  0032b	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  0032e	75 ec		 jne	 SHORT $L69240
+
+; 489  : 
+; 490  :       break;
+; 491  : 
+; 492  :     case QWORD_PIPE:
+; 493  : 
+; 494  :       for ( i = 0; i < uiRemaining; i++ )
+
+  00330	eb 04		 jmp	 SHORT $L69242
+$L69638:
+  00332	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69242:
+
+; 496  : 
+; 497  :       pPipe->pInput = pPipe->pStart;
+
+  00336	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  00339	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+
+; 498  : 
+; 499  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  0033c	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToWrite$[esp+12]
+  00340	3b d7		 cmp	 edx, edi
+  00342	0f 83 5e ff ff
+	ff		 jae	 $L69643
+  00348	8b ef		 mov	 ebp, edi
+  0034a	2b ea		 sub	 ebp, edx
+$L69245:
+
+; 500  :        *((QWORD_T *)pPipe->pInput)++ = *((QWORD_T *)pItems)++;
+
+  0034c	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  0034f	8b 18		 mov	 ebx, DWORD PTR [eax]
+  00351	03 c1		 add	 eax, ecx
+  00353	89 1f		 mov	 DWORD PTR [edi], ebx
+  00355	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00358	03 f9		 add	 edi, ecx
+  0035a	4d		 dec	 ebp
+  0035b	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  0035e	75 ec		 jne	 SHORT $L69245
+
+; 537  : 
+; 538  :       break;
+
+  00360	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  00364	8b c1		 mov	 eax, ecx
+  00366	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  00368	e9 e1 02 00 00	 jmp	 $L69644
+$L69250:
+
+; 501  : 
+; 502  :       break;
+; 503  : 
+; 504  :     case FLOAT_PIPE:
+; 505  : 
+; 506  :       for ( i = 0; i < uiRemaining; i++ )
+
+  0036d	85 d2		 test	 edx, edx
+  0036f	b9 04 00 00 00	 mov	 ecx, 4
+  00374	76 1c		 jbe	 SHORT $L69639
+  00376	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  0037a	8b fa		 mov	 edi, edx
+$L69251:
+
+; 507  :        *((float *)pPipe->pInput)++ = *((float *)pItems)++;
+
+  0037c	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  0037f	8b 28		 mov	 ebp, DWORD PTR [eax]
+  00381	03 c1		 add	 eax, ecx
+  00383	89 2b		 mov	 DWORD PTR [ebx], ebp
+  00385	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  00388	03 d9		 add	 ebx, ecx
+  0038a	4f		 dec	 edi
+  0038b	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  0038e	75 ec		 jne	 SHORT $L69251
+
+; 501  : 
+; 502  :       break;
+; 503  : 
+; 504  :     case FLOAT_PIPE:
+; 505  : 
+; 506  :       for ( i = 0; i < uiRemaining; i++ )
+
+  00390	eb 04		 jmp	 SHORT $L69253
+$L69639:
+  00392	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69253:
+
+; 508  : 
+; 509  :       pPipe->pInput = pPipe->pStart;
+
+  00396	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  00399	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+
+; 510  : 
+; 511  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  0039c	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToWrite$[esp+12]
+  003a0	3b d7		 cmp	 edx, edi
+  003a2	0f 83 fe fe ff
+	ff		 jae	 $L69643
+  003a8	8b df		 mov	 ebx, edi
+  003aa	2b da		 sub	 ebx, edx
+$L69256:
+
+; 512  :        *((float *)pPipe->pInput)++ = *((float *)pItems)++;
+
+  003ac	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  003af	8b 28		 mov	 ebp, DWORD PTR [eax]
+  003b1	03 c1		 add	 eax, ecx
+  003b3	89 2f		 mov	 DWORD PTR [edi], ebp
+  003b5	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  003b8	03 f9		 add	 edi, ecx
+  003ba	4b		 dec	 ebx
+  003bb	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  003be	75 ec		 jne	 SHORT $L69256
+
+; 537  : 
+; 538  :       break;
+
+  003c0	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  003c4	8b c1		 mov	 eax, ecx
+  003c6	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  003c8	e9 81 02 00 00	 jmp	 $L69644
+$L69261:
+
+; 513  : 
+; 514  :       break;
+; 515  : 
+; 516  :     case DOUBLE_PIPE:
+; 517  : 
+; 518  :       for ( i = 0; i < uiRemaining; i++ )
+
+  003cd	85 d2		 test	 edx, edx
+  003cf	bb 08 00 00 00	 mov	 ebx, 8
+  003d4	76 27		 jbe	 SHORT $L69640
+  003d6	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  003da	8b fa		 mov	 edi, edx
+$L69262:
+
+; 519  :        *((double *)pPipe->pInput)++ = *((double *)pItems)++;
+
+  003dc	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  003df	8b 28		 mov	 ebp, DWORD PTR [eax]
+  003e1	89 2b		 mov	 DWORD PTR [ebx], ebp
+  003e3	8b 68 04	 mov	 ebp, DWORD PTR [eax+4]
+  003e6	89 6b 04	 mov	 DWORD PTR [ebx+4], ebp
+  003e9	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  003ec	bb 08 00 00 00	 mov	 ebx, 8
+  003f1	03 eb		 add	 ebp, ebx
+  003f3	03 c3		 add	 eax, ebx
+  003f5	4f		 dec	 edi
+  003f6	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  003f9	75 e1		 jne	 SHORT $L69262
+
+; 513  : 
+; 514  :       break;
+; 515  : 
+; 516  :     case DOUBLE_PIPE:
+; 517  : 
+; 518  :       for ( i = 0; i < uiRemaining; i++ )
+
+  003fb	eb 04		 jmp	 SHORT $L69264
+$L69640:
+  003fd	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69264:
+
+; 520  : 
+; 521  :       pPipe->pInput = pPipe->pStart;
+
+  00401	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+
+; 522  : 
+; 523  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  00404	3b d1		 cmp	 edx, ecx
+  00406	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  00409	0f 83 9b fe ff
+	ff		 jae	 $L69291
+
+; 520  : 
+; 521  :       pPipe->pInput = pPipe->pStart;
+
+  0040f	2b ca		 sub	 ecx, edx
+$L69267:
+
+; 524  :        *((double *)pPipe->pInput)++ = *((double *)pItems)++;
+
+  00411	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00414	8b 28		 mov	 ebp, DWORD PTR [eax]
+  00416	89 2f		 mov	 DWORD PTR [edi], ebp
+  00418	8b 68 04	 mov	 ebp, DWORD PTR [eax+4]
+  0041b	03 c3		 add	 eax, ebx
+  0041d	89 6f 04	 mov	 DWORD PTR [edi+4], ebp
+  00420	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00423	03 fb		 add	 edi, ebx
+  00425	49		 dec	 ecx
+  00426	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  00429	75 e6		 jne	 SHORT $L69267
+
+; 537  : 
+; 538  :       break;
+
+  0042b	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  0042f	8b c1		 mov	 eax, ecx
+  00431	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  00433	e9 16 02 00 00	 jmp	 $L69644
+$L69272:
+
+; 525  : 
+; 526  :       break;
+; 527  : 
+; 528  :     case VOID_PTR_PIPE:
+; 529  : 
+; 530  :       for ( i = 0; i < uiRemaining; i++ )
+
+  00438	85 d2		 test	 edx, edx
+  0043a	b9 04 00 00 00	 mov	 ecx, 4
+  0043f	76 1c		 jbe	 SHORT $L69641
+  00441	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00445	8b fa		 mov	 edi, edx
+$L69273:
+
+; 531  :        *((void **)pPipe->pInput)++ = *((void **)pItems)++;
+
+  00447	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  0044a	8b 28		 mov	 ebp, DWORD PTR [eax]
+  0044c	03 c1		 add	 eax, ecx
+  0044e	89 2b		 mov	 DWORD PTR [ebx], ebp
+  00450	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  00453	03 d9		 add	 ebx, ecx
+  00455	4f		 dec	 edi
+  00456	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  00459	75 ec		 jne	 SHORT $L69273
+
+; 525  : 
+; 526  :       break;
+; 527  : 
+; 528  :     case VOID_PTR_PIPE:
+; 529  : 
+; 530  :       for ( i = 0; i < uiRemaining; i++ )
+
+  0045b	eb 04		 jmp	 SHORT $L69275
+$L69641:
+  0045d	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69275:
+
+; 532  : 
+; 533  :       pPipe->pInput = pPipe->pStart;
+
+  00461	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  00464	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+
+; 534  : 
+; 535  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  00467	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToWrite$[esp+12]
+  0046b	3b d7		 cmp	 edx, edi
+  0046d	0f 83 33 fe ff
+	ff		 jae	 $L69643
+
+; 532  : 
+; 533  :       pPipe->pInput = pPipe->pStart;
+
+  00473	2b fa		 sub	 edi, edx
+$L69278:
+
+; 536  :        *((void **)pPipe->pInput)++ = *((void **)pItems)++;
+
+  00475	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  00478	8b 28		 mov	 ebp, DWORD PTR [eax]
+  0047a	03 c1		 add	 eax, ecx
+  0047c	89 2b		 mov	 DWORD PTR [ebx], ebp
+  0047e	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  00481	03 d9		 add	 ebx, ecx
+  00483	4f		 dec	 edi
+  00484	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  00487	75 ec		 jne	 SHORT $L69278
+
+; 537  : 
+; 538  :       break;
+
+  00489	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  0048d	8b c1		 mov	 eax, ecx
+  0048f	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  00491	e9 b8 01 00 00	 jmp	 $L69644
+$L69283:
+
+; 539  : 
+; 540  :     default:
+; 541  : 
+; 542  :       for ( i = 0; i < uiRemaining; i++ )
+
+  00496	85 d2		 test	 edx, edx
+  00498	76 1b		 jbe	 SHORT $L69642
+  0049a	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  0049e	8b fa		 mov	 edi, edx
+$L69284:
+
+; 543  :        *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+
+  004a0	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  004a3	8a 18		 mov	 bl, BYTE PTR [eax]
+  004a5	88 5d 00	 mov	 BYTE PTR [ebp], bl
+  004a8	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  004ab	43		 inc	 ebx
+  004ac	40		 inc	 eax
+  004ad	4f		 dec	 edi
+  004ae	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  004b1	75 ed		 jne	 SHORT $L69284
+
+; 539  : 
+; 540  :     default:
+; 541  : 
+; 542  :       for ( i = 0; i < uiRemaining; i++ )
+
+  004b3	eb 04		 jmp	 SHORT $L69286
+$L69642:
+  004b5	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69286:
+
+; 544  : 
+; 545  :       pPipe->pInput = pPipe->pStart;
+
+  004b9	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+
+; 546  : 
+; 547  :       for ( i = uiRemaining; i < uiNumberToWrite; i++ )
+
+  004bc	3b d1		 cmp	 edx, ecx
+  004be	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  004c1	0f 83 e3 fd ff
+	ff		 jae	 $L69291
+  004c7	8b e9		 mov	 ebp, ecx
+  004c9	2b ea		 sub	 ebp, edx
+$L69289:
+
+; 548  :        *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+
+  004cb	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  004ce	8a 18		 mov	 bl, BYTE PTR [eax]
+  004d0	88 1f		 mov	 BYTE PTR [edi], bl
+  004d2	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  004d5	47		 inc	 edi
+  004d6	40		 inc	 eax
+  004d7	4d		 dec	 ebp
+  004d8	89 7e 08	 mov	 DWORD PTR [esi+8], edi
+  004db	75 ee		 jne	 SHORT $L69289
+
+; 549  : 
+; 550  :       break;
+; 551  :     }
+; 552  : 
+; 553  :     /******************************************************************/
+; 554  :     /*  Update the input position in a circular fashion.              */
+; 555  :     /******************************************************************/
+; 556  : 
+; 557  :     pPipe->uiInputPosition = uiNumberToWrite - uiRemaining;
+
+  004dd	8b c1		 mov	 eax, ecx
+  004df	2b c2		 sub	 eax, edx
+
+; 558  :   }
+; 559  :   else
+
+  004e1	e9 68 01 00 00	 jmp	 $L69644
+$L69201:
+
+; 560  :   {
+; 561  :     /******************************************************************/
+; 562  :     /*  The data will NOT wrap around the circular queue.             */
+; 563  :     /******************************************************************/
+; 564  : 
+; 565  :     switch ( pPipe->uiType )
+; 566  :     {
+
+  004e6	8b 46 20	 mov	 eax, DWORD PTR [esi+32]
+  004e9	83 f8 06	 cmp	 eax, 6
+  004ec	0f 87 3b 01 00
+	00		 ja	 $L69341
+  004f2	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L69646[eax*4]
+$L69299:
+
+; 567  :     case BYTE_PIPE:
+; 568  : 
+; 569  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  004f9	85 c9		 test	 ecx, ecx
+  004fb	0f 86 48 01 00
+	00		 jbe	 $L69344
+  00501	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00505	8b f9		 mov	 edi, ecx
+$L69300:
+
+; 570  :        *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+
+  00507	8b 56 08	 mov	 edx, DWORD PTR [esi+8]
+  0050a	8a 18		 mov	 bl, BYTE PTR [eax]
+  0050c	88 1a		 mov	 BYTE PTR [edx], bl
+  0050e	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  00511	45		 inc	 ebp
+  00512	40		 inc	 eax
+  00513	4f		 dec	 edi
+  00514	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  00517	75 ee		 jne	 SHORT $L69300
+
+; 571  : 
+; 572  :       break;
+
+  00519	e9 2b 01 00 00	 jmp	 $L69344
+$L69305:
+
+; 573  : 
+; 574  :     case WORD_PIPE:
+; 575  : 
+; 576  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  0051e	85 c9		 test	 ecx, ecx
+  00520	0f 86 23 01 00
+	00		 jbe	 $L69344
+  00526	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  0052a	8b d1		 mov	 edx, ecx
+  0052c	bf 02 00 00 00	 mov	 edi, 2
+$L69306:
+
+; 577  :        *((WORD_T *)pPipe->pInput)++ = *((WORD_T *)pItems)++;
+
+  00531	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  00534	66 8b 28	 mov	 bp, WORD PTR [eax]
+  00537	03 c7		 add	 eax, edi
+  00539	66 89 2b	 mov	 WORD PTR [ebx], bp
+  0053c	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  0053f	03 df		 add	 ebx, edi
+  00541	4a		 dec	 edx
+  00542	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  00545	75 ea		 jne	 SHORT $L69306
+
+; 578  : 
+; 579  :       break;
+
+  00547	e9 fd 00 00 00	 jmp	 $L69344
+$L69311:
+
+; 580  : 
+; 581  :     case DWORD_PIPE:
+; 582  : 
+; 583  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  0054c	85 c9		 test	 ecx, ecx
+  0054e	0f 86 f5 00 00
+	00		 jbe	 $L69344
+  00554	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00558	8b d1		 mov	 edx, ecx
+  0055a	b9 04 00 00 00	 mov	 ecx, 4
+$L69312:
+
+; 584  :        *((DWORD_T *)pPipe->pInput)++ = *((DWORD_T *)pItems)++;
+
+  0055f	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00562	8b 18		 mov	 ebx, DWORD PTR [eax]
+  00564	03 c1		 add	 eax, ecx
+  00566	89 1f		 mov	 DWORD PTR [edi], ebx
+  00568	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  0056b	03 e9		 add	 ebp, ecx
+  0056d	4a		 dec	 edx
+  0056e	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  00571	75 ec		 jne	 SHORT $L69312
+
+; 585  : 
+; 586  :       break;
+
+  00573	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+  00577	e9 cd 00 00 00	 jmp	 $L69344
+$L69317:
+
+; 587  : 
+; 588  :     case QWORD_PIPE:
+; 589  : 
+; 590  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  0057c	85 c9		 test	 ecx, ecx
+  0057e	0f 86 c5 00 00
+	00		 jbe	 $L69344
+  00584	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00588	8b d1		 mov	 edx, ecx
+  0058a	b9 04 00 00 00	 mov	 ecx, 4
+$L69318:
+
+; 591  :        *((QWORD_T *)pPipe->pInput)++ = *((QWORD_T *)pItems)++;
+
+  0058f	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00592	8b 18		 mov	 ebx, DWORD PTR [eax]
+  00594	03 c1		 add	 eax, ecx
+  00596	89 1f		 mov	 DWORD PTR [edi], ebx
+  00598	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  0059b	03 e9		 add	 ebp, ecx
+  0059d	4a		 dec	 edx
+  0059e	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  005a1	75 ec		 jne	 SHORT $L69318
+
+; 592  : 
+; 593  :       break;
+
+  005a3	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+  005a7	e9 9d 00 00 00	 jmp	 $L69344
+$L69323:
+
+; 594  : 
+; 595  :     case FLOAT_PIPE:
+; 596  : 
+; 597  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  005ac	85 c9		 test	 ecx, ecx
+  005ae	0f 86 95 00 00
+	00		 jbe	 $L69344
+  005b4	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  005b8	8b d1		 mov	 edx, ecx
+  005ba	b9 04 00 00 00	 mov	 ecx, 4
+$L69324:
+
+; 598  :        *((float *)pPipe->pInput)++ = *((float *)pItems)++;
+
+  005bf	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  005c2	8b 18		 mov	 ebx, DWORD PTR [eax]
+  005c4	03 c1		 add	 eax, ecx
+  005c6	89 1f		 mov	 DWORD PTR [edi], ebx
+  005c8	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  005cb	03 e9		 add	 ebp, ecx
+  005cd	4a		 dec	 edx
+  005ce	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  005d1	75 ec		 jne	 SHORT $L69324
+
+; 599  : 
+; 600  :       break;
+
+  005d3	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+  005d7	eb 70		 jmp	 SHORT $L69344
+$L69329:
+
+; 601  : 
+; 602  :     case DOUBLE_PIPE:
+; 603  : 
+; 604  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  005d9	85 c9		 test	 ecx, ecx
+  005db	76 6c		 jbe	 SHORT $L69344
+  005dd	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  005e1	8b d1		 mov	 edx, ecx
+  005e3	bf 08 00 00 00	 mov	 edi, 8
+$L69330:
+
+; 605  :        *((double *)pPipe->pInput)++ = *((double *)pItems)++;
+
+  005e8	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  005eb	8b 28		 mov	 ebp, DWORD PTR [eax]
+  005ed	89 2b		 mov	 DWORD PTR [ebx], ebp
+  005ef	8b 68 04	 mov	 ebp, DWORD PTR [eax+4]
+  005f2	03 c7		 add	 eax, edi
+  005f4	89 6b 04	 mov	 DWORD PTR [ebx+4], ebp
+  005f7	8b 5e 08	 mov	 ebx, DWORD PTR [esi+8]
+  005fa	03 df		 add	 ebx, edi
+  005fc	4a		 dec	 edx
+  005fd	89 5e 08	 mov	 DWORD PTR [esi+8], ebx
+  00600	75 e6		 jne	 SHORT $L69330
+
+; 606  : 
+; 607  :       break;
+
+  00602	eb 45		 jmp	 SHORT $L69344
+$L69335:
+
+; 608  : 
+; 609  :     case VOID_PTR_PIPE:
+; 610  : 
+; 611  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  00604	85 c9		 test	 ecx, ecx
+  00606	76 41		 jbe	 SHORT $L69344
+  00608	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  0060c	8b d1		 mov	 edx, ecx
+  0060e	b9 04 00 00 00	 mov	 ecx, 4
+$L69336:
+
+; 612  :        *((void **)pPipe->pInput)++ = *((void **)pItems)++;
+
+  00613	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  00616	8b 18		 mov	 ebx, DWORD PTR [eax]
+  00618	03 c1		 add	 eax, ecx
+  0061a	89 1f		 mov	 DWORD PTR [edi], ebx
+  0061c	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  0061f	03 e9		 add	 ebp, ecx
+  00621	4a		 dec	 edx
+  00622	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  00625	75 ec		 jne	 SHORT $L69336
+
+; 613  : 
+; 614  :       break;
+
+  00627	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToWrite$[esp+12]
+  0062b	eb 1c		 jmp	 SHORT $L69344
+$L69341:
+
+; 615  : 
+; 616  :     default:
+; 617  : 
+; 618  :       for ( i = 0; i < uiNumberToWrite; i++ )
+
+  0062d	85 c9		 test	 ecx, ecx
+  0062f	76 18		 jbe	 SHORT $L69344
+  00631	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00635	8b f9		 mov	 edi, ecx
+$L69342:
+
+; 619  :        *((BYTE_T *)pPipe->pInput)++ = *((BYTE_T *)pItems)++;
+
+  00637	8b 56 08	 mov	 edx, DWORD PTR [esi+8]
+  0063a	8a 18		 mov	 bl, BYTE PTR [eax]
+  0063c	88 1a		 mov	 BYTE PTR [edx], bl
+  0063e	8b 6e 08	 mov	 ebp, DWORD PTR [esi+8]
+  00641	45		 inc	 ebp
+  00642	40		 inc	 eax
+  00643	4f		 dec	 edi
+  00644	89 6e 08	 mov	 DWORD PTR [esi+8], ebp
+  00647	75 ee		 jne	 SHORT $L69342
+$L69344:
+
+; 620  : 
+; 621  :       break;
+; 622  :     }
+; 623  : 
+; 624  :     /******************************************************************/
+; 625  :     /*  Update the input position.                                    */
+; 626  :     /******************************************************************/
+; 627  : 
+; 628  :     pPipe->uiInputPosition += uiNumberToWrite;
+
+  00649	8b 46 10	 mov	 eax, DWORD PTR [esi+16]
+  0064c	03 c1		 add	 eax, ecx
+$L69644:
+
+; 629  :   }
+; 630  : 
+; 631  :   /********************************************************************/
+; 632  :   /*  Update the count of items in the pipe.                          */
+; 633  :   /********************************************************************/
+; 634  : 
+; 635  :   pPipe->uiCount += uiNumberToWrite;
+
+  0064e	8b 56 1c	 mov	 edx, DWORD PTR [esi+28]
+  00651	89 46 10	 mov	 DWORD PTR [esi+16], eax
+
+; 636  : 
+; 637  :   /********************************************************************/
+; 638  :   /*  Set the pipe not empty condition.                               */
+; 639  :   /********************************************************************/
+; 640  : 
+; 641  : /* TQL 05/21/1997  change this for OSF build */
+; 642  : #ifdef WIN32
+; 643  :   SetEvent( pPipe->hNotEmptyEvent );
+
+  00654	8b 46 28	 mov	 eax, DWORD PTR [esi+40]
+  00657	03 d1		 add	 edx, ecx
+  00659	50		 push	 eax
+  0065a	89 56 1c	 mov	 DWORD PTR [esi+28], edx
+  0065d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 644  : #endif
+; 645  : #if defined (__osf__) || defined (__linux__)
+; 646  :   OP_SetEvent( pPipe->hNotEmptyEvent );
+; 647  : #endif
+; 648  : 
+; 649  :   /******************************************************************/
+; 650  :   /*  Free the pipe resource.                                       */
+; 651  :   /******************************************************************/
+; 652  : 
+; 653  : /* TQL 05/21/1997  change this for OSF build */
+; 654  : #ifdef WIN32
+; 655  :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00663	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  00666	51		 push	 ecx
+  00667	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  0066d	5f		 pop	 edi
+  0066e	5e		 pop	 esi
+  0066f	5d		 pop	 ebp
+  00670	5b		 pop	 ebx
+
+; 656  : #endif
+; 657  : #if defined (__osf__) || defined (__linux__)
+; 658  :   OP_UnlockMutex( pPipe->pcsPipe );
+; 659  : #endif
+; 660  : 
+; 661  :   return;
+; 662  : }
+
+  00671	c3		 ret	 0
+  00672	8b ff		 npad	 2
+$L69645:
+  00674	00 00 00 00	 DD	 $L69206
+  00678	00 00 00 00	 DD	 $L69217
+  0067c	00 00 00 00	 DD	 $L69228
+  00680	00 00 00 00	 DD	 $L69239
+  00684	00 00 00 00	 DD	 $L69250
+  00688	00 00 00 00	 DD	 $L69261
+  0068c	00 00 00 00	 DD	 $L69272
+$L69646:
+  00690	00 00 00 00	 DD	 $L69299
+  00694	00 00 00 00	 DD	 $L69305
+  00698	00 00 00 00	 DD	 $L69311
+  0069c	00 00 00 00	 DD	 $L69317
+  006a0	00 00 00 00	 DD	 $L69323
+  006a4	00 00 00 00	 DD	 $L69329
+  006a8	00 00 00 00	 DD	 $L69335
+_write_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_read_pipe
+EXTRN	__imp___endthreadex:NEAR
+_TEXT	SEGMENT
+_pPipe$ = 8
+_pItems$ = 12
+_uiNumberToRead$ = 16
+_read_pipe PROC NEAR
+
+; 695  : {
+
+  006b0	53		 push	 ebx
+  006b1	55		 push	 ebp
+  006b2	56		 push	 esi
+
+; 696  : 	UINT i;
+; 697  : 	UINT uiRemaining;
+; 698  : 	UINT temp;
+; 699  : 	/* check the pipe guards.. */
+; 700  : 	
+; 701  : #if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+; 702  : 	assert ( ( (pPipe)->usGuard1 == GUARD1) 
+; 703  : 		&&( (pPipe)->usGuard2 == GUARD2) );
+; 704  : #endif
+; 705  : 	
+; 706  : 	/********************************************************************/
+; 707  : 	/*  Block if the pipe resource is busy.                             */
+; 708  : 	/********************************************************************/
+; 709  : 	
+; 710  : 	/* TQL 05/21/1997  change this for OSF build */
+; 711  : #ifdef WIN32
+; 712  : 	EnterCriticalSection( pPipe->pcsPipe );
+
+  006b3	8b 74 24 10	 mov	 esi, DWORD PTR _pPipe$[esp+8]
+  006b7	57		 push	 edi
+  006b8	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__EnterCriticalSection@4
+  006be	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  006c1	50		 push	 eax
+  006c2	ff d7		 call	 edi
+
+; 713  : #endif
+; 714  : #if defined (__osf__) || defined (__linux__)
+; 715  : 	OP_LockMutex( pPipe->pcsPipe );
+; 716  : #endif
+; 717  : 	
+; 718  : 	
+; 719  : 	/********************************************************************/
+; 720  : 	/*  If there are not enough items in the pipe then block.           */
+; 721  : 	/*  read_pipe must own pPipe->uiCount during the compare in case    */
+; 722  : 	/*  multiple threads are trying to read the pipe at the same time.  */
+; 723  : 	/********************************************************************/
+; 724  : 	
+; 725  : 	if (uiNumberToRead == READ_WORD_PIPE_PACKET)
+
+  006c4	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  006c8	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__ResetEvent@4
+  006ce	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__WaitForSingleObject@8
+  006d4	3d de c0 ed fe	 cmp	 eax, -17973026		; feedc0deH
+  006d9	75 6c		 jne	 SHORT $L69650
+
+; 726  : 	{
+; 727  : 		// peek at the data in the pipe to see how many items to read
+; 728  : 		if ((pPipe->uiLength - pPipe->uiOutputPosition)==0)
+
+  006db	8b 4e 18	 mov	 ecx, DWORD PTR [esi+24]
+  006de	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+  006e1	2b c8		 sub	 ecx, eax
+  006e3	75 08		 jne	 SHORT $L69359
+
+; 729  : 		{
+; 730  : 			temp=(((((short *)pPipe->pStart)[0]&0x6000) >> 13) +1);
+
+  006e5	8b 56 04	 mov	 edx, DWORD PTR [esi+4]
+  006e8	66 8b 02	 mov	 ax, WORD PTR [edx]
+
+; 731  : 		}
+; 732  : 		else
+
+  006eb	eb 06		 jmp	 SHORT $L69708
+$L69359:
+
+; 733  : 		{
+; 734  : 			temp=(((((short *)pPipe->pOutput)[0]&0x6000) >> 13) +1);
+
+  006ed	8b 46 0c	 mov	 eax, DWORD PTR [esi+12]
+  006f0	66 8b 00	 mov	 ax, WORD PTR [eax]
+$L69708:
+
+; 735  : 		}
+; 736  : 
+; 737  : 		while ( pPipe->uiCount < temp)
+
+  006f3	8b 4e 1c	 mov	 ecx, DWORD PTR [esi+28]
+  006f6	c1 f8 0d	 sar	 eax, 13			; 0000000dH
+  006f9	83 e0 03	 and	 eax, 3
+  006fc	40		 inc	 eax
+  006fd	3b c8		 cmp	 ecx, eax
+  006ff	73 7a		 jae	 SHORT $L69373
+$L69364:
+
+; 738  : 		{
+; 739  : 			/* TQL 05/21/1997  change this for OSF build */
+; 740  : #ifdef WIN32
+; 741  : 			ResetEvent( pPipe->hNotEmptyEvent );
+
+  00701	8b 4e 28	 mov	 ecx, DWORD PTR [esi+40]
+  00704	51		 push	 ecx
+  00705	ff d3		 call	 ebx
+
+; 742  : 			
+; 743  : 			LeaveCriticalSection( pPipe->pcsPipe );
+
+  00707	8b 56 34	 mov	 edx, DWORD PTR [esi+52]
+  0070a	52		 push	 edx
+  0070b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 744  : 			
+; 745  : 			WaitForSingleObject( pPipe->hNotEmptyEvent, INFINITE );
+
+  00711	8b 46 28	 mov	 eax, DWORD PTR [esi+40]
+  00714	6a ff		 push	 -1
+  00716	50		 push	 eax
+  00717	ff d5		 call	 ebp
+
+; 746  : 			
+; 747  : 			EnterCriticalSection( pPipe->pcsPipe );
+
+  00719	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  0071c	51		 push	 ecx
+  0071d	ff d7		 call	 edi
+
+; 748  : 
+; 749  : 			if ((pPipe->uiLength - pPipe->uiOutputPosition)==0)
+
+  0071f	8b 56 18	 mov	 edx, DWORD PTR [esi+24]
+  00722	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+  00725	2b d0		 sub	 edx, eax
+  00727	75 08		 jne	 SHORT $L69366
+
+; 750  : 			{
+; 751  : 				temp=(((((short *)pPipe->pStart)[0]&0x6000) >> 13) +1);
+
+  00729	8b 46 04	 mov	 eax, DWORD PTR [esi+4]
+  0072c	66 8b 00	 mov	 ax, WORD PTR [eax]
+
+; 752  : 			}
+; 753  : 			else
+
+  0072f	eb 06		 jmp	 SHORT $L69709
+$L69366:
+
+; 754  : 			{
+; 755  : 				temp=(((((short *)pPipe->pOutput)[0]&0x6000) >> 13) +1);
+
+  00731	8b 4e 0c	 mov	 ecx, DWORD PTR [esi+12]
+  00734	66 8b 01	 mov	 ax, WORD PTR [ecx]
+$L69709:
+  00737	8b 4e 1c	 mov	 ecx, DWORD PTR [esi+28]
+  0073a	c1 f8 0d	 sar	 eax, 13			; 0000000dH
+  0073d	83 e0 03	 and	 eax, 3
+  00740	40		 inc	 eax
+  00741	3b c8		 cmp	 ecx, eax
+  00743	72 bc		 jb	 SHORT $L69364
+
+; 756  : 			}
+; 757  : #endif
+; 758  : 			
+; 759  : #if defined (__osf__) || defined (__linux__)
+; 760  : 			OP_ResetEvent( pPipe->hNotEmptyEvent );
+; 761  : 			
+; 762  : 			OP_UnlockMutex( pPipe->pcsPipe );
+; 763  : 			
+; 764  : 			OP_WaitForEvent( pPipe->hNotEmptyEvent, OP_INFINITE );
+; 765  : 			
+; 766  : 			OP_LockMutex( pPipe->pcsPipe );
+; 767  : #endif
+; 768  : 		}
+; 769  : 	}
+; 770  : 	else
+
+  00745	eb 34		 jmp	 SHORT $L69373
+$L69650:
+
+; 771  : 	{
+; 772  : 		
+; 773  : 		while ( pPipe->uiCount < uiNumberToRead )
+
+  00747	8b 54 24 1c	 mov	 edx, DWORD PTR _uiNumberToRead$[esp+12]
+  0074b	8b 46 1c	 mov	 eax, DWORD PTR [esi+28]
+  0074e	3b c2		 cmp	 eax, edx
+  00750	73 29		 jae	 SHORT $L69373
+$L69372:
+
+; 774  : 		{
+; 775  : 			/* TQL 05/21/1997  change this for OSF build */
+; 776  : #ifdef WIN32
+; 777  : 			ResetEvent( pPipe->hNotEmptyEvent );
+
+  00752	8b 46 28	 mov	 eax, DWORD PTR [esi+40]
+  00755	50		 push	 eax
+  00756	ff d3		 call	 ebx
+
+; 778  : 			
+; 779  : 			LeaveCriticalSection( pPipe->pcsPipe );
+
+  00758	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  0075b	51		 push	 ecx
+  0075c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 780  : 			
+; 781  : 			WaitForSingleObject( pPipe->hNotEmptyEvent, INFINITE );
+
+  00762	8b 56 28	 mov	 edx, DWORD PTR [esi+40]
+  00765	6a ff		 push	 -1
+  00767	52		 push	 edx
+  00768	ff d5		 call	 ebp
+
+; 782  : 			
+; 783  : 			EnterCriticalSection( pPipe->pcsPipe );
+
+  0076a	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  0076d	50		 push	 eax
+  0076e	ff d7		 call	 edi
+  00770	8b 4c 24 1c	 mov	 ecx, DWORD PTR _uiNumberToRead$[esp+12]
+  00774	8b 46 1c	 mov	 eax, DWORD PTR [esi+28]
+  00777	3b c1		 cmp	 eax, ecx
+  00779	72 d7		 jb	 SHORT $L69372
+$L69373:
+
+; 784  : #endif
+; 785  : 			
+; 786  : #if defined (__osf__) || defined (__linux__)
+; 787  : 			OP_ResetEvent( pPipe->hNotEmptyEvent );
+; 788  : 			
+; 789  : 			OP_UnlockMutex( pPipe->pcsPipe );
+; 790  : 			
+; 791  : 			OP_WaitForEvent( pPipe->hNotEmptyEvent, OP_INFINITE );
+; 792  : 			
+; 793  : 			OP_LockMutex( pPipe->pcsPipe );
+; 794  : #endif
+; 795  : 		}
+; 796  : 	}
+; 797  : 	/********************************************************************/
+; 798  : 	/*  If the exit flag is set then terminate the thread.              */
+; 799  : 	/********************************************************************/
+; 800  : 	
+; 801  : 	switch ( pPipe->uiState )
+; 802  : 	{
+
+  0077b	8b 46 24	 mov	 eax, DWORD PTR [esi+36]
+  0077e	48		 dec	 eax
+  0077f	74 1a		 je	 SHORT $L69379
+  00781	48		 dec	 eax
+  00782	75 3c		 jne	 SHORT $L69375
+
+; 831  : 		
+; 832  : 		break;
+; 833  : 		
+; 834  : 	case PIPE_EXIT:
+; 835  : 		
+; 836  : 		/* TQL 05/21/1997  change this for OSF build */
+; 837  : #ifdef WIN32
+; 838  : 		LeaveCriticalSection( pPipe->pcsPipe );
+
+  00784	8b 56 34	 mov	 edx, DWORD PTR [esi+52]
+  00787	52		 push	 edx
+  00788	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 839  : #endif
+; 840  : #if defined (__osf__) || defined (__linux__)
+; 841  : 		OP_UnlockMutex( pPipe->pcsPipe );
+; 842  : #endif
+; 843  : 		
+; 844  : 		/*MVP : Microsoft reocmmends to use _endthreadex for the proper recovery
+; 845  : 		of resources from the thread
+; 846  : 		*/
+; 847  : #ifdef OLD
+; 848  : 		ExitThread( 0 );
+; 849  : #endif
+; 850  : 		
+; 851  : 		/* GL 04/21/1997  change this for OSF build */
+; 852  : #ifdef WIN32
+; 853  : #ifndef LDS_BUILD
+; 854  : 		_endthreadex(0);
+
+  0078e	6a 00		 push	 0
+  00790	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___endthreadex
+  00796	83 c4 04	 add	 esp, 4
+
+; 855  : #endif
+; 856  : #endif
+; 857  : 		
+; 858  : #if defined (__osf__) || defined (__linux__)
+; 859  : 		OP_ExitThread(0);
+; 860  : 		OP_THREAD_RETURN;
+; 861  : #endif
+; 862  : 		
+; 863  : 		break;
+
+  00799	eb 25		 jmp	 SHORT $L69375
+$L69379:
+
+; 803  : 	case PIPE_NORMAL:
+; 804  : 		
+; 805  : 		break;
+; 806  : 		
+; 807  : 	case PIPE_PAUSE:
+; 808  : 		
+; 809  : 		/* TQL 05/21/1997  change this for OSF build */
+; 810  : #ifdef WIN32
+; 811  : 		ResetEvent( pPipe->hNotPausedEvent );
+
+  0079b	8b 46 30	 mov	 eax, DWORD PTR [esi+48]
+  0079e	50		 push	 eax
+  0079f	ff d3		 call	 ebx
+
+; 812  : 		
+; 813  : 		LeaveCriticalSection( pPipe->pcsPipe );
+
+  007a1	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  007a4	51		 push	 ecx
+  007a5	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 814  : 		
+; 815  : 		WaitForSingleObject( pPipe->hNotPausedEvent, INFINITE );
+
+  007ab	8b 56 30	 mov	 edx, DWORD PTR [esi+48]
+  007ae	6a ff		 push	 -1
+  007b0	52		 push	 edx
+  007b1	ff d5		 call	 ebp
+
+; 816  : 		
+; 817  : 		EnterCriticalSection( pPipe->pcsPipe );
+
+  007b3	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  007b6	50		 push	 eax
+  007b7	ff d7		 call	 edi
+
+; 818  : #endif
+; 819  : 		
+; 820  : #if defined (__osf__) || defined (__linux__)
+; 821  : 		OP_ResetEvent( pPipe->hNotPausedEvent );
+; 822  : 		
+; 823  : 		OP_UnlockMutex( pPipe->pcsPipe );
+; 824  : 		
+; 825  : 		OP_WaitForEvent( pPipe->hNotPausedEvent, OP_INFINITE );
+; 826  : 		
+; 827  : 		OP_LockMutex( pPipe->pcsPipe );
+; 828  : #endif
+; 829  : 		
+; 830  : 		pPipe->uiState = PIPE_NORMAL;
+
+  007b9	c7 46 24 00 00
+	00 00		 mov	 DWORD PTR [esi+36], 0
+$L69375:
+
+; 864  : 		
+; 865  : 	default:
+; 866  : 		
+; 867  : 		break;
+; 868  : 	}
+; 869  : 
+; 870  :   /********************************************************************/
+; 871  :   /*  There are enough items in the pipe.                             */
+; 872  :   /*  Test to see if the read of the data wraps around the queue.     */
+; 873  :   /********************************************************************/
+; 874  : 
+; 875  : 
+; 876  : 	if (uiNumberToRead == READ_WORD_PIPE_PACKET)
+
+  007c0	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  007c4	81 ff de c0 ed
+	fe		 cmp	 edi, -17973026		; feedc0deH
+  007ca	75 23		 jne	 SHORT $L69385
+
+; 877  : 	{
+; 878  : 		// peek at the pipe to figure out how many items to read
+; 879  : 		if ((pPipe->uiLength - pPipe->uiOutputPosition)==0)
+
+  007cc	8b 4e 18	 mov	 ecx, DWORD PTR [esi+24]
+  007cf	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+  007d2	2b c8		 sub	 ecx, eax
+  007d4	75 08		 jne	 SHORT $L69383
+
+; 880  : 		{
+; 881  : 			uiNumberToRead=(((((short *)pPipe->pStart)[0]&0x6000) >> 13) +1);
+
+  007d6	8b 56 04	 mov	 edx, DWORD PTR [esi+4]
+  007d9	66 8b 3a	 mov	 di, WORD PTR [edx]
+
+; 882  : 		}
+; 883  : 		else
+
+  007dc	eb 06		 jmp	 SHORT $L69710
+$L69383:
+
+; 884  : 		{
+; 885  : 			uiNumberToRead=(((((short *)pPipe->pOutput)[0]&0x6000) >> 13) +1);
+
+  007de	8b 46 0c	 mov	 eax, DWORD PTR [esi+12]
+  007e1	66 8b 38	 mov	 di, WORD PTR [eax]
+$L69710:
+  007e4	c1 ff 0d	 sar	 edi, 13			; 0000000dH
+  007e7	83 e7 03	 and	 edi, 3
+  007ea	47		 inc	 edi
+  007eb	89 7c 24 1c	 mov	 DWORD PTR _uiNumberToRead$[esp+12], edi
+$L69385:
+
+; 886  : 		}
+; 887  : 	}
+; 888  : 	
+; 889  : 	if ( pPipe->uiOutputPosition + uiNumberToRead > pPipe->uiLength )
+
+  007ef	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+  007f2	8b 56 18	 mov	 edx, DWORD PTR [esi+24]
+  007f5	8d 0c 38	 lea	 ecx, DWORD PTR [eax+edi]
+  007f8	3b ca		 cmp	 ecx, edx
+  007fa	0f 86 e5 02 00
+	00		 jbe	 $L69387
+
+; 890  : 	{
+; 891  : 		/******************************************************************/
+; 892  : 		/*  The read of the data will wrap around the circular queue.     */
+; 893  : 		/******************************************************************/
+; 894  : 		
+; 895  : 		uiRemaining = pPipe->uiLength - pPipe->uiOutputPosition;
+
+  00800	2b d0		 sub	 edx, eax
+
+; 896  : 		
+; 897  : 		switch ( pPipe->uiType )
+; 898  : 		{
+
+  00802	8b 46 20	 mov	 eax, DWORD PTR [esi+32]
+  00805	83 f8 06	 cmp	 eax, 6
+  00808	0f 87 8a 02 00
+	00		 ja	 $L69469
+  0080e	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L69712[eax*4]
+$L69392:
+
+; 899  : 		case BYTE_PIPE:
+; 900  : 			
+; 901  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00815	85 d2		 test	 edx, edx
+  00817	76 1b		 jbe	 SHORT $L69700
+  00819	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  0081d	8b ea		 mov	 ebp, edx
+$L69393:
+
+; 902  : 				*((BYTE_T *)pItems)++ = *((BYTE_T *)pPipe->pOutput)++;
+
+  0081f	8b 4e 0c	 mov	 ecx, DWORD PTR [esi+12]
+  00822	40		 inc	 eax
+  00823	8a 09		 mov	 cl, BYTE PTR [ecx]
+  00825	88 48 ff	 mov	 BYTE PTR [eax-1], cl
+  00828	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  0082b	43		 inc	 ebx
+  0082c	4d		 dec	 ebp
+  0082d	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00830	75 ed		 jne	 SHORT $L69393
+
+; 899  : 		case BYTE_PIPE:
+; 900  : 			
+; 901  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00832	eb 04		 jmp	 SHORT $L69395
+$L69700:
+  00834	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69395:
+
+; 903  : 			
+; 904  : 			pPipe->pOutput = pPipe->pStart;
+
+  00838	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+
+; 905  : 			
+; 906  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  0083b	3b d7		 cmp	 edx, edi
+  0083d	89 4e 0c	 mov	 DWORD PTR [esi+12], ecx
+  00840	0f 83 94 02 00
+	00		 jae	 $L69477
+
+; 903  : 			
+; 904  : 			pPipe->pOutput = pPipe->pStart;
+
+  00846	2b fa		 sub	 edi, edx
+$L69398:
+
+; 907  : 				*((BYTE_T *)pItems)++ = *((BYTE_T *)pPipe->pOutput)++;
+
+  00848	8b 4e 0c	 mov	 ecx, DWORD PTR [esi+12]
+  0084b	40		 inc	 eax
+  0084c	8a 09		 mov	 cl, BYTE PTR [ecx]
+  0084e	88 48 ff	 mov	 BYTE PTR [eax-1], cl
+  00851	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00854	43		 inc	 ebx
+  00855	4f		 dec	 edi
+  00856	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00859	75 ed		 jne	 SHORT $L69398
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  0085b	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  0085f	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  00861	e9 e1 03 00 00	 jmp	 $L69711
+$L69403:
+
+; 908  : 			
+; 909  : 			break;
+; 910  : 			
+; 911  : 		case WORD_PIPE:
+; 912  : 			
+; 913  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00866	85 d2		 test	 edx, edx
+  00868	bb 02 00 00 00	 mov	 ebx, 2
+  0086d	76 1f		 jbe	 SHORT $L69701
+  0086f	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00873	8b ca		 mov	 ecx, edx
+$L69404:
+
+; 914  : 				*((WORD_T *)pItems)++ = *((WORD_T *)pPipe->pOutput)++;
+
+  00875	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00878	66 8b 6d 00	 mov	 bp, WORD PTR [ebp]
+  0087c	66 89 28	 mov	 WORD PTR [eax], bp
+  0087f	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00882	03 c3		 add	 eax, ebx
+  00884	03 eb		 add	 ebp, ebx
+  00886	49		 dec	 ecx
+  00887	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  0088a	75 e9		 jne	 SHORT $L69404
+
+; 908  : 			
+; 909  : 			break;
+; 910  : 			
+; 911  : 		case WORD_PIPE:
+; 912  : 			
+; 913  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  0088c	eb 04		 jmp	 SHORT $L69406
+$L69701:
+  0088e	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69406:
+
+; 915  : 			
+; 916  : 			pPipe->pOutput = pPipe->pStart;
+
+  00892	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+
+; 917  : 			
+; 918  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  00895	3b d7		 cmp	 edx, edi
+  00897	89 4e 0c	 mov	 DWORD PTR [esi+12], ecx
+  0089a	0f 83 3a 02 00
+	00		 jae	 $L69477
+
+; 915  : 			
+; 916  : 			pPipe->pOutput = pPipe->pStart;
+
+  008a0	2b fa		 sub	 edi, edx
+$L69409:
+
+; 919  : 				*((WORD_T *)pItems)++ = *((WORD_T *)pPipe->pOutput)++;
+
+  008a2	8b 4e 0c	 mov	 ecx, DWORD PTR [esi+12]
+  008a5	66 8b 09	 mov	 cx, WORD PTR [ecx]
+  008a8	66 89 08	 mov	 WORD PTR [eax], cx
+  008ab	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  008ae	03 c3		 add	 eax, ebx
+  008b0	03 eb		 add	 ebp, ebx
+  008b2	4f		 dec	 edi
+  008b3	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  008b6	75 ea		 jne	 SHORT $L69409
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  008b8	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  008bc	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  008be	e9 84 03 00 00	 jmp	 $L69711
+$L69414:
+
+; 920  : 			
+; 921  : 			break;
+; 922  : 			
+; 923  : 		case DWORD_PIPE:
+; 924  : 			
+; 925  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  008c3	85 d2		 test	 edx, edx
+  008c5	b9 04 00 00 00	 mov	 ecx, 4
+  008ca	76 1c		 jbe	 SHORT $L69702
+  008cc	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  008d0	8b fa		 mov	 edi, edx
+$L69415:
+
+; 926  : 				*((DWORD_T *)pItems)++ = *((DWORD_T *)pPipe->pOutput)++;
+
+  008d2	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  008d5	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  008d7	89 18		 mov	 DWORD PTR [eax], ebx
+  008d9	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  008dc	03 c1		 add	 eax, ecx
+  008de	03 e9		 add	 ebp, ecx
+  008e0	4f		 dec	 edi
+  008e1	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  008e4	75 ec		 jne	 SHORT $L69415
+
+; 920  : 			
+; 921  : 			break;
+; 922  : 			
+; 923  : 		case DWORD_PIPE:
+; 924  : 			
+; 925  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  008e6	eb 04		 jmp	 SHORT $L69417
+$L69702:
+  008e8	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69417:
+
+; 927  : 			
+; 928  : 			pPipe->pOutput = pPipe->pStart;
+
+  008ec	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  008ef	89 7e 0c	 mov	 DWORD PTR [esi+12], edi
+
+; 929  : 			
+; 930  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  008f2	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  008f6	3b d7		 cmp	 edx, edi
+  008f8	0f 83 dc 01 00
+	00		 jae	 $L69477
+
+; 927  : 			
+; 928  : 			pPipe->pOutput = pPipe->pStart;
+
+  008fe	2b fa		 sub	 edi, edx
+$L69420:
+
+; 931  : 				*((DWORD_T *)pItems)++ = *((DWORD_T *)pPipe->pOutput)++;
+
+  00900	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00903	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  00905	89 18		 mov	 DWORD PTR [eax], ebx
+  00907	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  0090a	03 c1		 add	 eax, ecx
+  0090c	03 e9		 add	 ebp, ecx
+  0090e	4f		 dec	 edi
+  0090f	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00912	75 ec		 jne	 SHORT $L69420
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  00914	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  00918	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  0091a	e9 28 03 00 00	 jmp	 $L69711
+$L69425:
+
+; 932  : 			
+; 933  : 			break;
+; 934  : 			
+; 935  : 		case QWORD_PIPE:
+; 936  : 			
+; 937  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  0091f	85 d2		 test	 edx, edx
+  00921	b9 04 00 00 00	 mov	 ecx, 4
+  00926	76 1c		 jbe	 SHORT $L69703
+  00928	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  0092c	8b fa		 mov	 edi, edx
+$L69426:
+
+; 938  : 				*((QWORD_T *)pItems)++ = *((QWORD_T *)pPipe->pOutput)++;
+
+  0092e	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00931	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  00933	89 18		 mov	 DWORD PTR [eax], ebx
+  00935	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00938	03 c1		 add	 eax, ecx
+  0093a	03 e9		 add	 ebp, ecx
+  0093c	4f		 dec	 edi
+  0093d	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00940	75 ec		 jne	 SHORT $L69426
+
+; 932  : 			
+; 933  : 			break;
+; 934  : 			
+; 935  : 		case QWORD_PIPE:
+; 936  : 			
+; 937  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00942	eb 04		 jmp	 SHORT $L69428
+$L69703:
+  00944	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69428:
+
+; 939  : 			
+; 940  : 			pPipe->pOutput = pPipe->pStart;
+
+  00948	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  0094b	89 7e 0c	 mov	 DWORD PTR [esi+12], edi
+
+; 941  : 			
+; 942  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  0094e	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  00952	3b d7		 cmp	 edx, edi
+  00954	0f 83 80 01 00
+	00		 jae	 $L69477
+
+; 939  : 			
+; 940  : 			pPipe->pOutput = pPipe->pStart;
+
+  0095a	2b fa		 sub	 edi, edx
+$L69431:
+
+; 943  : 				*((QWORD_T *)pItems)++ = *((QWORD_T *)pPipe->pOutput)++;
+
+  0095c	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  0095f	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  00961	89 18		 mov	 DWORD PTR [eax], ebx
+  00963	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00966	03 c1		 add	 eax, ecx
+  00968	03 e9		 add	 ebp, ecx
+  0096a	4f		 dec	 edi
+  0096b	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  0096e	75 ec		 jne	 SHORT $L69431
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  00970	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  00974	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  00976	e9 cc 02 00 00	 jmp	 $L69711
+$L69436:
+
+; 944  : 			
+; 945  : 			break;
+; 946  : 			
+; 947  : 		case FLOAT_PIPE:
+; 948  : 			
+; 949  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  0097b	85 d2		 test	 edx, edx
+  0097d	b9 04 00 00 00	 mov	 ecx, 4
+  00982	76 1c		 jbe	 SHORT $L69704
+  00984	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00988	8b fa		 mov	 edi, edx
+$L69437:
+
+; 950  : 				*((float *)pItems)++ = *((float *)pPipe->pOutput)++;
+
+  0098a	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  0098d	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  0098f	89 18		 mov	 DWORD PTR [eax], ebx
+  00991	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00994	03 c1		 add	 eax, ecx
+  00996	03 e9		 add	 ebp, ecx
+  00998	4f		 dec	 edi
+  00999	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  0099c	75 ec		 jne	 SHORT $L69437
+
+; 944  : 			
+; 945  : 			break;
+; 946  : 			
+; 947  : 		case FLOAT_PIPE:
+; 948  : 			
+; 949  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  0099e	eb 04		 jmp	 SHORT $L69439
+$L69704:
+  009a0	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69439:
+
+; 951  : 			
+; 952  : 			pPipe->pOutput = pPipe->pStart;
+
+  009a4	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  009a7	89 7e 0c	 mov	 DWORD PTR [esi+12], edi
+
+; 953  : 			
+; 954  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  009aa	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  009ae	3b d7		 cmp	 edx, edi
+  009b0	0f 83 24 01 00
+	00		 jae	 $L69477
+
+; 951  : 			
+; 952  : 			pPipe->pOutput = pPipe->pStart;
+
+  009b6	2b fa		 sub	 edi, edx
+$L69442:
+
+; 955  : 				*((float *)pItems)++ = *((float *)pPipe->pOutput)++;
+
+  009b8	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  009bb	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  009bd	89 18		 mov	 DWORD PTR [eax], ebx
+  009bf	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  009c2	03 c1		 add	 eax, ecx
+  009c4	03 e9		 add	 ebp, ecx
+  009c6	4f		 dec	 edi
+  009c7	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  009ca	75 ec		 jne	 SHORT $L69442
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  009cc	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  009d0	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  009d2	e9 70 02 00 00	 jmp	 $L69711
+$L69447:
+
+; 956  : 			
+; 957  : 			break;
+; 958  : 			
+; 959  : 		case DOUBLE_PIPE:
+; 960  : 			
+; 961  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  009d7	85 d2		 test	 edx, edx
+  009d9	bb 08 00 00 00	 mov	 ebx, 8
+  009de	76 27		 jbe	 SHORT $L69705
+  009e0	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  009e4	8b ca		 mov	 ecx, edx
+$L69448:
+
+; 962  : 				*((double *)pItems)++ = *((double *)pPipe->pOutput)++;
+
+  009e6	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  009e9	8b 2b		 mov	 ebp, DWORD PTR [ebx]
+  009eb	89 28		 mov	 DWORD PTR [eax], ebp
+  009ed	8b 5b 04	 mov	 ebx, DWORD PTR [ebx+4]
+  009f0	89 58 04	 mov	 DWORD PTR [eax+4], ebx
+  009f3	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  009f6	bb 08 00 00 00	 mov	 ebx, 8
+  009fb	03 c3		 add	 eax, ebx
+  009fd	03 eb		 add	 ebp, ebx
+  009ff	49		 dec	 ecx
+  00a00	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00a03	75 e1		 jne	 SHORT $L69448
+
+; 956  : 			
+; 957  : 			break;
+; 958  : 			
+; 959  : 		case DOUBLE_PIPE:
+; 960  : 			
+; 961  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00a05	eb 04		 jmp	 SHORT $L69450
+$L69705:
+  00a07	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69450:
+
+; 963  : 			
+; 964  : 			pPipe->pOutput = pPipe->pStart;
+
+  00a0b	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+
+; 965  : 			
+; 966  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  00a0e	3b d7		 cmp	 edx, edi
+  00a10	89 4e 0c	 mov	 DWORD PTR [esi+12], ecx
+  00a13	0f 83 c1 00 00
+	00		 jae	 $L69477
+
+; 963  : 			
+; 964  : 			pPipe->pOutput = pPipe->pStart;
+
+  00a19	2b fa		 sub	 edi, edx
+$L69453:
+
+; 967  : 				*((double *)pItems)++ = *((double *)pPipe->pOutput)++;
+
+  00a1b	8b 4e 0c	 mov	 ecx, DWORD PTR [esi+12]
+  00a1e	8b 29		 mov	 ebp, DWORD PTR [ecx]
+  00a20	89 28		 mov	 DWORD PTR [eax], ebp
+  00a22	8b 49 04	 mov	 ecx, DWORD PTR [ecx+4]
+  00a25	89 48 04	 mov	 DWORD PTR [eax+4], ecx
+  00a28	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00a2b	03 c3		 add	 eax, ebx
+  00a2d	03 eb		 add	 ebp, ebx
+  00a2f	4f		 dec	 edi
+  00a30	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00a33	75 e6		 jne	 SHORT $L69453
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  00a35	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  00a39	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  00a3b	e9 07 02 00 00	 jmp	 $L69711
+$L69458:
+
+; 968  : 			
+; 969  : 			break;
+; 970  : 			
+; 971  : 		case VOID_PTR_PIPE:
+; 972  : 			
+; 973  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00a40	85 d2		 test	 edx, edx
+  00a42	b9 04 00 00 00	 mov	 ecx, 4
+  00a47	76 1c		 jbe	 SHORT $L69706
+  00a49	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00a4d	8b fa		 mov	 edi, edx
+$L69459:
+
+; 974  : 				*((void **)pItems)++ = *((void **)pPipe->pOutput)++;
+
+  00a4f	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00a52	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  00a54	89 18		 mov	 DWORD PTR [eax], ebx
+  00a56	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00a59	03 c1		 add	 eax, ecx
+  00a5b	03 e9		 add	 ebp, ecx
+  00a5d	4f		 dec	 edi
+  00a5e	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00a61	75 ec		 jne	 SHORT $L69459
+
+; 968  : 			
+; 969  : 			break;
+; 970  : 			
+; 971  : 		case VOID_PTR_PIPE:
+; 972  : 			
+; 973  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00a63	eb 04		 jmp	 SHORT $L69461
+$L69706:
+  00a65	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69461:
+
+; 975  : 			
+; 976  : 			pPipe->pOutput = pPipe->pStart;
+
+  00a69	8b 7e 04	 mov	 edi, DWORD PTR [esi+4]
+  00a6c	89 7e 0c	 mov	 DWORD PTR [esi+12], edi
+
+; 977  : 			
+; 978  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  00a6f	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  00a73	3b d7		 cmp	 edx, edi
+  00a75	73 63		 jae	 SHORT $L69477
+
+; 975  : 			
+; 976  : 			pPipe->pOutput = pPipe->pStart;
+
+  00a77	2b fa		 sub	 edi, edx
+$L69464:
+
+; 979  : 				*((void **)pItems)++ = *((void **)pPipe->pOutput)++;
+
+  00a79	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00a7c	8b 1b		 mov	 ebx, DWORD PTR [ebx]
+  00a7e	89 18		 mov	 DWORD PTR [eax], ebx
+  00a80	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00a83	03 c1		 add	 eax, ecx
+  00a85	03 e9		 add	 ebp, ecx
+  00a87	4f		 dec	 edi
+  00a88	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00a8b	75 ec		 jne	 SHORT $L69464
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  00a8d	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  00a91	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  00a93	e9 af 01 00 00	 jmp	 $L69711
+$L69469:
+
+; 980  : 			
+; 981  : 			break;
+; 982  : 			
+; 983  : 		default:
+; 984  : 			
+; 985  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00a98	85 d2		 test	 edx, edx
+  00a9a	76 1b		 jbe	 SHORT $L69707
+  00a9c	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00aa0	8b ea		 mov	 ebp, edx
+$L69470:
+
+; 986  : 				*((BYTE_T *)pItems)++ = *((BYTE_T *)pPipe->pOutput)++;
+
+  00aa2	8b 4e 0c	 mov	 ecx, DWORD PTR [esi+12]
+  00aa5	40		 inc	 eax
+  00aa6	8a 09		 mov	 cl, BYTE PTR [ecx]
+  00aa8	88 48 ff	 mov	 BYTE PTR [eax-1], cl
+  00aab	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00aae	43		 inc	 ebx
+  00aaf	4d		 dec	 ebp
+  00ab0	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00ab3	75 ed		 jne	 SHORT $L69470
+
+; 980  : 			
+; 981  : 			break;
+; 982  : 			
+; 983  : 		default:
+; 984  : 			
+; 985  : 			for ( i = 0; i < uiRemaining; i++ )
+
+  00ab5	eb 04		 jmp	 SHORT $L69472
+$L69707:
+  00ab7	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+$L69472:
+
+; 987  : 			
+; 988  : 			pPipe->pOutput = pPipe->pStart;
+
+  00abb	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+
+; 989  : 			
+; 990  : 			for ( i = uiRemaining; i < uiNumberToRead; i++ )
+
+  00abe	3b d7		 cmp	 edx, edi
+  00ac0	89 4e 0c	 mov	 DWORD PTR [esi+12], ecx
+  00ac3	73 15		 jae	 SHORT $L69477
+
+; 987  : 			
+; 988  : 			pPipe->pOutput = pPipe->pStart;
+
+  00ac5	2b fa		 sub	 edi, edx
+$L69475:
+
+; 991  : 				*((BYTE_T *)pItems)++ = *((BYTE_T *)pPipe->pOutput)++;
+
+  00ac7	8b 4e 0c	 mov	 ecx, DWORD PTR [esi+12]
+  00aca	40		 inc	 eax
+  00acb	8a 09		 mov	 cl, BYTE PTR [ecx]
+  00acd	88 48 ff	 mov	 BYTE PTR [eax-1], cl
+  00ad0	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00ad3	43		 inc	 ebx
+  00ad4	4f		 dec	 edi
+  00ad5	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00ad8	75 ed		 jne	 SHORT $L69475
+$L69477:
+
+; 992  : 			
+; 993  : 			break;
+; 994  : 		}
+; 995  : 		
+; 996  : 		/******************************************************************/
+; 997  : 		/*  Update the output position in a circular fashion.             */
+; 998  : 		/******************************************************************/
+; 999  : 		
+; 1000 : 		pPipe->uiOutputPosition = uiNumberToRead - uiRemaining;
+
+  00ada	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  00ade	2b c2		 sub	 eax, edx
+
+; 1001 :     }
+; 1002 : 	else
+
+  00ae0	e9 62 01 00 00	 jmp	 $L69711
+$L69387:
+
+; 1003 : 	{
+; 1004 : 		/******************************************************************/
+; 1005 : 		/*  The read of the data will NOT wrap around the circular queue. */
+; 1006 : 		/******************************************************************/
+; 1007 : 		
+; 1008 : 		switch ( pPipe->uiType )
+; 1009 : 		{
+
+  00ae5	8b 46 20	 mov	 eax, DWORD PTR [esi+32]
+  00ae8	83 f8 06	 cmp	 eax, 6
+  00aeb	0f 87 34 01 00
+	00		 ja	 $L69527
+  00af1	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L69713[eax*4]
+$L69485:
+
+; 1010 : 		case BYTE_PIPE:
+; 1011 : 			
+; 1012 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00af8	85 ff		 test	 edi, edi
+  00afa	0f 86 42 01 00
+	00		 jbe	 $L69530
+  00b00	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00b04	8b cf		 mov	 ecx, edi
+$L69486:
+
+; 1013 : 				*((BYTE_T *)pItems)++ = *((BYTE_T *)pPipe->pOutput)++;
+
+  00b06	8b 56 0c	 mov	 edx, DWORD PTR [esi+12]
+  00b09	40		 inc	 eax
+  00b0a	8a 12		 mov	 dl, BYTE PTR [edx]
+  00b0c	88 50 ff	 mov	 BYTE PTR [eax-1], dl
+  00b0f	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00b12	43		 inc	 ebx
+  00b13	49		 dec	 ecx
+  00b14	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00b17	75 ed		 jne	 SHORT $L69486
+
+; 1014 : 			
+; 1015 : 			break;
+
+  00b19	e9 24 01 00 00	 jmp	 $L69530
+$L69491:
+
+; 1016 : 			
+; 1017 : 		case WORD_PIPE:
+; 1018 : 			
+; 1019 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00b1e	85 ff		 test	 edi, edi
+  00b20	0f 86 1c 01 00
+	00		 jbe	 $L69530
+  00b26	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00b2a	8b cf		 mov	 ecx, edi
+  00b2c	bb 02 00 00 00	 mov	 ebx, 2
+$L69492:
+
+; 1020 : 				*((WORD_T *)pItems)++ = *((WORD_T *)pPipe->pOutput)++;
+
+  00b31	8b 56 0c	 mov	 edx, DWORD PTR [esi+12]
+  00b34	66 8b 12	 mov	 dx, WORD PTR [edx]
+  00b37	66 89 10	 mov	 WORD PTR [eax], dx
+  00b3a	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00b3d	03 c3		 add	 eax, ebx
+  00b3f	03 eb		 add	 ebp, ebx
+  00b41	49		 dec	 ecx
+  00b42	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00b45	75 ea		 jne	 SHORT $L69492
+
+; 1021 : 			
+; 1022 : 			break;
+
+  00b47	e9 f6 00 00 00	 jmp	 $L69530
+$L69497:
+
+; 1023 : 			
+; 1024 : 		case DWORD_PIPE:
+; 1025 : 			
+; 1026 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00b4c	85 ff		 test	 edi, edi
+  00b4e	0f 86 ee 00 00
+	00		 jbe	 $L69530
+  00b54	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00b58	b9 04 00 00 00	 mov	 ecx, 4
+$L69498:
+
+; 1027 : 				*((DWORD_T *)pItems)++ = *((DWORD_T *)pPipe->pOutput)++;
+
+  00b5d	8b 56 0c	 mov	 edx, DWORD PTR [esi+12]
+  00b60	8b 12		 mov	 edx, DWORD PTR [edx]
+  00b62	89 10		 mov	 DWORD PTR [eax], edx
+  00b64	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00b67	03 c1		 add	 eax, ecx
+  00b69	03 d9		 add	 ebx, ecx
+  00b6b	4f		 dec	 edi
+  00b6c	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00b6f	75 ec		 jne	 SHORT $L69498
+
+; 1028 : 			
+; 1029 : 			break;
+
+  00b71	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  00b75	e9 c8 00 00 00	 jmp	 $L69530
+$L69503:
+
+; 1030 : 			
+; 1031 : 		case QWORD_PIPE:
+; 1032 : 			
+; 1033 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00b7a	85 ff		 test	 edi, edi
+  00b7c	0f 86 c0 00 00
+	00		 jbe	 $L69530
+  00b82	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00b86	b9 04 00 00 00	 mov	 ecx, 4
+$L69504:
+
+; 1034 : 				*((QWORD_T *)pItems)++ = *((QWORD_T *)pPipe->pOutput)++;
+
+  00b8b	8b 56 0c	 mov	 edx, DWORD PTR [esi+12]
+  00b8e	8b 12		 mov	 edx, DWORD PTR [edx]
+  00b90	89 10		 mov	 DWORD PTR [eax], edx
+  00b92	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00b95	03 c1		 add	 eax, ecx
+  00b97	03 d9		 add	 ebx, ecx
+  00b99	4f		 dec	 edi
+  00b9a	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00b9d	75 ec		 jne	 SHORT $L69504
+
+; 1035 : 			
+; 1036 : 			break;
+
+  00b9f	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  00ba3	e9 9a 00 00 00	 jmp	 $L69530
+$L69509:
+
+; 1037 : 			
+; 1038 : 		case FLOAT_PIPE:
+; 1039 : 			
+; 1040 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00ba8	85 ff		 test	 edi, edi
+  00baa	0f 86 92 00 00
+	00		 jbe	 $L69530
+  00bb0	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00bb4	b9 04 00 00 00	 mov	 ecx, 4
+$L69510:
+
+; 1041 : 				*((float *)pItems)++ = *((float *)pPipe->pOutput)++;
+
+  00bb9	8b 56 0c	 mov	 edx, DWORD PTR [esi+12]
+  00bbc	8b 12		 mov	 edx, DWORD PTR [edx]
+  00bbe	89 10		 mov	 DWORD PTR [eax], edx
+  00bc0	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00bc3	03 c1		 add	 eax, ecx
+  00bc5	03 d9		 add	 ebx, ecx
+  00bc7	4f		 dec	 edi
+  00bc8	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00bcb	75 ec		 jne	 SHORT $L69510
+
+; 1042 : 			
+; 1043 : 			break;
+
+  00bcd	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  00bd1	eb 6f		 jmp	 SHORT $L69530
+$L69515:
+
+; 1044 : 			
+; 1045 : 		case DOUBLE_PIPE:
+; 1046 : 			
+; 1047 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00bd3	85 ff		 test	 edi, edi
+  00bd5	76 6b		 jbe	 SHORT $L69530
+  00bd7	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00bdb	8b cf		 mov	 ecx, edi
+  00bdd	ba 08 00 00 00	 mov	 edx, 8
+$L69516:
+
+; 1048 : 				*((double *)pItems)++ = *((double *)pPipe->pOutput)++;
+
+  00be2	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00be5	8b 2b		 mov	 ebp, DWORD PTR [ebx]
+  00be7	89 28		 mov	 DWORD PTR [eax], ebp
+  00be9	8b 5b 04	 mov	 ebx, DWORD PTR [ebx+4]
+  00bec	89 58 04	 mov	 DWORD PTR [eax+4], ebx
+  00bef	8b 6e 0c	 mov	 ebp, DWORD PTR [esi+12]
+  00bf2	03 c2		 add	 eax, edx
+  00bf4	03 ea		 add	 ebp, edx
+  00bf6	49		 dec	 ecx
+  00bf7	89 6e 0c	 mov	 DWORD PTR [esi+12], ebp
+  00bfa	75 e6		 jne	 SHORT $L69516
+
+; 1049 : 			
+; 1050 : 			break;
+
+  00bfc	eb 44		 jmp	 SHORT $L69530
+$L69521:
+
+; 1051 : 			
+; 1052 : 		case VOID_PTR_PIPE:
+; 1053 : 			
+; 1054 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00bfe	85 ff		 test	 edi, edi
+  00c00	76 40		 jbe	 SHORT $L69530
+  00c02	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00c06	b9 04 00 00 00	 mov	 ecx, 4
+$L69522:
+
+; 1055 : 				*((void **)pItems)++ = *((void **)pPipe->pOutput)++;
+
+  00c0b	8b 56 0c	 mov	 edx, DWORD PTR [esi+12]
+  00c0e	8b 12		 mov	 edx, DWORD PTR [edx]
+  00c10	89 10		 mov	 DWORD PTR [eax], edx
+  00c12	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00c15	03 c1		 add	 eax, ecx
+  00c17	03 d9		 add	 ebx, ecx
+  00c19	4f		 dec	 edi
+  00c1a	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00c1d	75 ec		 jne	 SHORT $L69522
+
+; 1056 : 			
+; 1057 : 			break;
+
+  00c1f	8b 7c 24 1c	 mov	 edi, DWORD PTR _uiNumberToRead$[esp+12]
+  00c23	eb 1d		 jmp	 SHORT $L69530
+$L69527:
+
+; 1058 : 			
+; 1059 : 		default:
+; 1060 : 			
+; 1061 : 			for ( i = 0; i < uiNumberToRead; i++ )
+
+  00c25	85 ff		 test	 edi, edi
+  00c27	76 19		 jbe	 SHORT $L69530
+  00c29	8b 44 24 18	 mov	 eax, DWORD PTR _pItems$[esp+12]
+  00c2d	8b cf		 mov	 ecx, edi
+$L69528:
+
+; 1062 : 				*((BYTE_T *)pItems)++ = *((BYTE_T *)pPipe->pOutput)++;
+
+  00c2f	8b 56 0c	 mov	 edx, DWORD PTR [esi+12]
+  00c32	40		 inc	 eax
+  00c33	8a 12		 mov	 dl, BYTE PTR [edx]
+  00c35	88 50 ff	 mov	 BYTE PTR [eax-1], dl
+  00c38	8b 5e 0c	 mov	 ebx, DWORD PTR [esi+12]
+  00c3b	43		 inc	 ebx
+  00c3c	49		 dec	 ecx
+  00c3d	89 5e 0c	 mov	 DWORD PTR [esi+12], ebx
+  00c40	75 ed		 jne	 SHORT $L69528
+$L69530:
+
+; 1063 : 			
+; 1064 : 			break;
+; 1065 : 		}
+; 1066 : 		
+; 1067 : 		/******************************************************************/
+; 1068 : 		/*  Update the output position.                                   */
+; 1069 : 		/******************************************************************/
+; 1070 : 		
+; 1071 : 		pPipe->uiOutputPosition += uiNumberToRead;
+
+  00c42	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+  00c45	03 c7		 add	 eax, edi
+$L69711:
+
+; 1072 : 	}
+; 1073 :   
+; 1074 : 	/********************************************************************/
+; 1075 : 	/*  Update the count of items in the pipe.                          */
+; 1076 : 	/********************************************************************/
+; 1077 : 	
+; 1078 : 	pPipe->uiCount -= uiNumberToRead;
+
+  00c47	8b 7e 1c	 mov	 edi, DWORD PTR [esi+28]
+
+; 1079 : 	
+; 1080 : 	/********************************************************************/
+; 1081 : 	/*  Set the pipe not full condition.                                */
+; 1082 : 	/********************************************************************/
+; 1083 : 	
+; 1084 : 	/* TQL 05/21/1997  change this for OSF build */
+; 1085 : #ifdef WIN32
+; 1086 : 	SetEvent( pPipe->hNotFullEvent );
+
+  00c4a	8b 4e 2c	 mov	 ecx, DWORD PTR [esi+44]
+  00c4d	89 46 14	 mov	 DWORD PTR [esi+20], eax
+  00c50	8b 44 24 1c	 mov	 eax, DWORD PTR _uiNumberToRead$[esp+12]
+  00c54	2b f8		 sub	 edi, eax
+  00c56	51		 push	 ecx
+  00c57	89 7e 1c	 mov	 DWORD PTR [esi+28], edi
+  00c5a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 1087 : #endif
+; 1088 : #if defined (__osf__) || defined (__linux__)
+; 1089 : 	OP_SetEvent( pPipe->hNotFullEvent );
+; 1090 : #endif
+; 1091 : 	
+; 1092 : 	/******************************************************************/
+; 1093 : 	/*  Free the pipe resource.                                       */
+; 1094 : 	/******************************************************************/
+; 1095 : 	
+; 1096 : 	/* TQL 05/21/1997  change this for OSF build */
+; 1097 : #ifdef WIN32
+; 1098 : 	LeaveCriticalSection( pPipe->pcsPipe );
+
+  00c60	8b 56 34	 mov	 edx, DWORD PTR [esi+52]
+  00c63	52		 push	 edx
+  00c64	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00c6a	5f		 pop	 edi
+  00c6b	5e		 pop	 esi
+  00c6c	5d		 pop	 ebp
+  00c6d	5b		 pop	 ebx
+
+; 1099 : #endif
+; 1100 : #if defined (__osf__) || defined (__linux__)
+; 1101 : 	OP_UnlockMutex( pPipe->pcsPipe );
+; 1102 : #endif
+; 1103 : 	
+; 1104 : 	return;
+; 1105 : }
+
+  00c6e	c3		 ret	 0
+  00c6f	90		 npad	 1
+$L69712:
+  00c70	00 00 00 00	 DD	 $L69392
+  00c74	00 00 00 00	 DD	 $L69403
+  00c78	00 00 00 00	 DD	 $L69414
+  00c7c	00 00 00 00	 DD	 $L69425
+  00c80	00 00 00 00	 DD	 $L69436
+  00c84	00 00 00 00	 DD	 $L69447
+  00c88	00 00 00 00	 DD	 $L69458
+$L69713:
+  00c8c	00 00 00 00	 DD	 $L69485
+  00c90	00 00 00 00	 DD	 $L69491
+  00c94	00 00 00 00	 DD	 $L69497
+  00c98	00 00 00 00	 DD	 $L69503
+  00c9c	00 00 00 00	 DD	 $L69509
+  00ca0	00 00 00 00	 DD	 $L69515
+  00ca4	00 00 00 00	 DD	 $L69521
+_read_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_pause_pipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_pause_pipe PROC NEAR
+
+; 1131 : {
+
+  00cb0	56		 push	 esi
+
+; 1132 :   /********************************************************************/
+; 1133 :   /*  Block if the pipe resource is busy.                             */
+; 1134 :   /********************************************************************/
+; 1135 :  /* check the pipe guards.. */
+; 1136 : 
+; 1137 : #if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+; 1138 :   assert ( ( pPipe->usGuard1 == GUARD1) 
+; 1139 : 	  &&( pPipe->usGuard2 == GUARD2) );
+; 1140 : #endif
+; 1141 : 
+; 1142 : /* TQL 05/21/1997  change this for OSF build */
+; 1143 : #ifdef WIN32
+; 1144 :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00cb1	8b 74 24 08	 mov	 esi, DWORD PTR _pPipe$[esp]
+  00cb5	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00cb8	50		 push	 eax
+  00cb9	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 1145 : #endif
+; 1146 : #if defined (__osf__) || defined (__linux__)
+; 1147 :   OP_LockMutex( pPipe->pcsPipe );
+; 1148 : #endif
+; 1149 : 
+; 1150 :   /********************************************************************/
+; 1151 :   /*  Go into the paused state.                                       */
+; 1152 :   /********************************************************************/
+; 1153 : 
+; 1154 : /* TQL 05/21/1997  change this for OSF build */
+; 1155 : #ifdef WIN32
+; 1156 :   ResetEvent( pPipe->hNotPausedEvent );
+
+  00cbf	8b 4e 30	 mov	 ecx, DWORD PTR [esi+48]
+  00cc2	51		 push	 ecx
+  00cc3	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__ResetEvent@4
+
+; 1157 : #endif
+; 1158 : #if defined (__osf__) || defined (__linux__)
+; 1159 :   OP_ResetEvent( pPipe->hNotPausedEvent );
+; 1160 : #endif
+; 1161 : 
+; 1162 :   pPipe->uiState = PIPE_PAUSE;
+; 1163 : 
+; 1164 :   /********************************************************************/
+; 1165 :   /*  Free the pipe resource.                                         */
+; 1166 :   /********************************************************************/
+; 1167 : 
+; 1168 : /* TQL 05/21/1997  change this for OSF build */
+; 1169 : #ifdef WIN32
+; 1170 :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00cc9	8b 56 34	 mov	 edx, DWORD PTR [esi+52]
+  00ccc	c7 46 24 01 00
+	00 00		 mov	 DWORD PTR [esi+36], 1
+  00cd3	52		 push	 edx
+  00cd4	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00cda	5e		 pop	 esi
+
+; 1171 : #endif
+; 1172 : #if defined (__osf__) || defined (__linux__)
+; 1173 :   OP_UnlockMutex( pPipe->pcsPipe );
+; 1174 : #endif
+; 1175 : 
+; 1176 :   return;
+; 1177 : }
+
+  00cdb	c3		 ret	 0
+_pause_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_resume_pipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_resume_pipe PROC NEAR
+
+; 1203 : {
+
+  00ce0	56		 push	 esi
+
+; 1204 : 
+; 1205 :  /* check the pipe guards.. */
+; 1206 : #if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+; 1207 :   assert ( ( pPipe->usGuard1 == GUARD1) 
+; 1208 : 	  &&( pPipe->usGuard2 == GUARD2) );
+; 1209 : #endif
+; 1210 : 
+; 1211 : 
+; 1212 :   /********************************************************************/
+; 1213 :   /*  Block if the pipe resource is busy.                             */
+; 1214 :   /********************************************************************/
+; 1215 : 
+; 1216 : /* TQL 05/21/1997  change this for OSF build */
+; 1217 : #ifdef WIN32
+; 1218 :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00ce1	8b 74 24 08	 mov	 esi, DWORD PTR _pPipe$[esp]
+  00ce5	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00ce8	50		 push	 eax
+  00ce9	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 1219 : #endif
+; 1220 : #if defined (__osf__) || defined (__linux__)
+; 1221 :   OP_LockMutex( pPipe->pcsPipe );
+; 1222 : #endif
+; 1223 : 
+; 1224 :   /********************************************************************/
+; 1225 :   /*  Get out of the paused state.                                    */
+; 1226 :   /********************************************************************/
+; 1227 : 
+; 1228 : /* TQL 05/21/1997  change this for OSF build */
+; 1229 : #ifdef WIN32
+; 1230 :   SetEvent( pPipe->hNotPausedEvent );
+
+  00cef	8b 4e 30	 mov	 ecx, DWORD PTR [esi+48]
+  00cf2	51		 push	 ecx
+  00cf3	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 1231 : #endif
+; 1232 : #if defined (__osf__) || defined (__linux__)
+; 1233 :   OP_SetEvent( pPipe->hNotPausedEvent );
+; 1234 : #endif
+; 1235 : 
+; 1236 :   /********************************************************************/
+; 1237 :   /*  Free the pipe resource.                                         */
+; 1238 :   /********************************************************************/
+; 1239 : 
+; 1240 : /* TQL 05/21/1997  change this for OSF build */
+; 1241 : #ifdef WIN32
+; 1242 :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00cf9	8b 56 34	 mov	 edx, DWORD PTR [esi+52]
+  00cfc	52		 push	 edx
+  00cfd	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00d03	5e		 pop	 esi
+
+; 1243 : #endif
+; 1244 : #if defined (__osf__) || defined (__linux__)
+; 1245 :   OP_UnlockMutex( pPipe->pcsPipe );
+; 1246 : #endif
+; 1247 : 
+; 1248 :   return;
+; 1249 : }
+
+  00d04	c3		 ret	 0
+_resume_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_exit_pipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_exit_pipe PROC NEAR
+
+; 1276 : {
+
+  00d10	56		 push	 esi
+
+; 1277 : 
+; 1278 :  /* check the pipe guards.. */
+; 1279 : #if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+; 1280 :   assert ( ( pPipe->usGuard1 == GUARD1) 
+; 1281 : 	  &&( pPipe->usGuard2 == GUARD2) );
+; 1282 : #endif
+; 1283 : 
+; 1284 : 
+; 1285 :   /********************************************************************/
+; 1286 :   /*  Block if the pipe resource is busy.                             */
+; 1287 :   /********************************************************************/
+; 1288 : 
+; 1289 : /* TQL 05/21/1997  change this for OSF build */
+; 1290 : #ifdef WIN32
+; 1291 :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00d11	8b 74 24 08	 mov	 esi, DWORD PTR _pPipe$[esp]
+  00d15	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00d18	50		 push	 eax
+  00d19	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 1292 : #endif
+; 1293 : #if defined (__osf__) || defined (__linux__)
+; 1294 :   OP_LockMutex( pPipe->pcsPipe );
+; 1295 : #endif
+; 1296 : 
+; 1297 :   /********************************************************************/
+; 1298 :   /*  Setup for thread exit on the next call to function read_pipe(). */
+; 1299 :   /********************************************************************/
+; 1300 : 
+; 1301 :   pPipe->uiState = PIPE_EXIT;
+; 1302 : 
+; 1303 :   /********************************************************************/
+; 1304 :   /*  Free the pipe resource.                                         */
+; 1305 :   /********************************************************************/
+; 1306 : 
+; 1307 : /* TQL 05/21/1997  change this for OSF build */
+; 1308 : #ifdef WIN32
+; 1309 :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00d1f	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  00d22	c7 46 24 02 00
+	00 00		 mov	 DWORD PTR [esi+36], 2
+  00d29	51		 push	 ecx
+  00d2a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00d30	5e		 pop	 esi
+
+; 1310 : #endif
+; 1311 : #if defined (__osf__) || defined (__linux__)
+; 1312 :   OP_UnlockMutex( pPipe->pcsPipe );
+; 1313 : #endif
+; 1314 : 
+; 1315 :   return;
+; 1316 : }
+
+  00d31	c3		 ret	 0
+_exit_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_reset_pipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_reset_pipe PROC NEAR
+
+; 1343 : {
+
+  00d40	56		 push	 esi
+
+; 1344 : 
+; 1345 : 
+; 1346 :   /********************************************************************/
+; 1347 :   /*  Block if the pipe resource is busy.                             */
+; 1348 :   /********************************************************************/
+; 1349 : 
+; 1350 : /* TQL 05/21/1997  change this for OSF build */
+; 1351 : #ifdef WIN32
+; 1352 :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00d41	8b 74 24 08	 mov	 esi, DWORD PTR _pPipe$[esp]
+  00d45	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00d48	50		 push	 eax
+  00d49	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 1353 : #endif
+; 1354 : #if defined (__osf__) || defined (__linux__)
+; 1355 :   OP_LockMutex( pPipe->pcsPipe );
+; 1356 : #endif
+; 1357 : 
+; 1358 :   /********************************************************************/
+; 1359 :   /*  Initialize the pipe queue parameters.                           */
+; 1360 :   /********************************************************************/
+; 1361 : 
+; 1362 :   pPipe->pInput = pPipe->pStart;
+
+  00d4f	8b 46 04	 mov	 eax, DWORD PTR [esi+4]
+
+; 1363 :   pPipe->pOutput = pPipe->pStart;
+; 1364 :   pPipe->uiInputPosition = 0;
+; 1365 :   pPipe->uiOutputPosition = 0;
+; 1366 : 
+; 1367 :   /********************************************************************/
+; 1368 :   /*  Initialize the pipe state semaphores.                           */
+; 1369 :   /********************************************************************/
+; 1370 : 
+; 1371 : /* TQL 05/21/1997  change this for OSF build */
+; 1372 : #ifdef WIN32
+; 1373 :   ResetEvent( pPipe->hNotEmptyEvent );
+
+  00d52	8b 4e 28	 mov	 ecx, DWORD PTR [esi+40]
+  00d55	89 46 08	 mov	 DWORD PTR [esi+8], eax
+  00d58	89 46 0c	 mov	 DWORD PTR [esi+12], eax
+  00d5b	33 c0		 xor	 eax, eax
+  00d5d	51		 push	 ecx
+  00d5e	89 46 10	 mov	 DWORD PTR [esi+16], eax
+  00d61	89 46 14	 mov	 DWORD PTR [esi+20], eax
+  00d64	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__ResetEvent@4
+
+; 1374 : 
+; 1375 :   SetEvent( pPipe->hNotFullEvent );
+
+  00d6a	8b 56 2c	 mov	 edx, DWORD PTR [esi+44]
+  00d6d	52		 push	 edx
+  00d6e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 1376 : #endif
+; 1377 : 
+; 1378 : #if defined (__osf__) || defined (__linux__)
+; 1379 :   OP_ResetEvent( pPipe->hNotEmptyEvent );
+; 1380 : 
+; 1381 :   OP_SetEvent( pPipe->hNotFullEvent );
+; 1382 : #endif
+; 1383 : 
+; 1384 :   /********************************************************************/
+; 1385 :   /*  Free the pipe resource.                                         */
+; 1386 :   /********************************************************************/
+; 1387 : 
+; 1388 : /* TQL 05/21/1997  change this for OSF build */
+; 1389 : #ifdef WIN32
+; 1390 :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00d74	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00d77	50		 push	 eax
+  00d78	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00d7e	5e		 pop	 esi
+
+; 1391 : #endif
+; 1392 : #if defined (__osf__) || defined (__linux__)
+; 1393 :   OP_UnlockMutex( pPipe->pcsPipe );
+; 1394 : #endif
+; 1395 : 
+; 1396 :   return;
+; 1397 : }
+
+  00d7f	c3		 ret	 0
+_reset_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_destroy_pipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_destroy_pipe PROC NEAR
+
+; 1423 : {
+
+  00d80	56		 push	 esi
+
+; 1424 :  /* check the pipe guards.. */
+; 1425 : 
+; 1426 : #if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+; 1427 :   assert ( ( pPipe->usGuard1 == GUARD1) 
+; 1428 : 	  &&( pPipe->usGuard2 == GUARD2) );
+; 1429 : #endif
+; 1430 : 
+; 1431 :   /********************************************************************/
+; 1432 :   /*  Delete the critical section object.                             */
+; 1433 :   /********************************************************************/
+; 1434 : 
+; 1435 : /* TQL 05/21/1997  change this for OSF build */
+; 1436 : #ifdef WIN32
+; 1437 :   DeleteCriticalSection( pPipe->pcsPipe );
+
+  00d81	8b 74 24 08	 mov	 esi, DWORD PTR _pPipe$[esp]
+  00d85	57		 push	 edi
+  00d86	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00d89	50		 push	 eax
+  00d8a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__DeleteCriticalSection@4
+
+; 1438 : #endif
+; 1439 : #if defined (__osf__) || defined (__linux__)
+; 1440 :   OP_DestroyMutex( pPipe->pcsPipe );
+; 1441 : #endif
+; 1442 : 
+; 1443 :   /********************************************************************/
+; 1444 :   /*  Free the pipe state semaphores.                                 */
+; 1445 :   /********************************************************************/
+; 1446 : 
+; 1447 : /* TQL 05/21/1997  change this for OSF build */
+; 1448 : #ifdef WIN32
+; 1449 :   CloseHandle( pPipe->hNotEmptyEvent );
+
+  00d90	8b 4e 28	 mov	 ecx, DWORD PTR [esi+40]
+  00d93	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__CloseHandle@4
+  00d99	51		 push	 ecx
+  00d9a	ff d7		 call	 edi
+
+; 1450 : 
+; 1451 :   CloseHandle( pPipe->hNotFullEvent );
+
+  00d9c	8b 56 2c	 mov	 edx, DWORD PTR [esi+44]
+  00d9f	52		 push	 edx
+  00da0	ff d7		 call	 edi
+
+; 1452 : #endif
+; 1453 : #if defined (__osf__) || defined (__linux__)
+; 1454 :   OP_DestroyEvent( pPipe->hNotEmptyEvent );
+; 1455 : 
+; 1456 :   OP_DestroyEvent( pPipe->hNotFullEvent );
+; 1457 : #endif
+; 1458 : 
+; 1459 :   /********************************************************************/
+; 1460 :   /*  Deallocate the pipe memory and the pipe structure.              */
+; 1461 :   /********************************************************************/
+; 1462 : 
+; 1463 : /* TQL 05/21/1997  change this for OSF build */
+; 1464 : #ifdef WIN32
+; 1465 :   free( pPipe->pcsPipe );
+
+  00da2	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00da5	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+  00dab	50		 push	 eax
+  00dac	ff d7		 call	 edi
+
+; 1466 : #endif
+; 1467 : 
+; 1468 :   free( pPipe->pStart );
+
+  00dae	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+  00db1	51		 push	 ecx
+  00db2	ff d7		 call	 edi
+
+; 1469 : 
+; 1470 :   free( pPipe );
+
+  00db4	56		 push	 esi
+  00db5	ff d7		 call	 edi
+  00db7	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00dba	5f		 pop	 edi
+  00dbb	5e		 pop	 esi
+
+; 1471 : 
+; 1472 :   return;
+; 1473 : }
+
+  00dbc	c3		 ret	 0
+_destroy_pipe ENDP
+_TEXT	ENDS
+PUBLIC	_pipe_count
+_TEXT	SEGMENT
+_pPipe$ = 8
+_pipe_count PROC NEAR
+
+; 1499 : {
+
+  00dc0	56		 push	 esi
+
+; 1500 :   UINT uiCount;
+; 1501 : 
+; 1502 :   /********************************************************************/
+; 1503 :   /*  Block if the pipe resource is busy.                             */
+; 1504 :   /********************************************************************/
+; 1505 : 
+; 1506 : /* TQL 05/21/1997  change this for OSF build */
+; 1507 : #ifdef WIN32
+; 1508 :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00dc1	8b 74 24 08	 mov	 esi, DWORD PTR _pPipe$[esp]
+  00dc5	57		 push	 edi
+  00dc6	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00dc9	50		 push	 eax
+  00dca	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 1509 : #endif
+; 1510 : #if defined (__osf__) || defined (__linux__)
+; 1511 :   OP_LockMutex( pPipe->pcsPipe );
+; 1512 : #endif
+; 1513 : 
+; 1514 :   /********************************************************************/
+; 1515 :   /*  Get the number of items in the pipe.                            */
+; 1516 :   /********************************************************************/
+; 1517 : 
+; 1518 :   uiCount = pPipe->uiCount;
+; 1519 : 
+; 1520 :   /********************************************************************/
+; 1521 :   /*  Free the pipe resource.                                         */
+; 1522 :   /********************************************************************/
+; 1523 : 
+; 1524 : /* TQL 05/21/1997  change this for OSF build */
+; 1525 : #ifdef WIN32
+; 1526 :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00dd0	8b 4e 34	 mov	 ecx, DWORD PTR [esi+52]
+  00dd3	8b 7e 1c	 mov	 edi, DWORD PTR [esi+28]
+  00dd6	51		 push	 ecx
+  00dd7	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 1527 : #endif
+; 1528 : #if defined (__osf__) || defined (__linux__)
+; 1529 :   OP_UnlockMutex( pPipe->pcsPipe );
+; 1530 : #endif
+; 1531 : 
+; 1532 :   return( uiCount );
+
+  00ddd	8b c7		 mov	 eax, edi
+  00ddf	5f		 pop	 edi
+  00de0	5e		 pop	 esi
+
+; 1533 : }
+
+  00de1	c3		 ret	 0
+_pipe_count ENDP
+_TEXT	ENDS
+PUBLIC	_LockPipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_LockPipe PROC NEAR
+
+; 1539 : 
+; 1540 : 
+; 1541 :   /********************************************************************/
+; 1542 :   /*  Block if the pipe resource is busy.                             */
+; 1543 :   /********************************************************************/
+; 1544 : 
+; 1545 :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00df0	8b 44 24 04	 mov	 eax, DWORD PTR _pPipe$[esp-4]
+  00df4	8b 48 34	 mov	 ecx, DWORD PTR [eax+52]
+  00df7	51		 push	 ecx
+  00df8	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 1546 : 
+; 1547 : }
+
+  00dfe	c3		 ret	 0
+_LockPipe ENDP
+_TEXT	ENDS
+PUBLIC	_UnlockPipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_UnlockPipe PROC NEAR
+
+; 1550 : 
+; 1551 : 
+; 1552 :   /********************************************************************/
+; 1553 :   /*  Free the pipe resource.                             */
+; 1554 :   /********************************************************************/
+; 1555 : 
+; 1556 :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00e00	8b 44 24 04	 mov	 eax, DWORD PTR _pPipe$[esp-4]
+  00e04	8b 48 34	 mov	 ecx, DWORD PTR [eax+52]
+  00e07	51		 push	 ecx
+  00e08	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 1557 : 
+; 1558 : }
+
+  00e0e	c3		 ret	 0
+_UnlockPipe ENDP
+_TEXT	ENDS
+PUBLIC	_SWFlushPipe
+_TEXT	SEGMENT
+_pPipe$ = 8
+_SWFlushPipe PROC NEAR
+
+; 1562 : {
+
+  00e10	56		 push	 esi
+
+; 1563 : 
+; 1564 : 
+; 1565 :   /********************************************************************/
+; 1566 :   /*  Flush out the pipe                                              */
+; 1567 :   /********************************************************************/
+; 1568 : /* TQL 05/21/1997  change this for OSF build */
+; 1569 : #ifdef WIN32
+; 1570 :   EnterCriticalSection( pPipe->pcsPipe );
+
+  00e11	8b 74 24 08	 mov	 esi, DWORD PTR _pPipe$[esp]
+  00e15	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00e18	50		 push	 eax
+  00e19	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 1571 : #endif
+; 1572 : #if defined (__osf__) || defined (__linux__)
+; 1573 :   OP_LockMutex( pPipe->pcsPipe );
+; 1574 : #endif
+; 1575 : 
+; 1576 :   // reinitialize..
+; 1577 : 
+; 1578 :   pPipe->pInput = pPipe->pStart;
+
+  00e1f	8b 46 04	 mov	 eax, DWORD PTR [esi+4]
+
+; 1579 :   pPipe->pOutput = pPipe->pStart;
+; 1580 :   pPipe->uiInputPosition = 0;
+; 1581 :   pPipe->uiOutputPosition = 0;
+; 1582 :   pPipe->uiCount = 0;
+; 1583 : 
+; 1584 : /* TQL 05/21/1997  change this for OSF build */
+; 1585 : #ifdef WIN32
+; 1586 :   ResetEvent( pPipe->hNotEmptyEvent );
+
+  00e22	8b 4e 28	 mov	 ecx, DWORD PTR [esi+40]
+  00e25	89 46 08	 mov	 DWORD PTR [esi+8], eax
+  00e28	89 46 0c	 mov	 DWORD PTR [esi+12], eax
+  00e2b	33 c0		 xor	 eax, eax
+  00e2d	51		 push	 ecx
+  00e2e	89 46 10	 mov	 DWORD PTR [esi+16], eax
+  00e31	89 46 14	 mov	 DWORD PTR [esi+20], eax
+  00e34	89 46 1c	 mov	 DWORD PTR [esi+28], eax
+  00e37	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__ResetEvent@4
+
+; 1587 :   SetEvent( pPipe->hNotFullEvent );
+
+  00e3d	8b 56 2c	 mov	 edx, DWORD PTR [esi+44]
+  00e40	52		 push	 edx
+  00e41	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 1588 :   LeaveCriticalSection( pPipe->pcsPipe );
+
+  00e47	8b 46 34	 mov	 eax, DWORD PTR [esi+52]
+  00e4a	50		 push	 eax
+  00e4b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00e51	5e		 pop	 esi
+
+; 1589 : #endif
+; 1590 : #if defined (__osf__) || defined (__linux__)
+; 1591 :   OP_ResetEvent( pPipe->hNotEmptyEvent );
+; 1592 :   OP_SetEvent( pPipe->hNotFullEvent );
+; 1593 :   OP_UnlockMutex( pPipe->pcsPipe );
+; 1594 : #endif
+; 1595 : 
+; 1596 : }
+
+  00e52	c3		 ret	 0
+_SWFlushPipe ENDP
+_TEXT	ENDS
+END

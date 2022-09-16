@@ -1,0 +1,2921 @@
+	TITLE	D:\work\Product\dapi\src\Ph\ph_aloph.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_phalloph
+PUBLIC	_prphonol
+EXTRN	_phone_feature:NEAR
+EXTRN	_adjust_allo:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_curr_inph$ = -68
+_curr_instruc$ = -52
+_last_outph$ = -36
+_ph_delcnt$ = -16
+_dodelete$ = -56
+_n$ = -64
+_curr_outph$ = -72
+_curr_outstruc$ = -44
+_curr_indur$ = -4
+_curr_inf0$ = -20
+_hatposition$ = -40
+_emphasislock$ = -24
+_stresses_in_phrase$ = -48
+_pKsd_t$ = -8
+_sylcount$ = -28
+_Cite_It$ = -60
+_phalloph PROC NEAR
+
+; 456  : {
+
+  00000	83 ec 48	 sub	 esp, 72			; 00000048H
+
+; 457  : 	short                   curr_inph = 0;
+; 458  : 	U32						curr_instruc = 0;
+; 459  : 	short                   next_inph = 0, last_outph = 0;
+; 460  : 	int                     ph_delcnt = 0;
+; 461  : 	short					dodelete = 0, tmp=0;
+; 462  : 	short                   n, curr_outph = 0; 
+; 463  : 	U32						curr_outstruc = 0;
+; 464  : 	short					curr_indur = 0, curr_inf0 = 0;	/* MVP made local */
+; 465  : 	short                   hatposition = 0, emphasislock = 0, stresses_in_phrase = 0;
+; 466  : 	short					offset = 0, temp = 0;       
+; 467  : 	short					doitlater=0;
+; 468  : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+
+  00003	8b 44 24 4c	 mov	 eax, DWORD PTR _phTTS$[esp+68]
+  00007	53		 push	 ebx
+  00008	56		 push	 esi
+  00009	33 db		 xor	 ebx, ebx
+
+; 469  : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+
+  0000b	8b 70 18	 mov	 esi, DWORD PTR [eax+24]
+  0000e	8b 48 08	 mov	 ecx, DWORD PTR [eax+8]
+
+; 470  : 
+; 471  : #ifdef ENGLISH
+; 472  : 	short					symlas = 0;
+; 473  : 	short					sylcount;
+; 474  : 	short					Cite_It;
+; 475  : #endif
+; 476  : 
+; 477  :   	short          count=0;
+; 478  : 
+; 479  : #if defined (GERMAN) || defined (SPANISH) 
+; 480  : 	short					m;
+; 481  : #endif
+; 482  : 
+; 483  : 	/* Main loop: for each input symbol, see if modify before pass to output */
+; 484  : 	pDph_t->nallotot = 0;
+; 485  : 	dodelete = FALSE;
+; 486  : 	hatposition = AT_BOTTOM_OF_HAT;	   /* Must be reset because */
+
+  00011	ba 01 00 00 00	 mov	 edx, 1
+  00016	89 5c 24 40	 mov	 DWORD PTR _ph_delcnt$[esp+80], ebx
+
+; 487  : 	emphasislock = FALSE;			   /* of possibility of an */
+; 488  : 	stresses_in_phrase = 0;			   /* emergency halt.      */
+; 489  : 	curr_inf0 = 0;
+; 490  : 	last_outph = GEN_SIL;
+; 491  : 
+; 492  : #ifdef ENGLISH	// ENGLISH (1)
+; 493  : 	if (pDph_t->nphonetot >= 10)
+
+  0001a	66 8b 86 98 17
+	00 00		 mov	 ax, WORD PTR [esi+6040]
+  00021	89 4c 24 48	 mov	 DWORD PTR _pKsd_t$[esp+80], ecx
+  00025	66 3d 0a 00	 cmp	 ax, 10			; 0000000aH
+  00029	66 89 9e 06 15
+	00 00		 mov	 WORD PTR [esi+5382], bx
+  00030	89 5c 24 18	 mov	 DWORD PTR _dodelete$[esp+80], ebx
+  00034	89 54 24 28	 mov	 DWORD PTR _hatposition$[esp+80], edx
+  00038	89 5c 24 38	 mov	 DWORD PTR _emphasislock$[esp+80], ebx
+  0003c	89 5c 24 20	 mov	 DWORD PTR _stresses_in_phrase$[esp+80], ebx
+  00040	89 5c 24 3c	 mov	 DWORD PTR _curr_inf0$[esp+80], ebx
+  00044	c7 44 24 2c 00
+	1e 00 00	 mov	 DWORD PTR _last_outph$[esp+80], 7680 ; 00001e00H
+  0004c	7c 08		 jl	 SHORT $L71373
+
+; 494  : 	{
+; 495  : 		pDph_t->docitation = 0;		   /* phrase is too long for citing */
+
+  0004e	89 9e f0 2b 00
+	00		 mov	 DWORD PTR [esi+11248], ebx
+
+; 496  : 	}
+; 497  : 	else 
+
+  00054	eb 06		 jmp	 SHORT $L71374
+$L71373:
+
+; 498  : 		pDph_t->docitation =1; //force it to unreduce in short phrases eab 3/21/00
+
+  00056	89 96 f0 2b 00
+	00		 mov	 DWORD PTR [esi+11248], edx
+$L71374:
+  0005c	57		 push	 edi
+
+; 499  : 	Cite_It= 0;
+; 500  : 	/* EAB 10/7/97 Changed the claculation od cit-it becuase it only needs to be calculated
+; 501  : 	once per phrase and it was being calculated many times for each phoneme also wanted to modify
+; 502  : 	it's setting for slowtalk*/
+; 503  : 
+; 504  : 	if((pKsd_t->modeflag & MODE_CITATION) && pDph_t->docitation)
+
+  0005d	8b b9 c0 03 00
+	00		 mov	 edi, DWORD PTR [ecx+960]
+  00063	f7 c7 00 01 00
+	00		 test	 edi, 256		; 00000100H
+  00069	89 5c 24 18	 mov	 DWORD PTR _Cite_It$[esp+84], ebx
+  0006d	74 0c		 je	 SHORT $L71375
+  0006f	39 9e f0 2b 00
+	00		 cmp	 DWORD PTR [esi+11248], ebx
+  00075	74 04		 je	 SHORT $L71375
+
+; 505  : 			Cite_It = 1;
+
+  00077	89 54 24 18	 mov	 DWORD PTR _Cite_It$[esp+84], edx
+$L71375:
+
+; 506  : 
+; 507  : 		if (pKsd_t->sprate < 100)
+
+  0007b	66 83 b9 e6 03
+	00 00 64	 cmp	 WORD PTR [ecx+998], 100	; 00000064H
+  00083	7d 04		 jge	 SHORT $L71376
+
+; 508  : 			Cite_It=TRUE;
+
+  00085	89 54 24 18	 mov	 DWORD PTR _Cite_It$[esp+84], edx
+$L71376:
+
+; 509  : 
+; 510  : 
+; 511  : #ifdef ENGLISH
+; 512  : 	sylcount=0;
+; 513  : #endif	// ENGLISH 
+; 514  : 	
+; 515  : #endif	// ENGLISH (1)
+; 516  : 	
+; 517  : 	/* Main loop: for each input symbol, see if modify before pass to output */
+; 518  : 	for (n = 0; n < pDph_t->nphonetot; n++)
+
+  00089	66 3b c3	 cmp	 ax, bx
+  0008c	89 5c 24 38	 mov	 DWORD PTR _sylcount$[esp+84], ebx
+  00090	89 5c 24 14	 mov	 DWORD PTR _n$[esp+84], ebx
+  00094	0f 8e ce 08 00
+	00		 jle	 $L71379
+  0009a	55		 push	 ebp
+
+; 574  : #endif	// defined (ENGLISH) || defined (GERMAN)
+; 575  : 
+; 576  : #ifdef SPANISH
+; 577  : 		curr_indur = pDph_t->user_durs[n+offset];	/* User-specified durations */
+; 578  : 		pDph_t->user_durs[n+offset] = 0;
+; 579  : #endif	// SPANISH
+; 580  : 
+; 581  : 		if (pDph_t->f0mode != HAT_F0_SIZES_SPECIFIED)
+
+  0009b	eb 04		 jmp	 SHORT $L71377
+$L71575:
+  0009d	8b 5c 24 18	 mov	 ebx, DWORD PTR _n$[esp+88]
+$L71377:
+
+; 519  : 	{
+; 520  : #ifdef ENGLISH
+; 521  : 	if( (pDph_t->sentstruc[n] & FFIRSTSYL )IS_PLUS )
+
+  000a1	8b 86 94 17 00
+	00		 mov	 eax, DWORD PTR [esi+6036]
+  000a7	0f bf fb	 movsx	 edi, bx
+  000aa	f6 04 b8 08	 test	 BYTE PTR [eax+edi*4], 8
+  000ae	74 06		 je	 SHORT $L71380
+
+; 522  : 		sylcount=1;
+
+  000b0	89 54 24 3c	 mov	 DWORD PTR _sylcount$[esp+88], edx
+
+; 523  : 	else if((phone_feature(pDph_t, pDph_t->phonemes[n]) & FSYLL) IS_PLUS)
+
+  000b4	eb 1c		 jmp	 SHORT $L71382
+$L71380:
+  000b6	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  000bc	0f bf 14 79	 movsx	 edx, WORD PTR [ecx+edi*2]
+  000c0	52		 push	 edx
+  000c1	56		 push	 esi
+  000c2	e8 00 00 00 00	 call	 _phone_feature
+  000c7	83 c4 08	 add	 esp, 8
+  000ca	a8 01		 test	 al, 1
+  000cc	74 04		 je	 SHORT $L71382
+
+; 524  : 		sylcount++;
+
+  000ce	ff 44 24 3c	 inc	 DWORD PTR _sylcount$[esp+88]
+$L71382:
+
+; 525  : #endif	// ENGLISH
+; 526  : 		
+; 527  : #ifdef GERMAN_OUT
+; 528  : 		/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 529  : 		/* by default, don't insert any phonemes              					  */
+; 530  : 		/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 531  : 		pDph_t->curr_insph = -1;
+; 532  : #endif	// GREMAN_OUT
+; 533  : 		/* 
+; 534  : 		 * Input symbols are taken from phonemes[], and this array is never    
+; 535  : 		 * changed.  Variables that refer to aspects of the input arrary are:  
+; 536  : 		 */
+; 537  : 
+; 538  : 		curr_inph = pDph_t->phonemes[n];
+; 539  : 
+; 540  : #ifdef DEBUGALLO
+; 541  : 		printf ("input phonenme to alloph is %d", curr_inph);
+; 542  : #endif	// DEBUGALLO
+; 543  : 		curr_instruc = pDph_t->sentstruc[n];
+; 544  : 		if (n < pDph_t->nphonetot - 1)       
+
+  000d2	0f bf ae 98 17
+	00 00		 movsx	 ebp, WORD PTR [esi+6040]
+  000d9	8b 86 90 17 00
+	00		 mov	 eax, DWORD PTR [esi+6032]
+  000df	8b 96 94 17 00
+	00		 mov	 edx, DWORD PTR [esi+6036]
+  000e5	4d		 dec	 ebp
+  000e6	66 8b 0c 78	 mov	 cx, WORD PTR [eax+edi*2]
+  000ea	8b 14 ba	 mov	 edx, DWORD PTR [edx+edi*4]
+  000ed	3b fd		 cmp	 edi, ebp
+  000ef	89 4c 24 14	 mov	 DWORD PTR _curr_inph$[esp+88], ecx
+  000f3	89 54 24 24	 mov	 DWORD PTR _curr_instruc$[esp+88], edx
+  000f7	7d 07		 jge	 SHORT $L71383
+
+; 545  : 		{
+; 546  : 			next_inph = pDph_t->phonemes[n + 1];
+
+  000f9	66 8b 6c 78 02	 mov	 bp, WORD PTR [eax+edi*2+2]
+
+; 547  : 		}
+; 548  : 		else
+
+  000fe	eb 05		 jmp	 SHORT $L71384
+$L71383:
+
+; 549  : 		{
+; 550  : 			next_inph = GEN_SIL;
+
+  00100	bd 00 1e 00 00	 mov	 ebp, 7680		; 00001e00H
+$L71384:
+
+; 551  : 		}
+; 552  : 		/* printf(" cur=%d ,nx = %d tot= %d \n ",curr_inph,next_inph,pDph_t->nphonetot); */
+; 553  : 
+; 554  : 		/* 
+; 555  : 		 * Output symbols are put in array allophons[].  Variables that refer   
+; 556  : 		 * to this array are:                                                  
+; 557  : 		 */
+; 558  : 
+; 559  : 		curr_outph = curr_inph;
+; 560  : 		curr_outstruc = curr_instruc;
+; 561  : 		if (n > 0)
+
+  00105	66 85 db	 test	 bx, bx
+  00108	89 4c 24 10	 mov	 DWORD PTR _curr_outph$[esp+88], ecx
+  0010c	89 54 24 2c	 mov	 DWORD PTR _curr_outstruc$[esp+88], edx
+  00110	7e 14		 jle	 SHORT $L71385
+
+; 562  : 		{
+; 563  : 			last_outph = pDph_t->allophons[pDph_t->nallotot - 1];
+
+  00112	0f bf 86 06 15
+	00 00		 movsx	 eax, WORD PTR [esi+5382]
+  00119	66 8b 8c 46 ea
+	03 00 00	 mov	 cx, WORD PTR [esi+eax*2+1002]
+  00121	66 89 4c 24 34	 mov	 WORD PTR _last_outph$[esp+88], cx
+$L71385:
+
+; 564  : 		}
+; 565  : 
+; 566  : 		/* 
+; 567  : 		 * Deal carefully with user specified durations or f0-commands because  
+; 568  : 		 * input symbols may be deleted or combined.                           
+; 569  : 		 */
+; 570  : 
+; 571  : #if defined (ENGLISH) || defined (GERMAN)
+; 572  : 		curr_indur = pDph_t->user_durs[n];	/* User-specified durations */
+
+  00126	8b 86 84 17 00
+	00		 mov	 eax, DWORD PTR [esi+6020]
+  0012c	66 8b 0c 78	 mov	 cx, WORD PTR [eax+edi*2]
+  00130	8d 04 78	 lea	 eax, DWORD PTR [eax+edi*2]
+  00133	66 89 4c 24 54	 mov	 WORD PTR _curr_indur$[esp+88], cx
+
+; 573  : 		pDph_t->user_durs[n] = 0;
+
+  00138	66 c7 00 00 00	 mov	 WORD PTR [eax], 0
+
+; 574  : #endif	// defined (ENGLISH) || defined (GERMAN)
+; 575  : 
+; 576  : #ifdef SPANISH
+; 577  : 		curr_indur = pDph_t->user_durs[n+offset];	/* User-specified durations */
+; 578  : 		pDph_t->user_durs[n+offset] = 0;
+; 579  : #endif	// SPANISH
+; 580  : 
+; 581  : 		if (pDph_t->f0mode != HAT_F0_SIZES_SPECIFIED)
+
+  0013d	66 83 be 9c 17
+	00 00 03	 cmp	 WORD PTR [esi+6044], 3
+  00145	74 17		 je	 SHORT $L71386
+
+; 582  : 		{
+; 583  : 			curr_inf0 = pDph_t->user_f0[n];		/* User-specified f0 commands */
+
+  00147	8b 86 88 17 00
+	00		 mov	 eax, DWORD PTR [esi+6024]
+  0014d	66 8b 0c 78	 mov	 cx, WORD PTR [eax+edi*2]
+  00151	8d 04 78	 lea	 eax, DWORD PTR [eax+edi*2]
+  00154	66 89 4c 24 44	 mov	 WORD PTR _curr_inf0$[esp+88], cx
+
+; 584  : 			pDph_t->user_f0[n] = 0;	   /* that are locked to phones */
+
+  00159	66 c7 00 00 00	 mov	 WORD PTR [eax], 0
+$L71386:
+
+; 585  : 		}
+; 586  : 
+; 587  : 		/* Skip allophone rules if current phoneme has feature +FBLOCK */
+; 588  : 		if ((curr_instruc & FBLOCK) != 0)
+
+  0015e	f6 c6 20	 test	 dh, 32			; 00000020H
+  00161	0f 85 c1 07 00
+	00		 jne	 $L71503
+
+; 589  : 		{
+; 590  : 			goto skiprules;
+; 591  : 		}
+; 592  : 		if ((curr_instruc & FSTRESS) IS_MINUS)
+
+  00167	8b c2		 mov	 eax, edx
+  00169	83 e0 03	 and	 eax, 3
+  0016c	89 44 24 38	 mov	 DWORD PTR -32+[esp+88], eax
+  00170	75 3c		 jne	 SHORT $L71400
+
+; 593  : 		{//reduce unstress long vowels into short
+; 594  : 			
+; 595  : 			
+; 596  : 			switch (curr_inph)
+; 597  : 			{
+
+  00172	0f bf 44 24 14	 movsx	 eax, WORD PTR _curr_inph$[esp+88]
+  00177	05 f7 e3 ff ff	 add	 eax, -7177		; ffffe3f7H
+  0017c	83 f8 07	 cmp	 eax, 7
+  0017f	77 2d		 ja	 SHORT $L71400
+  00181	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71596[eax*4]
+$L71394:
+
+; 598  : 			case GRP_UH:
+; 599  : 				curr_outph  = GRP_U1;
+
+  00188	c7 44 24 10 3b
+	1c 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7227 ; 00001c3bH
+
+; 600  : 				break;
+
+  00190	eb 1c		 jmp	 SHORT $L71400
+$L71395:
+
+; 601  : 			case GRP_OH:
+; 602  : 				curr_outph  = GRP_O1;
+
+  00192	c7 44 24 10 3a
+	1c 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7226 ; 00001c3aH
+
+; 603  : 				break;
+
+  0019a	eb 12		 jmp	 SHORT $L71400
+$L71396:
+
+; 604  : 			case GRP_UEH:
+; 605  : 				curr_outph  = GRP_Y1;
+
+  0019c	c7 44 24 10 3c
+	1c 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7228 ; 00001c3cH
+
+; 606  : 				break;
+
+  001a4	eb 08		 jmp	 SHORT $L71400
+$L71397:
+
+; 607  : 			case GRP_EH:
+; 608  : 				curr_outph  = GRP_E1;
+
+  001a6	c7 44 24 10 39
+	1c 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7225 ; 00001c39H
+$L71400:
+
+; 609  : 			default:
+; 610  : 				break;
+; 611  : 			}
+; 612  : 		}
+; 613  : 
+; 614  : 
+; 615  : 
+; 616  : 
+; 617  : 
+; 618  : 		/* eab second half of delaying rule 12/95 eab 
+; 619  : 		 imporved 4/27/98 */
+; 620  : 		if ( doitlater && (phone_feature(pDph_t,curr_inph) & FSYLL) IS_PLUS)
+; 621  : 		{
+; 622  : 			count--;
+; 623  : 			if (((pDph_t->nphonetot - n) < 4 && count ==1) || count == 0)
+; 624  : 			{
+; 625  : 				curr_outstruc |= FHAT_ENDS;
+; 626  : 				hatposition = AT_BOTTOM_OF_HAT;
+; 627  : 				stresses_in_phrase = 0;
+; 628  : 				doitlater = 0;
+; 629  : 			}
+; 630  : 		}
+; 631  : 		
+; 632  : 
+; 633  : 		switch (last_outph)
+; 634  : 		{
+
+  001ae	0f bf 5c 24 34	 movsx	 ebx, WORD PTR _last_outph$[esp+88]
+  001b3	8d 83 ff e3 ff
+	ff		 lea	 eax, DWORD PTR [ebx-7169]
+  001b9	83 f8 12	 cmp	 eax, 18			; 00000012H
+  001bc	77 20		 ja	 SHORT $L71408
+  001be	33 c9		 xor	 ecx, ecx
+  001c0	8a 88 00 00 00
+	00		 mov	 cl, BYTE PTR $L71597[eax]
+  001c6	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L71598[ecx*4]
+$L71407:
+
+; 635  : 			/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 636  : 			/* make transition from I, IH into vowel more clear     				  */
+; 637  : 			/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 638  : 			/* eab 9/95 new rule from sonia ch after a/o/u/au is changed to a kh */
+; 639  : 		case GRP_A:
+; 640  : 		case GRP_O:
+; 641  : 		case GRP_U:
+; 642  : 		case GRP_AU:
+; 643  : 		case GRP_OH:
+; 644  : 			if (curr_outph == GRP_CH)
+
+  001cd	66 81 7c 24 10
+	2a 1c		 cmp	 WORD PTR _curr_outph$[esp+88], 7210 ; 00001c2aH
+  001d4	75 08		 jne	 SHORT $L71408
+
+; 645  : 			{
+; 646  : 				curr_outph = GRP_KH;
+
+  001d6	c7 44 24 10 2b
+	1c 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7211 ; 00001c2bH
+$L71408:
+
+; 647  : 			}
+; 648  : 			break;
+; 649  : 
+; 650  : 
+; 651  : 		}
+; 652  : 		/* switch */
+; 653  : 
+; 654  : 		switch (curr_inph)
+; 655  : 		{
+
+  001de	0f bf 44 24 14	 movsx	 eax, WORD PTR _curr_inph$[esp+88]
+  001e3	89 44 24 4c	 mov	 DWORD PTR -12+[esp+88], eax
+  001e7	05 e6 e3 ff ff	 add	 eax, -7194		; ffffe3e6H
+  001ec	83 f8 05	 cmp	 eax, 5
+  001ef	77 45		 ja	 SHORT $L71419
+  001f1	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71599[eax*4]
+$L71413:
+
+; 656  : 		case GRP_R:
+; 657  : #ifdef GERMAN
+; 658  : 		case USP_R:
+; 659  : #endif
+; 660  : 			/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 661  : 			/* use /RR/ instead of /R/ before syllabic and eab 5/12/98 need to remove   
+; 662  : 			   insertion of RR before glottal stop at a word boundary                 */
+; 663  : 			/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 664  : 
+; 665  : 
+; 666  : 		
+; 667  : 			if((phone_feature(pDph_t,next_inph) & FSYLL) IS_PLUS)   
+
+  001f8	0f bf d5	 movsx	 edx, bp
+  001fb	52		 push	 edx
+  001fc	56		 push	 esi
+  001fd	e8 00 00 00 00	 call	 _phone_feature
+  00202	83 c4 08	 add	 esp, 8
+  00205	a8 01		 test	 al, 1
+  00207	74 2d		 je	 SHORT $L71419
+
+; 668  : 			{
+; 669  : 				curr_outph = GRP_RR;
+
+  00209	c7 44 24 10 1b
+	1c 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7195 ; 00001c1bH
+
+; 670  : 			}
+; 671  : 			break;
+
+  00211	eb 23		 jmp	 SHORT $L71419
+$L71415:
+
+; 672  : 
+; 673  : 		case GRP_L:
+; 674  : 		case GRP_M:
+; 675  : 		case GRP_N:
+; 676  : 			/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 677  : 			/* use syllabic for /EL/, /EM/, /EN/ at high speaking rates      */
+; 678  : 			/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 679  : 
+; 680  : 			if ((curr_instruc & (FSTRESS | FWINITC)) IS_PLUS )
+
+  00213	f6 c2 07	 test	 dl, 7
+  00216	75 1e		 jne	 SHORT $L71419
+
+; 681  : 			{
+; 682  : 				break;
+; 683  : 			}
+; 684  : 			if (pDph_t->phonemes[n - 1] == GRP_EX && 
+; 685  : 				phone_feature(pDph_t,pDph_t->phonemes[n - 2]) & FNASAL IS_MINUS)
+
+  00218	8b 86 90 17 00
+	00		 mov	 eax, DWORD PTR [esi+6032]
+  0021e	66 81 7c 78 fe
+	04 1c		 cmp	 WORD PTR [eax+edi*2-2], 7172 ; 00001c04H
+  00225	75 0f		 jne	 SHORT $L71419
+  00227	0f bf 44 78 fc	 movsx	 eax, WORD PTR [eax+edi*2-4]
+  0022c	50		 push	 eax
+  0022d	56		 push	 esi
+  0022e	e8 00 00 00 00	 call	 _phone_feature
+  00233	83 c4 08	 add	 esp, 8
+$L71419:
+
+; 686  : 			{
+; 687  : 				switch (curr_inph)
+; 688  : 				{
+; 689  : 
+; 690  : 
+; 691  : 				case GRP_L:
+; 692  : 								
+; 693  : 						pDph_t->allophons[pDph_t->nallotot - 1] = GRP_EL;
+; 694  : 						dodelete = TRUE;
+; 695  : 					
+; 696  : 					break;
+; 697  : 
+; 698  : 
+; 699  : 
+; 700  : 				case GRP_M:
+; 701  : 									
+; 702  : 						pDph_t->allophons[pDph_t->nallotot - 1] = GRP_EM;
+; 703  : 						dodelete = TRUE;
+; 704  : 					
+; 705  : 					break;
+; 706  : 				case GRP_N:
+; 707  : 						pDph_t->allophons[pDph_t->nallotot - 1] = GRP_EN;
+; 708  : 						dodelete = TRUE;
+; 709  : 					
+; 710  : 					break;
+; 711  : 				}					   /* switch */
+; 712  : 
+; 713  : 			}						   /* if last one was EX */
+; 714  : 			break;
+; 715  : 		}							   /* switch */
+; 716  : 
+; 717  : 
+; 718  : /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+; 719  : /* Morpho-phonemic Rules: (Most have already been applied)   */
+; 720  : /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+; 721  : 
+; 722  : #ifdef GERMAN
+; 723  : 	if(curr_inph == GRP_T &&
+; 724  : 		pDph_t->phonemes[n +1] == GRP_S)
+; 725  : 	{
+; 726  : 		pDph_t->phonemes[n + 1] = GRP_TS;
+; 727  : 			dodelete = TRUE;
+; 728  : 	}
+; 729  : #endif	
+; 730  : 
+; 731  : #ifdef ENGLISH_US	// ENGLISH_US (1)
+; 732  : 		/* Rule 1a: The word "the" should be /dh iy/ before a syllabic */
+; 733  : 		//eab 7/28/00 Nphonetot is the total numb of phones but array start at
+; 734  : 		//zero so index size is -1 and if we're check for following phone(+1)
+; 735  : 		//then we must have index of n+1 < nhonetot
+; 736  : 		if(n>0 && ((n+1) < (pDph_t->nphonetot)))
+
+  00236	66 83 7c 24 18
+	00		 cmp	 WORD PTR _n$[esp+88], 0
+  0023c	7e 5f		 jle	 SHORT $L71426
+  0023e	0f bf 8e 98 17
+	00 00		 movsx	 ecx, WORD PTR [esi+6040]
+  00245	8d 47 01	 lea	 eax, DWORD PTR [edi+1]
+  00248	3b c1		 cmp	 eax, ecx
+  0024a	7d 51		 jge	 SHORT $L71426
+
+; 737  : 		{
+; 738  : 			if (((phone_feature(pDph_t,pDph_t->phonemes[n + 1]) & FSYLL) IS_PLUS)
+; 739  : 			&& (curr_inph == USP_AX)
+; 740  : 			&& ((curr_instruc & FBOUNDARY) IS_PLUS)
+; 741  : 			&& (pDph_t->phonemes[n - 1] == USP_DH)
+; 742  : 			&& ((pDph_t->sentstruc[n - 1] & FWINITC) IS_PLUS)
+; 743  : 			)
+
+  0024c	8b 96 90 17 00
+	00		 mov	 edx, DWORD PTR [esi+6032]
+  00252	0f bf 04 42	 movsx	 eax, WORD PTR [edx+eax*2]
+  00256	50		 push	 eax
+  00257	56		 push	 esi
+  00258	e8 00 00 00 00	 call	 _phone_feature
+  0025d	83 c4 08	 add	 esp, 8
+  00260	a8 01		 test	 al, 1
+  00262	74 39		 je	 SHORT $L71426
+  00264	66 81 7c 24 14
+	11 1e		 cmp	 WORD PTR _curr_inph$[esp+88], 7697 ; 00001e11H
+  0026b	75 69		 jne	 SHORT $L71427
+  0026d	f7 44 24 24 e0
+	01 00 00	 test	 DWORD PTR _curr_instruc$[esp+88], 480 ; 000001e0H
+  00275	74 2f		 je	 SHORT $L71562
+  00277	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  0027d	66 81 7c 79 fe
+	28 1e		 cmp	 WORD PTR [ecx+edi*2-2], 7720 ; 00001e28H
+  00284	75 20		 jne	 SHORT $L71562
+  00286	8b 96 94 17 00
+	00		 mov	 edx, DWORD PTR [esi+6036]
+  0028c	f6 44 ba fc 04	 test	 BYTE PTR [edx+edi*4-4], 4
+  00291	74 13		 je	 SHORT $L71562
+
+; 744  : 			{
+; 745  : 			curr_outph = USP_IY;
+
+  00293	c7 44 24 10 01
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7681 ; 00001e01H
+
+; 746  : 			}
+; 747  : 		}
+; 748  : 		/* rule 1c make a long a be ah */
+; 749  : /*		Cite_It= 0;
+; 750  : 
+; 751  : 		if((pKsd_t->modeflag & MODE_CITATION) && pDph_t->docitation)to go fro
+; 752  : 			Cite_It = 1;  */
+; 753  : 
+; 754  : 		if ((curr_inph == USP_AX) && (next_inph == GEN_SIL)
+; 755  : 			&& n == 1 && (Cite_It) )
+
+  0029b	eb 09		 jmp	 SHORT $L71562
+$L71426:
+  0029d	66 81 7c 24 14
+	11 1e		 cmp	 WORD PTR _curr_inph$[esp+88], 7697 ; 00001e11H
+  002a4	75 30		 jne	 SHORT $L71427
+$L71562:
+  002a6	66 81 fd 00 1e	 cmp	 bp, 7680		; 00001e00H
+  002ab	0f 85 05 01 00
+	00		 jne	 $L71436
+  002b1	66 83 7c 24 18
+	01		 cmp	 WORD PTR _n$[esp+88], 1
+  002b7	0f 85 f9 00 00
+	00		 jne	 $L71436
+  002bd	66 83 7c 24 1c
+	00		 cmp	 WORD PTR _Cite_It$[esp+88], 0
+  002c3	0f 84 ed 00 00
+	00		 je	 $L71436
+
+; 756  : 		{
+; 757  : 			curr_outph = USP_EY;
+
+  002c9	c7 44 24 10 03
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7683 ; 00001e03H
+
+; 758  : 		}
+; 759  : //#ifndef NWS_US
+; 760  : 		/* Rule 1b:  Unreduce vowel in "for" if following segment is vowel or sil */
+; 761  : 		if ((curr_inph == USP_F) && (next_inph == USP_RR)
+; 762  : 			&& ((((pDph_t->sentstruc[n + 1] & FSTRESS) IS_MINUS) && ((pDph_t->sentstruc[n +1 ] & FTYPESYL) == FMONOSYL))
+; 763  : 				|| Cite_It))
+
+  002d1	e9 e0 00 00 00	 jmp	 $L71436
+$L71427:
+  002d6	8b 44 24 14	 mov	 eax, DWORD PTR _curr_inph$[esp+88]
+  002da	66 3d 25 1e	 cmp	 ax, 7717		; 00001e25H
+  002de	75 62		 jne	 SHORT $L71431
+  002e0	66 81 fd 0f 1e	 cmp	 bp, 7695		; 00001e0fH
+  002e5	0f 85 cb 00 00
+	00		 jne	 $L71436
+  002eb	8b 86 94 17 00
+	00		 mov	 eax, DWORD PTR [esi+6036]
+  002f1	f6 44 b8 04 1b	 test	 BYTE PTR [eax+edi*4+4], 27 ; 0000001bH
+  002f6	74 0c		 je	 SHORT $L71429
+  002f8	66 83 7c 24 1c
+	00		 cmp	 WORD PTR _Cite_It$[esp+88], 0
+  002fe	0f 84 b2 00 00
+	00		 je	 $L71436
+$L71429:
+
+; 764  : 		{
+; 765  : 			if (((phone_feature(pDph_t,pDph_t->phonemes[n + 2]) & FSYLL) IS_PLUS)
+; 766  : 				|| (pDph_t->phonemes[n + 2] == GEN_SIL))
+
+  00304	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  0030a	0f bf 54 79 04	 movsx	 edx, WORD PTR [ecx+edi*2+4]
+  0030f	52		 push	 edx
+  00310	56		 push	 esi
+  00311	e8 00 00 00 00	 call	 _phone_feature
+  00316	83 c4 08	 add	 esp, 8
+  00319	a8 01		 test	 al, 1
+  0031b	75 13		 jne	 SHORT $L71432
+  0031d	8b 86 90 17 00
+	00		 mov	 eax, DWORD PTR [esi+6032]
+  00323	66 81 7c 78 04
+	00 1e		 cmp	 WORD PTR [eax+edi*2+4], 7680 ; 00001e00H
+  0032a	0f 85 86 00 00
+	00		 jne	 $L71436
+$L71432:
+
+; 767  : 			{
+; 768  : 				pDph_t->phonemes[n + 1] = USP_OR;
+
+  00330	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  00336	bd 16 1e 00 00	 mov	 ebp, 7702		; 00001e16H
+  0033b	66 89 6c 79 02	 mov	 WORD PTR [ecx+edi*2+2], bp
+
+; 769  : 				next_inph = USP_OR;
+; 770  : #ifdef DEBUGALLO
+; 771  : 				printf ("for rr->or rule firing");
+; 772  : #endif	// DEBUGALLO
+; 773  : 			}
+; 774  : 		}
+; 775  : //#else /*NWS_US*/
+; 776  : //		/* eab 10/15/97 */
+; 777  : //		if ((curr_inph == F) && (next_inph == RR))
+; 778  : //			if (((pDph_t->sentstruc[n +1 ] & 030/*FTYPESYL*/) == 00 /*FMONOSYL*/))
+; 779  : //			//	|| Cite_It))
+; 780  : //		{
+; 781  : //				pDph_t->phonemes[n + 1] = OR;
+; 782  : //				next_inph = OR;
+; 783  : //			
+; 784  : //		}
+; 785  : //#endif /*NWS_US*/
+; 786  : 		/* Rule 1c:  Unreduce vowel in clause-initial "and" to be [ae] */
+; 787  : 		/* BATS 459 vowel for unreduce and wrong.... note-comment above was correct who changed it and why
+; 788  : 		(it wasn't me) EAB 3/17/98*/
+; 789  : 
+; 790  : 		if ((curr_inph == GEN_SIL)
+; 791  : 			&& (pDph_t->phonemes[n + 1] == USP_AE)
+; 792  : 			&& (pDph_t->phonemes[n + 2] == USP_N)
+; 793  : 			&& (pDph_t->phonemes[n + 3] == USP_D)
+; 794  : 			&& ((((pDph_t->sentstruc[n + 1] & FSTRESS) IS_MINUS) && ((pDph_t->sentstruc[n + 3] & FSTRESS) IS_MINUS))
+; 795  : 				|| Cite_It))
+
+  00340	eb 74		 jmp	 SHORT $L71436
+$L71431:
+  00342	66 3d 00 1e	 cmp	 ax, 7680		; 00001e00H
+  00346	75 6e		 jne	 SHORT $L71436
+  00348	8b 86 90 17 00
+	00		 mov	 eax, DWORD PTR [esi+6032]
+  0034e	ba 05 1e 00 00	 mov	 edx, 7685		; 00001e05H
+  00353	66 39 54 78 02	 cmp	 WORD PTR [eax+edi*2+2], dx
+  00358	75 35		 jne	 SHORT $L71563
+  0035a	66 81 7c 78 04
+	20 1e		 cmp	 WORD PTR [eax+edi*2+4], 7712 ; 00001e20H
+  00361	75 2c		 jne	 SHORT $L71563
+  00363	66 81 7c 78 06
+	30 1e		 cmp	 WORD PTR [eax+edi*2+6], 7728 ; 00001e30H
+  0036a	75 23		 jne	 SHORT $L71563
+  0036c	8b 8e 94 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6036]
+  00372	f6 44 b9 04 03	 test	 BYTE PTR [ecx+edi*4+4], 3
+  00377	75 07		 jne	 SHORT $L71435
+  00379	f6 44 b9 0c 03	 test	 BYTE PTR [ecx+edi*4+12], 3
+  0037e	74 08		 je	 SHORT $L71434
+$L71435:
+  00380	66 83 7c 24 1c
+	00		 cmp	 WORD PTR _Cite_It$[esp+88], 0
+  00386	74 07		 je	 SHORT $L71563
+$L71434:
+
+; 796  : 		{
+; 797  : #ifdef DEBUGALLO
+; 798  : 			printf ("and eh->ae rule firing");
+; 799  : #endif	// DEBUGALLO
+; 800  : 			pDph_t->phonemes[n + 1] = USP_AE;
+
+  00388	66 89 54 78 02	 mov	 WORD PTR [eax+edi*2+2], dx
+
+; 801  : 			next_inph = USP_AE;
+
+  0038d	8b ea		 mov	 ebp, edx
+$L71563:
+
+; 802  : 		}
+; 803  : 
+; 804  : 		/* Rule 1d:  Unreduce vowel in "to,into" if next segment is vowel or sil */
+; 805  : 		/* [See code below involving flapping rule] */
+; 806  : 
+; 807  : 		/* Rule 1c:  Unreduce vowel in citation mode for  "at" to be [ae] */
+; 808  : 		if ((curr_inph == GEN_SIL) && (pDph_t->phonemes[n + 1] == USP_EH) && (pDph_t->phonemes[n + 2] == USP_T)
+; 809  : 			&& Cite_It )
+
+  0038f	8b 86 90 17 00
+	00		 mov	 eax, DWORD PTR [esi+6032]
+  00395	66 81 7c 78 02
+	04 1e		 cmp	 WORD PTR [eax+edi*2+2], 7684 ; 00001e04H
+  0039c	75 18		 jne	 SHORT $L71436
+  0039e	66 81 7c 78 04
+	2f 1e		 cmp	 WORD PTR [eax+edi*2+4], 7727 ; 00001e2fH
+  003a5	75 0f		 jne	 SHORT $L71436
+  003a7	66 83 7c 24 1c
+	00		 cmp	 WORD PTR _Cite_It$[esp+88], 0
+  003ad	74 07		 je	 SHORT $L71436
+
+; 810  : 		{
+; 811  : 
+; 812  : #ifdef DEBUGALLO
+; 813  : 			printf ("at eh->ae rule firing");
+; 814  : #endif	// DEBUGALLO
+; 815  : 				
+; 816  : 			pDph_t->phonemes[n + 1] = USP_AE;
+
+  003af	66 89 54 78 02	 mov	 WORD PTR [eax+edi*2+2], dx
+
+; 817  : 			next_inph = USP_AE;
+
+  003b4	8b ea		 mov	 ebp, edx
+$L71436:
+
+; 818  : 		}
+; 819  : 
+; 820  : 		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+; 821  : 		/* Phonological rules I:                                     	   */
+; 822  : 		/* (rules involving glottal attack are in PHDRAWT0.C)      		   */
+; 823  : 		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+; 824  : 
+; 825  : 		/* Rule 2: Postvocalic allophones of /R/ and /LL/ are special */
+; 826  : 
+; 827  : 		if (((curr_instruc & (FSTRESS | FWINITC)) IS_MINUS) && n>0
+; 828  : 			&& ((phone_feature(pDph_t,pDph_t->phonemes[n - 1]) & FVOWEL) IS_PLUS))
+
+  003b6	f6 44 24 24 07	 test	 BYTE PTR _curr_instruc$[esp+88], 7
+  003bb	0f 85 38 01 00
+	00		 jne	 $L71449
+  003c1	66 83 7c 24 18
+	00		 cmp	 WORD PTR _n$[esp+88], 0
+  003c7	0f 8e 2c 01 00
+	00		 jle	 $L71449
+  003cd	8b 96 90 17 00
+	00		 mov	 edx, DWORD PTR [esi+6032]
+  003d3	0f bf 44 7a fe	 movsx	 eax, WORD PTR [edx+edi*2-2]
+  003d8	50		 push	 eax
+  003d9	56		 push	 esi
+  003da	e8 00 00 00 00	 call	 _phone_feature
+  003df	83 c4 08	 add	 esp, 8
+  003e2	a8 04		 test	 al, 4
+  003e4	0f 84 0f 01 00
+	00		 je	 $L71449
+
+; 829  : 		{
+; 830  : 			if (curr_inph == USP_LL)
+
+  003ea	8b 44 24 14	 mov	 eax, DWORD PTR _curr_inph$[esp+88]
+  003ee	66 3d 1b 1e	 cmp	 ax, 7707		; 00001e1bH
+  003f2	75 0d		 jne	 SHORT $L71438
+
+; 831  : 				curr_outph = USP_LX;
+
+  003f4	c7 44 24 10 1e
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7710 ; 00001e1eH
+
+; 832  : 
+; 833  : 			/* See if one of the special vowel + R combinations */
+; 834  : 			/* if so, replace last output symbol and discard input symbol */
+; 835  : 			if (curr_inph == USP_R)
+
+  003fc	e9 f8 00 00 00	 jmp	 $L71449
+$L71438:
+  00401	66 3d 1a 1e	 cmp	 ax, 7706		; 00001e1aH
+  00405	0f 85 ee 00 00
+	00		 jne	 $L71449
+
+; 836  : 			{
+; 837  : 				curr_outph =USP_RX;
+; 838  : 				symlas = pDph_t->phonemes[n - 1];
+
+  0040b	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  00411	c7 44 24 10 1d
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7709 ; 00001e1dH
+  00419	66 8b 44 79 fe	 mov	 ax, WORD PTR [ecx+edi*2-2]
+
+; 839  : 				if (symlas == USP_AX)
+
+  0041e	66 3d 11 1e	 cmp	 ax, 7697		; 00001e11H
+  00422	75 1e		 jne	 SHORT $L71440
+
+; 840  : 				{
+; 841  : 					pDph_t->allophons[pDph_t->nallotot - 1] = USP_RR;
+
+  00424	0f bf 96 06 15
+	00 00		 movsx	 edx, WORD PTR [esi+5382]
+
+; 842  : 					dodelete = TRUE;
+
+  0042b	c7 44 24 20 01
+	00 00 00	 mov	 DWORD PTR _dodelete$[esp+88], 1
+  00433	66 c7 84 56 ea
+	03 00 00 0f 1e	 mov	 WORD PTR [esi+edx*2+1002], 7695 ; 00001e0fH
+
+; 843  : 				}
+; 844  : 
+; 845  : 				if ((symlas == USP_IY) || (symlas == USP_IH))
+
+  0043d	e9 b7 00 00 00	 jmp	 $L71449
+$L71440:
+  00442	66 3d 01 1e	 cmp	 ax, 7681		; 00001e01H
+  00446	74 06		 je	 SHORT $L71442
+  00448	66 3d 02 1e	 cmp	 ax, 7682		; 00001e02H
+  0044c	75 1c		 jne	 SHORT $L71583
+$L71442:
+
+; 846  : 				{
+; 847  : 					pDph_t->allophons[pDph_t->nallotot - 1] = USP_IR;
+
+  0044e	0f bf 8e 06 15
+	00 00		 movsx	 ecx, WORD PTR [esi+5382]
+  00455	66 c7 84 4e ea
+	03 00 00 13 1e	 mov	 WORD PTR [esi+ecx*2+1002], 7699 ; 00001e13H
+
+; 848  : 					dodelete = TRUE;
+
+  0045f	b9 01 00 00 00	 mov	 ecx, 1
+  00464	89 4c 24 20	 mov	 DWORD PTR _dodelete$[esp+88], ecx
+  00468	eb 05		 jmp	 SHORT $L71441
+$L71583:
+  0046a	b9 01 00 00 00	 mov	 ecx, 1
+$L71441:
+
+; 849  : 				}
+; 850  : 
+; 851  : 				if ((symlas == USP_EY)
+; 852  : 					|| (symlas == USP_EH) || (symlas == USP_AE))
+
+  0046f	66 3d 03 1e	 cmp	 ax, 7683		; 00001e03H
+  00473	74 0c		 je	 SHORT $L71444
+  00475	66 3d 04 1e	 cmp	 ax, 7684		; 00001e04H
+  00479	74 06		 je	 SHORT $L71444
+  0047b	66 3d 05 1e	 cmp	 ax, 7685		; 00001e05H
+  0047f	75 15		 jne	 SHORT $L71443
+$L71444:
+
+; 853  : 				{
+; 854  : 					pDph_t->allophons[pDph_t->nallotot - 1] = USP_ER;
+
+  00481	0f bf 96 06 15
+	00 00		 movsx	 edx, WORD PTR [esi+5382]
+
+; 855  : 					dodelete = TRUE;
+
+  00488	89 4c 24 20	 mov	 DWORD PTR _dodelete$[esp+88], ecx
+  0048c	66 c7 84 56 ea
+	03 00 00 14 1e	 mov	 WORD PTR [esi+edx*2+1002], 7700 ; 00001e14H
+$L71443:
+
+; 856  : 				}
+; 857  : 
+; 858  : 				if ((symlas == USP_AA) || (symlas == USP_AH))
+
+  00496	66 3d 06 1e	 cmp	 ax, 7686		; 00001e06H
+  0049a	74 06		 je	 SHORT $L71446
+  0049c	66 3d 09 1e	 cmp	 ax, 7689		; 00001e09H
+  004a0	75 15		 jne	 SHORT $L71445
+$L71446:
+
+; 859  : 				{
+; 860  : 					pDph_t->allophons[pDph_t->nallotot - 1] = USP_AR;
+
+  004a2	0f bf 96 06 15
+	00 00		 movsx	 edx, WORD PTR [esi+5382]
+
+; 861  : 					dodelete = TRUE;
+
+  004a9	89 4c 24 20	 mov	 DWORD PTR _dodelete$[esp+88], ecx
+  004ad	66 c7 84 56 ea
+	03 00 00 15 1e	 mov	 WORD PTR [esi+edx*2+1002], 7701 ; 00001e15H
+$L71445:
+
+; 862  : 				}
+; 863  : 
+; 864  : 				if ((symlas == USP_OW) || (symlas == USP_AO))
+
+  004b7	66 3d 0b 1e	 cmp	 ax, 7691		; 00001e0bH
+  004bb	74 06		 je	 SHORT $L71448
+  004bd	66 3d 0a 1e	 cmp	 ax, 7690		; 00001e0aH
+  004c1	75 15		 jne	 SHORT $L71447
+$L71448:
+
+; 865  : 				{
+; 866  : 					pDph_t->allophons[pDph_t->nallotot - 1] = USP_OR;
+
+  004c3	0f bf 96 06 15
+	00 00		 movsx	 edx, WORD PTR [esi+5382]
+
+; 867  : 					dodelete = TRUE;
+
+  004ca	89 4c 24 20	 mov	 DWORD PTR _dodelete$[esp+88], ecx
+  004ce	66 c7 84 56 ea
+	03 00 00 16 1e	 mov	 WORD PTR [esi+edx*2+1002], 7702 ; 00001e16H
+$L71447:
+
+; 868  : 				}
+; 869  : 
+; 870  : 				if ((symlas == USP_UW) || (symlas == USP_UH))
+
+  004d8	66 3d 0e 1e	 cmp	 ax, 7694		; 00001e0eH
+  004dc	74 06		 je	 SHORT $L71450
+  004de	66 3d 0d 1e	 cmp	 ax, 7693		; 00001e0dH
+  004e2	75 15		 jne	 SHORT $L71449
+$L71450:
+
+; 871  : 				{
+; 872  : 					pDph_t->allophons[pDph_t->nallotot - 1] = USP_UR;
+
+  004e4	0f bf 86 06 15
+	00 00		 movsx	 eax, WORD PTR [esi+5382]
+
+; 873  : 					dodelete = TRUE;
+
+  004eb	89 4c 24 20	 mov	 DWORD PTR _dodelete$[esp+88], ecx
+  004ef	66 c7 84 46 ea
+	03 00 00 17 1e	 mov	 WORD PTR [esi+eax*2+1002], 7703 ; 00001e17H
+$L71449:
+
+; 874  : 				}
+; 875  : 			}
+; 876  : 		}
+; 877  : 
+; 878  : 		/* Rule 3: Select appropriate allophones for unstressed /t/ and /d/ */
+; 879  : 
+; 880  : 		/* Palatalize /t/ or /d/ if next phoneme is unstressed /y/ */
+; 881  : 		if (((next_inph == USP_YU) || (next_inph == USP_Y))
+; 882  : 			&& ((pDph_t->sentstruc[n + 1] & FSTRESS) IS_MINUS))
+
+  004f9	66 81 fd 10 1e	 cmp	 bp, 7696		; 00001e10H
+  004fe	74 07		 je	 SHORT $L71452
+  00500	66 81 fd 19 1e	 cmp	 bp, 7705		; 00001e19H
+  00505	75 37		 jne	 SHORT $L71585
+$L71452:
+  00507	8b 8e 94 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6036]
+  0050d	f6 44 b9 04 03	 test	 BYTE PTR [ecx+edi*4+4], 3
+  00512	75 2a		 jne	 SHORT $L71585
+
+; 883  : 		{
+; 884  : 			if (curr_inph == USP_T)
+
+  00514	8b 44 24 14	 mov	 eax, DWORD PTR _curr_inph$[esp+88]
+  00518	66 3d 2f 1e	 cmp	 ax, 7727		; 00001e2fH
+  0051c	75 0d		 jne	 SHORT $L71453
+
+; 885  : 			{
+; 886  : 				curr_outph = USP_CH;
+
+  0051e	c7 44 24 10 36
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7734 ; 00001e36H
+
+; 887  : 				goto endrul3;
+
+  00526	e9 a2 02 00 00	 jmp	 $L71491
+$L71453:
+
+; 888  : 			}
+; 889  : 			if (curr_inph == USP_D)
+
+  0052b	66 3d 30 1e	 cmp	 ax, 7728		; 00001e30H
+  0052f	75 11		 jne	 SHORT $L71455
+
+; 890  : 			{
+; 891  : 				curr_outph = USP_JH;
+
+  00531	c7 44 24 10 37
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7735 ; 00001e37H
+
+; 892  : 				goto endrul3;
+
+  00539	e9 8f 02 00 00	 jmp	 $L71491
+$L71585:
+  0053e	8b 44 24 14	 mov	 eax, DWORD PTR _curr_inph$[esp+88]
+$L71455:
+
+; 893  : 			}
+; 894  : 		}
+; 895  : 
+; 896  : 
+; 897  : 
+; 898  : 		/* 
+; 899  : 		 * Rule to correct mis-transcriptions of e.g. "chew" as [chyu] 
+; 900  : 		 * OUT 23-Aug-85 because applied inappropriately to "average users" 
+; 901  : 		 * if ((last_outph == CH) || (last_outph == JH)) { if (curr_inph == Y) delete = 
+; 902  :  		 * TRUE; if (curr_inph == YU) curr_outph = UW; } END OUT 
+; 903  :  		 */
+; 904  : 
+; 905  : 		/* Glottalize word-final /t/ before a word-init sonor cons or /dh/ */
+; 906  : 
+; 907  : 		if (curr_inph == USP_T)
+
+  00542	66 3d 2f 1e	 cmp	 ax, 7727		; 00001e2fH
+  00546	0f 85 1d 01 00
+	00		 jne	 $L71468
+
+; 908  : 		{
+; 909  : 			if ((next_inph == USP_LL) || (next_inph == USP_DH)
+; 910  : 				|| ((((curr_instruc & FBOUNDARY) >= FMBNEXT)
+; 911  : 					 && (((phone_feature(pDph_t, next_inph) & FSON2) IS_PLUS)
+; 912  : 						 || (next_inph == USP_HX)))
+; 913  : 					|| (next_inph == USP_EN)))
+
+  0054c	66 81 fd 1b 1e	 cmp	 bp, 7707		; 00001e1bH
+  00551	0f 84 eb 00 00
+	00		 je	 $L71459
+  00557	66 81 fd 28 1e	 cmp	 bp, 7720		; 00001e28H
+  0055c	0f 84 e0 00 00
+	00		 je	 $L71459
+  00562	8b 54 24 24	 mov	 edx, DWORD PTR _curr_instruc$[esp+88]
+  00566	81 e2 e0 01 00
+	00		 and	 edx, 480		; 000001e0H
+  0056c	83 fa 40	 cmp	 edx, 64			; 00000040H
+  0056f	72 26		 jb	 SHORT $L71460
+  00571	0f bf c5	 movsx	 eax, bp
+  00574	50		 push	 eax
+  00575	56		 push	 esi
+  00576	e8 00 00 00 00	 call	 _phone_feature
+  0057b	25 00 04 00 00	 and	 eax, 1024		; 00000400H
+  00580	83 c4 08	 add	 esp, 8
+  00583	66 85 c0	 test	 ax, ax
+  00586	0f 85 b6 00 00
+	00		 jne	 $L71459
+  0058c	66 81 fd 1c 1e	 cmp	 bp, 7708		; 00001e1cH
+  00591	0f 84 ab 00 00
+	00		 je	 $L71459
+$L71460:
+  00597	66 81 fd 24 1e	 cmp	 bp, 7716		; 00001e24H
+  0059c	0f 84 a0 00 00
+	00		 je	 $L71459
+
+; 921  : 			}
+; 922  : 				/* Unreduce the O in "to" if following segment is a vowel */
+; 923  : #ifndef NWS_US
+; 924  : 			if((next_inph == USP_UH) && Cite_It)
+
+  005a2	66 81 fd 0d 1e	 cmp	 bp, 7693		; 00001e0dH
+  005a7	0f 85 c6 00 00
+	00		 jne	 $L71470
+  005ad	66 83 7c 24 1c
+	00		 cmp	 WORD PTR _Cite_It$[esp+88], 0
+  005b3	74 0d		 je	 SHORT $L71571
+
+; 925  : 				pDph_t->phonemes[n + 1] = USP_UW;
+
+  005b5	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  005bb	66 c7 44 79 02
+	0e 1e		 mov	 WORD PTR [ecx+edi*2+2], 7694 ; 00001e0eH
+$L71571:
+
+; 926  : 			if (next_inph == USP_UH)
+; 927  : 			{
+; 928  : 				pDph_t->phonemes[n + 1] = USP_UW;	
+
+  005c2	8b 96 90 17 00
+	00		 mov	 edx, DWORD PTR [esi+6032]
+
+; 929  : 			}
+; 930  : #endif	// NWS_US
+; 931  : 
+; 932  : 			if ((next_inph == USP_UH) &&
+; 933  : 				(((curr_instruc & FSTRESS) IS_MINUS)))
+
+  005c8	8b 44 24 38	 mov	 eax, DWORD PTR -32+[esp+88]
+  005cc	85 c0		 test	 eax, eax
+  005ce	66 c7 44 7a 02
+	0e 1e		 mov	 WORD PTR [edx+edi*2+2], 7694 ; 00001e0eH
+  005d5	0f 85 a4 01 00
+	00		 jne	 $L71486
+
+; 934  : 				
+; 935  : 			{
+; 936  : 				if (((phone_feature(pDph_t,pDph_t->phonemes[n + 2]) & FSYLL) IS_PLUS) ||
+; 937  : 					(pDph_t->phonemes[n + 2] == SIL) ||
+; 938  : 					Cite_It)
+
+  005db	8b 86 90 17 00
+	00		 mov	 eax, DWORD PTR [esi+6032]
+  005e1	0f bf 4c 78 04	 movsx	 ecx, WORD PTR [eax+edi*2+4]
+  005e6	51		 push	 ecx
+  005e7	56		 push	 esi
+  005e8	e8 00 00 00 00	 call	 _phone_feature
+  005ed	83 c4 08	 add	 esp, 8
+  005f0	a8 01		 test	 al, 1
+  005f2	75 3f		 jne	 SHORT $L71466
+  005f4	8b 96 90 17 00
+	00		 mov	 edx, DWORD PTR [esi+6032]
+  005fa	66 83 7c 7a 04
+	00		 cmp	 WORD PTR [edx+edi*2+4], 0
+  00600	74 31		 je	 SHORT $L71466
+  00602	66 83 7c 24 1c
+	00		 cmp	 WORD PTR _Cite_It$[esp+88], 0
+  00608	75 29		 jne	 SHORT $L71466
+
+; 945  : 						 && ((phone_feature(pDph_t,last_outph) & FNASAL) IS_MINUS))
+
+  0060a	53		 push	 ebx
+  0060b	56		 push	 esi
+  0060c	e8 00 00 00 00	 call	 _phone_feature
+  00611	83 c4 08	 add	 esp, 8
+  00614	a8 01		 test	 al, 1
+  00616	74 5b		 je	 SHORT $L71470
+  00618	53		 push	 ebx
+  00619	56		 push	 esi
+  0061a	e8 00 00 00 00	 call	 _phone_feature
+  0061f	83 c4 08	 add	 esp, 8
+  00622	a8 80		 test	 al, -128		; ffffff80H
+  00624	75 4d		 jne	 SHORT $L71470
+
+; 946  : 				{
+; 947  : #ifndef NWS_US
+; 948  : 					curr_outph = USP_DF;
+
+  00626	c7 44 24 10 38
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7736 ; 00001e38H
+
+; 949  : 					goto endrul3;
+
+  0062e	e9 9a 01 00 00	 jmp	 $L71491
+$L71466:
+
+; 939  : 				{
+; 940  : 					pDph_t->phonemes[n + 1] = USP_UW;
+
+  00633	8b 86 90 17 00
+	00		 mov	 eax, DWORD PTR [esi+6032]
+  00639	66 c7 44 78 02
+	0e 1e		 mov	 WORD PTR [eax+edi*2+2], 7694 ; 00001e0eH
+
+; 941  : 				}
+; 942  : 			
+; 943  : 				/* And flap the initial /t/ of 'to' if preceeding syllabic */
+; 944  : 				else if ((Cite_It) == 0 && ((phone_feature(pDph_t,last_outph) & FSYLL) IS_PLUS)
+
+  00640	eb 31		 jmp	 SHORT $L71470
+$L71459:
+
+; 914  : 			{
+; 915  : 				curr_outph = USP_D;
+; 916  : 				if ((phone_feature(pDph_t,last_outph) & FSON1) IS_PLUS)
+
+  00642	53		 push	 ebx
+  00643	56		 push	 esi
+  00644	c7 44 24 18 30
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+96], 7728 ; 00001e30H
+  0064c	e8 00 00 00 00	 call	 _phone_feature
+  00651	83 c4 08	 add	 esp, 8
+  00654	a8 08		 test	 al, 8
+  00656	0f 84 71 01 00
+	00		 je	 $L71491
+
+; 917  : 				{
+; 918  : 					curr_outph = USP_TX;
+
+  0065c	c7 44 24 10 34
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7732 ; 00001e34H
+
+; 919  : 				}
+; 920  : 				goto endrul3;
+
+  00664	e9 64 01 00 00	 jmp	 $L71491
+$L71468:
+
+; 950  : #endif	// NWS_US
+; 951  : 				}
+; 952  : 			}
+; 953  : 		}
+; 954  : #ifndef NWS_US
+; 955  : 		/* Flapping rule:  for non-stressed /t/ and /d/ */
+; 956  : 		/* (can't flap [t] in [nt] until after durs computed) */
+; 957  : 		//Flap rule should be only after no-stress i.e. FTSRESS not FSTRESS_1 eab 3/21/00
+; 958  : 		if (((curr_inph == USP_D) || (curr_inph == USP_T))
+; 959  : 			&& ((curr_instruc & FSTRESS) IS_MINUS)
+; 960  : 			 && pDph_t->nallotot > 11)
+
+  00669	66 3d 30 1e	 cmp	 ax, 7728		; 00001e30H
+  0066d	0f 85 0c 01 00
+	00		 jne	 $L71486
+$L71470:
+  00673	8b 44 24 38	 mov	 eax, DWORD PTR -32+[esp+88]
+  00677	85 c0		 test	 eax, eax
+  00679	0f 85 00 01 00
+	00		 jne	 $L71486
+  0067f	66 83 be 06 15
+	00 00 0b	 cmp	 WORD PTR [esi+5382], 11	; 0000000bH
+  00687	0f 8e f2 00 00
+	00		 jle	 $L71486
+
+; 961  : 		{
+; 962  : 			/* Consonant must be preceded by vowel,rx,en,G,el */
+; 963  : 			if (((phone_feature(pDph_t,last_outph) & FSON1) IS_PLUS)
+; 964  : 				&& (last_outph != USP_M)
+; 965  : 				&& (last_outph != USP_NX)
+; 966  : 				&& (last_outph != USP_N)
+; 967  : 				/* And followed by a syllabic */
+; 968  : 				&& ((phone_feature(pDph_t,next_inph) & FSYLL) IS_PLUS))
+
+  0068d	53		 push	 ebx
+  0068e	56		 push	 esi
+  0068f	e8 00 00 00 00	 call	 _phone_feature
+  00694	83 c4 08	 add	 esp, 8
+  00697	a8 08		 test	 al, 8
+  00699	0f 84 e0 00 00
+	00		 je	 $L71486
+  0069f	8b 44 24 34	 mov	 eax, DWORD PTR _last_outph$[esp+88]
+  006a3	66 3d 1f 1e	 cmp	 ax, 7711		; 00001e1fH
+  006a7	0f 84 d2 00 00
+	00		 je	 $L71486
+  006ad	66 3d 21 1e	 cmp	 ax, 7713		; 00001e21H
+  006b1	0f 84 c8 00 00
+	00		 je	 $L71486
+  006b7	66 3d 20 1e	 cmp	 ax, 7712		; 00001e20H
+  006bb	0f 84 be 00 00
+	00		 je	 $L71486
+  006c1	0f bf cd	 movsx	 ecx, bp
+  006c4	51		 push	 ecx
+  006c5	56		 push	 esi
+  006c6	e8 00 00 00 00	 call	 _phone_feature
+  006cb	83 c4 08	 add	 esp, 8
+  006ce	a8 01		 test	 al, 1
+  006d0	0f 84 a9 00 00
+	00		 je	 $L71486
+
+; 969  : 			{
+; 970  : 				/* Flap if consonant is word-final */
+; 971  : 				
+; 972  : 				if ((curr_instruc & FBOUNDARY) >= FMBNEXT)
+
+  006d6	8b 44 24 24	 mov	 eax, DWORD PTR _curr_instruc$[esp+88]
+  006da	8b d0		 mov	 edx, eax
+  006dc	81 e2 e0 01 00
+	00		 and	 edx, 480		; 000001e0H
+  006e2	83 fa 40	 cmp	 edx, 64			; 00000040H
+  006e5	72 1a		 jb	 SHORT $L71472
+
+; 973  : 				{
+; 974  : 
+; 975  : 					if(curr_inph == USP_T)
+
+  006e7	66 81 7c 24 14
+	2f 1e		 cmp	 WORD PTR _curr_inph$[esp+88], 7727 ; 00001e2fH
+  006ee	0f 85 83 00 00
+	00		 jne	 $L71473
+
+; 1015 : 					{
+; 1016 : 						curr_outph = USP_DF;
+
+  006f4	c7 44 24 10 38
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7736 ; 00001e38H
+
+; 1017 : 
+; 1018 : 					}
+; 1019 : 					else
+
+  006fc	e9 cc 00 00 00	 jmp	 $L71491
+$L71472:
+
+; 976  : 					{
+; 977  : 						curr_outph = USP_DF;
+; 978  : 
+; 979  : 					}
+; 980  : 					else
+; 981  : 						curr_outph = USP_DX;
+; 982  : 
+; 983  : 				}
+; 984  : 
+; 985  : 				/* Flap word-initial /t,d/ if next vowel is reduced */
+; 986  : 				 else if ((curr_instruc & FWINITC) IS_PLUS)
+
+  00701	a8 04		 test	 al, 4
+  00703	74 24		 je	 SHORT $L71476
+
+; 987  : 				{
+; 988  : 					if ((next_inph == USP_AX) || (next_inph == USP_IX))
+
+  00705	66 81 fd 11 1e	 cmp	 bp, 7697		; 00001e11H
+  0070a	74 07		 je	 SHORT $L71478
+  0070c	66 81 fd 12 1e	 cmp	 bp, 7698		; 00001e12H
+  00711	75 6c		 jne	 SHORT $L71486
+$L71478:
+
+; 989  : 					{
+; 990  : 						if (curr_inph == USP_T)
+
+  00713	66 81 7c 24 14
+	2f 1e		 cmp	 WORD PTR _curr_inph$[esp+88], 7727 ; 00001e2fH
+  0071a	75 5b		 jne	 SHORT $L71473
+
+; 1015 : 					{
+; 1016 : 						curr_outph = USP_DF;
+
+  0071c	c7 44 24 10 38
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7736 ; 00001e38H
+
+; 1017 : 
+; 1018 : 					}
+; 1019 : 					else
+
+  00724	e9 a4 00 00 00	 jmp	 $L71491
+$L71476:
+
+; 991  : 						{
+; 992  : 							curr_outph = USP_DF;
+; 993  : 
+; 994  : 						}
+; 995  : 						else
+; 996  : 							curr_outph = USP_DX;
+; 997  : 
+; 998  : 					}
+; 999  : 				}
+; 1000 : 				/* 
+; 1001 :  				 * Flap if [t,d] is word-internal and 
+; 1002 :  				 * (1) next vowel is "weak", or 
+; 1003 :  				 * (2) previous vowel stressed and next vowel is
+; 1004 :  				 * [ow] 
+; 1005 :  				 */
+; 1006 : 			 else if((((pDph_t->allofeats[pDph_t->nallotot - 1] & FSTRESS) IS_PLUS)
+; 1007 : 						  && (next_inph == USP_OW))
+; 1008 : 						 || (next_inph == USP_AX)
+; 1009 : 						 || (next_inph == USP_RR)
+; 1010 : 						 || (next_inph == USP_IY)
+; 1011 : 						 || (next_inph == USP_IX)
+; 1012 : 						 || (next_inph == USP_EL))
+
+  00729	0f bf 86 06 15
+	00 00		 movsx	 eax, WORD PTR [esi+5382]
+  00730	f6 84 86 54 06
+	00 00 03	 test	 BYTE PTR [esi+eax*4+1620], 3
+  00738	74 07		 je	 SHORT $L71484
+  0073a	66 81 fd 0b 1e	 cmp	 bp, 7691		; 00001e0bH
+  0073f	74 23		 je	 SHORT $L71483
+$L71484:
+  00741	66 81 fd 11 1e	 cmp	 bp, 7697		; 00001e11H
+  00746	74 1c		 je	 SHORT $L71483
+  00748	66 81 fd 0f 1e	 cmp	 bp, 7695		; 00001e0fH
+  0074d	74 15		 je	 SHORT $L71483
+  0074f	66 81 fd 01 1e	 cmp	 bp, 7681		; 00001e01H
+  00754	74 0e		 je	 SHORT $L71483
+  00756	66 81 fd 12 1e	 cmp	 bp, 7698		; 00001e12H
+  0075b	74 07		 je	 SHORT $L71483
+  0075d	66 81 fd 22 1e	 cmp	 bp, 7714		; 00001e22H
+  00762	75 1b		 jne	 SHORT $L71486
+$L71483:
+
+; 1013 : 				{
+; 1014 : 					if (curr_inph == USP_T)
+
+  00764	66 81 7c 24 14
+	2f 1e		 cmp	 WORD PTR _curr_inph$[esp+88], 7727 ; 00001e2fH
+  0076b	75 0a		 jne	 SHORT $L71473
+
+; 1015 : 					{
+; 1016 : 						curr_outph = USP_DF;
+
+  0076d	c7 44 24 10 38
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7736 ; 00001e38H
+
+; 1017 : 
+; 1018 : 					}
+; 1019 : 					else
+
+  00775	eb 56		 jmp	 SHORT $L71491
+$L71473:
+
+; 1020 : 						curr_outph = USP_DX;
+
+  00777	c7 44 24 10 33
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7731 ; 00001e33H
+$L71486:
+
+; 1021 : 
+; 1022 : 				}
+; 1023 : 
+; 1024 : 				/* 
+; 1025 : 				 *  HISTORY of the flap rule:  It used to work well without the prior stress 
+; 1026 : 				 *  alternative, except for words with a [ow] following the [t]. 
+; 1027 : 				 *  It is my hunch that the safest course at this late date is to go back 
+; 1028 : 				 *  to the requirement that the next vowel be [ow] when triggering the 
+; 1029 : 				 *  rule by a prior stress. (Problem words: 
+; 1030 : 				 *   "photo, tomato, potato, monotone, protest, detail, detour, pretense" 
+; 1031 :  			     */
+; 1032 : 			} /* if (((phone_feature(pDph_t,[last_outph] & FSON1) IS_PLUS) */
+; 1033 : 		} /* if (((curr_inph == D) || (curr_inph == T)) */
+; 1034 : #endif /* NWS_US */
+; 1035 : 		/* Rule 4: Unstressed [dh] becomes dental stop after [t,d], nasal after [n] */
+; 1036 : 
+; 1037 : 		if ((curr_inph == USP_DH)
+; 1038 : 			&& ((curr_instruc & FSTRESS) IS_MINUS))
+
+  0077f	8b 44 24 14	 mov	 eax, DWORD PTR _curr_inph$[esp+88]
+  00783	66 3d 28 1e	 cmp	 ax, 7720		; 00001e28H
+  00787	75 36		 jne	 SHORT $endrul3$71454
+  00789	8b 44 24 38	 mov	 eax, DWORD PTR -32+[esp+88]
+  0078d	85 c0		 test	 eax, eax
+  0078f	75 3c		 jne	 SHORT $L71491
+
+; 1039 : 		{
+; 1040 : 			if ((last_outph == USP_T)
+; 1041 : 				|| (last_outph == USP_TX)
+; 1042 : 				|| (last_outph == USP_D))
+
+  00791	8b 44 24 34	 mov	 eax, DWORD PTR _last_outph$[esp+88]
+  00795	66 3d 2f 1e	 cmp	 ax, 7727		; 00001e2fH
+  00799	74 0c		 je	 SHORT $L71489
+  0079b	66 3d 34 1e	 cmp	 ax, 7732		; 00001e34H
+  0079f	74 06		 je	 SHORT $L71489
+  007a1	66 3d 30 1e	 cmp	 ax, 7728		; 00001e30H
+  007a5	75 08		 jne	 SHORT $L71488
+$L71489:
+
+; 1043 : 			{
+; 1044 : 				curr_outph = USP_DZ;
+
+  007a7	c7 44 24 10 23
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7715 ; 00001e23H
+$L71488:
+
+; 1045 : 			}
+; 1046 : 			if (last_outph == USP_N)
+
+  007af	66 3d 20 1e	 cmp	 ax, 7712		; 00001e20H
+  007b3	75 18		 jne	 SHORT $L71491
+
+; 1047 : 			{
+; 1048 : 				curr_outph = USP_N;
+
+  007b5	c7 44 24 10 20
+	1e 00 00	 mov	 DWORD PTR _curr_outph$[esp+88], 7712 ; 00001e20H
+
+; 1049 : 			}
+; 1050 : 		}
+; 1051 : 
+; 1052 : #ifdef  NEVER_USED
+; 1053 : 		/* Rule 5: Delete unstressed [hx] between two voiced segments */
+; 1054 : 
+; 1055 : 		if ((curr_inph == HX)
+; 1056 : 			&& ((phone_feature(pDph_t,[last_outph] & FVOICD) IS_PLUS)
+; 1057 : 			&& ((curr_instruc & FSTRESS) IS_MINUS))
+; 1058 : 		{
+; 1059 : 			dodelete = TRUE;
+; 1060 : 		}
+; 1061 : 		/* eab latin mode rule */
+; 1062 : 		if ((pKsd_t->modeflag & MODE_LATIN) && (curr_inph == TH))
+; 1063 : 			curr_inph = E_S;
+; 1064 : #endif	// NEVER_USED
+; 1065 : 
+; 1066 : 		/* Rule 6: Determine locations of hat pattern rises and falls */
+; 1067 : #endif	/* ENGLISH_US (1) */
+; 1068 : 		
+; 1069 : #ifdef ENGLISH_UK
+; 1070 : 	if (n > 0 && n < (pDph_t->nphonetot-1))
+; 1071 : 	{
+; 1072 : 		/* Rule 1a: The word "the" should be /dh iy/ before a syllabic */
+; 1073 : 		if (((phone_feature(pDph_t,pDph_t->phonemes[n + 1]) & FSYLL) IS_PLUS)
+; 1074 : 			&& (curr_inph == UKP_AX)
+; 1075 : 			&& ((curr_instruc & FBOUNDARY) IS_PLUS)
+; 1076 : 			&& (pDph_t->phonemes[n - 1] == UKP_DH)
+; 1077 : 			&& ((pDph_t->sentstruc[n - 1] & FWINITC) IS_PLUS))
+; 1078 : 		{
+; 1079 : 			curr_outph = UKP_IY;
+; 1080 : 		}
+; 1081 : 		/* rule 1c make a long a be ah */
+; 1082 : 		Cite_It= 0;
+; 1083 : 		Cite_It = ((pKsd_t->modeflag & MODE_CITATION) && pDph_t->docitation);
+; 1084 : 		if (pKsd_t->sprate < 100)
+; 1085 : 			Cite_It=TRUE;
+; 1086 : 		if ((curr_inph == UKP_AX) && (next_inph == GEN_SIL)
+; 1087 : 			&& n == 1 && (Cite_It) )
+; 1088 : 		{
+; 1089 : 			curr_outph = UKP_EY;
+; 1090 : 		}
+; 1091 : 
+; 1092 : 		/* Rule 1b:  Unreduce vowel in "for" if following segment is vowel or sil */
+; 1093 : 
+; 1094 : 		if ((curr_inph == UKP_F) && (next_inph == UKP_AX)
+; 1095 : 			&& ((((pDph_t->sentstruc[n + 1] & FSTRESS) IS_MINUS) && ((pDph_t->sentstruc[n + 1] & FTYPESYL) == FMONOSYL))
+; 1096 : 				|| Cite_It))
+; 1097 : 		{
+; 1098 : 			if (((phone_feature(pDph_t,pDph_t->phonemes[n + 2]) & FSYLL) IS_PLUS)
+; 1099 : 				|| (pDph_t->phonemes[n + 2] == GEN_SIL))
+; 1100 : 			{
+; 1101 : 				pDph_t->phonemes[n + 1] = UKP_AO;
+; 1102 : 				next_inph = UKP_AO;
+; 1103 : 
+; 1104 : #ifdef DEBUGALLO
+; 1105 : 				printf ("for rr->or rule firing");
+; 1106 : #endif	// DEBUGALLO
+; 1107 : 
+; 1108 : 			}
+; 1109 : 		}
+; 1110 : 	} //if 0 < n <pDph_t->nphonetot
+; 1111 : 		/* Rule 1c:  Reduce vowel in clause-initial "and" to be  */
+; 1112 : 
+; 1113 : 		if (curr_inph == GEN_SIL)
+; 1114 : 		
+; 1115 : 			if(pDph_t->phonemes[n + 1] == UKP_AX)
+; 1116 : 			if (pDph_t->phonemes[n + 2] == UKP_N)
+; 1117 : 			if (pDph_t->phonemes[n + 3] == UKP_D)
+; 1118 : 			if ((((pDph_t->sentstruc[n + 1] & FSTRESS) IS_MINUS) && ((pDph_t->sentstruc[n + 3] & FSTRESS) IS_MINUS))
+; 1119 : 				|| Cite_It)
+; 1120 : 			{
+; 1121 : 
+; 1122 : #ifdef DEBUGALLO
+; 1123 : 			printf ("and eh->ae rule firing");
+; 1124 : #endif	// DEBUGALLO
+; 1125 : 
+; 1126 : 			pDph_t->phonemes[n + 1] = UKP_AE;
+; 1127 : 			next_inph = UKP_AE;
+; 1128 : 		}
+; 1129 : 
+; 1130 : 		/* Rule 1d:  Unreduce vowel in "to,into" if next segment is vowel or sil */
+; 1131 : 		//BATS 963 chnage to american version of to variant rduction for now
+; 1132 : 	if ((curr_inph == UKP_T) && (next_inph == UKP_UH)
+; 1133 : 			&& ((((pDph_t->sentstruc[n + 1] & FSTRESS) IS_MINUS) && ((pDph_t->sentstruc[n + 1] & FTYPESYL) == FMONOSYL))
+; 1134 : 				|| Cite_It))
+; 1135 : 		{
+; 1136 : 			if (((phone_feature(pDph_t,pDph_t->phonemes[n + 2]) & FSYLL) IS_PLUS)
+; 1137 : 				|| (pDph_t->phonemes[n + 2] == GEN_SIL))
+; 1138 : 			{
+; 1139 : 				pDph_t->phonemes[n + 1] = UKP_UW;
+; 1140 : 				next_inph = UKP_UW;
+; 1141 : 
+; 1142 : 			}
+; 1143 : 		}
+; 1144 : 
+; 1145 : 		/* Rule 1c:  Unreduce vowel in citation mode for  "at" to be [ae] */
+; 1146 : 		if((curr_inph == GEN_SIL) && (pDph_t->phonemes[n + 1] == UKP_AX) && (pDph_t->phonemes[n + 2] == UKP_T)
+; 1147 : 			&& Cite_It )
+; 1148 : 		{
+; 1149 : 
+; 1150 : #ifdef DEBUGALLO
+; 1151 : 			printf ("at eh->ae rule firing");
+; 1152 : #endif	// DEBUGALLO
+; 1153 : 
+; 1154 : 			pDph_t->phonemes[n + 1] = UKP_AE;
+; 1155 : 			next_inph = UKP_AE;
+; 1156 : 		}
+; 1157 : 
+; 1158 : 		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+; 1159 : 		/* Phonological rules I:                                     	   */
+; 1160 : 		/* (rules involving glottal attack are in PHDRAWT0.C)      		   */
+; 1161 : 		/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+; 1162 : 
+; 1163 : 		/* Rule 2: Postvocalic allophones of /R/ and /LL/ are special */
+; 1164 : 	if(n > 0)
+; 1165 : 	{
+; 1166 : 		if (((curr_instruc & (FSTRESS | FWINITC)) IS_MINUS)
+; 1167 : 			&& ((phone_feature(pDph_t,pDph_t->phonemes[n - 1]) & FVOWEL) IS_PLUS))
+; 1168 : 		{
+; 1169 : 			if (curr_inph == UKP_LL)
+; 1170 : 				curr_outph = UKP_LX;
+; 1171 : 
+; 1172 : 		}
+; 1173 : 	}
+; 1174 : 
+; 1175 : 		/* Rule 3: Select appropriate allophones for unstressed /t/ and /d/ */
+; 1176 : 
+; 1177 : 		/* Palatalize /t/ or /d/ if next phoneme is unstressed /y/ */
+; 1178 : 		if (((next_inph == UKP_YU) || (next_inph == UKP_Y))
+; 1179 : 			&& ((pDph_t->sentstruc[n + 1] & FSTRESS) IS_MINUS))
+; 1180 : 		{
+; 1181 : 			if (curr_inph == UKP_T)
+; 1182 : 			{
+; 1183 : 				curr_outph = UKP_CH;
+; 1184 : 				goto endrul3;
+; 1185 : 			}
+; 1186 : 			if (curr_inph == UKP_D)
+; 1187 : 			{
+; 1188 : 				curr_outph = UKP_JH;
+; 1189 : 				goto endrul3;
+; 1190 : 			}
+; 1191 : 		}
+; 1192 : 		/* 
+; 1193 : 		 * Rule to correct mis-transcriptions of e.g. "chew" as [chyu] 
+; 1194 : 		 * OUT 23-Aug-85 because applied inappropriately to "average users" 
+; 1195 : 		 * if ((last_outph == CH) || (last_outph == JH)) { if (curr_inph == Y) delete = 
+; 1196 :  		 * TRUE; if (curr_inph == YU)    curr_outph = UW; } END OUT 
+; 1197 :  		 */
+; 1198 : 
+; 1199 : 		/* Glottalize word-final /t/ before a word-init sonor cons or /dh/ */
+; 1200 : 		/* eab 11/21/97 modified per caroline so that tx only occurs before
+; 1201 : 		the nasal en and ll ditto for d->dz but it needs to be added harden leaden*/
+; 1202 : 		if (curr_inph == UKP_T )
+; 1203 : 		{
+; 1204 : 			if ((next_inph == UKP_EL) 
+; 1205 : 				&& ((((curr_instruc & FBOUNDARY) >= FMBNEXT)
+; 1206 : 					 && (((phone_feature(pDph_t,next_inph) & FSON2) IS_PLUS)))
+; 1207 : 					|| (next_inph == UKP_EN)))
+; 1208 : 			{
+; 1209 : 				
+; 1210 : 				if ((phone_feature(pDph_t,last_outph & FSON1) IS_PLUS))
+; 1211 : 					curr_outph = UKP_TX;
+; 1212 : 				
+; 1213 : 				goto endrul3;
+; 1214 : 			}
+; 1215 : 			/* Unreduce the O in "to" if following segment is a vowel */
+; 1216 : #ifndef NWS_US /* Leave in as it may change from noaa to announce_mode*/
+; 1217 : 			if((next_inph == UKP_UH) && Cite_It)
+; 1218 : 				pDph_t->phonemes[n + 1] = UKP_UW;
+; 1219 : #else
+; 1220 : 			if(next_inph == USP_UH)
+; 1221 : 				pDph_t->phonemes[n + 1] = UKP_UW;
+; 1222 : #endif	// NWS_US
+; 1223 : 			if ((next_inph == UKP_UH) &&
+; 1224 : 				((curr_instruc & FSTRESS) IS_MINUS))
+; 1225 : 			{
+; 1226 : 				if (((phone_feature(pDph_t,pDph_t->phonemes[n + 2]) & FSYLL) IS_PLUS) ||
+; 1227 : 					(pDph_t->phonemes[n + 2] == GEN_SIL))
+; 1228 : 				{
+; 1229 : 					pDph_t->phonemes[n + 1] = UKP_UW;
+; 1230 : 				}
+; 1231 : 				
+; 1232 : #ifndef NWS_US
+; 1233 : 					curr_outph = UKP_DF;
+; 1234 : 					goto endrul3;
+; 1235 : #endif	// NWS_US
+; 1236 : 				
+; 1237 : 			}
+; 1238 : 		}
+; 1239 : 
+; 1240 : 		/* Rule 4: Unstressed [dh] becomes dental stop after [t,d], nasal after [n] */
+; 1241 : 
+; 1242 : 		if ((curr_inph == UKP_DH)
+; 1243 : 			&& ((curr_instruc & FSTRESS) IS_MINUS))
+; 1244 : 		{
+; 1245 : 			if ((last_outph == UKP_T)
+; 1246 : 				|| (last_outph == UKP_TX)
+; 1247 : 				|| (last_outph == UKP_D))
+; 1248 : 			{
+; 1249 : 				curr_outph = UKP_DZ;
+; 1250 : 			}
+; 1251 : 			if (last_outph == UKP_N)
+; 1252 : 			{
+; 1253 : 				curr_outph = UKP_N;
+; 1254 : 			}
+; 1255 : 		}
+; 1256 : 
+; 1257 : #ifdef NEVER
+; 1258 : 		/* Rule 5: Delete unstressed [hx] between two voiced segments */
+; 1259 : 
+; 1260 : 		if ((curr_inph == HX)
+; 1261 : 			&& ((phone_feature(pDph_t,[last_outph] & FVOICD) IS_PLUS)
+; 1262 : 			&& ((curr_instruc & FSTRESS) IS_MINUS))
+; 1263 : 		{
+; 1264 : 			dodelete = TRUE;
+; 1265 : 		}
+; 1266 : 		/* eab latin mode rule */
+; 1267 : 		
+; 1268 : 
+; 1269 : 
+; 1270 : #endif	// NEVER
+; 1271 : #endif /*ENGLISH_UK*/
+; 1272 : 
+; 1273 : #ifdef ENGLISH
+; 1274 : 
+; 1275 : 	endrul3:
+; 1276 : #endif /* ENGLISH */
+; 1277 : 		
+; 1278 : 		/* Rule 6: Determine locations of hat pattern rises and falls */
+; 1279 : 	
+; 1280 : #ifdef SPANISH_SP
+; 1281 : 		if ((pKsd_t->modeflag & MODE_LATIN) && curr_inph == SPP_TH)
+; 1282 : 		{
+; 1283 : 			curr_outph = SPP_S;
+; 1284 : 		}
+; 1285 : 
+; 1286 : 		/* Rule 1: Remove geminates and combine dipthongs.   
+; 1287 : 		Here just check that we have a vowel contendor for dipth */
+; 1288 : 		if ((phone_feature(pDph_t,curr_inph) & (FVOWEL | FSEMIV)) IS_MINUS
+; 1289 : 			/*|| (phone_feature(pDph_t,[last_outph] & (FVOWEL | FSEMIV)) IS_MINUS*/)
+; 1290 : 			goto nodipth;			   /* Can't be a dipthong          */
+; 1291 : 		else if ((curr_instruc & FSBOUND) IS_PLUS)
+; 1292 : 		{
+; 1293 : 			goto nodipth;
+; 1294 : 		}
+; 1295 : 		else if (curr_inph == last_outph)
+; 1296 : 		{
+; 1297 : 		}
+; 1298 : 
+; 1299 : 		/* 
+; 1300 : 		 * The test for [nallotot-2] is to properly position
+; 1301 : 		 * the dipthong in phrases such as "uno u otro"->['uno wx'otro]
+; 1302 : 		 EAb 10/29/98 Doesn't check that preceding phoneme was a vowel causing
+; 1303 : 		 inappropriate changes But since the rules seem to handle the shortening and combination
+; 1304 : 		 by thems selves the semi-vowel seems to cause more trouble than it's worth it will be verified
+; 1305 : 		 by Juan it was already removed from another place in the code 
+; 1306 : 		 */
+; 1307 : 		else if ((curr_outstruc & FSTRESS) IS_PLUS
+; 1308 : 				 && (pDph_t->allofeats[pDph_t->nallotot - 1] & FBOUNDARY) >= FWBNEXT
+; 1309 : 				 && (pDph_t->allofeats[pDph_t->nallotot - 2] & FBOUNDARY) < FWBNEXT)
+; 1310 : 		{
+; 1311 : 		}
+; 1312 : #ifdef SPANISH_OUT
+; 1313 : 		else if ((pDph_t->allofeats[pDph_t->nallotot - 1] & FSTRESS) IS_MINUS)
+; 1314 : 			if(/*
+; 1315 : 				 &&*/ (phone_feature(pDph_t,[last_outph] & FDIPTH) IS_PLUS)
+; 1316 : 		{
+; 1317 : 			/* 
+; 1318 : 			 * rising dipthong (semivowel-vowel): i a -> yx a, etc.
+; 1319 : 			 */
+; 1320 : 			switch (last_outph)
+; 1321 : 			{
+; 1322 : 			case E_I:
+; 1323 : 				last_outph = E_YX;
+; 1324 : 				break;
+; 1325 : 			case E_U:
+; 1326 : 				break;
+; 1327 : 				//last_outph = E_WX; 
+; 1328 : 				//let's try not using this semovowel and just use the vowel per JUAN
+; 1329 : 				//	eab sep 28,1998
+; 1330 : 				break;
+; 1331 : 			default:
+; 1332 : 				goto nodipth;
+; 1333 : 			}
+; 1334 : 			pDph_t->allophons[pDph_t->nallotot - 1] = last_outph;
+; 1335 : 			pDph_t->allofeats[pDph_t->nallotot - 1] &= ~FBOUNDARY;
+; 1336 : 		}
+; 1337 : #endif	// SPANISH_OUT
+; 1338 : 
+; 1339 : #ifdef SPANISH_OUT
+; 1340 : 		else if ((curr_outstruc & FSTRESS) IS_MINUS
+; 1341 : 				 && (phone_feature(pDph_t,[curr_inph] & FDIPTH) IS_PLUS)
+; 1342 : 		{
+; 1343 : 			/* 
+; 1344 : 			 * First, check whether we should defer dipthongization
+; 1345 : 			 * to the following segment: "uno u otro" -> ['uno wx'otro]
+; 1346 : 			 */
+; 1347 : 			if ((phone_feature(pDph_t,[next_inph] & (FVOWEL | FDIPTH)) == FVOWEL
+; 1348 : 				&& (pDph_t->sentstruc[n + 1] & FSBOUND) IS_MINUS)
+; 1349 : 			{
+; 1350 : 				goto nodipth;
+; 1351 : 			}
+; 1352 : 			/* 
+; 1353 : 			 * Falling dipthong (vowel-semivowel): ou -> owx
+; 1354 : 			 */
+; 1355 : 			switch (curr_inph)
+; 1356 : 			{
+; 1357 : 			case E_I:
+; 1358 : 				curr_outph = E_YX;
+; 1359 : 				break;
+; 1360 : 			case E_U:
+; 1361 : 				//last_outph = E_WX; 
+; 1362 : 				//let's try not using this semovowel and just use the vowel per JUAN
+; 1363 : 				//	eab sep 28,1998
+; 1364 : 				//curr_outph = E_WX;
+; 1365 : 				break;
+; 1366 : 			default:
+; 1367 : 				goto nodipth;
+; 1368 : 			}
+; 1369 : 			/* allofeats[nallotot-1] &= ~FBOUNDARY; */
+; 1370 : 		}							   /* geminate/dipthong    */
+; 1371 : #endif	// SPANISH_OUT
+; 1372 : 
+; 1373 : 	  nodipth:;
+; 1374 : 
+; 1375 : #endif 	/* #ifdef SPANISH_SP */  	
+; 1376 : 
+; 1377 : 	  	if (curr_inph == GEN_SIL)
+
+  007bd	eb 0e		 jmp	 SHORT $L71491
+$endrul3$71454:
+  007bf	66 3d 00 1e	 cmp	 ax, 7680		; 00001e00H
+  007c3	75 08		 jne	 SHORT $L71491
+
+; 1378 : 		{
+; 1379 : 			emphasislock = FALSE;
+
+  007c5	c7 44 24 40 00
+	00 00 00	 mov	 DWORD PTR _emphasislock$[esp+88], 0
+$L71491:
+
+; 1380 : 		}
+; 1381 : 
+; 1382 : 		/* Locate a stressed syllabic */
+; 1383 : #ifdef GERMAN
+; 1384 : 		/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 1385 : 		/* masking with FSTRESS and FSTRESS_2 also takes S3 into account  		  */
+; 1386 : 		/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 1387 : #endif	// GERMAN
+; 1388 : 
+; 1389 : 		if ((pDph_t->f0mode == NORMAL)
+; 1390 : 			&& ((phone_feature(pDph_t,curr_inph)& FSYLL) IS_PLUS)
+; 1391 : 			&& ((curr_instruc & FSTRESS) IS_PLUS)	/* 1-str 2-str emph */  /* S1 S2 S3 SENPH in GERMAN */
+; 1392 : 			&& (emphasislock == FALSE))
+
+  007cd	bd 01 00 00 00	 mov	 ebp, 1
+  007d2	66 39 ae 9c 17
+	00 00		 cmp	 WORD PTR [esi+6044], bp
+  007d9	0f 85 fd 00 00
+	00		 jne	 $L71590
+  007df	8b 4c 24 4c	 mov	 ecx, DWORD PTR -12+[esp+88]
+  007e3	51		 push	 ecx
+  007e4	56		 push	 esi
+  007e5	e8 00 00 00 00	 call	 _phone_feature
+  007ea	83 c4 08	 add	 esp, 8
+  007ed	a8 01		 test	 al, 1
+  007ef	0f 84 e7 00 00
+	00		 je	 $L71590
+  007f5	8b 4c 24 38	 mov	 ecx, DWORD PTR -32+[esp+88]
+  007f9	85 c9		 test	 ecx, ecx
+  007fb	0f 84 db 00 00
+	00		 je	 $L71590
+  00801	66 83 7c 24 40
+	00		 cmp	 WORD PTR _emphasislock$[esp+88], 0
+  00807	0f 85 cf 00 00
+	00		 jne	 $L71590
+
+; 1393 : 		{
+; 1394 : 
+; 1395 : 			/* Rise occurs on first stress of any type in phrase */
+; 1396 : 			/* (If curr stress is not a primary stress, routine  */
+; 1397 : 			/* checks if there will be a primary stress to fall on later) */
+; 1398 : 
+; 1399 : 			if ((hatposition != AT_TOP_OF_HAT)
+; 1400 : 				&& ((curr_instruc & FSTRESS)
+; 1401 : 					|| (remaining_stresses_til (pDph_t, n, FCBNEXT) > 0)))
+
+  0080d	8b 44 24 30	 mov	 eax, DWORD PTR _hatposition$[esp+88]
+  00811	66 3d 02 00	 cmp	 ax, 2
+  00815	74 16		 je	 SHORT $L71588
+
+; 1402 : 
+; 1403 : 			{
+; 1404 : 
+; 1405 : 				curr_outstruc |= FHAT_BEGINS;
+
+  00817	8b 5c 24 24	 mov	 ebx, DWORD PTR _curr_instruc$[esp+88]
+
+; 1406 : 
+; 1407 : 				hatposition = AT_TOP_OF_HAT;
+
+  0081b	b8 02 00 00 00	 mov	 eax, 2
+  00820	80 cf 02	 or	 bh, 2
+  00823	89 44 24 30	 mov	 DWORD PTR _hatposition$[esp+88], eax
+  00827	89 5c 24 2c	 mov	 DWORD PTR _curr_outstruc$[esp+88], ebx
+  0082b	eb 04		 jmp	 SHORT $L71493
+$L71588:
+  0082d	8b 5c 24 2c	 mov	 ebx, DWORD PTR _curr_outstruc$[esp+88]
+$L71493:
+
+; 1408 : 			}
+; 1409 : 
+; 1410 : 			/* Count number of primary stresses */
+; 1411 : 			if ((curr_instruc & FSTRESS) IS_PLUS)
+; 1412 : 			{
+; 1413 : 				stresses_in_phrase++;
+
+  00831	8b 54 24 28	 mov	 edx, DWORD PTR _stresses_in_phrase$[esp+88]
+  00835	42		 inc	 edx
+
+; 1414 : 			}
+; 1415 : 
+; 1416 : 			/*
+; 1417 : 			 * Fall occurs 
+; 1418 : 			 * 	(1) on any emphasized syll, 
+; 1419 : 			 *  (2) on last 1 stress of clause, 
+; 1420 : 			 *  (3) on last 1 stress of phrase containing 2 or more stresses 
+; 1421 : 			 *  followed by phrase with 2 or more stresses 
+; 1422 : 			 */
+; 1423 : 			if ((hatposition == AT_TOP_OF_HAT)
+; 1424 : 				&& ((curr_instruc & FSTRESS) IS_PLUS))
+
+  00836	66 3d 02 00	 cmp	 ax, 2
+  0083a	89 54 24 28	 mov	 DWORD PTR _stresses_in_phrase$[esp+88], edx
+  0083e	0f 85 98 00 00
+	00		 jne	 $L71590
+
+; 1425 : 			{						   /* 1-str emph */
+; 1426 : 				/* Emphasis: prevent any more hat rises until end of clause */
+; 1427 : 				if ((curr_instruc & FEMPHASIS) == FEMPHASIS)
+
+  00844	83 f9 03	 cmp	 ecx, 3
+  00847	75 17		 jne	 SHORT $L71498
+
+; 1428 : 				{
+; 1429 : 					emphasislock = TRUE;
+; 1430 : 				}
+; 1431 : #ifndef NWS_US
+; 1432 : 				/* eab 10/19/97 This isn't working correct for embeeded emphasis commands
+; 1433 : 				and effectly cancels them I'll figure out how it "suppose" towork later*/
+; 1434 : 				/* Fall now if emphasis */
+; 1435 : 				if (emphasislock == TRUE)
+; 1436 : 				{
+; 1437 : 					curr_outstruc |= FHAT_ENDS;
+
+  00849	80 cf 04	 or	 bh, 4
+  0084c	89 6c 24 40	 mov	 DWORD PTR _emphasislock$[esp+88], ebp
+  00850	89 5c 24 2c	 mov	 DWORD PTR _curr_outstruc$[esp+88], ebx
+
+; 1438 : 					hatposition = AT_BOTTOM_OF_HAT;
+
+  00854	89 6c 24 30	 mov	 DWORD PTR _hatposition$[esp+88], ebp
+
+; 1439 : 					stresses_in_phrase = 0;
+
+  00858	c7 44 24 28 00
+	00 00 00	 mov	 DWORD PTR _stresses_in_phrase$[esp+88], 0
+$L71498:
+
+; 1440 : 				}
+; 1441 : #endif /*NWS_US*/
+; 1442 : 
+; 1443 : 				/* Fall now if last stress in clause */
+; 1444 : #ifdef GERMAN
+; 1445 : 				/* But in German we can have many unstressed vowels left so we don't want to do this too soon or it will sound real bad eab 12/95 so
+; 1446 : 				 * if we put it off set flag to do it later */
+; 1447 : /*				tmp = remaining_stresses_til (pDph_t,n, FCBNEXT);            */ /* useless value is never used */
+; 1448 : #endif	// GERMAN
+; 1449 : 				if ((remaining_stresses_til(pDph_t, n, FCBNEXT) == 0)
+; 1450 : 		
+; 1451 : #if defined (GERMAN) || defined (SPANISH)   
+; 1452 : 					|| doitlater
+; 1453 : #endif	// defined (GERMAN) || defined (SPANISH)   
+; 1454 : 				)
+
+  00860	8b 6c 24 18	 mov	 ebp, DWORD PTR _n$[esp+88]
+  00864	68 e0 00 00 00	 push	 224			; 000000e0H
+  00869	55		 push	 ebp
+  0086a	56		 push	 esi
+  0086b	e8 00 00 00 00	 call	 _remaining_stresses_til
+  00870	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00873	66 85 c0	 test	 ax, ax
+  00876	75 68		 jne	 SHORT $skiprules$71388
+
+; 1455 : 				{
+; 1456 : 					/* 
+; 1457 : 					 * First check if this is phrase boundary and there exist 
+; 1458 : 					 * secondary stresses in the remaining phrasal fragment   
+; 1459 : 					 */
+; 1460 : #if defined (ENGLISH) || defined (SPANISH) || defined (GERMAN)
+; 1461 : 					if ((curr_instruc & FBOUNDARY) == FVPNEXT)
+
+  00878	8b 44 24 24	 mov	 eax, DWORD PTR _curr_instruc$[esp+88]
+  0087c	25 e0 01 00 00	 and	 eax, 480		; 000001e0H
+  00881	3d a0 00 00 00	 cmp	 eax, 160		; 000000a0H
+  00886	75 3b		 jne	 SHORT $L71500
+
+; 1462 : 					{
+; 1463 : 						promote_last_2 (pDph_t, n);
+
+  00888	55		 push	 ebp
+  00889	56		 push	 esi
+  0088a	e8 00 00 00 00	 call	 _promote_last_2
+  0088f	83 c4 08	 add	 esp, 8
+
+; 1464 : 						/* Last secondary stress of next phrase promoted */
+; 1465 : 					}
+; 1466 : #endif	// defined (ENGLISH) || defined (SPANISH) || defined (GERMAN)
+; 1467 : 
+; 1468 : /* doitlater suffers from the problem of unknown deletes so you don't really know how far from the end you really are*/
+; 1469 : #if defined (GERMAN) || defined (SPANISH) 
+; 1470 : 					if(pDph_t->clausetype == DECLARATIVE)
+; 1471 : 					{
+; 1472 : 					if ((pDph_t->nphonetot - n) > 4)
+; 1473 : 					{
+; 1474 : 						count=0;
+; 1475 : 						for (m = n+1; m < pDph_t->nphonetot; m++)
+; 1476 : 						{
+; 1477 : 							if ((phone_feature(pDph_t,pDph_t->phonemes[m]) & FSYLL) IS_PLUS)
+; 1478 : 							{
+; 1479 : 								count++;
+; 1480 : 								
+; 1481 : 							}
+; 1482 : 						}
+; 1483 : 						if(count >=2)
+; 1484 : 						{
+; 1485 : 							doitlater = 1;
+; 1486 : 						}
+; 1487 : 						else
+; 1488 : 						{
+; 1489 : 							curr_outstruc |= FHAT_ENDS;
+; 1490 : 							hatposition = AT_BOTTOM_OF_HAT;
+; 1491 : 							stresses_in_phrase = 0;
+; 1492 : 							doitlater=0;
+; 1493 : 						}
+; 1494 : 					}
+; 1495 : #endif	// defined (GERMAN) || defined (SPANISH) 
+; 1496 : 					else   
+; 1497 : 
+; 1498 : 					{
+; 1499 : 						curr_outstruc |= FHAT_ENDS;
+; 1500 : 						hatposition = AT_BOTTOM_OF_HAT;
+; 1501 : 						stresses_in_phrase = 0;
+; 1502 : #if defined (GERMAN) || defined (SPANISH)
+; 1503 : 						doitlater=0;
+; 1504 : #endif	// defined (GERMAN) || defined (SPANISH)
+; 1505 : 					}
+; 1506 : #if defined (GERMAN) || defined (SPANISH) 
+; 1507 : 					}/* clausetype if closure */
+; 1508 : #endif	// defined (GERMAN) || defined (SPANISH)
+; 1509 : 				
+; 1510 : 				
+; 1511 : 				/* Fall now if last str in phrase and both phrases have 2 str */
+; 1512 : 				if ((stresses_in_phrase > 1)
+; 1513 : 					&& (remaining_stresses_til (pDph_t, n, FVPNEXT) == 0)
+; 1514 : 					&& (remaining_stresses_til (pDph_t, n, FCBNEXT) > 1))
+
+  00892	66 83 7c 24 28
+	01		 cmp	 WORD PTR _stresses_in_phrase$[esp+88], 1
+  00898	7e 46		 jle	 SHORT $skiprules$71388
+  0089a	68 a0 00 00 00	 push	 160			; 000000a0H
+  0089f	55		 push	 ebp
+  008a0	56		 push	 esi
+  008a1	e8 00 00 00 00	 call	 _remaining_stresses_til
+  008a6	83 c4 0c	 add	 esp, 12			; 0000000cH
+  008a9	66 85 c0	 test	 ax, ax
+  008ac	75 32		 jne	 SHORT $skiprules$71388
+  008ae	68 e0 00 00 00	 push	 224			; 000000e0H
+  008b3	55		 push	 ebp
+  008b4	56		 push	 esi
+  008b5	e8 00 00 00 00	 call	 _remaining_stresses_til
+  008ba	83 c4 0c	 add	 esp, 12			; 0000000cH
+  008bd	66 3d 01 00	 cmp	 ax, 1
+  008c1	7e 1d		 jle	 SHORT $skiprules$71388
+$L71500:
+
+; 1515 : 				{
+; 1516 : 					curr_outstruc |= FHAT_ENDS;
+
+  008c3	80 cf 04	 or	 bh, 4
+
+; 1517 : 					hatposition = AT_BOTTOM_OF_HAT;
+
+  008c6	c7 44 24 30 01
+	00 00 00	 mov	 DWORD PTR _hatposition$[esp+88], 1
+  008ce	89 5c 24 2c	 mov	 DWORD PTR _curr_outstruc$[esp+88], ebx
+
+; 1518 : 					stresses_in_phrase = 0;
+
+  008d2	c7 44 24 28 00
+	00 00 00	 mov	 DWORD PTR _stresses_in_phrase$[esp+88], 0
+  008da	eb 04		 jmp	 SHORT $skiprules$71388
+$L71590:
+  008dc	8b 6c 24 18	 mov	 ebp, DWORD PTR _n$[esp+88]
+$skiprules$71388:
+
+; 1519 : 				}
+; 1520 : 			}
+; 1521 : 		}
+; 1522 : 	}
+; 1523 : 
+; 1524 : 	  skiprules:
+; 1525 : 		if (dodelete)
+
+  008e0	66 83 7c 24 20
+	00		 cmp	 WORD PTR _dodelete$[esp+88], 0
+  008e6	74 40		 je	 SHORT $L71503
+
+; 1526 : 		{
+; 1527 : #if defined ENGLISH || defined SPANISH || defined GERMAN
+; 1528 : 			ph_delcnt++;
+
+  008e8	8b 44 24 48	 mov	 eax, DWORD PTR _ph_delcnt$[esp+88]
+
+; 1529 : #ifdef DEBUGALLO
+; 1530 : 
+; 1531 : 			printf ("adjusting in alloph,n= %d n+del=%d  \n", n, n + ph_delcnt);
+; 1532 : 
+; 1533 : #endif	// DEBUGALLO
+; 1534 : 
+; 1535 : #ifdef MSDOS
+; 1536 : 				adjust_allo (n + ph_delcnt, -1);
+; 1537 : #else
+; 1538 : 				adjust_allo (pKsd_t, n + ph_delcnt, -1);
+
+  008ec	8b 54 24 50	 mov	 edx, DWORD PTR _pKsd_t$[esp+88]
+  008f0	40		 inc	 eax
+  008f1	6a ff		 push	 -1
+  008f3	03 f8		 add	 edi, eax
+  008f5	89 44 24 4c	 mov	 DWORD PTR _ph_delcnt$[esp+92], eax
+  008f9	57		 push	 edi
+  008fa	52		 push	 edx
+  008fb	e8 00 00 00 00	 call	 _adjust_allo
+
+; 1539 : #endif	// MSDOS
+; 1540 : 
+; 1541 : 			if (curr_indur != 0)
+; 1542 : 			{
+; 1543 : #ifdef DEBUG_USER_PROSODICS
+; 1544 : 				printf (
+; 1545 : 						   "\t  Delete [%s], add dur=%d ms to that of previous phone [%s]\n",
+; 1546 : 						   phprint (curr_inph), curr_indur, phprint (curr_outph));
+; 1547 : 				pDph_t->user_durs[pDph_t->nallotot - 1] += curr_indur;
+; 1548 : #endif	// DEBUG_USER_PROSODICS
+; 1549 : 			}
+; 1550 : #endif	/* #if defined ENGLISH || defined SPANISH || defined GERMAN */
+; 1551 : 
+; 1552 : #ifdef GERMAN
+; 1553 : 			pDph_t->nphonetot--;
+; 1554 : #endif
+; 1555 : 			if (curr_inf0 != 0)
+
+  00900	8b 44 24 50	 mov	 eax, DWORD PTR _curr_inf0$[esp+100]
+  00904	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00907	66 85 c0	 test	 ax, ax
+  0090a	74 12		 je	 SHORT $L71505
+
+; 1556 : 				pDph_t->user_f0[pDph_t->nallotot - 1] = curr_inf0;
+
+  0090c	0f bf 8e 06 15
+	00 00		 movsx	 ecx, WORD PTR [esi+5382]
+  00913	8b 96 88 17 00
+	00		 mov	 edx, DWORD PTR [esi+6024]
+  00919	66 89 44 4a fe	 mov	 WORD PTR [edx+ecx*2-2], ax
+$L71505:
+
+; 1557 : 			dodelete = FALSE;
+
+  0091e	c7 44 24 20 00
+	00 00 00	 mov	 DWORD PTR _dodelete$[esp+88], 0
+
+; 1558 : 		}
+; 1559 : 
+; 1560 : 		else
+
+  00926	eb 26		 jmp	 SHORT $L71378
+$L71503:
+
+; 1561 : 		{
+; 1562 : 			/* 
+; 1563 : 			 * if (curr_inph != curr_outph) { printf("changed phonene %d from %d to %d\n",
+; 1564 : 			 * n,curr_inph,curr_outph); } 
+; 1565 : 			 */
+; 1566 : 			make_out_phonol (phTTS, n, curr_outph, curr_outstruc, curr_indur, curr_inf0);		
+
+  00928	8b 44 24 44	 mov	 eax, DWORD PTR _curr_inf0$[esp+88]
+  0092c	8b 4c 24 54	 mov	 ecx, DWORD PTR _curr_indur$[esp+88]
+  00930	8b 54 24 2c	 mov	 edx, DWORD PTR _curr_outstruc$[esp+88]
+  00934	8b 6c 24 18	 mov	 ebp, DWORD PTR _n$[esp+88]
+  00938	50		 push	 eax
+  00939	8b 44 24 14	 mov	 eax, DWORD PTR _curr_outph$[esp+92]
+  0093d	51		 push	 ecx
+  0093e	8b 4c 24 64	 mov	 ecx, DWORD PTR _phTTS$[esp+92]
+  00942	52		 push	 edx
+  00943	50		 push	 eax
+  00944	55		 push	 ebp
+  00945	51		 push	 ecx
+  00946	e8 00 00 00 00	 call	 _make_out_phonol
+  0094b	83 c4 18	 add	 esp, 24			; 00000018H
+$L71378:
+  0094e	45		 inc	 ebp
+  0094f	ba 01 00 00 00	 mov	 edx, 1
+  00954	66 3b ae 98 17
+	00 00		 cmp	 bp, WORD PTR [esi+6040]
+  0095b	89 6c 24 18	 mov	 DWORD PTR _n$[esp+88], ebp
+  0095f	0f 8c 38 f7 ff
+	ff		 jl	 $L71575
+  00965	33 db		 xor	 ebx, ebx
+  00967	5d		 pop	 ebp
+$L71379:
+
+; 1567 : 						/* Save curr_outph in allophons[] */
+; 1568 : #ifdef SPANISH_SP
+; 1569 : 			if (curr_outph == SPP_NH &&  /* Realize [nh] as      */
+; 1570 : 				(curr_instruc & FBLOCK) == 0)
+; 1571 : 			{
+; 1572 : 				curr_outph = SPP_IX;	   /* as [nh ix].          */
+; 1573 : 				curr_outstruc &= ~FSBOUND;	/* No syllable now      */
+; 1574 : 				/* 
+; 1575 : 				 * eab 2/19/95 UGLY BUG User durs reused so all 
+; 1576 : 					userdurs get broken without
+; 1577 : 				 * this code to realign values after an insert
+; 1578 : 				 */
+; 1579 : 				for (temp = pDph_t->nphonetot; temp >= pDph_t->nallotot; temp--)
+; 1580 : 
+; 1581 : 				{
+; 1582 : 					pDph_t->user_durs[temp + 1] = pDph_t->user_durs[temp];
+; 1583 : 					/* printf("correc %d at %d \n",user_durs[temp],temp); */
+; 1584 : 					/* printf("correc++ %d at %d \n",user_durs[temp+1],temp+1); */
+; 1585 : 				}
+; 1586 : 				/* 
+; 1587 : 				 * shifting array by different index so need to keep track of ugly 
+; 1588 : 				 * offsets so we don't get lost. 
+; 1589 : 				 */
+; 1590 : 				offset++; 
+; 1591 : 				pDph_t->user_durs[pDph_t->nallotot - 1] = 0;
+; 1592 : 				make_out_phonol (phTTS, n, curr_outph, curr_outstruc, curr_indur, curr_inf0);
+; 1593 : 			}		
+; 1594 : #endif	// SPANISH_SP
+; 1595 : 
+; 1596 : #ifdef SPANISH_LA
+; 1597 : 			if (curr_outph == LAP_NH &&  /* Realize [nh] as      */
+; 1598 : 				(curr_instruc & FBLOCK) == 0)
+; 1599 : 			{
+; 1600 : 				curr_outph = LAP_IX;	   /* as [nh ix].          */
+; 1601 : 				curr_outstruc &= ~FSBOUND;	/* No syllable now      */
+; 1602 : 				/* 
+; 1603 : 				 * eab 2/19/95 UGLY BUG Userd durs reused so all userdurs get broken without
+; 1604 : 				 * this code to realign values after an insert
+; 1605 : 				 */
+; 1606 : 				for (temp = pDph_t->nphonetot; temp >= pDph_t->nallotot; temp--)
+; 1607 : 
+; 1608 : 				{
+; 1609 : 					pDph_t->user_durs[temp + 1] = pDph_t->user_durs[temp];
+; 1610 : 					/* printf("correc %d at %d \n",user_durs[temp],temp); */
+; 1611 : 					/* printf("correc++ %d at %d \n",user_durs[temp+1],temp+1); */
+; 1612 : 				}
+; 1613 : 				/* 
+; 1614 : 				 * shifting array by different index so need to keep track of ugly 
+; 1615 : 				 * offsets so we don't get lost. 
+; 1616 : 				 */
+; 1617 : 				offset++; 
+; 1618 : 				pDph_t->user_durs[pDph_t->nallotot - 1] = 0;
+; 1619 : 				make_out_phonol (phTTS, n, curr_outph, curr_outstruc, curr_indur, curr_inf0);
+; 1620 : 			}		
+; 1621 : #endif	// SPANISH_LA
+; 1622 : 		}
+; 1623 : 	}
+; 1624 : 
+; 1625 : 	/* 
+; 1626 : 	 * After string blocked from Rule 4 via the f0mode=HAT_LOCATIONS_SPECIFIED 
+; 1627 : 	 * state variable, set back to normal 
+; 1628 : 	 */
+; 1629 : 	if(pDph_t->f0mode == HAT_LOCATIONS_SPECIFIED)
+
+  00968	66 83 be 9c 17
+	00 00 02	 cmp	 WORD PTR [esi+6044], 2
+  00970	5f		 pop	 edi
+  00971	75 07		 jne	 SHORT $L71507
+
+; 1630 : 	{
+; 1631 : 		pDph_t->f0mode = NORMAL;
+
+  00973	66 89 96 9c 17
+	00 00		 mov	 WORD PTR [esi+6044], dx
+$L71507:
+
+; 1632 : 	}
+; 1633 : 
+; 1634 : 	/* Zap last position in array */
+; 1635 : 	pDph_t->allophons[pDph_t->nallotot] = GEN_SIL;
+
+  0097a	0f bf 96 06 15
+	00 00		 movsx	 edx, WORD PTR [esi+5382]
+  00981	66 c7 84 56 ec
+	03 00 00 00 1e	 mov	 WORD PTR [esi+edx*2+1004], 7680 ; 00001e00H
+
+; 1636 : 	pDph_t->allofeats[pDph_t->nallotot] = 0; 
+
+  0098b	0f bf 86 06 15
+	00 00		 movsx	 eax, WORD PTR [esi+5382]
+  00992	89 9c 86 58 06
+	00 00		 mov	 DWORD PTR [esi+eax*4+1624], ebx
+
+; 1637 : 	pDph_t->user_durs[pDph_t->nallotot] = 0;
+
+  00999	8b 96 84 17 00
+	00		 mov	 edx, DWORD PTR [esi+6020]
+  0099f	0f bf 8e 06 15
+	00 00		 movsx	 ecx, WORD PTR [esi+5382]
+  009a6	66 89 1c 4a	 mov	 WORD PTR [edx+ecx*2], bx
+
+; 1638 : //#endif
+; 1639 : 
+; 1640 : 
+; 1641 : 	/* Print summary of output results   */
+; 1642 : 	prphonol ();
+
+  009aa	e8 00 00 00 00	 call	 _prphonol
+  009af	5e		 pop	 esi
+  009b0	5b		 pop	 ebx
+
+; 1643 : }
+
+  009b1	83 c4 48	 add	 esp, 72			; 00000048H
+  009b4	c3		 ret	 0
+  009b5	8d 49 00	 npad	 3
+$L71596:
+  009b8	00 00 00 00	 DD	 $L71396
+  009bc	00 00 00 00	 DD	 $L71400
+  009c0	00 00 00 00	 DD	 $L71397
+  009c4	00 00 00 00	 DD	 $L71400
+  009c8	00 00 00 00	 DD	 $L71400
+  009cc	00 00 00 00	 DD	 $L71395
+  009d0	00 00 00 00	 DD	 $L71400
+  009d4	00 00 00 00	 DD	 $L71394
+$L71598:
+  009d8	00 00 00 00	 DD	 $L71407
+  009dc	00 00 00 00	 DD	 $L71408
+$L71597:
+  009e0	00		 DB	 0
+  009e1	01		 DB	 1
+  009e2	01		 DB	 1
+  009e3	01		 DB	 1
+  009e4	01		 DB	 1
+  009e5	00		 DB	 0
+  009e6	01		 DB	 1
+  009e7	00		 DB	 0
+  009e8	01		 DB	 1
+  009e9	01		 DB	 1
+  009ea	01		 DB	 1
+  009eb	01		 DB	 1
+  009ec	01		 DB	 1
+  009ed	00		 DB	 0
+  009ee	01		 DB	 1
+  009ef	01		 DB	 1
+  009f0	01		 DB	 1
+  009f1	01		 DB	 1
+  009f2	00		 DB	 0
+  009f3	90		 npad	 1
+$L71599:
+  009f4	00 00 00 00	 DD	 $L71415
+  009f8	00 00 00 00	 DD	 $L71419
+  009fc	00 00 00 00	 DD	 $L71413
+  00a00	00 00 00 00	 DD	 $L71419
+  00a04	00 00 00 00	 DD	 $L71415
+  00a08	00 00 00 00	 DD	 $L71415
+_phalloph ENDP
+_pDph_t$ = 8
+_msym$ = 12
+_b_type$ = 16
+_count$ = -4
+_remaining_stresses_til PROC NEAR
+
+; 1663 : {
+
+  00a10	51		 push	 ecx
+  00a11	53		 push	 ebx
+  00a12	55		 push	 ebp
+
+; 1664 : 
+; 1665 : 	register int m, count;
+; 1666 : #ifndef ENGLISH_UK
+; 1667 : 	/* EAB 1/21/98 This was propbably  wrong for all languages but needs to be verified 
+; 1668 : 	before enabling for all languages  i.e enabling secondary stress*/
+; 1669 : 	count = 0;
+; 1670 : 	for (m = msym; m < pDph_t->nphonetot; m++)
+
+  00a13	0f bf 6c 24 14	 movsx	 ebp, WORD PTR _msym$[esp+8]
+  00a18	56		 push	 esi
+  00a19	57		 push	 edi
+  00a1a	8b 7c 24 18	 mov	 edi, DWORD PTR _pDph_t$[esp+16]
+  00a1e	8b f5		 mov	 esi, ebp
+  00a20	c7 44 24 10 00
+	00 00 00	 mov	 DWORD PTR _count$[esp+20], 0
+  00a28	0f bf 87 98 17
+	00 00		 movsx	 eax, WORD PTR [edi+6040]
+  00a2f	3b f0		 cmp	 esi, eax
+  00a31	7d 63		 jge	 SHORT $L71602
+
+; 1678 : 		}
+; 1679 : 		if (((pDph_t->sentstruc[m] & FBOUNDARY) >= (unsigned short)b_type) // NAL warning removal
+; 1680 : 			|| (pDph_t->phonemes[m] == GEN_SIL))
+
+  00a33	8b 5c 24 20	 mov	 ebx, DWORD PTR _b_type$[esp+16]
+  00a37	81 e3 ff ff 00
+	00		 and	 ebx, 65535		; 0000ffffH
+$L71517:
+
+; 1671 : 	{
+; 1672 : 
+; 1673 : 		if ((m != msym)
+; 1674 : 			&& ((pDph_t->sentstruc[m] & FSTRESS) IS_PLUS)
+; 1675 : 			&& ((phone_feature(pDph_t,pDph_t->phonemes[m]) & FSYLL) IS_PLUS))
+
+  00a3d	3b f5		 cmp	 esi, ebp
+  00a3f	74 28		 je	 SHORT $L71520
+  00a41	8b 8f 94 17 00
+	00		 mov	 ecx, DWORD PTR [edi+6036]
+  00a47	f6 04 b1 03	 test	 BYTE PTR [ecx+esi*4], 3
+  00a4b	74 1c		 je	 SHORT $L71520
+  00a4d	8b 97 90 17 00
+	00		 mov	 edx, DWORD PTR [edi+6032]
+  00a53	0f bf 04 72	 movsx	 eax, WORD PTR [edx+esi*2]
+  00a57	50		 push	 eax
+  00a58	57		 push	 edi
+  00a59	e8 00 00 00 00	 call	 _phone_feature
+  00a5e	83 c4 08	 add	 esp, 8
+  00a61	a8 01		 test	 al, 1
+  00a63	74 04		 je	 SHORT $L71520
+
+; 1676 : 		{
+; 1677 : 			count++;
+
+  00a65	ff 44 24 10	 inc	 DWORD PTR _count$[esp+20]
+$L71520:
+
+; 1678 : 		}
+; 1679 : 		if (((pDph_t->sentstruc[m] & FBOUNDARY) >= (unsigned short)b_type) // NAL warning removal
+; 1680 : 			|| (pDph_t->phonemes[m] == GEN_SIL))
+
+  00a69	8b 8f 94 17 00
+	00		 mov	 ecx, DWORD PTR [edi+6036]
+  00a6f	8b 14 b1	 mov	 edx, DWORD PTR [ecx+esi*4]
+  00a72	81 e2 e0 01 00
+	00		 and	 edx, 480		; 000001e0H
+  00a78	3b d3		 cmp	 edx, ebx
+  00a7a	73 1a		 jae	 SHORT $L71602
+  00a7c	8b 87 90 17 00
+	00		 mov	 eax, DWORD PTR [edi+6032]
+  00a82	66 81 3c 70 00
+	1e		 cmp	 WORD PTR [eax+esi*2], 7680 ; 00001e00H
+  00a88	74 0c		 je	 SHORT $L71602
+  00a8a	0f bf 8f 98 17
+	00 00		 movsx	 ecx, WORD PTR [edi+6040]
+  00a91	46		 inc	 esi
+  00a92	3b f1		 cmp	 esi, ecx
+  00a94	7c a7		 jl	 SHORT $L71517
+$L71602:
+
+; 1681 : 		{
+; 1682 : 			return (count);
+; 1683 : 		}
+; 1684 : 	}
+; 1685 : 	return (count);
+
+  00a96	66 8b 44 24 10	 mov	 ax, WORD PTR _count$[esp+20]
+  00a9b	5f		 pop	 edi
+  00a9c	5e		 pop	 esi
+  00a9d	5d		 pop	 ebp
+  00a9e	5b		 pop	 ebx
+
+; 1686 : #else
+; 1687 : 		count = 0;
+; 1688 : 	for (m = msym; m < pDph_t->nphonetot; m++)
+; 1689 : 	{
+; 1690 : 
+; 1691 : 		if ((m != msym)
+; 1692 : 			&& ((pDph_t->sentstruc[m] & FSTRESS) IS_PLUS)
+; 1693 : 			&& ((phone_feature(pDph_t,pDph_t->phonemes[m]) & FSYLL) IS_PLUS))
+; 1694 : 		{
+; 1695 : 			count++;
+; 1696 : 		}
+; 1697 : 		if (((pDph_t->sentstruc[m] & FBOUNDARY) >= (unsigned short)b_type) // NAL warning removal
+; 1698 : 			|| (pDph_t->phonemes[m] == GEN_SIL))
+; 1699 : 		{
+; 1700 : 			return (count);
+; 1701 : 		}
+; 1702 : 	}
+; 1703 : 	return (count);
+; 1704 : 
+; 1705 : #endif	// ENGLISH_UK
+; 1706 : 
+; 1707 : }
+
+  00a9f	59		 pop	 ecx
+  00aa0	c3		 ret	 0
+_remaining_stresses_til ENDP
+_pDph_t$ = 8
+_msym$ = 12
+_promote_last_2 PROC NEAR
+
+; 1725 : {
+
+  00ab0	53		 push	 ebx
+  00ab1	55		 push	 ebp
+
+; 1726 : 
+; 1727 : 	short done_it, m;
+; 1728 : 
+; 1729 : 	done_it = 0;
+; 1730 : 	for (m = msym; m < pDph_t->nphonetot; m++)
+
+  00ab2	8b 6c 24 10	 mov	 ebp, DWORD PTR _msym$[esp+4]
+  00ab6	56		 push	 esi
+  00ab7	8b 74 24 10	 mov	 esi, DWORD PTR _pDph_t$[esp+8]
+  00abb	33 db		 xor	 ebx, ebx
+  00abd	57		 push	 edi
+  00abe	8b fd		 mov	 edi, ebp
+  00ac0	66 3b ae 98 17
+	00 00		 cmp	 bp, WORD PTR [esi+6040]
+  00ac7	7d 6a		 jge	 SHORT $L71533
+$L71531:
+
+; 1731 : 	{
+; 1732 : 
+; 1733 : 		if ((m != msym)
+; 1734 : #if defined ENGLISH || defined SPANISH || defined FRENCH
+; 1735 : 			&& ((pDph_t->sentstruc[m] & FSTRESS) == FSTRESS_2)
+; 1736 : #endif	// defined ENGLISH || defined SPANISH || defined FRENCH
+; 1737 : 
+; 1738 : #ifdef GERMAN
+; 1739 : 			&& ((pDph_t->sentstruc[m] & FSTRESS) == FSTRESS_2)
+; 1740 : #endif	// GERMAN
+; 1741 : 			&& ((phone_feature(pDph_t,pDph_t->phonemes[m]) & FSYLL) IS_PLUS))
+
+  00ac9	66 3b fd	 cmp	 di, bp
+  00acc	74 2e		 je	 SHORT $L71534
+  00ace	8b 8e 94 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6036]
+  00ad4	0f bf c7	 movsx	 eax, di
+  00ad7	8b 14 81	 mov	 edx, DWORD PTR [ecx+eax*4]
+  00ada	83 e2 03	 and	 edx, 3
+  00add	80 fa 02	 cmp	 dl, 2
+  00ae0	75 1a		 jne	 SHORT $L71534
+  00ae2	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  00ae8	0f bf 14 41	 movsx	 edx, WORD PTR [ecx+eax*2]
+  00aec	52		 push	 edx
+  00aed	56		 push	 esi
+  00aee	e8 00 00 00 00	 call	 _phone_feature
+  00af3	83 c4 08	 add	 esp, 8
+  00af6	a8 01		 test	 al, 1
+  00af8	74 02		 je	 SHORT $L71534
+
+; 1742 : 		{
+; 1743 : 			done_it = m;			   /* pointer to last secondary stress */
+
+  00afa	8b df		 mov	 ebx, edi
+$L71534:
+
+; 1744 : 		}
+; 1745 : 		if (((pDph_t->sentstruc[m] & FBOUNDARY) >= FCBNEXT)
+; 1746 : 			|| (pDph_t->phonemes[m] == GEN_SIL))
+
+  00afc	8b 8e 94 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6036]
+  00b02	0f bf c7	 movsx	 eax, di
+  00b05	8b 14 81	 mov	 edx, DWORD PTR [ecx+eax*4]
+  00b08	81 e2 e0 01 00
+	00		 and	 edx, 480		; 000001e0H
+  00b0e	81 fa e0 00 00
+	00		 cmp	 edx, 224		; 000000e0H
+  00b14	73 0e		 jae	 SHORT $L71536
+  00b16	8b 8e 90 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6032]
+  00b1c	66 81 3c 41 00
+	1e		 cmp	 WORD PTR [ecx+eax*2], 7680 ; 00001e00H
+  00b22	75 05		 jne	 SHORT $L71532
+$L71536:
+
+; 1747 : 		{
+; 1748 : 			if (done_it != 0)
+
+  00b24	66 85 db	 test	 bx, bx
+  00b27	75 12		 jne	 SHORT $L71607
+$L71532:
+
+; 1726 : 
+; 1727 : 	short done_it, m;
+; 1728 : 
+; 1729 : 	done_it = 0;
+; 1730 : 	for (m = msym; m < pDph_t->nphonetot; m++)
+
+  00b29	47		 inc	 edi
+  00b2a	66 3b be 98 17
+	00 00		 cmp	 di, WORD PTR [esi+6040]
+  00b31	7c 96		 jl	 SHORT $L71531
+$L71533:
+  00b33	5f		 pop	 edi
+  00b34	5e		 pop	 esi
+  00b35	5d		 pop	 ebp
+
+; 1757 : 			}
+; 1758 : 		}
+; 1759 : 	}
+; 1760 : 	return (FALSE);
+
+  00b36	66 33 c0	 xor	 ax, ax
+  00b39	5b		 pop	 ebx
+
+; 1761 : }
+
+  00b3a	c3		 ret	 0
+$L71607:
+
+; 1749 : 			{
+; 1750 : 				pDph_t->sentstruc[done_it] &= ~FSTRESS_2;
+
+  00b3b	8b 96 94 17 00
+	00		 mov	 edx, DWORD PTR [esi+6036]
+  00b41	5f		 pop	 edi
+  00b42	0f bf c3	 movsx	 eax, bx
+  00b45	c1 e0 02	 shl	 eax, 2
+  00b48	8d 0c 02	 lea	 ecx, DWORD PTR [edx+eax]
+  00b4b	8b 14 02	 mov	 edx, DWORD PTR [edx+eax]
+  00b4e	83 e2 fd	 and	 edx, -3			; fffffffdH
+  00b51	89 11		 mov	 DWORD PTR [ecx], edx
+
+; 1751 : 				pDph_t->sentstruc[done_it] |= FSTRESS_1;
+
+  00b53	8b 8e 94 17 00
+	00		 mov	 ecx, DWORD PTR [esi+6036]
+  00b59	03 c1		 add	 eax, ecx
+  00b5b	5e		 pop	 esi
+  00b5c	5d		 pop	 ebp
+  00b5d	5b		 pop	 ebx
+  00b5e	8b 08		 mov	 ecx, DWORD PTR [eax]
+  00b60	83 c9 01	 or	 ecx, 1
+  00b63	89 08		 mov	 DWORD PTR [eax], ecx
+
+; 1752 : #ifdef MSDBG7
+; 1753 : 					printf ("sentstruc[done_it] |= FSTRESS_1 sentstruc[%d]=%d\n", done_it, pDph_t->sentstruc[done_it]);
+; 1754 : #endif	// MSDBG7
+; 1755 : 
+; 1756 : 				return (TRUE);
+
+  00b65	66 b8 01 00	 mov	 ax, 1
+
+; 1761 : }
+
+  00b69	c3		 ret	 0
+_promote_last_2 ENDP
+_prphonol PROC NEAR
+
+; 1779 : 
+; 1780 : }
+
+  00b70	c3		 ret	 0
+_prphonol ENDP
+_TEXT	ENDS
+EXTRN	_set_index_allo:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_n$ = 12
+_curr_outph$ = 16
+_curr_outstruc$ = 20
+_curr_indur$ = 24
+_curr_inf0$ = 28
+_make_out_phonol PROC NEAR
+
+; 1806 : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+; 1807 : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+
+  00b80	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00b84	56		 push	 esi
+  00b85	57		 push	 edi
+  00b86	8b 70 18	 mov	 esi, DWORD PTR [eax+24]
+
+; 1808 : 
+; 1809 : #ifdef DEBUGALLO
+; 1810 : 	struct spc_packet _far *spc_pkt;   /* debug eab */
+; 1811 : 
+; 1812 : #endif	// DEBUGALLO                 
+; 1813 : 
+; 1814 :     /* printf("nallotot %d n %d curr_outph %d curr_outstruc %d curr_indur %d curr_inf0 %d\n",
+; 1815 : 	   pDph_t->nallotot,n,curr_outph,curr_outstruc,curr_indur,curr_inf0); 
+; 1816 : 	*/
+; 1817 : 
+; 1818 : #ifdef MSDOS
+; 1819 : 	set_index_allo (n, pDph_t->nallotot);	/* At minimum do set_index eab */
+; 1820 : #else
+; 1821 : 	set_index_allo (pKsd_t, n, pDph_t->nallotot);	/* At minimum do set_index eab */
+
+  00b89	8b 50 08	 mov	 edx, DWORD PTR [eax+8]
+
+; 1822 : #endif	// MSDOS
+; 1823 : 
+; 1824 : #ifdef DEBUGALLO
+; 1825 : 
+; 1826 : 	if ((spc_pkt = (struct spc_packet _far *) pKsd_t->index_pending.head) != NULL_SPC_PACKET)
+; 1827 : 	{
+; 1828 : 		printf ("n = %d pDph_t->nallotot = %d\n", n, pDph_t->nallotot);
+; 1829 : 		if (n >= pDph_t->nallotot)
+; 1830 : 		{
+; 1831 : 			while (spc_pkt != NULL_SPC_PACKET)
+; 1832 : 			{
+; 1833 : 				WAIT_PRINT;
+; 1834 : 				printf ("1 index %d = symbol %d \n", (*spc_pkt).data[0], pDph_t->symbols[(*spc_pkt).data[0]]);
+; 1835 : 				printf ("2 index %d = symbol %d \n", (*spc_pkt).data[4], pDph_t->phonemes[(*spc_pkt).data[4]]);
+; 1836 : 				printf ("3 index %d = symbol %d \n", (*spc_pkt).data[5], pDph_t->allophons[(*spc_pkt).data[5]]);
+; 1837 : 				SIGNAL_PRINT;
+; 1838 : 				spc_pkt = (struct spc_packet _far *) (*spc_pkt).link;
+; 1839 : 			}
+; 1840 : 		}
+; 1841 : 	}								   /* debug eab  */
+; 1842 : #endif	// DEBUGALLO
+; 1843 : 
+; 1844 : 	
+; 1845 : #ifdef DEBUGALLO
+; 1846 : 	printf ("outputting phoneme %d\n ", curr_outph);
+; 1847 : #endif	// DEBUGALLO
+; 1848 : 
+; 1849 : 	if (pDph_t->nallotot > (n + 8))
+; 1850 : 	{
+; 1851 : 		return ;
+; 1852 : 	}
+; 1853 : 	/* Put phoneme away */
+; 1854 : 
+; 1855 : 	pDph_t->allophons[pDph_t->nallotot] = curr_outph;
+; 1856 : 	pDph_t->allofeats[pDph_t->nallotot] = curr_outstruc;
+; 1857 : 	/* printf("hah %d %d %d  \n",user_durs[nallotot],curr_indur,nallotot); */
+; 1858 : 
+; 1859 : #ifdef MSDBG6
+; 1860 : 		printf ("allofeats[nallotot] allofeats[%d]=%d\n", pDph_t->nallotot, pDph_t->allofeats[pDph_t->nallotot]);
+; 1861 : #endif	// MSDBG6
+; 1862 : 
+; 1863 : 	pDph_t->user_durs[pDph_t->nallotot] = curr_indur;
+; 1864 : 
+; 1865 : #ifndef FRENCH
+; 1866 : 	if (pDph_t->f0mode != HAT_F0_SIZES_SPECIFIED)
+; 1867 : 	{
+; 1868 : 		pDph_t->user_f0[pDph_t->nallotot] = curr_inf0;	/* Move user_f0 if phone moved */
+; 1869 : 	}
+; 1870 : #endif	// FRENCH
+; 1871 : 
+; 1872 : #ifdef FRENCH
+; 1873 : 	pDph_t->user_f0[pDph_t->nallotot] = curr_inf0;
+; 1874 : 	//pDph_t->f0tar[pDph_t->nallotot] = curr_inf0;
+; 1875 : 	//return;
+; 1876 : #endif	// FRENCH
+; 1877 : 
+; 1878 : #ifdef DEBUG_USER_PROSODICS
+; 1879 : 	if (curr_indur != 0)
+; 1880 : 	{
+; 1881 : 		printf ("\tFound user_dur[%s] = %3d ms in PHALLOPH\n",
+; 1882 : 				phprint (curr_outph), curr_indur);
+; 1883 : 	}
+; 1884 : 	if ((curr_inf0 != 0) && (pDph_t->f0mode != HAT_F0_SIZES_SPECIFIED))
+; 1885 : 	{
+; 1886 : 		printf ("\tFound  user_f0[%s] = %3d Hz in PHALLOPH, f0mode = %d\n",
+; 1887 : 				phprint (curr_outph), curr_inf0, pDph_t->f0mode);
+; 1888 : 	}
+; 1889 : #endif	// DEBUG_USER_PROSODICS
+; 1890 : 
+; 1891 : 	/* See if there is room for next phoneme */
+; 1892 : 	if (pDph_t->nallotot < NPHON_MAX)
+; 1893 : 	{
+; 1894 : 		pDph_t->nallotot++;
+
+  00b8c	0f bf 7c 24 10	 movsx	 edi, WORD PTR _n$[esp+4]
+  00b91	0f bf 8e 06 15
+	00 00		 movsx	 ecx, WORD PTR [esi+5382]
+  00b98	51		 push	 ecx
+  00b99	57		 push	 edi
+  00b9a	52		 push	 edx
+  00b9b	e8 00 00 00 00	 call	 _set_index_allo
+  00ba0	0f bf 86 06 15
+	00 00		 movsx	 eax, WORD PTR [esi+5382]
+  00ba7	83 c7 08	 add	 edi, 8
+  00baa	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00bad	3b c7		 cmp	 eax, edi
+  00baf	7f 6a		 jg	 SHORT $L71556
+  00bb1	66 8b 4c 24 14	 mov	 cx, WORD PTR _curr_outph$[esp+4]
+  00bb6	66 89 8c 46 ec
+	03 00 00	 mov	 WORD PTR [esi+eax*2+1004], cx
+  00bbe	8b 44 24 18	 mov	 eax, DWORD PTR _curr_outstruc$[esp+4]
+  00bc2	0f bf 96 06 15
+	00 00		 movsx	 edx, WORD PTR [esi+5382]
+  00bc9	89 84 96 58 06
+	00 00		 mov	 DWORD PTR [esi+edx*4+1624], eax
+  00bd0	8b 96 84 17 00
+	00		 mov	 edx, DWORD PTR [esi+6020]
+  00bd6	0f bf 8e 06 15
+	00 00		 movsx	 ecx, WORD PTR [esi+5382]
+  00bdd	66 8b 44 24 1c	 mov	 ax, WORD PTR _curr_indur$[esp+4]
+  00be2	66 89 04 4a	 mov	 WORD PTR [edx+ecx*2], ax
+  00be6	66 83 be 9c 17
+	00 00 03	 cmp	 WORD PTR [esi+6044], 3
+  00bee	74 16		 je	 SHORT $L71555
+  00bf0	0f bf 8e 06 15
+	00 00		 movsx	 ecx, WORD PTR [esi+5382]
+  00bf7	8b 96 88 17 00
+	00		 mov	 edx, DWORD PTR [esi+6024]
+  00bfd	66 8b 44 24 20	 mov	 ax, WORD PTR _curr_inf0$[esp+4]
+  00c02	66 89 04 4a	 mov	 WORD PTR [edx+ecx*2], ax
+$L71555:
+  00c06	66 8b 86 06 15
+	00 00		 mov	 ax, WORD PTR [esi+5382]
+  00c0d	66 3d 2c 01	 cmp	 ax, 300			; 0000012cH
+  00c11	7d 08		 jge	 SHORT $L71556
+  00c13	40		 inc	 eax
+  00c14	66 89 86 06 15
+	00 00		 mov	 WORD PTR [esi+5382], ax
+$L71556:
+  00c1b	5f		 pop	 edi
+  00c1c	5e		 pop	 esi
+
+; 1895 : 	}
+; 1896 : 
+; 1897 : }
+
+  00c1d	c3		 ret	 0
+_make_out_phonol ENDP
+_TEXT	ENDS
+END

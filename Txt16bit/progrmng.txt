@@ -1,0 +1,60 @@
+General Guidelines for Programming DECtalk Applications.
+
+In doing real-time programming of applications of DECtalk there
+are some important concepts worth keeping in mind to maximize the
+performance of the overall system.
+
+Clause Based Synthesis.
+DECtalk processes all text on a clause basis.  A clause is defined as a
+period, question mark, exclamation point, or question mark
+followed by white-space. If you send DECtalk five words with no
+terminator it can do little with it except wait for the rest of
+the clause.  A "[:sync]" command will act the same as an period-
+white space.  If the time-out command, [:Timeout d], is set
+dectalk will force speak any text that has been sent to it
+without punctuation if no more characters have been received in
+the amount of time specified in the time-out command.
+
+Error Speak.
+The default setting for DECtalk is with error speak on. This
+reports any errors that DECtalk can detect. There is one case
+however when an error is normal and that is during the flush
+command. If a flush is issued while DECtalk is in the middle of
+processing a command it will report a command error because the
+command never finished parsing.  Applications should always set
+"[:error ignore]" on the release version.
+
+Eliminating do-while Loops.
+In the demo program most of the TSR calls are put in a do-while
+loop because there is nothing else to be done at the time.  In an
+real application there is often other things that can be done so
+you should return from a TSR_BUSY or TSR_RETRY command and do
+other things and try the command again later. On very high
+performance processors continually calling the TSR in a do while
+loop can actually slow things down as the processor can ask
+DECtalk "are you ready yet?" so often that DECtalk spends too
+much time saying "no" that it can get it's work done quickly.
+
+Flow Control.
+Flow management is also useful. It is not normally useful to send
+DECtalk large blocks of text at once, because typically you end
+up speaking for a while and then the text gets flushed while you
+go do something else. If the DECtalk is kept busy inputting a
+large block of text it has less time to devote to processing the
+text.  There is typically no value in having DECtalk loaded with
+ten minutes worth of text. The key here is to keep a sentence or
+two ahead of where you are and send a new sentence every time you
+finish one.
+
+Indexing for Speech Status.
+It is easy to tell where you are with the index commands.  By
+imbedding an index in the text you the DECtalk will tell you
+exactly when that text has been spoken. The indexes attach
+themselves to the NEXT speech sound, they bind forward. Therefore
+if you send "Hello. [:i r 5] " nothing will be returned until the
+next clause because there is nothing for it to bind to.  A
+"Hello[:i r 5]. " will work or "Hello. [:i r 3] [:sync]" but in
+the second case the sync forces some extra silence through the
+DECtalk for the index to bind to.
+
+

@@ -1,0 +1,3940 @@
+	TITLE	D:\work\Product\dapi\src\Cmd\cm_text.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+;	COMDAT _par_copy_index_list
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+;	COMDAT _par_copy_index
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+;	COMDAT _par_is_index_set
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_cm_text_get_word
+EXTRN	_char_types:BYTE
+_TEXT	SEGMENT
+_clausebuf$ = 8
+_buf$ = 12
+_which$ = 16
+_cm_text_get_word PROC NEAR
+
+; 193  : {
+
+  00000	53		 push	 ebx
+  00001	55		 push	 ebp
+  00002	56		 push	 esi
+  00003	57		 push	 edi
+
+; 194  : 	int i=0,j=0;
+; 195  : 	
+; 196  : 	while ((char_types[clausebuf[i]] & MARK_space)!=0)
+
+  00004	8b 7c 24 14	 mov	 edi, DWORD PTR _clausebuf$[esp+12]
+  00008	33 c0		 xor	 eax, eax
+  0000a	b3 80		 mov	 bl, 128			; 00000080H
+  0000c	33 f6		 xor	 esi, esi
+  0000e	8a 07		 mov	 al, BYTE PTR [edi]
+  00010	33 ed		 xor	 ebp, ebp
+  00012	84 98 00 00 00
+	00		 test	 BYTE PTR _char_types[eax], bl
+  00018	74 0e		 je	 SHORT $L71289
+$L71288:
+
+; 197  : 		i++;
+
+  0001a	46		 inc	 esi
+  0001b	33 c9		 xor	 ecx, ecx
+  0001d	8a 0c 3e	 mov	 cl, BYTE PTR [esi+edi]
+  00020	84 99 00 00 00
+	00		 test	 BYTE PTR _char_types[ecx], bl
+  00026	75 f2		 jne	 SHORT $L71288
+$L71289:
+
+; 198  : 	if (which==0)
+
+  00028	8b 44 24 1c	 mov	 eax, DWORD PTR _which$[esp+12]
+  0002c	85 c0		 test	 eax, eax
+  0002e	75 50		 jne	 SHORT $L71581
+  00030	8b 44 24 18	 mov	 eax, DWORD PTR _buf$[esp+12]
+  00034	b3 c0		 mov	 bl, 192			; 000000c0H
+$L71292:
+
+; 199  : 	{
+; 200  : 		/* GL 03/20/1998 BATS#631  include "." at mode 0 */
+; 201  : 		/* GL 05/15/1998 BATS#676  "test,test"  should be treated as a one word for word catch */
+; 202  : 		/* GL 06/16/1998 BATS#697   check "\0" to fix "chrysler" spelling problem */
+; 203  : 		/* GL 03/03/1999 BATS#676,697,744   fix the coding error */
+; 204  : 		while ((((char_types[clausebuf[i]] & (MARK_space | MARK_clause))==0) && (clausebuf[i]!='\0')) ||
+; 205  : 			     (clausebuf[i] == '-') || (clausebuf[i] == '.') ||
+; 206  : 			     (((char_types[clausebuf[i]] & MARK_punct) != 0) && (clausebuf[i+1]!='\0') && ((char_types[clausebuf[i+1]] & (MARK_space | MARK_clause))==0)) )
+
+  00036	8a 0c 3e	 mov	 cl, BYTE PTR [esi+edi]
+  00039	8b d1		 mov	 edx, ecx
+  0003b	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  00041	8a 92 00 00 00
+	00		 mov	 dl, BYTE PTR _char_types[edx]
+  00047	84 d3		 test	 dl, bl
+  00049	75 04		 jne	 SHORT $L71295
+  0004b	84 c9		 test	 cl, cl
+  0004d	75 25		 jne	 SHORT $L71294
+$L71295:
+  0004f	80 f9 2d	 cmp	 cl, 45			; 0000002dH
+  00052	74 20		 je	 SHORT $L71294
+  00054	80 f9 2e	 cmp	 cl, 46			; 0000002eH
+  00057	74 1b		 je	 SHORT $L71294
+  00059	f6 c2 20	 test	 dl, 32			; 00000020H
+  0005c	74 50		 je	 SHORT $L71583
+  0005e	8a 54 3e 01	 mov	 dl, BYTE PTR [esi+edi+1]
+  00062	84 d2		 test	 dl, dl
+  00064	74 48		 je	 SHORT $L71583
+  00066	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  0006c	84 9a 00 00 00
+	00		 test	 BYTE PTR _char_types[edx], bl
+  00072	75 3a		 jne	 SHORT $L71583
+$L71294:
+
+; 207  : 		{
+; 208  : //printf("#%c\n",clausebuf[i]);
+; 209  : 			/* GL 02/07/1997  don't save control key */
+; 210  : 			if (clausebuf[i] != 0x82)
+
+  00074	80 f9 82	 cmp	 cl, 130			; 00000082H
+  00077	74 04		 je	 SHORT $L71296
+
+; 211  : 			{
+; 212  : 				buf[j]=clausebuf[i];
+
+  00079	88 0c 28	 mov	 BYTE PTR [eax+ebp], cl
+
+; 213  : 				j++;
+
+  0007c	45		 inc	 ebp
+$L71296:
+
+; 214  : 			}
+; 215  : 			i++;
+
+  0007d	46		 inc	 esi
+
+; 216  : 		}
+
+  0007e	eb b6		 jmp	 SHORT $L71292
+$L71581:
+
+; 217  : 	}
+; 218  : 	else
+; 219  : 	{
+; 220  : 		while ((((char_types[clausebuf[i]] & (MARK_space))==0) && (clausebuf[i]!='\0')) || (clausebuf[i] == '-'))
+
+  00080	8b 44 24 18	 mov	 eax, DWORD PTR _buf$[esp+12]
+  00084	8d 14 3e	 lea	 edx, DWORD PTR [esi+edi]
+$L71299:
+  00087	8a 0a		 mov	 cl, BYTE PTR [edx]
+  00089	8b f1		 mov	 esi, ecx
+  0008b	81 e6 ff 00 00
+	00		 and	 esi, 255		; 000000ffH
+  00091	84 9e 00 00 00
+	00		 test	 BYTE PTR _char_types[esi], bl
+  00097	75 04		 jne	 SHORT $L71302
+  00099	84 c9		 test	 cl, cl
+  0009b	75 05		 jne	 SHORT $L71301
+$L71302:
+  0009d	80 f9 2d	 cmp	 cl, 45			; 0000002dH
+  000a0	75 0c		 jne	 SHORT $L71583
+$L71301:
+
+; 221  : 		{
+; 222  : //printf("*%c\n",clausebuf[i]);
+; 223  : 			/* GL 02/07/1997  don't save control key */
+; 224  : 			if (clausebuf[i] != 0x82)
+
+  000a2	80 f9 82	 cmp	 cl, 130			; 00000082H
+  000a5	74 04		 je	 SHORT $L71303
+
+; 225  : 			{
+; 226  : 				buf[j]=clausebuf[i];
+
+  000a7	88 0c 28	 mov	 BYTE PTR [eax+ebp], cl
+
+; 227  : 				j++;
+
+  000aa	45		 inc	 ebp
+$L71303:
+
+; 228  : 			}
+; 229  : 			i++;
+
+  000ab	42		 inc	 edx
+
+; 230  : 		}
+
+  000ac	eb d9		 jmp	 SHORT $L71299
+$L71583:
+  000ae	5f		 pop	 edi
+
+; 231  : 	}
+; 232  : 	
+; 233  : 	buf[j]='\0';
+
+  000af	c6 04 28 00	 mov	 BYTE PTR [eax+ebp], 0
+  000b3	5e		 pop	 esi
+  000b4	5d		 pop	 ebp
+  000b5	5b		 pop	 ebx
+
+; 234  : 	return(buf);
+; 235  : }
+
+  000b6	c3		 ret	 0
+_cm_text_get_word ENDP
+_TEXT	ENDS
+PUBLIC	_cm_text_getclause
+EXTRN	__imp__fprintf:NEAR
+EXTRN	_cm_util_flush_init:NEAR
+EXTRN	__imp__printf:NEAR
+EXTRN	_cm_util_write_pipe:NEAR
+EXTRN	__imp__strncmp:NEAR
+EXTRN	_par_process_input:NEAR
+EXTRN	_par_dict_lookup:NEAR
+EXTRN	_parser_char_types:BYTE
+EXTRN	_par_lower:BYTE
+_BSS	SEGMENT
+$SG71374 DB	01H DUP (?)
+_BSS	ENDS
+_DATA	SEGMENT
+$SG71362 DB	'From', 00H
+	ORG $+3
+$SG71363 DB	'From', 00H
+	ORG $+3
+$SG71365 DB	'Return-Path:', 00H
+	ORG $+3
+$SG71366 DB	'Return-Path:', 00H
+	ORG $+3
+$SG71368 DB	'%======Internet', 00H
+$SG71369 DB	'%======Internet', 00H
+$SG71371 DB	'Message-ID:', 00H
+$SG71372 DB	'Message-ID:', 00H
+$SG71394 DB	0aH, 'Input to Email:(%d)(%x)', 00H
+	ORG $+3
+$SG71397 DB	0aH, 'Input to Email:(%d)(%x)', 00H
+	ORG $+3
+$SG71398 DB	0aH, 'Input to Email:(%d)(%x)', 00H
+	ORG $+3
+$SG71404 DB	0aH, '%c(%x)', 00H
+$SG71405 DB	0aH, '%c(%x)', 00H
+$SG71412 DB	0aH, 'Email output:', 00H
+	ORG $+1
+$SG71413 DB	0aH, 'Email output:', 00H
+	ORG $+1
+$SG71419 DB	0aH, '%c(%x)', 00H
+$SG71420 DB	0aH, '%c(%x)', 00H
+$SG71465 DB	0aH, 'Input to Punct:(%d)(%x)', 00H
+	ORG $+3
+$SG71466 DB	0aH, 'Input to Punct:(%d)(%x)', 00H
+	ORG $+3
+$SG71470 DB	0aH, '%c(%x)', 00H
+$SG71473 DB	0aH, '%c(%x)', 00H
+$SG71474 DB	0aH, '%c(%x)', 00H
+$SG71481 DB	0aH, 'Punct output:', 00H
+	ORG $+1
+$SG71482 DB	0aH, 'Punct output:', 00H
+	ORG $+1
+$SG71487 DB	0aH, '%c(%x)', 00H
+$SG71488 DB	0aH, '%c(%x)', 00H
+$SG71511 DB	0aH, 'Normal output:', 00H
+$SG71512 DB	0aH, 'Normal output:', 00H
+$SG71525 DB	0aH, '%c(%x)', 00H
+$SG71526 DB	0aH, '%c(%x)', 00H
+$SG71532 DB	0aH, '%c[%x]', 00H
+$SG71533 DB	0aH, '%c[%x]', 00H
+$SG71539 DB	0aH, '%c(%x)', 00H
+$SG71540 DB	0aH, '%c(%x)', 00H
+$SG71542 DB	0aH, '%c[%x]', 00H
+$SG71543 DB	0aH, '*%c[%x]', 00H
+	ORG $+3
+$SG71550 DB	0aH, '%c(*%x)', 00H
+	ORG $+3
+$SG71551 DB	0aH, '%c(*%x)', 00H
+	ORG $+3
+$SG71555 DB	0aH, 00H
+	ORG $+2
+$SG71556 DB	0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pipe_value$ = -104
+_pKsd_t$ = -108
+_i$ = -96
+_mode$ = -100
+_relook$ = -92
+_temp_mode$ = -100
+_parser_flag$ = -92
+_header1$71361 = -88
+_header2$71364 = -68
+_header3$71367 = -52
+_header4$71370 = -80
+_header_buff$71373 = -36
+_cm_text_getclause PROC NEAR
+
+; 262  : {
+
+  000c0	83 ec 6c	 sub	 esp, 108		; 0000006cH
+
+; 263  : 	short int pipe_value;
+; 264  : 	PCMD_T pCmd_t;
+; 265  : 	PKSD_T  pKsd_t; 
+; 266  : 	int i,j, mode,didit,relook;
+; 267  : 	unsigned int k;	// NAL warning removal
+; 268  : 	U32 temp_mode=0;
+; 269  : 	U16 parser_flag;
+; 270  : 
+; 271  : #ifdef CMD_DEBUG // NAL warning removal
+; 272  :         U32 ulStartTime,ulEndTime;
+; 273  : #endif
+; 274  : 
+; 275  : 	pCmd_t=phTTS->pCMDThreadData;
+
+  000c3	8b 44 24 70	 mov	 eax, DWORD PTR _phTTS$[esp+104]
+  000c7	53		 push	 ebx
+  000c8	55		 push	 ebp
+  000c9	56		 push	 esi
+  000ca	8b 68 0c	 mov	 ebp, DWORD PTR [eax+12]
+
+; 276  : 	pKsd_t=phTTS->pKernelShareData;
+
+  000cd	8b 70 08	 mov	 esi, DWORD PTR [eax+8]
+  000d0	57		 push	 edi
+  000d1	89 74 24 10	 mov	 DWORD PTR _pKsd_t$[esp+124], esi
+
+; 277  : 	/* save the current parser_flag */
+; 278  : 	parser_flag = pCmd_t->ret_value.parser_flag;	
+
+  000d5	66 8b 8d 90 57
+	00 00		 mov	 cx, WORD PTR [ebp+22416]
+  000dc	66 89 4c 24 20	 mov	 WORD PTR _parser_flag$[esp+124], cx
+
+; 279  : 	
+; 280  : 
+; 281  : 	/* checking cmd_flushing */
+; 282  : 	if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  000e1	8b 8e 30 03 00
+	00		 mov	 ecx, DWORD PTR [esi+816]
+  000e7	85 c9		 test	 ecx, ecx
+  000e9	0f 85 7e 10 00
+	00		 jne	 $L71319
+  000ef	8b 8e 2c 03 00
+	00		 mov	 ecx, DWORD PTR [esi+812]
+  000f5	ba 01 00 00 00	 mov	 edx, 1
+  000fa	3b ca		 cmp	 ecx, edx
+  000fc	0f 84 6b 10 00
+	00		 je	 $L71319
+
+; 285  : 		return;
+; 286  : 	}              
+; 287  : #ifdef SKIP_PARSER
+; 288  : 		if (pCmd_t->ParseChar=='\0')
+; 289  : 		{
+; 290  : 			pCmd_t->ParseChar=' ';
+; 291  : 		}
+; 292  : 		if (pCmd_t->ParseChar== 0x0fff)
+; 293  : 		{
+; 294  : 			pCmd_t->ParseChar=' ';
+; 295  : 		}			                                     
+; 296  : 		if(pCmd_t->ParseChar == 0x11)
+; 297  : 		{
+; 298  : 			pCmd_t->ParseChar=' ';
+; 299  : 		}			
+; 300  : 		pipe_value = (PFASCII<<PSFONT)+pCmd_t->ParseChar;
+; 301  : 		cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+; 302  : 		return;
+; 303  : #endif /* end of skip_parser */ 
+; 304  : 
+; 305  : 	/* 
+; 306  : 	   GL 05/14/1997 BATS# 374-376 fix the e-mail parsing problem, need to
+; 307  : 	   disable the <tab> function in the e-mail mode, to handle the e-mail
+; 308  : 	   header like "From: <tab>....
+; 309  : 	*/
+; 310  : 	if ((pKsd_t->modeflag & MODE_EMAIL) != 0 &&
+; 311  : 		(pCmd_t->email_header == 1) &&
+; 312  : 		(pCmd_t->ParseChar == 0x9))
+
+  00102	8b 86 c0 03 00
+	00		 mov	 eax, DWORD PTR [esi+960]
+  00108	b9 09 00 00 00	 mov	 ecx, 9
+  0010d	f6 c4 10	 test	 ah, 16			; 00000010H
+  00110	bb 20 00 00 00	 mov	 ebx, 32			; 00000020H
+  00115	74 19		 je	 SHORT $L71320
+  00117	66 39 95 3a 05
+	00 00		 cmp	 WORD PTR [ebp+1338], dx
+  0011e	75 10		 jne	 SHORT $L71320
+  00120	66 39 8d 28 05
+	00 00		 cmp	 WORD PTR [ebp+1320], cx
+  00127	75 07		 jne	 SHORT $L71320
+
+; 313  : 		pCmd_t->ParseChar = ' ';
+
+  00129	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+$L71320:
+
+; 314  : 
+; 315  : 	/* try to flush data for TAB, GL. 9/13/1996	*/
+; 316  : 	/* hack for the table reading				*/
+; 317  : 	/* it should take care of regular text with leading TAB */
+; 318  : 	/* GL. 10/29/1996,  implement the mode_table to force HT, CR and LF to become
+; 319  : 	   a contol-k.  Move the code to cm_text.c getclause() */
+; 320  : 	if ((pKsd_t->modeflag & MODE_TABLE) == 0)
+
+  00130	8b 86 c0 03 00
+	00		 mov	 eax, DWORD PTR [esi+960]
+  00136	ba 0b 00 00 00	 mov	 edx, 11			; 0000000bH
+  0013b	f6 c4 04	 test	 ah, 4
+  0013e	75 2b		 jne	 SHORT $L71321
+
+; 321  : 	{
+; 322  : 		if (pCmd_t->ParseChar == 0x9)
+
+  00140	66 39 8d 28 05
+	00 00		 cmp	 WORD PTR [ebp+1320], cx
+  00147	75 41		 jne	 SHORT $L71327
+
+; 323  : 		{
+; 324  : //			if (pCmd_t->last_char != 0xd && pCmd_t->last_char != 0x9)
+; 325  : 			/* GL 03/03/1997  also check last_punct for issuing 0xb */
+; 326  : 			if ((char_types[pCmd_t->last_char] & MARK_space) == 0 ||
+; 327  : 			    pCmd_t->last_punct != 0)
+
+  00149	8b 85 f8 02 00
+	00		 mov	 eax, DWORD PTR [ebp+760]
+  0014f	f6 80 00 00 00
+	00 80		 test	 BYTE PTR _char_types[eax], 128 ; 00000080H
+  00156	74 2b		 je	 SHORT $L71324
+  00158	8b 85 14 05 00
+	00		 mov	 eax, DWORD PTR [ebp+1300]
+  0015e	85 c0		 test	 eax, eax
+  00160	75 21		 jne	 SHORT $L71324
+
+; 328  : 				pCmd_t->ParseChar = 0xb;
+; 329  : 			else
+; 330  : 				pCmd_t->ParseChar = ' ';
+
+  00162	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+  00169	eb 1f		 jmp	 SHORT $L71327
+$L71321:
+
+; 331  : 		}
+; 332  : 	}
+; 333  : 	else
+; 334  : 	{
+; 335  : 		if (pCmd_t->ParseChar == 0x9 || pCmd_t->ParseChar == 0xa || pCmd_t->ParseChar == 0xd)
+
+  0016b	66 8b 85 28 05
+	00 00		 mov	 ax, WORD PTR [ebp+1320]
+  00172	66 3b c1	 cmp	 ax, cx
+  00175	74 0c		 je	 SHORT $L71324
+  00177	66 3d 0a 00	 cmp	 ax, 10			; 0000000aH
+  0017b	74 06		 je	 SHORT $L71324
+  0017d	66 3d 0d 00	 cmp	 ax, 13			; 0000000dH
+  00181	75 07		 jne	 SHORT $L71327
+$L71324:
+
+; 336  : 		{
+; 337  : 			pCmd_t->ParseChar = 0xb;
+
+  00183	66 89 95 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], dx
+$L71327:
+
+; 338  : 		}		
+; 339  : 	}		
+; 340  : 
+; 341  : 	if (pCmd_t->punct_mode==PUNCT_pass || pCmd_t->skip_mode==SKIP_all)
+
+  0018a	8b bd 0c 05 00
+	00		 mov	 edi, DWORD PTR [ebp+1292]
+  00190	83 ff 03	 cmp	 edi, 3
+  00193	0f 84 bf 14 00
+	00		 je	 $L71330
+  00199	83 bd 10 05 00
+	00 04		 cmp	 DWORD PTR [ebp+1296], 4
+  001a0	0f 84 b2 14 00
+	00		 je	 $L71330
+
+; 357  : 		return;
+; 358  : 	}	
+; 359  : 	// add for double line breaking MGS
+; 360  : 	if(	(pCmd_t->last_char == 0x0a && pCmd_t->ParseChar == 0x0a )|| 
+; 361  : 		(pCmd_t->last_char == 0x0d && pCmd_t->ParseChar == 0x0d )|| 
+; 362  : 		(pCmd_t->last_char == 0x0a && pCmd_t->ParseChar == 0x0d ))
+
+  001a6	8b 95 f8 02 00
+	00		 mov	 edx, DWORD PTR [ebp+760]
+  001ac	83 fa 0a	 cmp	 edx, 10			; 0000000aH
+  001af	75 09		 jne	 SHORT $L71336
+  001b1	66 39 95 28 05
+	00 00		 cmp	 WORD PTR [ebp+1320], dx
+  001b8	74 20		 je	 SHORT $L71335
+$L71336:
+  001ba	b8 0d 00 00 00	 mov	 eax, 13			; 0000000dH
+  001bf	3b d0		 cmp	 edx, eax
+  001c1	75 09		 jne	 SHORT $L71337
+  001c3	66 39 85 28 05
+	00 00		 cmp	 WORD PTR [ebp+1320], ax
+  001ca	74 0e		 je	 SHORT $L71335
+$L71337:
+  001cc	83 fa 0a	 cmp	 edx, 10			; 0000000aH
+  001cf	75 1b		 jne	 SHORT $L71334
+  001d1	66 39 85 28 05
+	00 00		 cmp	 WORD PTR [ebp+1320], ax
+  001d8	75 12		 jne	 SHORT $L71334
+$L71335:
+
+; 363  : 	{
+; 364  : 		pCmd_t->done=1;
+
+  001da	66 c7 85 72 57
+	00 00 01 00	 mov	 WORD PTR [ebp+22386], 1
+
+; 365  : 		pCmd_t->ParseChar= 0xb;
+
+  001e3	66 c7 85 28 05
+	00 00 0b 00	 mov	 WORD PTR [ebp+1320], 11	; 0000000bH
+$L71334:
+
+; 366  : 	}
+; 367  :     /* GL 9/30/96  remove all TYPE_quot character for PUNCT_some mode */
+; 368  : 	/* GL 11/22/96 can not check 0x0fff */
+; 369  : 	if (pCmd_t->ParseChar <= 0xff && (parser_char_types[pCmd_t->ParseChar] & TYPE_quot) && (pCmd_t->punct_mode == PUNCT_some))
+
+  001ec	66 8b 85 28 05
+	00 00		 mov	 ax, WORD PTR [ebp+1320]
+  001f3	66 3d ff 00	 cmp	 ax, 255			; 000000ffH
+  001f7	0f 87 c1 00 00
+	00		 ja	 $L71338
+  001fd	8b c8		 mov	 ecx, eax
+  001ff	81 e1 ff ff 00
+	00		 and	 ecx, 65535		; 0000ffffH
+  00205	f6 04 4d 01 00
+	00 00 80	 test	 BYTE PTR _parser_char_types[ecx*2+1], -128 ; ffffff80H
+  0020d	0f 84 ab 00 00
+	00		 je	 $L71338
+  00213	83 ff 01	 cmp	 edi, 1
+  00216	0f 85 a2 00 00
+	00		 jne	 $L71338
+
+; 370  : 	{
+; 371  : 		/* GL 02/18/1997  add smiling and crying face support */
+; 372  : 		/* let these symbol go through */
+; 373  : 	    if ((pKsd_t->modeflag & MODE_EMAIL) != 0 &&
+; 374  : 		   ((pCmd_t->last_char == '^' && (pCmd_t->ParseChar == ')' || pCmd_t->ParseChar == '(')) ||
+; 375  : 		    (pCmd_t->last_char == '-' && (pCmd_t->ParseChar == ')' || pCmd_t->ParseChar == '(')) ||
+; 376  : 		    (pCmd_t->last_char == ':' && (pCmd_t->ParseChar == ')' || pCmd_t->ParseChar == '('))))
+
+  0021c	bf 00 10 00 00	 mov	 edi, 4096		; 00001000H
+  00221	85 be c0 03 00
+	00		 test	 DWORD PTR [esi+960], edi
+  00227	74 3b		 je	 SHORT $L71339
+  00229	83 fa 5e	 cmp	 edx, 94			; 0000005eH
+  0022c	75 14		 jne	 SHORT $L71341
+  0022e	66 3d 29 00	 cmp	 ax, 41			; 00000029H
+  00232	0f 84 90 00 00
+	00		 je	 $L71654
+  00238	66 3d 28 00	 cmp	 ax, 40			; 00000028H
+  0023c	0f 84 86 00 00
+	00		 je	 $L71654
+$L71341:
+  00242	83 fa 2d	 cmp	 edx, 45			; 0000002dH
+  00245	75 0c		 jne	 SHORT $L71342
+  00247	66 3d 29 00	 cmp	 ax, 41			; 00000029H
+  0024b	74 7b		 je	 SHORT $L71654
+  0024d	66 3d 28 00	 cmp	 ax, 40			; 00000028H
+  00251	74 75		 je	 SHORT $L71654
+$L71342:
+  00253	83 fa 3a	 cmp	 edx, 58			; 0000003aH
+  00256	75 0c		 jne	 SHORT $L71339
+  00258	66 3d 29 00	 cmp	 ax, 41			; 00000029H
+  0025c	74 6a		 je	 SHORT $L71654
+  0025e	66 3d 28 00	 cmp	 ax, 40			; 00000028H
+
+; 377  : 			pCmd_t->ParseChar=pCmd_t->ParseChar;
+; 378  : 		else
+
+  00262	74 64		 je	 SHORT $L71654
+$L71339:
+
+; 379  : 		{
+; 380  : 			/* GL 03/03/1997 save the orignal character before change it to space */
+; 381  : 			pCmd_t->last_punct=pCmd_t->ParseChar;
+; 382  : 			/* GL 03/11/1997, don't change these right TYPE_quot character to space */
+; 383  : 			/* GL 04/02/1997, BATS#331 add " */
+; 384  : 			/* MGS 01/08/1998 BATS #446 add \ */
+; 385  : 			if (pCmd_t->ParseChar != ')' &&
+; 386  : 			    pCmd_t->ParseChar != ']' &&
+; 387  : 			    pCmd_t->ParseChar != '}' &&
+; 388  : 			    pCmd_t->ParseChar != '"' &&
+; 389  : 			    pCmd_t->ParseChar != '\\' &&
+; 390  : 			    pCmd_t->ParseChar != '>')
+
+  00264	66 3d 29 00	 cmp	 ax, 41			; 00000029H
+  00268	89 8d 14 05 00
+	00		 mov	 DWORD PTR [ebp+1300], ecx
+  0026e	74 25		 je	 SHORT $L71345
+  00270	66 3d 5d 00	 cmp	 ax, 93			; 0000005dH
+  00274	74 1f		 je	 SHORT $L71345
+  00276	66 3d 7d 00	 cmp	 ax, 125			; 0000007dH
+  0027a	74 19		 je	 SHORT $L71345
+  0027c	66 3d 22 00	 cmp	 ax, 34			; 00000022H
+  00280	74 13		 je	 SHORT $L71345
+  00282	66 3d 5c 00	 cmp	 ax, 92			; 0000005cH
+  00286	74 0d		 je	 SHORT $L71345
+  00288	66 3d 3e 00	 cmp	 ax, 62			; 0000003eH
+  0028c	74 07		 je	 SHORT $L71345
+
+; 391  : 			pCmd_t->ParseChar=' ';
+
+  0028e	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+$L71345:
+
+; 392  : 
+; 393  : 		    /* GL 05/14/1997 BATS# 374-376 fix the e-mail parsing problem */
+; 394  : 			/* force all " to space in the header section */
+; 395  : 		    if ((pKsd_t->modeflag & MODE_EMAIL) != 0 &&
+; 396  : 				(pCmd_t->email_header == 1) &&
+; 397  : 				(pCmd_t->ParseChar == '"'))
+
+  00295	85 be c0 03 00
+	00		 test	 DWORD PTR [esi+960], edi
+  0029b	74 2b		 je	 SHORT $L71654
+  0029d	ba 01 00 00 00	 mov	 edx, 1
+  002a2	66 39 95 3a 05
+	00 00		 cmp	 WORD PTR [ebp+1338], dx
+  002a9	75 22		 jne	 SHORT $L71347
+  002ab	66 83 bd 28 05
+	00 00 22	 cmp	 WORD PTR [ebp+1320], 34	; 00000022H
+  002b3	75 18		 jne	 SHORT $L71347
+
+; 398  : 				pCmd_t->ParseChar=' ';
+
+  002b5	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+
+; 399  : 
+; 400  : 			/* GL 02/27/1997 need to continue from here */
+; 401  : 		    /* return; */
+; 402  : 		}
+; 403  : 	}
+; 404  : 	else
+
+  002bc	eb 0f		 jmp	 SHORT $L71347
+$L71338:
+
+; 405  : 	{
+; 406  : 		/* GL 03/03/1997 set last_punct to zero if ParseChar is not a TYPE_quot */
+; 407  : 		pCmd_t->last_punct=0;
+
+  002be	c7 85 14 05 00
+	00 00 00 00 00	 mov	 DWORD PTR [ebp+1300], 0
+$L71654:
+  002c8	ba 01 00 00 00	 mov	 edx, 1
+$L71347:
+
+; 408  : 	}
+; 409  :     
+; 410  :     /* GL 9/27/96  change XON(0x11) to a space */
+; 411  : 	if (pCmd_t->ParseChar=='\0' || pCmd_t->ParseChar == 0x11)
+
+  002cd	66 8b 85 28 05
+	00 00		 mov	 ax, WORD PTR [ebp+1320]
+  002d4	33 ff		 xor	 edi, edi
+  002d6	66 3b c7	 cmp	 ax, di
+  002d9	74 06		 je	 SHORT $L71349
+  002db	66 3d 11 00	 cmp	 ax, 17			; 00000011H
+  002df	75 07		 jne	 SHORT $L71348
+$L71349:
+
+; 412  : 	{
+; 413  : 		pCmd_t->ParseChar=' ';
+
+  002e1	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+$L71348:
+
+; 414  : 	}
+; 415  : 	if( pCmd_t->ParseChar== 0x0fff)
+
+  002e8	66 8b 85 28 05
+	00 00		 mov	 ax, WORD PTR [ebp+1320]
+  002ef	66 3d ff 0f	 cmp	 ax, 4095		; 00000fffH
+  002f3	75 10		 jne	 SHORT $L71350
+
+; 416  : 	/* 
+; 417  : 	 * by definition command or phonemes following
+; 418  :  	 * don't do text proceesing any further
+; 419  : 	 */
+; 420  : 	{
+; 421  : //printf("*A %x\n",pCmd_t->ParseChar);
+; 422  : 		pCmd_t->done=1;
+
+  002f5	66 89 95 72 57
+	00 00		 mov	 WORD PTR [ebp+22386], dx
+
+; 423  : 		pCmd_t->ParseChar=' ';
+
+  002fc	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+
+; 424  : 	}
+; 425  : 	else
+
+  00303	eb 23		 jmp	 SHORT $L71352
+$L71350:
+
+; 426  : 	{
+; 427  : 		if (pCmd_t->ParseChar == 0x0b)
+
+  00305	66 3d 0b 00	 cmp	 ax, 11			; 0000000bH
+  00309	75 1d		 jne	 SHORT $L71352
+
+; 428  : 		{
+; 429  : //printf("*B %x\n",pCmd_t->ParseChar);
+; 430  : 			pCmd_t->done=1;
+; 431  : 			pCmd_t->clausebuf[pCmd_t->input_counter++] = ' ';
+
+  0030b	0f bf 8d 34 05
+	00 00		 movsx	 ecx, WORD PTR [ebp+1332]
+  00312	66 89 95 72 57
+	00 00		 mov	 WORD PTR [ebp+22386], dx
+  00319	c6 84 29 3c 05
+	00 00 20	 mov	 BYTE PTR [ecx+ebp+1340], 32 ; 00000020H
+  00321	66 ff 85 34 05
+	00 00		 inc	 WORD PTR [ebp+1332]
+$L71352:
+
+; 432  : 		}
+; 433  : 	}
+; 434  : 	pCmd_t->clausebuf[pCmd_t->input_counter++] = (unsigned char)pCmd_t->ParseChar; // NAL warning removal
+
+  00328	0f bf 85 34 05
+	00 00		 movsx	 eax, WORD PTR [ebp+1332]
+  0032f	8a 8d 28 05 00
+	00		 mov	 cl, BYTE PTR [ebp+1320]
+  00335	88 8c 28 3c 05
+	00 00		 mov	 BYTE PTR [eax+ebp+1340], cl
+  0033c	66 ff 85 34 05
+	00 00		 inc	 WORD PTR [ebp+1332]
+
+; 435  : #ifdef DEBUG_PARSER2
+; 436  :     	printf("at getc ,%c,%d\n",pCmd_t->ParseChar,pCmd_t->ParseChar);
+; 437  : #endif
+; 438  : 	if(pCmd_t->ParseChar == 0x11)
+
+  00343	66 83 bd 28 05
+	00 00 11	 cmp	 WORD PTR [ebp+1320], 17	; 00000011H
+  0034b	66 8b 85 34 05
+	00 00		 mov	 ax, WORD PTR [ebp+1332]
+  00352	75 19		 jne	 SHORT $L71354
+
+; 439  : 	/* 
+; 440  : 	 * this char comes at firsxt why??
+; 441  : 	 * but I use it to know when to insert the 
+; 442  : 	 * first word boundary at start of clause
+; 443  : 	 */
+; 444  : 	{
+; 445  : 		pCmd_t->clausebuf[pCmd_t->input_counter++] = ' ';
+
+  00354	0f bf c0	 movsx	 eax, ax
+  00357	c6 84 28 3c 05
+	00 00 20	 mov	 BYTE PTR [eax+ebp+1340], 32 ; 00000020H
+  0035f	66 ff 85 34 05
+	00 00		 inc	 WORD PTR [ebp+1332]
+  00366	66 8b 85 34 05
+	00 00		 mov	 ax, WORD PTR [ebp+1332]
+$L71354:
+
+; 446  : 	}
+; 447  : 
+; 448  : //printf("current value is %d\n",pCmd_t->ret_value.parser_flag);
+; 449  : 	/* 
+; 450  : 	 * now check to see if possible end of clause
+; 451  : 	 * by looking for white space character preceeded by a punc
+; 452  : 	 */
+; 453  : 	if ((pKsd_t->modeflag & MODE_EMAIL) == 0)
+
+  0036d	8b 8e c0 03 00
+	00		 mov	 ecx, DWORD PTR [esi+960]
+  00373	f6 c5 10	 test	 ch, 16			; 00000010H
+  00376	0f 85 aa 00 00
+	00		 jne	 $L71355
+
+; 454  : 	{
+; 455  : 		if (((char_types[pCmd_t->clausebuf[pCmd_t->input_counter-1]] & MARK_space) || (pCmd_t->clausebuf[pCmd_t->input_counter-1] == 0x82))
+; 456  : 		&& (char_types[pCmd_t->clausebuf[pCmd_t->input_counter-2]] & MARK_clause))
+
+  0037c	0f bf c8	 movsx	 ecx, ax
+  0037f	8d 04 29	 lea	 eax, DWORD PTR [ecx+ebp]
+  00382	8a 8c 29 3b 05
+	00 00		 mov	 cl, BYTE PTR [ecx+ebp+1339]
+  00389	8b d9		 mov	 ebx, ecx
+  0038b	81 e3 ff 00 00
+	00		 and	 ebx, 255		; 000000ffH
+  00391	f6 83 00 00 00
+	00 80		 test	 BYTE PTR _char_types[ebx], 128 ; 00000080H
+  00398	75 05		 jne	 SHORT $L71357
+  0039a	80 f9 82	 cmp	 cl, 130			; 00000082H
+  0039d	75 7b		 jne	 SHORT $L71358
+$L71357:
+  0039f	33 c9		 xor	 ecx, ecx
+  003a1	8a 88 3a 05 00
+	00		 mov	 cl, BYTE PTR [eax+1338]
+  003a7	f6 81 00 00 00
+	00 40		 test	 BYTE PTR _char_types[ecx], 64 ; 00000040H
+  003ae	74 6a		 je	 SHORT $L71358
+
+; 457  : 		{
+; 458  : //printf("*C %x\n",pCmd_t->ParseChar);
+; 459  : 			pCmd_t->done=1;
+
+  003b0	66 89 95 72 57
+	00 00		 mov	 WORD PTR [ebp+22386], dx
+
+; 460  : 			// fix for another lucent/octel/avaya crash
+; 461  : 			pCmd_t->clausebuf[pCmd_t->input_counter]='\0';
+
+  003b7	c6 80 3c 05 00
+	00 00		 mov	 BYTE PTR [eax+1340], 0
+
+; 462  : 			/* GL 02/01/1997, check for space instead of 0x0fff */
+; 463  : 		// MGS		10/14/1999		BATS#876 fix for UK phone numbers (part of it) 
+; 464  : 
+; 465  : //			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && (pCmd_t->ParseChar== 0x0fff) &&
+; 466  : 			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && ((char_types[pCmd_t->ParseChar] & MARK_space) || (pCmd_t->ParseChar==0x82)) &&
+; 467  : 		    (par_dict_lookup(pKsd_t,cm_text_get_word(pCmd_t->prevword,pCmd_t->wordbuf,1),0)))
+
+  003be	0f bf 85 34 05
+	00 00		 movsx	 eax, WORD PTR [ebp+1332]
+  003c5	80 bc 28 3a 05
+	00 00 2e	 cmp	 BYTE PTR [eax+ebp+1338], 46 ; 0000002eH
+  003cd	75 4b		 jne	 SHORT $L71358
+  003cf	66 8b 85 28 05
+	00 00		 mov	 ax, WORD PTR [ebp+1320]
+  003d6	8b c8		 mov	 ecx, eax
+  003d8	81 e1 ff ff 00
+	00		 and	 ecx, 65535		; 0000ffffH
+  003de	f6 81 00 00 00
+	00 80		 test	 BYTE PTR _char_types[ecx], 128 ; 00000080H
+  003e5	75 06		 jne	 SHORT $L71359
+  003e7	66 3d 82 00	 cmp	 ax, 130			; 00000082H
+  003eb	75 2d		 jne	 SHORT $L71358
+$L71359:
+  003ed	8b 85 6c 57 00
+	00		 mov	 eax, DWORD PTR [ebp+22380]
+  003f3	57		 push	 edi
+  003f4	52		 push	 edx
+  003f5	8d 95 c0 08 00
+	00		 lea	 edx, DWORD PTR [ebp+2240]
+  003fb	52		 push	 edx
+  003fc	50		 push	 eax
+  003fd	e8 00 00 00 00	 call	 _cm_text_get_word
+  00402	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00405	50		 push	 eax
+  00406	56		 push	 esi
+  00407	e8 00 00 00 00	 call	 _par_dict_lookup
+  0040c	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0040f	85 c0		 test	 eax, eax
+  00411	74 07		 je	 SHORT $L71358
+
+; 468  : 			{
+; 469  : //printf("*D %x\n",pCmd_t->ParseChar);
+; 470  : 				pCmd_t->done=0;
+
+  00413	66 89 bd 72 57
+	00 00		 mov	 WORD PTR [ebp+22386], di
+$L71358:
+
+; 471  : 			}
+; 472  : 		}
+; 473  : 		/* GL 05/14/1997 BATS#374-376 make sure to reset email header */ 
+; 474  :       	pCmd_t->email_header = 0;
+
+  0041a	66 89 bd 3a 05
+	00 00		 mov	 WORD PTR [ebp+1338], di
+
+; 475  : 	}
+; 476  : 	else
+
+  00421	e9 7e 01 00 00	 jmp	 $L71382
+$L71355:
+
+; 477  : 	{
+; 478  : /* GL 04/21/1997  change this for OSF build */
+; 479  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 480  : 		/* GL 09/30/1997 BATS# 475 redesign the header detection code */
+; 481  : 		unsigned char header1[]={"From"};
+
+  00426	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR $SG71363
+  0042c	8a 15 04 00 00
+	00		 mov	 dl, BYTE PTR $SG71363+4
+
+; 482  : 		unsigned char header2[]={"Return-Path:"};
+
+  00432	a1 00 00 00 00	 mov	 eax, DWORD PTR $SG71366
+  00437	89 4c 24 24	 mov	 DWORD PTR _header1$71361[esp+124], ecx
+  0043b	8b 0d 04 00 00
+	00		 mov	 ecx, DWORD PTR $SG71366+4
+  00441	88 54 24 28	 mov	 BYTE PTR _header1$71361[esp+128], dl
+  00445	8b 15 08 00 00
+	00		 mov	 edx, DWORD PTR $SG71366+8
+  0044b	89 44 24 38	 mov	 DWORD PTR _header2$71364[esp+124], eax
+  0044f	a0 0c 00 00 00	 mov	 al, BYTE PTR $SG71366+12
+  00454	89 4c 24 3c	 mov	 DWORD PTR _header2$71364[esp+128], ecx
+
+; 483  : 		unsigned char header3[]={"%======Internet"};
+
+  00458	8b 0d 00 00 00
+	00		 mov	 ecx, DWORD PTR $SG71369
+  0045e	89 54 24 40	 mov	 DWORD PTR _header2$71364[esp+132], edx
+  00462	8b 15 04 00 00
+	00		 mov	 edx, DWORD PTR $SG71369+4
+  00468	88 44 24 44	 mov	 BYTE PTR _header2$71364[esp+136], al
+  0046c	a1 08 00 00 00	 mov	 eax, DWORD PTR $SG71369+8
+  00471	89 4c 24 48	 mov	 DWORD PTR _header3$71367[esp+124], ecx
+  00475	8b 0d 0c 00 00
+	00		 mov	 ecx, DWORD PTR $SG71369+12
+  0047b	89 54 24 4c	 mov	 DWORD PTR _header3$71367[esp+128], edx
+
+; 484  : 		unsigned char header4[]={"Message-ID:"};
+
+  0047f	8b 15 00 00 00
+	00		 mov	 edx, DWORD PTR $SG71372
+  00485	89 44 24 50	 mov	 DWORD PTR _header3$71367[esp+132], eax
+  00489	a1 04 00 00 00	 mov	 eax, DWORD PTR $SG71372+4
+  0048e	89 4c 24 54	 mov	 DWORD PTR _header3$71367[esp+136], ecx
+  00492	8b 0d 08 00 00
+	00		 mov	 ecx, DWORD PTR $SG71372+8
+  00498	89 54 24 2c	 mov	 DWORD PTR _header4$71370[esp+124], edx
+
+; 485  : 		unsigned char header_buff[36]="";
+
+  0049c	8a 15 00 00 00
+	00		 mov	 dl, BYTE PTR $SG71374
+  004a2	89 44 24 30	 mov	 DWORD PTR _header4$71370[esp+128], eax
+  004a6	89 4c 24 34	 mov	 DWORD PTR _header4$71370[esp+132], ecx
+  004aa	b9 08 00 00 00	 mov	 ecx, 8
+  004af	33 c0		 xor	 eax, eax
+  004b1	8d 7c 24 59	 lea	 edi, DWORD PTR _header_buff$71373[esp+125]
+  004b5	88 54 24 58	 mov	 BYTE PTR _header_buff$71373[esp+124], dl
+  004b9	ba c4 fa ff ff	 mov	 edx, -1340		; fffffac4H
+  004be	f3 ab		 rep stosd
+  004c0	66 ab		 stosw
+  004c2	aa		 stosb
+
+; 486  : 
+; 487  : 		/* GL 09/30/1997 BATS#475 remove all the spaces and 0x82 */
+; 488  : 		for (i=0,j=0;i<=34;++i)
+
+  004c3	33 ff		 xor	 edi, edi
+  004c5	8d 85 3c 05 00
+	00		 lea	 eax, DWORD PTR [ebp+1340]
+  004cb	2b d5		 sub	 edx, ebp
+$L71375:
+
+; 489  : 		{
+; 490  : 			if (pCmd_t->clausebuf[i] != ' ' &&
+; 491  : 				pCmd_t->clausebuf[i] != 0x82)
+
+  004cd	8a 08		 mov	 cl, BYTE PTR [eax]
+  004cf	80 f9 20	 cmp	 cl, 32			; 00000020H
+  004d2	74 0a		 je	 SHORT $L71376
+  004d4	80 f9 82	 cmp	 cl, 130			; 00000082H
+  004d7	74 05		 je	 SHORT $L71376
+
+; 492  : 				header_buff[j++] = pCmd_t->clausebuf[i];
+
+  004d9	88 4c 3c 58	 mov	 BYTE PTR _header_buff$71373[esp+edi+124], cl
+  004dd	47		 inc	 edi
+$L71376:
+  004de	40		 inc	 eax
+  004df	8d 0c 02	 lea	 ecx, DWORD PTR [edx+eax]
+  004e2	83 f9 22	 cmp	 ecx, 34			; 00000022H
+  004e5	7e e6		 jle	 SHORT $L71375
+
+; 493  : 		}
+; 494  : 		header_buff[j] = '\0'; // NAL warning removal
+; 495  : 
+; 496  : 		/* catch the empty line as 0xd 0xa or 0xa for OSF */
+; 497  : 		/* this empty line will mark the end of header section */
+; 498  : #if defined (WIN32) || defined (MSDOS)
+; 499  : 		if ((pCmd_t->email_header == 1) &&
+; 500  :       	   ((header_buff[0] == 0xd && header_buff[1] == 0xa)))
+
+  004e7	bb 01 00 00 00	 mov	 ebx, 1
+  004ec	c6 44 3c 58 00	 mov	 BYTE PTR _header_buff$71373[esp+edi+124], 0
+  004f1	66 39 9d 3a 05
+	00 00		 cmp	 WORD PTR [ebp+1338], bx
+  004f8	75 17		 jne	 SHORT $L71379
+  004fa	80 7c 24 58 0d	 cmp	 BYTE PTR _header_buff$71373[esp+124], 13 ; 0000000dH
+  004ff	75 10		 jne	 SHORT $L71379
+  00501	80 7c 24 59 0a	 cmp	 BYTE PTR _header_buff$71373[esp+125], 10 ; 0000000aH
+  00506	75 09		 jne	 SHORT $L71379
+
+; 501  : #endif
+; 502  : /* GL 04/21/1997  add this for OSF build */
+; 503  : #ifdef __osf__
+; 504  : 		if ((pCmd_t->email_header == 1) && (header_buff[0] == 0xa))
+; 505  : #endif
+; 506  : #ifdef __linux__
+; 507  : 		if ((pCmd_t->email_header == 1) && (header_buff[0] == 0xa))
+; 508  : #endif
+; 509  : 		{   
+; 510  :       		/* leave the email header section */
+; 511  :       	 	pCmd_t->email_header = 0;
+
+  00508	66 c7 85 3a 05
+	00 00 00 00	 mov	 WORD PTR [ebp+1338], 0
+$L71379:
+
+; 512  :       	}
+; 513  : 		/* GL 09/30/1997 BATS#475 */ 
+; 514  : 		/* now we can check the header_buff for all the possible e-mail header */
+; 515  : 		if ((pCmd_t->email_header == 0) &&
+; 516  :       	    (!strncmp(header_buff,header1,4)  ||
+; 517  :       	     !strncmp(header_buff,header2,12) ||
+; 518  :       	     !strncmp(header_buff,header3,15) ||
+; 519  :       	     !strncmp(header_buff,header4,11)))
+
+  00511	66 83 bd 3a 05
+	00 00 00	 cmp	 WORD PTR [ebp+1338], 0
+  00519	75 61		 jne	 SHORT $L71380
+  0051b	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__strncmp
+  00521	8d 54 24 24	 lea	 edx, DWORD PTR _header1$71361[esp+124]
+  00525	6a 04		 push	 4
+  00527	8d 44 24 5c	 lea	 eax, DWORD PTR _header_buff$71373[esp+128]
+  0052b	52		 push	 edx
+  0052c	50		 push	 eax
+  0052d	ff d7		 call	 edi
+  0052f	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00532	85 c0		 test	 eax, eax
+  00534	74 3f		 je	 SHORT $L71381
+  00536	8d 4c 24 38	 lea	 ecx, DWORD PTR _header2$71364[esp+124]
+  0053a	6a 0c		 push	 12			; 0000000cH
+  0053c	8d 54 24 5c	 lea	 edx, DWORD PTR _header_buff$71373[esp+128]
+  00540	51		 push	 ecx
+  00541	52		 push	 edx
+  00542	ff d7		 call	 edi
+  00544	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00547	85 c0		 test	 eax, eax
+  00549	74 2a		 je	 SHORT $L71381
+  0054b	8d 44 24 48	 lea	 eax, DWORD PTR _header3$71367[esp+124]
+  0054f	6a 0f		 push	 15			; 0000000fH
+  00551	8d 4c 24 5c	 lea	 ecx, DWORD PTR _header_buff$71373[esp+128]
+  00555	50		 push	 eax
+  00556	51		 push	 ecx
+  00557	ff d7		 call	 edi
+  00559	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0055c	85 c0		 test	 eax, eax
+  0055e	74 15		 je	 SHORT $L71381
+  00560	8d 54 24 2c	 lea	 edx, DWORD PTR _header4$71370[esp+124]
+  00564	6a 0b		 push	 11			; 0000000bH
+  00566	8d 44 24 5c	 lea	 eax, DWORD PTR _header_buff$71373[esp+128]
+  0056a	52		 push	 edx
+  0056b	50		 push	 eax
+  0056c	ff d7		 call	 edi
+  0056e	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00571	85 c0		 test	 eax, eax
+  00573	75 07		 jne	 SHORT $L71380
+$L71381:
+
+; 520  :       	{   
+; 521  :       		/* enter the email header section */
+; 522  :       	 	pCmd_t->email_header = 1;
+
+  00575	66 89 9d 3a 05
+	00 00		 mov	 WORD PTR [ebp+1338], bx
+$L71380:
+
+; 523  :       	}
+; 524  : #endif
+; 525  : 		/* GL 02/08/1997,  catch record line by line if in email mode */
+; 526  :       	/* GL 02/11/1997   fix the hight-light mode by catching 0xd, 0x20 as new-line*/
+; 527  : #if defined (WIN32) || defined (MSDOS)
+; 528  : 		if ((pCmd_t->clausebuf[pCmd_t->input_counter-1] == 0xa ||
+; 529  : 		     pCmd_t->clausebuf[pCmd_t->input_counter-1] == 0x20)
+; 530  : 		&& (pCmd_t->clausebuf[pCmd_t->input_counter-2] == 0xd))
+
+  0057c	0f bf 8d 34 05
+	00 00		 movsx	 ecx, WORD PTR [ebp+1332]
+  00583	8a 84 29 3b 05
+	00 00		 mov	 al, BYTE PTR [ecx+ebp+1339]
+  0058a	03 cd		 add	 ecx, ebp
+  0058c	3c 0a		 cmp	 al, 10			; 0000000aH
+  0058e	74 04		 je	 SHORT $L71383
+  00590	3c 20		 cmp	 al, 32			; 00000020H
+  00592	75 10		 jne	 SHORT $L71382
+$L71383:
+  00594	80 b9 3a 05 00
+	00 0d		 cmp	 BYTE PTR [ecx+1338], 13	; 0000000dH
+  0059b	75 07		 jne	 SHORT $L71382
+
+; 531  : #endif
+; 532  : /* GL 04/21/1997  add this for OSF build */
+; 533  : #ifdef __osf__
+; 534  : 		if (pCmd_t->clausebuf[pCmd_t->input_counter-1] == 0xa)
+; 535  : #endif
+; 536  : #ifdef __linux__
+; 537  : 		if (pCmd_t->clausebuf[pCmd_t->input_counter-1] == 0xa)
+; 538  : #endif
+; 539  : 		{
+; 540  : 			pCmd_t->done=1;
+
+  0059d	66 89 9d 72 57
+	00 00		 mov	 WORD PTR [ebp+22386], bx
+$L71382:
+
+; 541  : 		}
+; 542  : 	}
+; 543  : 	/* Remember ptr to beginning of word boundary */
+; 544  : 	// MGS		10/14/1999		BATS#876 fix for UK phone numbers (part of it) 
+; 545  : 	if(((char_types[pCmd_t->clausebuf[pCmd_t->input_counter-2]] & MARK_space) || pCmd_t->clausebuf[pCmd_t->input_counter-2] == 0x82 )&&  
+; 546  : 		!((char_types[pCmd_t->clausebuf[pCmd_t->input_counter-1]] & MARK_space) || pCmd_t->clausebuf[pCmd_t->input_counter-1] == 0x82  ))
+
+  005a4	66 8b bd 34 05
+	00 00		 mov	 di, WORD PTR [ebp+1332]
+  005ab	0f bf d7	 movsx	 edx, di
+  005ae	8a 8c 2a 3a 05
+	00 00		 mov	 cl, BYTE PTR [edx+ebp+1338]
+  005b5	8d 04 2a	 lea	 eax, DWORD PTR [edx+ebp]
+  005b8	8b d1		 mov	 edx, ecx
+  005ba	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  005c0	f6 82 00 00 00
+	00 80		 test	 BYTE PTR _char_types[edx], 128 ; 00000080H
+  005c7	75 05		 jne	 SHORT $L71385
+  005c9	80 f9 82	 cmp	 cl, 130			; 00000082H
+  005cc	75 28		 jne	 SHORT $L71384
+$L71385:
+  005ce	8a 88 3b 05 00
+	00		 mov	 cl, BYTE PTR [eax+1339]
+  005d4	8d 90 3b 05 00
+	00		 lea	 edx, DWORD PTR [eax+1339]
+  005da	8b d9		 mov	 ebx, ecx
+  005dc	81 e3 ff 00 00
+	00		 and	 ebx, 255		; 000000ffH
+  005e2	f6 83 00 00 00
+	00 80		 test	 BYTE PTR _char_types[ebx], 128 ; 00000080H
+  005e9	75 0b		 jne	 SHORT $L71384
+  005eb	80 f9 82	 cmp	 cl, 130			; 00000082H
+  005ee	74 06		 je	 SHORT $L71384
+
+; 547  : 	{
+; 548  : 		pCmd_t->prevword = &pCmd_t->clausebuf[pCmd_t->input_counter-1];
+
+  005f0	89 95 6c 57 00
+	00		 mov	 DWORD PTR [ebp+22380], edx
+$L71384:
+
+; 549  : 	}
+; 550  : 	/* 
+; 551  : 	 * a clause boundry doesn't have to be inserted here because cluasebuf is now a 
+; 552  : 	 * rolling input buffer, so the clause length can be infinite
+; 553  : 	 */
+; 554  : 	if(pCmd_t->done == 0)
+
+  005f6	66 83 bd 72 57
+	00 00 00	 cmp	 WORD PTR [ebp+22386], 0
+  005fe	b9 02 00 00 00	 mov	 ecx, 2
+  00603	75 1c		 jne	 SHORT $L71661
+
+; 555  : 	{
+; 556  : 		if (pCmd_t->input_counter>PAR_ROLLING_STOP_VALUE)
+
+  00605	66 81 ff 2c 01	 cmp	 di, 300			; 0000012cH
+  0060a	7e 07		 jle	 SHORT $L71387
+
+; 557  : 		{
+; 558  : 			pCmd_t->done=2;
+
+  0060c	66 89 8d 72 57
+	00 00		 mov	 WORD PTR [ebp+22386], cx
+$L71387:
+
+; 559  : 		}
+; 560  : 	}
+; 561  : 	if(pCmd_t->done)
+
+  00613	66 83 bd 72 57
+	00 00 00	 cmp	 WORD PTR [ebp+22386], 0
+  0061b	0f 84 55 0b 00
+	00		 je	 $L71388
+$L71661:
+
+; 562  : 	{
+; 563  : 		/* timing here */
+; 564  : #ifdef CMD_DEBUG
+; 565  : 		if (DT_DBG(CMD_DBG,0x100))
+; 566  : 		{
+; 567  : 			ulStartTime=timeGetTime();
+; 568  : //			WINprintf("get_clause_parse at %ld.\n", ulStartTime);
+; 569  : 		}
+; 570  : #endif //CMD_DEBUG
+; 571  : 		
+; 572  : 		/* here we do clause base rule processing */
+; 573  : 		/* set the end of the clausebuf to NULL */
+; 574  : 			pCmd_t->clausebuf[pCmd_t->input_counter]='\0';
+; 575  : 
+; 576  : 		/* here we do clause base rule processing */
+; 577  : 		/*
+; 578  : 		   08/22/96, GL,  This code will crash screen reader. Need to handle possible
+; 579  : 		   index mark as well.  I remove this code since a short clause will not consume
+; 580  : 		   too much time anyway.
+; 581  : 		   09/04/96, GL.  fix the index bug. restore this function.
+; 582  : 		   10/25/96, GL.  still hang the SARAW if encount [:np][:i m 88][:sync] string
+; 583  : 		   since it is a 2 counts buffer, skip the following code the [:i m 88] will never
+; 584  : 		   get sent, So SARAW will wait forever. We need to check the counter for index
+; 585  : 		   buffer as well.   If any index mark has been stored then we need to process
+; 586  : 		   the them even the input_counter is very small
+; 587  : 		*/ 
+; 588  : 
+; 589  : 		if ((pCmd_t->index_counter == 0) && (pCmd_t->input_counter < PAR_MIN_INPUT_SIZE) && (pCmd_t->punct_mode != PUNCT_all))
+
+  00621	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__printf
+  00627	c6 80 3c 05 00
+	00 00		 mov	 BYTE PTR [eax+1340], 0
+  0062e	66 83 bd 36 05
+	00 00 00	 cmp	 WORD PTR [ebp+1334], 0
+  00636	0f 85 4d 01 00
+	00		 jne	 $L71389
+  0063c	66 83 bd 34 05
+	00 00 03	 cmp	 WORD PTR [ebp+1332], 3
+  00644	0f 8d 3f 01 00
+	00		 jge	 $L71389
+  0064a	39 8d 0c 05 00
+	00		 cmp	 DWORD PTR [ebp+1292], ecx
+  00650	0f 84 33 01 00
+	00		 je	 $L71389
+
+; 590  : 		{
+; 591  : 			/* short clauses bypass text pre-processing*/
+; 592  : 			strcpy(pCmd_t->output_buf,pCmd_t->clausebuf);
+
+  00656	8d bd 3c 05 00
+	00		 lea	 edi, DWORD PTR [ebp+1340]
+  0065c	83 c9 ff	 or	 ecx, -1
+  0065f	33 c0		 xor	 eax, eax
+  00661	8d 95 44 0c 00
+	00		 lea	 edx, DWORD PTR [ebp+3140]
+  00667	f2 ae		 repne scasb
+  00669	f7 d1		 not	 ecx
+  0066b	2b f9		 sub	 edi, ecx
+  0066d	8b c1		 mov	 eax, ecx
+  0066f	8b f7		 mov	 esi, edi
+  00671	8b fa		 mov	 edi, edx
+  00673	c1 e9 02	 shr	 ecx, 2
+  00676	f3 a5		 rep movsd
+  00678	8b c8		 mov	 ecx, eax
+  0067a	83 e1 03	 and	 ecx, 3
+  0067d	f3 a4		 rep movsb
+
+; 593  : 			pCmd_t->ret_value.output_offset=pCmd_t->input_counter;
+
+  0067f	0f bf 8d 34 05
+	00 00		 movsx	 ecx, WORD PTR [ebp+1332]
+  00686	89 8d 80 57 00
+	00		 mov	 DWORD PTR [ebp+22400], ecx
+$L71504:
+
+; 944  : 					return;
+; 945  : 				}              
+; 946  : 			} /* skip_mode != SKIP_rule  */
+; 947  : 		
+; 948  : 		} /* if (pCmd_t->input_counter<PAR_MIN_INPUT_SIZE) */
+; 949  : 
+; 950  : #ifdef DEBUG_PARSER
+; 951  : 			printf("the output .");
+; 952  : #endif
+; 953  : /* put timing here */
+; 954  : #ifdef CMD_DEBUG
+; 955  : 		if (DT_DBG(CMD_DBG,0x100))
+; 956  : 		{
+; 957  : 			ulEndTime=timeGetTime();
+; 958  : #ifndef UNDER_CE  //mfg 01/08/98 WINprintf not supported under Windows CE
+; 959  : 			WINprintf("\nget_clause_parse at %ld. ms %s\n", ulEndTime-ulStartTime,pCmd_t->output_buf);
+; 960  : #endif
+; 961  : 
+; 962  : #ifndef MSDOS
+; 963  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+; 964  : 				fprintf((FILE *)pKsd_t->dbglog,"\nget_clause_parse at %ld. ms %s\n", ulEndTime-ulStartTime,pCmd_t->output_buf);
+; 965  : #endif
+; 966  : 		}
+; 967  : #endif //CMD_DEBUG
+; 968  : 
+; 969  : 		mode = PAR_OUTPUT_CHARS;
+; 970  : 		
+; 971  : 		for (i=0;((i<pCmd_t->ret_value.output_offset) && (char_types[pCmd_t->output_buf[i]] & MARK_space));i++);
+
+  0068c	8b 85 80 57 00
+	00		 mov	 eax, DWORD PTR [ebp+22400]
+  00692	33 db		 xor	 ebx, ebx
+  00694	33 ff		 xor	 edi, edi
+  00696	3b c3		 cmp	 eax, ebx
+  00698	c7 44 24 18 01
+	00 00 00	 mov	 DWORD PTR _mode$[esp+124], 1
+  006a0	7e 17		 jle	 SHORT $L71508
+$L71506:
+  006a2	33 d2		 xor	 edx, edx
+  006a4	8a 94 2f 44 0c
+	00 00		 mov	 dl, BYTE PTR [edi+ebp+3140]
+  006ab	f6 82 00 00 00
+	00 80		 test	 BYTE PTR _char_types[edx], 128 ; 00000080H
+  006b2	74 05		 je	 SHORT $L71508
+  006b4	47		 inc	 edi
+  006b5	3b f8		 cmp	 edi, eax
+  006b7	7c e9		 jl	 SHORT $L71506
+$L71508:
+
+; 972  : 		
+; 973  : 		/* debug switch */
+; 974  : 		if (DT_DBG(CMD_DBG,0x008))
+
+  006b9	8b 74 24 10	 mov	 esi, DWORD PTR _pKsd_t$[esp+124]
+  006bd	66 8b 86 40 06
+	00 00		 mov	 ax, WORD PTR [esi+1600]
+  006c4	f6 c4 80	 test	 ah, -128		; ffffff80H
+  006c7	74 2b		 je	 SHORT $L71509
+  006c9	a8 08		 test	 al, 8
+  006cb	74 27		 je	 SHORT $L71509
+
+; 975  : 		{
+; 976  : #ifndef MSDOS
+; 977  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  006cd	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  006d3	3b c3		 cmp	 eax, ebx
+  006d5	74 0f		 je	 SHORT $L71510
+
+; 978  : 				fprintf(pKsd_t->dbglog,"\nNormal output:");
+
+  006d7	68 00 00 00 00	 push	 OFFSET FLAT:$SG71511
+  006dc	50		 push	 eax
+  006dd	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  006e3	83 c4 08	 add	 esp, 8
+$L71510:
+
+; 979  : #endif
+; 980  : 			printf("\nNormal output:");
+
+  006e6	68 00 00 00 00	 push	 OFFSET FLAT:$SG71512
+  006eb	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  006f1	83 c4 04	 add	 esp, 4
+$L71509:
+
+; 981  : 		}
+; 982  : 		/*
+; 983  : 		   GL 09/06/1996, always send a space first, make sure we have space
+; 984  : 		   while handling rolling text
+; 985  : 		*/
+; 986  : 		/*
+; 987  : 		   GL 01/10/1997, remove the space to fix the ["]<string> problem 
+; 988  : 		   GL 01/22/1997, use roll_text to indicate the rolling text state
+; 989  : 		   the extra space will be fired if we are in rolling text state
+; 990  : 		*/
+; 991  : 		if (pCmd_t->roll_text != 0)
+
+  006f4	66 39 9d 38 05
+	00 00		 cmp	 WORD PTR [ebp+1336], bx
+  006fb	74 1f		 je	 SHORT $L71513
+
+; 992  : 		{
+; 993  : 			pipe_value = (PFASCII<<PSFONT) + ' ';
+
+  006fd	c7 44 24 14 20
+	00 00 00	 mov	 DWORD PTR _pipe_value$[esp+124], 32 ; 00000020H
+
+; 994  : 			cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+
+  00705	8b 8e 90 02 00
+	00		 mov	 ecx, DWORD PTR [esi+656]
+  0070b	8d 44 24 14	 lea	 eax, DWORD PTR _pipe_value$[esp+124]
+  0070f	6a 01		 push	 1
+  00711	50		 push	 eax
+  00712	51		 push	 ecx
+  00713	56		 push	 esi
+  00714	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  00719	83 c4 10	 add	 esp, 16			; 00000010H
+$L71513:
+
+; 995  : 		}
+; 996  : 		
+; 997  : 		for(;i<pCmd_t->ret_value.output_offset;i++)
+
+  0071c	3b bd 80 57 00
+	00		 cmp	 edi, DWORD PTR [ebp+22400]
+  00722	0f 8d 84 0c 00
+	00		 jge	 $L71516
+  00728	8d 1c 7f	 lea	 ebx, DWORD PTR [edi+edi*2]
+  0072b	d1 e3		 shl	 ebx, 1
+  0072d	8d 94 2b 02 41
+	00 00		 lea	 edx, DWORD PTR [ebx+ebp+16642]
+  00734	89 54 24 1c	 mov	 DWORD PTR -96+[esp+124], edx
+$L71514:
+
+; 998  : 		{
+; 999  : 			if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  00738	8b 86 30 03 00
+	00		 mov	 eax, DWORD PTR [esi+816]
+  0073e	85 c0		 test	 eax, eax
+  00740	0f 85 38 0e 00
+	00		 jne	 $L71494
+  00746	8b 86 2c 03 00
+	00		 mov	 eax, DWORD PTR [esi+812]
+  0074c	ba 01 00 00 00	 mov	 edx, 1
+  00751	3b c2		 cmp	 eax, edx
+  00753	0f 84 25 0e 00
+	00		 je	 $L71494
+
+; 1002 : 				return;
+; 1003 : 			}              
+; 1004 : 			if (pCmd_t->output_buf[i] != PAR_INDEX_DUMMY_CHAR)
+
+  00759	8a 84 2f 44 0c
+	00 00		 mov	 al, BYTE PTR [edi+ebp+3140]
+  00760	3c 82		 cmp	 al, 130			; 00000082H
+  00762	0f 84 0e 0b 00
+	00		 je	 $L71527
+
+; 1005 : 			{
+; 1006 : 				if (mode==PAR_OUTPUT_CHARS)
+
+  00768	8b 4c 24 18	 mov	 ecx, DWORD PTR _mode$[esp+124]
+  0076c	3b ca		 cmp	 ecx, edx
+  0076e	0f 85 74 0a 00
+	00		 jne	 $L71520
+
+; 1007 : 				{
+; 1008 : 					if (pCmd_t->output_buf[i]==PAR_PHONES_ON_D)
+
+  00774	3c 80		 cmp	 al, 128			; 00000080H
+  00776	0f 85 02 0a 00
+	00		 jne	 $L71521
+
+; 1009 : 					{
+; 1010 : 						mode = PAR_OUTPUT_PHONES;
+
+  0077c	c7 44 24 18 02
+	00 00 00	 mov	 DWORD PTR _mode$[esp+124], 2
+
+; 1011 : 						continue;
+
+  00784	e9 04 0c 00 00	 jmp	 $L71515
+$L71389:
+
+; 594  : 		}
+; 595  : 		else
+; 596  : 		{
+; 597  : 		  /* GL 04/21/1997  change this for OSF build */
+; 598  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 599  : 		  if ((pCmd_t->skip_mode != SKIP_email) &&
+; 600  : 		      ((pKsd_t->modeflag & MODE_EMAIL) != 0))
+
+  00789	8b 95 10 05 00
+	00		 mov	 edx, DWORD PTR [ebp+1296]
+  0078f	b8 01 00 00 00	 mov	 eax, 1
+  00794	3b d0		 cmp	 edx, eax
+  00796	0f 84 c2 02 00
+	00		 je	 $L71391
+  0079c	8b 96 c0 03 00
+	00		 mov	 edx, DWORD PTR [esi+960]
+  007a2	f6 c6 10	 test	 dh, 16			; 00000010H
+  007a5	0f 84 b3 02 00
+	00		 je	 $L71391
+
+; 601  : 		    {
+; 602  : 				/* cm_text_preproc(pCmd_t); */             
+; 603  : #ifdef DEBUG_PARSER
+; 604  : 		      printf("The input to Email.%s.\n",pCmd_t->clausebuf);		
+; 605  : #endif
+; 606  : 		      
+; 607  : 		      temp_mode = temp_mode | 0x20;
+; 608  : 		      temp_mode = temp_mode | parser_flag;
+
+  007ab	8b 7c 24 20	 mov	 edi, DWORD PTR _parser_flag$[esp+124]
+  007af	81 e7 ff ff 00
+	00		 and	 edi, 65535		; 0000ffffH
+  007b5	83 cf 20	 or	 edi, 32			; 00000020H
+
+; 609  : 		      if (pCmd_t->email_header == 1) temp_mode = temp_mode | 0x10;
+
+  007b8	66 39 85 3a 05
+	00 00		 cmp	 WORD PTR [ebp+1338], ax
+  007bf	89 7c 24 18	 mov	 DWORD PTR _temp_mode$[esp+124], edi
+  007c3	75 07		 jne	 SHORT $L71392
+  007c5	83 cf 10	 or	 edi, 16			; 00000010H
+  007c8	89 7c 24 18	 mov	 DWORD PTR _temp_mode$[esp+124], edi
+$L71392:
+
+; 610  : 		      
+; 611  : 				/* debug switch */
+; 612  : 		      if (DT_DBG(CMD_DBG,0x040))
+
+  007cc	66 8b 86 40 06
+	00 00		 mov	 ax, WORD PTR [esi+1600]
+  007d3	f6 c4 80	 test	 ah, -128		; ffffff80H
+  007d6	0f 84 bf 00 00
+	00		 je	 $L71401
+  007dc	a8 40		 test	 al, 64			; 00000040H
+  007de	0f 84 b7 00 00
+	00		 je	 $L71401
+
+; 613  : 			{
+; 614  : 			  printf("\nInput to Email:(%d)(%x)",pCmd_t->input_counter,temp_mode);
+
+  007e4	0f bf 95 34 05
+	00 00		 movsx	 edx, WORD PTR [ebp+1332]
+  007eb	57		 push	 edi
+  007ec	52		 push	 edx
+  007ed	68 00 00 00 00	 push	 OFFSET FLAT:$SG71394
+  007f2	ff d3		 call	 ebx
+
+; 615  : #ifndef MSDOS
+; 616  : 			  if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  007f4	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  007fa	83 c4 0c	 add	 esp, 12			; 0000000cH
+  007fd	85 c0		 test	 eax, eax
+  007ff	74 18		 je	 SHORT $L71395
+
+; 617  : 			    fprintf((FILE *)pKsd_t->dbglog,"\nInput to Email:(%d)(%x)",pCmd_t->input_counter,temp_mode);
+
+  00801	0f bf 8d 34 05
+	00 00		 movsx	 ecx, WORD PTR [ebp+1332]
+  00808	57		 push	 edi
+  00809	51		 push	 ecx
+  0080a	68 00 00 00 00	 push	 OFFSET FLAT:$SG71397
+  0080f	50		 push	 eax
+  00810	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00816	83 c4 10	 add	 esp, 16			; 00000010H
+$L71395:
+
+; 618  : #endif
+; 619  : 			  
+; 620  : 			  printf("\nInput to Email:(%d)(%x)",pCmd_t->input_counter,temp_mode);
+
+  00819	0f bf 95 34 05
+	00 00		 movsx	 edx, WORD PTR [ebp+1332]
+  00820	57		 push	 edi
+  00821	52		 push	 edx
+  00822	68 00 00 00 00	 push	 OFFSET FLAT:$SG71398
+  00827	ff d3		 call	 ebx
+
+; 621  : 			  for (k=0; k < strlen(pCmd_t->clausebuf); k++)
+
+  00829	8d 9d 3c 05 00
+	00		 lea	 ebx, DWORD PTR [ebp+1340]
+  0082f	83 c9 ff	 or	 ecx, -1
+  00832	8b fb		 mov	 edi, ebx
+  00834	33 c0		 xor	 eax, eax
+  00836	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00839	f2 ae		 repne scasb
+  0083b	f7 d1		 not	 ecx
+  0083d	49		 dec	 ecx
+  0083e	74 5b		 je	 SHORT $L71401
+  00840	b8 c4 fa ff ff	 mov	 eax, -1340		; fffffac4H
+  00845	8b f3		 mov	 esi, ebx
+  00847	2b c5		 sub	 eax, ebp
+  00849	89 44 24 20	 mov	 DWORD PTR -92+[esp+124], eax
+$L71399:
+
+; 622  : 			    {
+; 623  : #ifndef MSDOS
+; 624  : 					if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  0084d	8b 44 24 10	 mov	 eax, DWORD PTR _pKsd_t$[esp+124]
+  00851	8b 88 44 06 00
+	00		 mov	 ecx, DWORD PTR [eax+1604]
+  00857	85 c9		 test	 ecx, ecx
+  00859	74 15		 je	 SHORT $L71402
+
+; 625  : 						fprintf((FILE *)pKsd_t->dbglog,"\n%c(%x)",pCmd_t->clausebuf[k],pCmd_t->clausebuf[k]);
+
+  0085b	33 c0		 xor	 eax, eax
+  0085d	8a 06		 mov	 al, BYTE PTR [esi]
+  0085f	50		 push	 eax
+  00860	50		 push	 eax
+  00861	68 00 00 00 00	 push	 OFFSET FLAT:$SG71404
+  00866	51		 push	 ecx
+  00867	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  0086d	83 c4 10	 add	 esp, 16			; 00000010H
+$L71402:
+
+; 626  : #endif
+; 627  : 					printf("\n%c(%x)",pCmd_t->clausebuf[k],pCmd_t->clausebuf[k]);
+
+  00870	33 c0		 xor	 eax, eax
+  00872	8a 06		 mov	 al, BYTE PTR [esi]
+  00874	50		 push	 eax
+  00875	50		 push	 eax
+  00876	68 00 00 00 00	 push	 OFFSET FLAT:$SG71405
+  0087b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00881	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00884	8b fb		 mov	 edi, ebx
+  00886	83 c9 ff	 or	 ecx, -1
+  00889	33 c0		 xor	 eax, eax
+  0088b	46		 inc	 esi
+  0088c	8b 54 24 20	 mov	 edx, DWORD PTR -92+[esp+124]
+  00890	f2 ae		 repne scasb
+  00892	f7 d1		 not	 ecx
+  00894	49		 dec	 ecx
+  00895	03 d6		 add	 edx, esi
+  00897	3b d1		 cmp	 edx, ecx
+  00899	72 b2		 jb	 SHORT $L71399
+$L71401:
+
+; 628  : 					}
+; 629  : 				}
+; 630  : 				/* process email mode */
+; 631  : #ifdef NEW_BINARY_PARSER
+; 632  : 				par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 633  : 							  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 634  : 							  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 635  : 							  temp_mode,0,0,&(pCmd_t->match_array),&(pCmd_t->ret_value));
+
+  0089b	8b 4c 24 18	 mov	 ecx, DWORD PTR _temp_mode$[esp+124]
+  0089f	8d 85 74 57 00
+	00		 lea	 eax, DWORD PTR [ebp+22388]
+  008a5	50		 push	 eax
+  008a6	8d 85 18 56 00
+	00		 lea	 eax, DWORD PTR [ebp+22040]
+  008ac	50		 push	 eax
+  008ad	6a 00		 push	 0
+  008af	6a 00		 push	 0
+  008b1	51		 push	 ecx
+  008b2	8b 4c 24 24	 mov	 ecx, DWORD PTR _pKsd_t$[esp+144]
+  008b6	b8 01 00 00 00	 mov	 eax, 1
+  008bb	8d 95 00 41 00
+	00		 lea	 edx, DWORD PTR [ebp+16640]
+  008c1	8d b5 e8 2b 00
+	00		 lea	 esi, DWORD PTR [ebp+11240]
+  008c7	8b 89 b8 02 00
+	00		 mov	 ecx, DWORD PTR [ecx+696]
+  008cd	8d bd d0 16 00
+	00		 lea	 edi, DWORD PTR [ebp+5840]
+  008d3	d3 e0		 shl	 eax, cl
+  008d5	8d 9d 44 0c 00
+	00		 lea	 ebx, DWORD PTR [ebp+3140]
+  008db	50		 push	 eax
+  008dc	52		 push	 edx
+  008dd	56		 push	 esi
+  008de	8b b4 24 a0 00
+	00 00		 mov	 esi, DWORD PTR _phTTS$[esp+152]
+  008e5	8d 95 4c 13 00
+	00		 lea	 edx, DWORD PTR [ebp+4940]
+  008eb	57		 push	 edi
+  008ec	52		 push	 edx
+  008ed	8d 85 c8 0f 00
+	00		 lea	 eax, DWORD PTR [ebp+4040]
+  008f3	53		 push	 ebx
+  008f4	50		 push	 eax
+  008f5	8d 85 3c 05 00
+	00		 lea	 eax, DWORD PTR [ebp+1340]
+  008fb	50		 push	 eax
+  008fc	56		 push	 esi
+  008fd	e8 00 00 00 00	 call	 _par_process_input
+  00902	83 c4 38	 add	 esp, 56			; 00000038H
+
+; 636  : #else
+; 637  : 				par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 638  : 							  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 639  : 							  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 640  : 							  temp_mode,0,0,&(pCmd_t->ret_value));
+; 641  : #endif
+; 642  : 
+; 643  : 				/* cmd_flush return */
+; 644  : 				if (pCmd_t->input_counter == 0) return;
+
+  00905	66 83 bd 34 05
+	00 00 00	 cmp	 WORD PTR [ebp+1332], 0
+  0090d	0f 84 63 08 00
+	00		 je	 $L71388
+
+; 645  : 				/* checking cmd_flushing */
+; 646  : 				if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  00913	8b 4c 24 10	 mov	 ecx, DWORD PTR _pKsd_t$[esp+124]
+  00917	8b 81 30 03 00
+	00		 mov	 eax, DWORD PTR [ecx+816]
+  0091d	85 c0		 test	 eax, eax
+  0091f	0f 85 5d 02 00
+	00		 jne	 $L71408
+  00925	83 b9 2c 03 00
+	00 01		 cmp	 DWORD PTR [ecx+812], 1
+  0092c	0f 84 50 02 00
+	00		 je	 $L71408
+
+; 649  : 					return;
+; 650  : 				}              
+; 651  : 				/* debug switch */
+; 652  : 				if (DT_DBG(CMD_DBG,0x080))
+
+  00932	66 8b 81 40 06
+	00 00		 mov	 ax, WORD PTR [ecx+1600]
+  00939	f6 c4 80	 test	 ah, -128		; ffffff80H
+  0093c	0f 84 98 00 00
+	00		 je	 $L71416
+  00942	a8 80		 test	 al, 128			; 00000080H
+  00944	0f 84 90 00 00
+	00		 je	 $L71416
+
+; 653  : 				{   
+; 654  : #ifndef MSDOS
+; 655  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  0094a	8b 81 44 06 00
+	00		 mov	 eax, DWORD PTR [ecx+1604]
+  00950	85 c0		 test	 eax, eax
+  00952	74 0f		 je	 SHORT $L71410
+
+; 656  : 					fprintf((FILE *)pKsd_t->dbglog,"\nEmail output:");
+
+  00954	68 00 00 00 00	 push	 OFFSET FLAT:$SG71412
+  00959	50		 push	 eax
+  0095a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00960	83 c4 08	 add	 esp, 8
+$L71410:
+
+; 657  : #endif
+; 658  : 
+; 659  : 				printf("\nEmail output:");
+
+  00963	68 00 00 00 00	 push	 OFFSET FLAT:$SG71413
+  00968	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+
+; 660  : 
+; 661  : 					for (k=0; k < strlen(pCmd_t->output_buf); k++)
+
+  0096e	8b fb		 mov	 edi, ebx
+  00970	83 c9 ff	 or	 ecx, -1
+  00973	33 c0		 xor	 eax, eax
+  00975	83 c4 04	 add	 esp, 4
+  00978	f2 ae		 repne scasb
+  0097a	f7 d1		 not	 ecx
+  0097c	49		 dec	 ecx
+  0097d	74 5b		 je	 SHORT $L71416
+  0097f	b8 bc f3 ff ff	 mov	 eax, -3140		; fffff3bcH
+  00984	8b f3		 mov	 esi, ebx
+  00986	2b c5		 sub	 eax, ebp
+  00988	89 44 24 1c	 mov	 DWORD PTR -96+[esp+124], eax
+$L71414:
+
+; 662  : 					{
+; 663  : #ifndef MSDOS
+; 664  : 					if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  0098c	8b 44 24 10	 mov	 eax, DWORD PTR _pKsd_t$[esp+124]
+  00990	8b 88 44 06 00
+	00		 mov	 ecx, DWORD PTR [eax+1604]
+  00996	85 c9		 test	 ecx, ecx
+  00998	74 15		 je	 SHORT $L71417
+
+; 665  : 						fprintf((FILE *)pKsd_t->dbglog,"\n%c(%x)",pCmd_t->output_buf[k],pCmd_t->output_buf[k]);
+
+  0099a	33 c0		 xor	 eax, eax
+  0099c	8a 06		 mov	 al, BYTE PTR [esi]
+  0099e	50		 push	 eax
+  0099f	50		 push	 eax
+  009a0	68 00 00 00 00	 push	 OFFSET FLAT:$SG71419
+  009a5	51		 push	 ecx
+  009a6	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  009ac	83 c4 10	 add	 esp, 16			; 00000010H
+$L71417:
+
+; 666  : #endif
+; 667  : 					printf("\n%c(%x)",pCmd_t->output_buf[k],pCmd_t->output_buf[k]);
+
+  009af	33 c0		 xor	 eax, eax
+  009b1	8a 06		 mov	 al, BYTE PTR [esi]
+  009b3	50		 push	 eax
+  009b4	50		 push	 eax
+  009b5	68 00 00 00 00	 push	 OFFSET FLAT:$SG71420
+  009ba	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  009c0	83 c4 0c	 add	 esp, 12			; 0000000cH
+  009c3	8b fb		 mov	 edi, ebx
+  009c5	83 c9 ff	 or	 ecx, -1
+  009c8	33 c0		 xor	 eax, eax
+  009ca	46		 inc	 esi
+  009cb	8b 54 24 1c	 mov	 edx, DWORD PTR -96+[esp+124]
+  009cf	f2 ae		 repne scasb
+  009d1	f7 d1		 not	 ecx
+  009d3	49		 dec	 ecx
+  009d4	03 d6		 add	 edx, esi
+  009d6	3b d1		 cmp	 edx, ecx
+  009d8	72 b2		 jb	 SHORT $L71414
+$L71416:
+
+; 668  : 					}				
+; 669  : 				}
+; 670  : 			
+; 671  : 				/* put the output back into the input */
+; 672  : 				strcpy(pCmd_t->clausebuf,pCmd_t->output_buf);
+
+  009da	8b fb		 mov	 edi, ebx
+  009dc	83 c9 ff	 or	 ecx, -1
+  009df	33 c0		 xor	 eax, eax
+  009e1	f2 ae		 repne scasb
+  009e3	f7 d1		 not	 ecx
+  009e5	2b f9		 sub	 edi, ecx
+  009e7	8b c1		 mov	 eax, ecx
+  009e9	8b f7		 mov	 esi, edi
+  009eb	8d bd 3c 05 00
+	00		 lea	 edi, DWORD PTR [ebp+1340]
+  009f1	c1 e9 02	 shr	 ecx, 2
+  009f4	f3 a5		 rep movsd
+  009f6	8b c8		 mov	 ecx, eax
+
+; 673  : #ifdef NEW_INDEXING
+; 674  : 				/* put the indexes from the output into the input */
+; 675  : 				par_copy_index_list(pCmd_t->input_indexes,0,pCmd_t->output_indexes,0,PAR_MAX_INPUT_ARRAY);
+; 676  : #endif
+; 677  :                 /* save parser_flag */
+; 678  : 				parser_flag = pCmd_t->ret_value.parser_flag;	
+; 679  : 				/* reset ret_value */
+; 680  : 				memset(&(pCmd_t->ret_value),0,sizeof(return_value_t));
+
+  009f8	33 c0		 xor	 eax, eax
+  009fa	83 e1 03	 and	 ecx, 3
+  009fd	f3 a4		 rep movsb
+  009ff	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  00a04	8d b5 00 41 00
+	00		 lea	 esi, DWORD PTR [ebp+16640]
+  00a0a	8d bd d0 16 00
+	00		 lea	 edi, DWORD PTR [ebp+5840]
+  00a10	f3 a5		 rep movsd
+  00a12	66 8b 95 90 57
+	00 00		 mov	 dx, WORD PTR [ebp+22416]
+  00a19	b9 08 00 00 00	 mov	 ecx, 8
+  00a1e	8d bd 74 57 00
+	00		 lea	 edi, DWORD PTR [ebp+22388]
+
+; 681  :         		/* restore parser_flag */
+; 682  : 				pCmd_t->ret_value.parser_flag = parser_flag;	
+
+  00a24	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  00a2a	f3 ab		 rep stosd
+
+; 683  : 				/* reinit the new_input buffer */
+; 684  : 				memset(pCmd_t->new_input,0,PAR_MAX_INPUT_ARRAY);
+
+  00a2c	b9 e1 00 00 00	 mov	 ecx, 225		; 000000e1H
+  00a31	8d bd c8 0f 00
+	00		 lea	 edi, DWORD PTR [ebp+4040]
+  00a37	89 95 90 57 00
+	00		 mov	 DWORD PTR [ebp+22416], edx
+  00a3d	f3 ab		 rep stosd
+
+; 685  : #ifdef NEW_INDEXING
+; 686  : 				memset(pCmd_t->new_input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  00a3f	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  00a44	8d bd e8 2b 00
+	00		 lea	 edi, DWORD PTR [ebp+11240]
+  00a4a	f3 ab		 rep stosd
+
+; 687  : 				memset(pCmd_t->output_indexes,0,PAR_MAX_OUTPUT_ARRAY*sizeof(index_data_t));
+
+  00a4c	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  00a51	8d bd 00 41 00
+	00		 lea	 edi, DWORD PTR [ebp+16640]
+  00a57	f3 ab		 rep stosd
+  00a59	b9 02 00 00 00	 mov	 ecx, 2
+$L71391:
+
+; 688  : #endif
+; 689  :         	} /* if skip_mode != SKIP_email */
+; 690  : #endif
+; 691  : 			if (pCmd_t->skip_mode != SKIP_punct)
+
+  00a5e	39 8d 10 05 00
+	00		 cmp	 DWORD PTR [ebp+1296], ecx
+  00a64	0f 84 bc 04 00
+	00		 je	 $L71593
+
+; 692  : 			{
+; 693  : 				/* cm_text_preproc(pCmd_t); */             
+; 694  : #ifdef DEBUG_PARSER
+; 695  : 				printf("the input to punct.%s.\n",pCmd_t->clausebuf);		
+; 696  : #endif
+; 697  : 				// add protection code for buffer overflows MGS
+; 698  : 				pCmd_t->clausebuf[PAR_MAX_INPUT_ARRAY-1]='\0';
+; 699  : 				/* GL 03/20/1998 BATS#631  add hit/miss setting before puncturation processing */
+; 700  : 				/* do the dictionary search here for the entire input */
+; 701  : 	        	pCmd_t->input_counter=strlen(pCmd_t->clausebuf);
+
+  00a6a	8d 9d 3c 05 00
+	00		 lea	 ebx, DWORD PTR [ebp+1340]
+  00a70	83 c9 ff	 or	 ecx, -1
+  00a73	8b fb		 mov	 edi, ebx
+  00a75	33 c0		 xor	 eax, eax
+  00a77	c6 85 bf 08 00
+	00 00		 mov	 BYTE PTR [ebp+2239], 0
+  00a7e	f2 ae		 repne scasb
+  00a80	f7 d1		 not	 ecx
+  00a82	49		 dec	 ecx
+
+; 702  : 				didit=0;
+; 703  : 				for (i=0;i<pCmd_t->input_counter;i++)
+
+  00a83	33 ff		 xor	 edi, edi
+  00a85	66 85 c9	 test	 cx, cx
+  00a88	66 89 8d 34 05
+	00 00		 mov	 WORD PTR [ebp+1332], cx
+  00a8f	89 7c 24 1c	 mov	 DWORD PTR _i$[esp+124], edi
+  00a93	0f 8e 1b 02 00
+	00		 jle	 $L71427
+$L71425:
+
+; 704  : 				{
+; 705  : 					/* GL 04/03/1997 for BATS#334 fix the DM mode problem in high light mode */
+; 706  : 					if (pCmd_t->clausebuf[i] == 0x82) continue;
+
+  00a99	8a 04 3b	 mov	 al, BYTE PTR [ebx+edi]
+  00a9c	8d 34 3b	 lea	 esi, DWORD PTR [ebx+edi]
+  00a9f	3c 82		 cmp	 al, 130			; 00000082H
+  00aa1	89 74 24 24	 mov	 DWORD PTR -88+[esp+124], esi
+  00aa5	0f 84 f5 01 00
+	00		 je	 $L71426
+
+; 707  : 					if (((i==0) || (char_types[pCmd_t->clausebuf[i-1]] & MARK_space) || (pCmd_t->clausebuf[i-1] == 0x82))
+; 708  : 						&& !(char_types[pCmd_t->clausebuf[i]] & MARK_space))
+
+  00aab	85 ff		 test	 edi, edi
+  00aad	74 21		 je	 SHORT $L71430
+  00aaf	8a 8c 2f 3b 05
+	00 00		 mov	 cl, BYTE PTR [edi+ebp+1339]
+  00ab6	8b d1		 mov	 edx, ecx
+  00ab8	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  00abe	f6 82 00 00 00
+	00 80		 test	 BYTE PTR _char_types[edx], 128 ; 00000080H
+  00ac5	75 09		 jne	 SHORT $L71430
+  00ac7	80 f9 82	 cmp	 cl, 130			; 00000082H
+  00aca	0f 85 d0 01 00
+	00		 jne	 $L71426
+$L71430:
+  00ad0	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00ad5	f6 80 00 00 00
+	00 80		 test	 BYTE PTR _char_types[eax], 128 ; 00000080H
+  00adc	0f 85 be 01 00
+	00		 jne	 $L71426
+
+; 709  : 					{
+; 710  : 						// MGS		10/14/1999		BATS#876 fix for UK phone numbers (part of it) 
+; 711  : 						pCmd_t->dict_hit_buf[i]=par_dict_lookup(pKsd_t,cm_text_get_word(&(pCmd_t->clausebuf[i]),pCmd_t->wordbuf,0),1);
+
+  00ae2	8d 85 c0 08 00
+	00		 lea	 eax, DWORD PTR [ebp+2240]
+  00ae8	6a 01		 push	 1
+  00aea	6a 00		 push	 0
+  00aec	50		 push	 eax
+  00aed	56		 push	 esi
+  00aee	e8 00 00 00 00	 call	 _cm_text_get_word
+  00af3	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00af6	50		 push	 eax
+  00af7	8b 44 24 18	 mov	 eax, DWORD PTR _pKsd_t$[esp+132]
+  00afb	50		 push	 eax
+  00afc	e8 00 00 00 00	 call	 _par_dict_lookup
+  00b01	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00b04	88 84 2f 4c 13
+	00 00		 mov	 BYTE PTR [edi+ebp+4940], al
+
+; 712  : 						// MGS add this for german ae oe ue processing to umlated vowels
+; 713  : 						// MGS added code for qu exception to ue rulw and eab added neue 
+; 714  : 						if (pCmd_t->dict_hit_buf[i]==0)
+
+  00b0b	84 c0		 test	 al, al
+  00b0d	0f 85 77 01 00
+	00		 jne	 $L71459
+
+; 715  : 						{
+; 716  : 							if (pKsd_t->lang_curr==LANG_german)
+
+  00b13	8b 4c 24 10	 mov	 ecx, DWORD PTR _pKsd_t$[esp+124]
+  00b17	83 b9 b8 02 00
+	00 02		 cmp	 DWORD PTR [ecx+696], 2
+  00b1e	0f 85 66 01 00
+	00		 jne	 $L71459
+
+; 717  : 							{
+; 718  : 								relook=0;
+; 719  : 								for (j=i;!(char_types[pCmd_t->clausebuf[j]] & MARK_space);j++)
+
+  00b24	33 d2		 xor	 edx, edx
+  00b26	c7 44 24 20 00
+	00 00 00	 mov	 DWORD PTR _relook$[esp+124], 0
+  00b2e	8a 16		 mov	 dl, BYTE PTR [esi]
+  00b30	8b c7		 mov	 eax, edi
+  00b32	f6 82 00 00 00
+	00 80		 test	 BYTE PTR _char_types[edx], 128 ; 00000080H
+  00b39	0f 85 4b 01 00
+	00		 jne	 $L71459
+  00b3f	8b 4c 24 1c	 mov	 ecx, DWORD PTR _i$[esp+124]
+  00b43	8d b4 29 3d 05
+	00 00		 lea	 esi, DWORD PTR [ecx+ebp+1341]
+  00b4a	89 74 24 18	 mov	 DWORD PTR -100+[esp+124], esi
+$L71433:
+
+; 720  : 								{
+; 721  : 									if (par_lower[pCmd_t->clausebuf[j]] == 'q' && par_lower[pCmd_t->clausebuf[j+1]]=='u')
+
+  00b4e	33 d2		 xor	 edx, edx
+  00b50	8a 14 03	 mov	 dl, BYTE PTR [ebx+eax]
+  00b53	8b fa		 mov	 edi, edx
+  00b55	8a 8f 00 00 00
+	00		 mov	 cl, BYTE PTR _par_lower[edi]
+  00b5b	80 f9 71	 cmp	 cl, 113			; 00000071H
+  00b5e	75 33		 jne	 SHORT $L71436
+  00b60	33 d2		 xor	 edx, edx
+  00b62	8a 94 28 3d 05
+	00 00		 mov	 dl, BYTE PTR [eax+ebp+1341]
+  00b69	80 ba 00 00 00
+	00 75		 cmp	 BYTE PTR _par_lower[edx], 117 ; 00000075H
+  00b70	75 21		 jne	 SHORT $L71436
+
+; 722  : 									{
+; 723  : 										j++;
+
+  00b72	8b 4c 24 18	 mov	 ecx, DWORD PTR -100+[esp+124]
+  00b76	40		 inc	 eax
+  00b77	46		 inc	 esi
+  00b78	41		 inc	 ecx
+  00b79	89 4c 24 18	 mov	 DWORD PTR -100+[esp+124], ecx
+
+; 724  : 										continue;
+
+  00b7d	e9 ac 00 00 00	 jmp	 $L71434
+$L71408:
+
+; 647  : 				{
+; 648  : 					cm_util_flush_init(phTTS);
+
+  00b82	56		 push	 esi
+  00b83	e8 00 00 00 00	 call	 _cm_util_flush_init
+  00b88	83 c4 04	 add	 esp, 4
+  00b8b	5f		 pop	 edi
+  00b8c	5e		 pop	 esi
+  00b8d	5d		 pop	 ebp
+  00b8e	5b		 pop	 ebx
+
+; 1169 : 
+; 1170 : 	}
+; 1171 : }
+
+  00b8f	83 c4 6c	 add	 esp, 108		; 0000006cH
+  00b92	c3		 ret	 0
+$L71436:
+
+; 725  : 									}
+; 726  : 									if (par_lower[pCmd_t->clausebuf[j]] == 'e' && par_lower[pCmd_t->clausebuf[j+1]]=='u')
+
+  00b93	80 f9 65	 cmp	 cl, 101			; 00000065H
+  00b96	75 1f		 jne	 SHORT $L71437
+  00b98	33 c9		 xor	 ecx, ecx
+  00b9a	8a 8c 28 3d 05
+	00 00		 mov	 cl, BYTE PTR [eax+ebp+1341]
+  00ba1	80 b9 00 00 00
+	00 75		 cmp	 BYTE PTR _par_lower[ecx], 117 ; 00000075H
+  00ba8	75 0d		 jne	 SHORT $L71437
+
+; 727  : 									{
+; 728  : 										j++;
+
+  00baa	8b 4c 24 18	 mov	 ecx, DWORD PTR -100+[esp+124]
+  00bae	40		 inc	 eax
+  00baf	46		 inc	 esi
+  00bb0	41		 inc	 ecx
+  00bb1	89 4c 24 18	 mov	 DWORD PTR -100+[esp+124], ecx
+
+; 729  : 										continue;
+
+  00bb5	eb 77		 jmp	 SHORT $L71434
+$L71437:
+
+; 730  : 									}
+; 731  : 									if (par_lower[pCmd_t->clausebuf[j+1]]=='e')
+
+  00bb7	33 d2		 xor	 edx, edx
+  00bb9	8a 94 28 3d 05
+	00 00		 mov	 dl, BYTE PTR [eax+ebp+1341]
+  00bc0	80 ba 00 00 00
+	00 65		 cmp	 BYTE PTR _par_lower[edx], 101 ; 00000065H
+  00bc7	75 65		 jne	 SHORT $L71434
+
+; 732  : 									{
+; 733  : 										switch(pCmd_t->clausebuf[j])
+; 734  : 										{
+
+  00bc9	83 c7 bf	 add	 edi, -65		; ffffffbfH
+  00bcc	83 ff 34	 cmp	 edi, 52			; 00000034H
+  00bcf	77 5d		 ja	 SHORT $L71434
+  00bd1	33 c9		 xor	 ecx, ecx
+  00bd3	8a 8f 00 00 00
+	00		 mov	 cl, BYTE PTR $L71664[edi]
+  00bd9	ff 24 8d 00 00
+	00 00		 jmp	 DWORD PTR $L71665[ecx*4]
+$L71443:
+
+; 735  : 										case 'a':
+; 736  : 											pCmd_t->clausebuf[j]=(unsigned char)'ä';
+
+  00be0	c6 04 03 e4	 mov	 BYTE PTR [ebx+eax], 228	; 000000e4H
+
+; 737  : 											didit=1;
+; 738  : 											break;
+
+  00be4	eb 1c		 jmp	 SHORT $L71639
+$L71445:
+
+; 739  : 										case 'A':
+; 740  : 											pCmd_t->clausebuf[j]=(unsigned char)'Ä';
+
+  00be6	c6 04 03 c4	 mov	 BYTE PTR [ebx+eax], 196	; 000000c4H
+
+; 741  : 											didit=1;
+; 742  : 											break;
+
+  00bea	eb 16		 jmp	 SHORT $L71639
+$L71447:
+
+; 743  : 										case 'o':
+; 744  : 											pCmd_t->clausebuf[j]=(unsigned char)'ö';
+
+  00bec	c6 04 03 f6	 mov	 BYTE PTR [ebx+eax], 246	; 000000f6H
+
+; 745  : 											didit=1;
+; 746  : 											break;
+
+  00bf0	eb 10		 jmp	 SHORT $L71639
+$L71449:
+
+; 747  : 										case 'O':
+; 748  : 											pCmd_t->clausebuf[j]=(unsigned char)'Ö';
+
+  00bf2	c6 04 03 d6	 mov	 BYTE PTR [ebx+eax], 214	; 000000d6H
+
+; 749  : 											didit=1;
+; 750  : 											break;
+
+  00bf6	eb 0a		 jmp	 SHORT $L71639
+$L71451:
+
+; 751  : 										case 'u':
+; 752  : 											pCmd_t->clausebuf[j]=(unsigned char)'ü';
+
+  00bf8	c6 04 03 fc	 mov	 BYTE PTR [ebx+eax], 252	; 000000fcH
+
+; 753  : 											didit=1;
+; 754  : 											break;
+
+  00bfc	eb 04		 jmp	 SHORT $L71639
+$L71453:
+
+; 755  : 										case 'U':
+; 756  : 											pCmd_t->clausebuf[j]=(unsigned char)'Ü';
+
+  00bfe	c6 04 03 dc	 mov	 BYTE PTR [ebx+eax], 220	; 000000dcH
+$L71639:
+
+; 757  : 											didit=1;
+; 758  : 											break;
+; 759  : 										}
+; 760  : 										if (didit)
+; 761  : 										{
+; 762  : 											for (k=j+1;!(char_types[pCmd_t->clausebuf[k]] & MARK_space);k++)
+
+  00c02	33 d2		 xor	 edx, edx
+  00c04	8a 16		 mov	 dl, BYTE PTR [esi]
+  00c06	f6 82 00 00 00
+	00 80		 test	 BYTE PTR _char_types[edx], 128 ; 00000080H
+  00c0d	75 17		 jne	 SHORT $L71458
+  00c0f	8b 4c 24 18	 mov	 ecx, DWORD PTR -100+[esp+124]
+$L71456:
+
+; 763  : 											{
+; 764  : 												pCmd_t->clausebuf[k]=pCmd_t->clausebuf[k+1];
+
+  00c13	8a 51 01	 mov	 dl, BYTE PTR [ecx+1]
+  00c16	88 11		 mov	 BYTE PTR [ecx], dl
+  00c18	41		 inc	 ecx
+  00c19	33 d2		 xor	 edx, edx
+  00c1b	8a 11		 mov	 dl, BYTE PTR [ecx]
+  00c1d	f6 82 00 00 00
+	00 80		 test	 BYTE PTR _char_types[edx], 128 ; 00000080H
+  00c24	74 ed		 je	 SHORT $L71456
+$L71458:
+
+; 765  : 											}
+; 766  : 											didit=0;
+; 767  : 											relook=1;
+
+  00c26	c7 44 24 20 01
+	00 00 00	 mov	 DWORD PTR _relook$[esp+124], 1
+$L71434:
+
+; 717  : 							{
+; 718  : 								relook=0;
+; 719  : 								for (j=i;!(char_types[pCmd_t->clausebuf[j]] & MARK_space);j++)
+
+  00c2e	8b 7c 24 18	 mov	 edi, DWORD PTR -100+[esp+124]
+  00c32	40		 inc	 eax
+  00c33	8d 9d 3c 05 00
+	00		 lea	 ebx, DWORD PTR [ebp+1340]
+  00c39	33 c9		 xor	 ecx, ecx
+  00c3b	46		 inc	 esi
+  00c3c	47		 inc	 edi
+  00c3d	8a 0c 03	 mov	 cl, BYTE PTR [ebx+eax]
+  00c40	89 7c 24 18	 mov	 DWORD PTR -100+[esp+124], edi
+  00c44	f6 81 00 00 00
+	00 80		 test	 BYTE PTR _char_types[ecx], 128 ; 00000080H
+  00c4b	0f 84 fd fe ff
+	ff		 je	 $L71433
+
+; 768  : 										}
+; 769  : 									}
+; 770  : 								}
+; 771  : 								if (relook)
+
+  00c51	8b 44 24 20	 mov	 eax, DWORD PTR _relook$[esp+124]
+  00c55	85 c0		 test	 eax, eax
+  00c57	74 31		 je	 SHORT $L71459
+
+; 772  : 								{
+; 773  : 									pCmd_t->dict_hit_buf[i]=par_dict_lookup(pKsd_t,cm_text_get_word(&(pCmd_t->clausebuf[i]),pCmd_t->wordbuf,0),1);
+
+  00c59	8b 54 24 24	 mov	 edx, DWORD PTR -88+[esp+124]
+  00c5d	6a 01		 push	 1
+  00c5f	8d 85 c0 08 00
+	00		 lea	 eax, DWORD PTR [ebp+2240]
+  00c65	6a 00		 push	 0
+  00c67	50		 push	 eax
+  00c68	52		 push	 edx
+  00c69	e8 00 00 00 00	 call	 _cm_text_get_word
+  00c6e	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00c71	50		 push	 eax
+  00c72	8b 44 24 18	 mov	 eax, DWORD PTR _pKsd_t$[esp+132]
+  00c76	50		 push	 eax
+  00c77	e8 00 00 00 00	 call	 _par_dict_lookup
+  00c7c	8b 4c 24 28	 mov	 ecx, DWORD PTR _i$[esp+136]
+  00c80	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00c83	88 84 29 4c 13
+	00 00		 mov	 BYTE PTR [ecx+ebp+4940], al
+$L71459:
+
+; 774  : 								}
+; 775  : 							}
+; 776  : 						}
+; 777  : 						i+=strlen(pCmd_t->wordbuf);
+
+  00c8a	8d bd c0 08 00
+	00		 lea	 edi, DWORD PTR [ebp+2240]
+  00c90	83 c9 ff	 or	 ecx, -1
+  00c93	33 c0		 xor	 eax, eax
+  00c95	f2 ae		 repne scasb
+  00c97	8b 7c 24 1c	 mov	 edi, DWORD PTR _i$[esp+124]
+  00c9b	f7 d1		 not	 ecx
+  00c9d	49		 dec	 ecx
+  00c9e	03 f9		 add	 edi, ecx
+$L71426:
+  00ca0	0f bf 95 34 05
+	00 00		 movsx	 edx, WORD PTR [ebp+1332]
+  00ca7	47		 inc	 edi
+  00ca8	3b fa		 cmp	 edi, edx
+  00caa	89 7c 24 1c	 mov	 DWORD PTR _i$[esp+124], edi
+  00cae	0f 8c e5 fd ff
+	ff		 jl	 $L71425
+$L71427:
+
+; 778  : 					}
+; 779  : 				}
+; 780  : 		
+; 781  : 
+; 782  : 				temp_mode = 0x00000001 << pCmd_t->punct_mode;
+
+  00cb4	8b 8d 0c 05 00
+	00		 mov	 ecx, DWORD PTR [ebp+1292]
+  00cba	bf 01 00 00 00	 mov	 edi, 1
+  00cbf	d3 e7		 shl	 edi, cl
+
+; 783  : /* GL 04/21/1997  change this for OSF build */
+; 784  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 785  : 
+; 786  : 				if ((pKsd_t->modeflag & MODE_EMAIL) != 0)
+
+  00cc1	8b 4c 24 10	 mov	 ecx, DWORD PTR _pKsd_t$[esp+124]
+  00cc5	8b 81 c0 03 00
+	00		 mov	 eax, DWORD PTR [ecx+960]
+  00ccb	f6 c4 10	 test	 ah, 16			; 00000010H
+  00cce	89 7c 24 18	 mov	 DWORD PTR _temp_mode$[esp+124], edi
+  00cd2	74 18		 je	 SHORT $L71461
+
+; 787  : 				{
+; 788  : 			   		temp_mode = temp_mode | 0x20;
+
+  00cd4	83 cf 20	 or	 edi, 32			; 00000020H
+
+; 789  : 			   		if (pCmd_t->email_header == 1) temp_mode = temp_mode | 0x10;
+
+  00cd7	66 83 bd 3a 05
+	00 00 01	 cmp	 WORD PTR [ebp+1338], 1
+  00cdf	89 7c 24 18	 mov	 DWORD PTR _temp_mode$[esp+124], edi
+  00ce3	75 07		 jne	 SHORT $L71461
+  00ce5	83 cf 10	 or	 edi, 16			; 00000010H
+  00ce8	89 7c 24 18	 mov	 DWORD PTR _temp_mode$[esp+124], edi
+$L71461:
+
+; 790  : 				}
+; 791  : #endif
+; 792  : 				/* debug switch */
+; 793  : 				if (DT_DBG(CMD_DBG,0x002))
+
+  00cec	66 8b 81 40 06
+	00 00		 mov	 ax, WORD PTR [ecx+1600]
+  00cf3	f6 c4 80	 test	 ah, -128		; ffffff80H
+  00cf6	0f 84 b8 00 00
+	00		 je	 $L71462
+  00cfc	a8 02		 test	 al, 2
+  00cfe	0f 84 b0 00 00
+	00		 je	 $L71462
+
+; 794  : 				{
+; 795  : #ifndef MSDOS
+; 796  : 					if (pKsd_t->dbglog)		/* mfg added for debuglog.txt suport*/
+
+  00d04	8b 81 44 06 00
+	00		 mov	 eax, DWORD PTR [ecx+1604]
+  00d0a	85 c0		 test	 eax, eax
+  00d0c	74 18		 je	 SHORT $L71463
+
+; 797  : 						fprintf((FILE *)pKsd_t->dbglog,"\nInput to Punct:(%d)(%x)",pCmd_t->input_counter,temp_mode);
+
+  00d0e	0f bf 8d 34 05
+	00 00		 movsx	 ecx, WORD PTR [ebp+1332]
+  00d15	57		 push	 edi
+  00d16	51		 push	 ecx
+  00d17	68 00 00 00 00	 push	 OFFSET FLAT:$SG71465
+  00d1c	50		 push	 eax
+  00d1d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00d23	83 c4 10	 add	 esp, 16			; 00000010H
+$L71463:
+
+; 798  : #endif					
+; 799  : 					printf("\nInput to Punct:(%d)(%x)",pCmd_t->input_counter,temp_mode);
+
+  00d26	0f bf 95 34 05
+	00 00		 movsx	 edx, WORD PTR [ebp+1332]
+  00d2d	57		 push	 edi
+  00d2e	52		 push	 edx
+  00d2f	68 00 00 00 00	 push	 OFFSET FLAT:$SG71466
+  00d34	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+
+; 800  : 					for (k=0; k < strlen(pCmd_t->clausebuf); k++)
+
+  00d3a	8b fb		 mov	 edi, ebx
+  00d3c	83 c9 ff	 or	 ecx, -1
+  00d3f	33 c0		 xor	 eax, eax
+  00d41	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00d44	33 f6		 xor	 esi, esi
+  00d46	f2 ae		 repne scasb
+  00d48	f7 d1		 not	 ecx
+  00d4a	49		 dec	 ecx
+  00d4b	74 26		 je	 SHORT $L71469
+$L71467:
+
+; 801  : 					printf("\n%c(%x)",pCmd_t->clausebuf[k],pCmd_t->clausebuf[k]);
+
+  00d4d	33 c0		 xor	 eax, eax
+  00d4f	8a 04 33	 mov	 al, BYTE PTR [ebx+esi]
+  00d52	50		 push	 eax
+  00d53	50		 push	 eax
+  00d54	68 00 00 00 00	 push	 OFFSET FLAT:$SG71470
+  00d59	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00d5f	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00d62	8b fb		 mov	 edi, ebx
+  00d64	83 c9 ff	 or	 ecx, -1
+  00d67	33 c0		 xor	 eax, eax
+  00d69	46		 inc	 esi
+  00d6a	f2 ae		 repne scasb
+  00d6c	f7 d1		 not	 ecx
+  00d6e	49		 dec	 ecx
+  00d6f	3b f1		 cmp	 esi, ecx
+  00d71	72 da		 jb	 SHORT $L71467
+$L71469:
+
+; 802  : 					{
+; 803  : #ifndef MSDOS
+; 804  : 						if (pKsd_t->dbglog)		/* mfg added for debuglog.txt suport*/
+
+  00d73	8b 44 24 10	 mov	 eax, DWORD PTR _pKsd_t$[esp+124]
+  00d77	8b 88 44 06 00
+	00		 mov	 ecx, DWORD PTR [eax+1604]
+  00d7d	85 c9		 test	 ecx, ecx
+  00d7f	74 1a		 je	 SHORT $L71471
+
+; 805  : 							fprintf((FILE *)pKsd_t->dbglog,"\n%c(%x)",pCmd_t->clausebuf[k],pCmd_t->clausebuf[k]);
+
+  00d81	33 c0		 xor	 eax, eax
+  00d83	8a 84 2e 3c 05
+	00 00		 mov	 al, BYTE PTR [esi+ebp+1340]
+  00d8a	50		 push	 eax
+  00d8b	50		 push	 eax
+  00d8c	68 00 00 00 00	 push	 OFFSET FLAT:$SG71473
+  00d91	51		 push	 ecx
+  00d92	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00d98	83 c4 10	 add	 esp, 16			; 00000010H
+$L71471:
+
+; 806  : #endif
+; 807  : 						printf("\n%c(%x)",pCmd_t->clausebuf[k],pCmd_t->clausebuf[k]);
+
+  00d9b	33 c0		 xor	 eax, eax
+  00d9d	8a 84 2e 3c 05
+	00 00		 mov	 al, BYTE PTR [esi+ebp+1340]
+  00da4	50		 push	 eax
+  00da5	50		 push	 eax
+  00da6	68 00 00 00 00	 push	 OFFSET FLAT:$SG71474
+  00dab	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00db1	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71462:
+
+; 808  : 					}
+; 809  : 				}
+; 810  : 				/* process punctuation mode */
+; 811  : #ifdef NEW_BINARY_PARSER
+; 812  : 				par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 813  : 							  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 814  : 							  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 815  : 							  temp_mode,1,0,&(pCmd_t->match_array),&(pCmd_t->ret_value));
+
+  00db4	8b 74 24 10	 mov	 esi, DWORD PTR _pKsd_t$[esp+124]
+  00db8	8d 8d 74 57 00
+	00		 lea	 ecx, DWORD PTR [ebp+22388]
+  00dbe	51		 push	 ecx
+  00dbf	8d 8d 18 56 00
+	00		 lea	 ecx, DWORD PTR [ebp+22040]
+  00dc5	51		 push	 ecx
+  00dc6	8b 4c 24 20	 mov	 ecx, DWORD PTR _temp_mode$[esp+132]
+  00dca	6a 00		 push	 0
+  00dcc	6a 01		 push	 1
+  00dce	51		 push	 ecx
+  00dcf	8b 8e b8 02 00
+	00		 mov	 ecx, DWORD PTR [esi+696]
+  00dd5	bf 01 00 00 00	 mov	 edi, 1
+  00dda	8d 85 00 41 00
+	00		 lea	 eax, DWORD PTR [ebp+16640]
+  00de0	d3 e7		 shl	 edi, cl
+  00de2	8d 95 d0 16 00
+	00		 lea	 edx, DWORD PTR [ebp+5840]
+  00de8	8d 8d 4c 13 00
+	00		 lea	 ecx, DWORD PTR [ebp+4940]
+  00dee	8d 9d 44 0c 00
+	00		 lea	 ebx, DWORD PTR [ebp+3140]
+  00df4	57		 push	 edi
+  00df5	8b bc 24 98 00
+	00 00		 mov	 edi, DWORD PTR _phTTS$[esp+144]
+  00dfc	50		 push	 eax
+  00dfd	8d 85 e8 2b 00
+	00		 lea	 eax, DWORD PTR [ebp+11240]
+  00e03	50		 push	 eax
+  00e04	52		 push	 edx
+  00e05	51		 push	 ecx
+  00e06	8d 95 c8 0f 00
+	00		 lea	 edx, DWORD PTR [ebp+4040]
+  00e0c	53		 push	 ebx
+  00e0d	8d 85 3c 05 00
+	00		 lea	 eax, DWORD PTR [ebp+1340]
+  00e13	52		 push	 edx
+  00e14	50		 push	 eax
+  00e15	57		 push	 edi
+  00e16	e8 00 00 00 00	 call	 _par_process_input
+  00e1b	83 c4 38	 add	 esp, 56			; 00000038H
+
+; 816  : #else
+; 817  : 				par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 818  : 							  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 819  : 							  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 820  : 							  temp_mode,1,0,&(pCmd_t->ret_value));
+; 821  : #endif
+; 822  : 
+; 823  : 				/* cmd_flush return */
+; 824  : 				if (pCmd_t->input_counter == 0) return;
+
+  00e1e	66 83 bd 34 05
+	00 00 00	 cmp	 WORD PTR [ebp+1332], 0
+  00e26	0f 84 4a 03 00
+	00		 je	 $L71388
+
+; 825  : 				/* checking cmd_flushing */
+; 826  : 				if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  00e2c	8b 86 30 03 00
+	00		 mov	 eax, DWORD PTR [esi+816]
+  00e32	85 c0		 test	 eax, eax
+  00e34	0f 85 94 02 00
+	00		 jne	 $L71477
+  00e3a	83 be 2c 03 00
+	00 01		 cmp	 DWORD PTR [esi+812], 1
+  00e41	0f 84 87 02 00
+	00		 je	 $L71477
+
+; 829  : 					return;
+; 830  : 				}              
+; 831  : 				/* debug switch */
+; 832  : 				if (DT_DBG(CMD_DBG,0x004))
+
+  00e47	66 8b 86 40 06
+	00 00		 mov	 ax, WORD PTR [esi+1600]
+  00e4e	f6 c4 80	 test	 ah, -128		; ffffff80H
+  00e51	0f 84 99 00 00
+	00		 je	 $L71485
+  00e57	a8 04		 test	 al, 4
+  00e59	0f 84 91 00 00
+	00		 je	 $L71485
+
+; 833  : 				{   
+; 834  : #ifndef MSDOS
+; 835  : 					if (pKsd_t->dbglog)		/* mfg added for debuglog.txt suport*/
+
+  00e5f	8b b6 44 06 00
+	00		 mov	 esi, DWORD PTR [esi+1604]
+  00e65	85 f6		 test	 esi, esi
+  00e67	74 0f		 je	 SHORT $L71479
+
+; 836  : 						fprintf((FILE *)pKsd_t->dbglog,"\nPunct output:");
+
+  00e69	68 00 00 00 00	 push	 OFFSET FLAT:$SG71481
+  00e6e	56		 push	 esi
+  00e6f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00e75	83 c4 08	 add	 esp, 8
+$L71479:
+
+; 837  : #endif
+; 838  : 					printf("\nPunct output:");
+
+  00e78	68 00 00 00 00	 push	 OFFSET FLAT:$SG71482
+  00e7d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+
+; 839  : 					for (k=0; k < strlen(pCmd_t->output_buf); k++)
+
+  00e83	8b fb		 mov	 edi, ebx
+  00e85	83 c9 ff	 or	 ecx, -1
+  00e88	33 c0		 xor	 eax, eax
+  00e8a	83 c4 04	 add	 esp, 4
+  00e8d	f2 ae		 repne scasb
+  00e8f	f7 d1		 not	 ecx
+  00e91	49		 dec	 ecx
+  00e92	74 5c		 je	 SHORT $L71485
+  00e94	b8 bc f3 ff ff	 mov	 eax, -3140		; fffff3bcH
+  00e99	8b f3		 mov	 esi, ebx
+  00e9b	2b c5		 sub	 eax, ebp
+  00e9d	89 44 24 1c	 mov	 DWORD PTR -96+[esp+124], eax
+$L71483:
+
+; 840  : 					{
+; 841  : #ifndef MSDOS
+; 842  : 					if (pKsd_t->dbglog)		/* mfg added for debuglog.txt suport*/
+
+  00ea1	8b 44 24 10	 mov	 eax, DWORD PTR _pKsd_t$[esp+124]
+  00ea5	8b 88 44 06 00
+	00		 mov	 ecx, DWORD PTR [eax+1604]
+  00eab	85 c9		 test	 ecx, ecx
+  00ead	74 15		 je	 SHORT $L71486
+
+; 843  : 						fprintf(pKsd_t->dbglog,"\n%c(%x)",pCmd_t->output_buf[k],pCmd_t->output_buf[k]);
+
+  00eaf	33 c0		 xor	 eax, eax
+  00eb1	8a 06		 mov	 al, BYTE PTR [esi]
+  00eb3	50		 push	 eax
+  00eb4	50		 push	 eax
+  00eb5	68 00 00 00 00	 push	 OFFSET FLAT:$SG71487
+  00eba	51		 push	 ecx
+  00ebb	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00ec1	83 c4 10	 add	 esp, 16			; 00000010H
+$L71486:
+
+; 844  : #endif					
+; 845  : 					printf("\n%c(%x)",pCmd_t->output_buf[k],pCmd_t->output_buf[k]);
+
+  00ec4	33 c0		 xor	 eax, eax
+  00ec6	8a 06		 mov	 al, BYTE PTR [esi]
+  00ec8	50		 push	 eax
+  00ec9	50		 push	 eax
+  00eca	68 00 00 00 00	 push	 OFFSET FLAT:$SG71488
+  00ecf	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  00ed5	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00ed8	8b fb		 mov	 edi, ebx
+  00eda	83 c9 ff	 or	 ecx, -1
+  00edd	33 c0		 xor	 eax, eax
+  00edf	46		 inc	 esi
+  00ee0	8b 54 24 1c	 mov	 edx, DWORD PTR -96+[esp+124]
+  00ee4	f2 ae		 repne scasb
+  00ee6	f7 d1		 not	 ecx
+  00ee8	49		 dec	 ecx
+  00ee9	8d 04 16	 lea	 eax, DWORD PTR [esi+edx]
+  00eec	3b c1		 cmp	 eax, ecx
+  00eee	72 b1		 jb	 SHORT $L71483
+$L71485:
+
+; 846  : 					}			
+; 847  : 				}
+; 848  : 			
+; 849  : 				/* put the output back into the input */
+; 850  : 				strcpy(pCmd_t->clausebuf,pCmd_t->output_buf);
+
+  00ef0	8b fb		 mov	 edi, ebx
+  00ef2	83 c9 ff	 or	 ecx, -1
+  00ef5	33 c0		 xor	 eax, eax
+  00ef7	f2 ae		 repne scasb
+  00ef9	f7 d1		 not	 ecx
+  00efb	2b f9		 sub	 edi, ecx
+  00efd	8b d1		 mov	 edx, ecx
+  00eff	8b f7		 mov	 esi, edi
+  00f01	8d bd 3c 05 00
+	00		 lea	 edi, DWORD PTR [ebp+1340]
+  00f07	c1 e9 02	 shr	 ecx, 2
+  00f0a	f3 a5		 rep movsd
+  00f0c	8b ca		 mov	 ecx, edx
+  00f0e	83 e1 03	 and	 ecx, 3
+  00f11	f3 a4		 rep movsb
+
+; 851  : #ifdef NEW_INDEXING
+; 852  : 				/* put the indexes from the output into the input */
+; 853  : 				par_copy_index_list(pCmd_t->input_indexes,0,pCmd_t->output_indexes,0,PAR_MAX_INPUT_ARRAY);
+
+  00f13	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  00f18	8d b5 00 41 00
+	00		 lea	 esi, DWORD PTR [ebp+16640]
+  00f1e	8d bd d0 16 00
+	00		 lea	 edi, DWORD PTR [ebp+5840]
+  00f24	f3 a5		 rep movsd
+$L71593:
+
+; 854  : #endif
+; 855  :         	} /* if skip_mode != SKIP_punct */
+; 856  : 			if (pCmd_t->skip_mode != SKIP_rule)
+
+  00f26	83 bd 10 05 00
+	00 03		 cmp	 DWORD PTR [ebp+1296], 3
+  00f2d	0f 84 59 f7 ff
+	ff		 je	 $L71504
+
+; 857  : 			{
+; 858  :                 /* save parser_flag */
+; 859  : 				parser_flag = pCmd_t->ret_value.parser_flag;	
+
+  00f33	66 8b 95 90 57
+	00 00		 mov	 dx, WORD PTR [ebp+22416]
+
+; 860  : 				/* reset ret_value */
+; 861  : 				memset(&(pCmd_t->ret_value),0,sizeof(return_value_t));
+
+  00f3a	8d bd 74 57 00
+	00		 lea	 edi, DWORD PTR [ebp+22388]
+  00f40	b9 08 00 00 00	 mov	 ecx, 8
+  00f45	33 c0		 xor	 eax, eax
+  00f47	f3 ab		 rep stosd
+
+; 862  :         		/* restore parser_flag */
+; 863  : 				pCmd_t->ret_value.parser_flag = parser_flag;	
+
+  00f49	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+
+; 864  : 				/* reinit the new_input buffer */
+; 865  : 				memset(pCmd_t->new_input,0,PAR_MAX_INPUT_ARRAY);
+
+  00f4f	8d bd c8 0f 00
+	00		 lea	 edi, DWORD PTR [ebp+4040]
+  00f55	b9 e1 00 00 00	 mov	 ecx, 225		; 000000e1H
+  00f5a	89 95 90 57 00
+	00		 mov	 DWORD PTR [ebp+22416], edx
+  00f60	f3 ab		 rep stosd
+
+; 866  : #ifdef NEW_INDEXING
+; 867  : 				memset(pCmd_t->new_input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  00f62	8d bd e8 2b 00
+	00		 lea	 edi, DWORD PTR [ebp+11240]
+  00f68	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  00f6d	f3 ab		 rep stosd
+
+; 868  : 				memset(pCmd_t->output_indexes,0,PAR_MAX_OUTPUT_ARRAY*sizeof(index_data_t));
+
+  00f6f	8d bd 00 41 00
+	00		 lea	 edi, DWORD PTR [ebp+16640]
+  00f75	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  00f7a	f3 ab		 rep stosd
+
+; 869  : #endif
+; 870  : 				/* checking cmd_flushing */
+; 871  : 				if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  00f7c	8b 44 24 10	 mov	 eax, DWORD PTR _pKsd_t$[esp+124]
+  00f80	8b 88 30 03 00
+	00		 mov	 ecx, DWORD PTR [eax+816]
+  00f86	85 c9		 test	 ecx, ecx
+  00f88	0f 85 f0 05 00
+	00		 jne	 $L71494
+  00f8e	83 b8 2c 03 00
+	00 01		 cmp	 DWORD PTR [eax+812], 1
+  00f95	0f 84 e3 05 00
+	00		 je	 $L71494
+
+; 872  : 				{
+; 873  : 					cm_util_flush_init(phTTS);
+; 874  : 					return;
+; 875  : 				}
+; 876  : 				// add protection code for buffer overflows MGS
+; 877  : 				pCmd_t->clausebuf[PAR_MAX_INPUT_ARRAY-1]='\0';			              
+; 878  : 				/* GL 03/20/1998 BATS#631  initialize hit/miss arrary */
+; 879  : 				/* do the dictionary search here for the entire input */
+; 880  : 				memset(pCmd_t->dict_hit_buf,0,PAR_MAX_INPUT_ARRAY);
+
+  00f9b	8d 9d 4c 13 00
+	00		 lea	 ebx, DWORD PTR [ebp+4940]
+  00fa1	b9 e1 00 00 00	 mov	 ecx, 225		; 000000e1H
+  00fa6	33 c0		 xor	 eax, eax
+  00fa8	8b fb		 mov	 edi, ebx
+  00faa	c6 85 bf 08 00
+	00 00		 mov	 BYTE PTR [ebp+2239], 0
+
+; 881  : 	        	pCmd_t->input_counter=strlen(pCmd_t->clausebuf);
+; 882  : 				for (i=0;i<pCmd_t->input_counter;i++)
+
+  00fb1	33 f6		 xor	 esi, esi
+  00fb3	f3 ab		 rep stosd
+  00fb5	8d bd 3c 05 00
+	00		 lea	 edi, DWORD PTR [ebp+1340]
+  00fbb	83 c9 ff	 or	 ecx, -1
+  00fbe	f2 ae		 repne scasb
+  00fc0	f7 d1		 not	 ecx
+  00fc2	49		 dec	 ecx
+  00fc3	66 85 c9	 test	 cx, cx
+  00fc6	66 89 8d 34 05
+	00 00		 mov	 WORD PTR [ebp+1332], cx
+  00fcd	0f 8e 86 00 00
+	00		 jle	 $L71497
+$L71495:
+
+; 883  : 				{
+; 884  : 					/* GL 04/03/1997 for BATS#334 fix the DM mode problem in high light mode */
+; 885  : 					if (pCmd_t->clausebuf[i] == 0x82) continue;
+
+  00fd3	8a 84 2e 3c 05
+	00 00		 mov	 al, BYTE PTR [esi+ebp+1340]
+  00fda	8d 8c 2e 3c 05
+	00 00		 lea	 ecx, DWORD PTR [esi+ebp+1340]
+  00fe1	3c 82		 cmp	 al, 130			; 00000082H
+  00fe3	74 64		 je	 SHORT $L71496
+
+; 886  : 					if (((i==0) || (char_types[pCmd_t->clausebuf[i-1]] & MARK_space) || (pCmd_t->clausebuf[i-1] == 0x82))
+; 887  : 						&& !(char_types[pCmd_t->clausebuf[i]] & MARK_space))
+
+  00fe5	85 f6		 test	 esi, esi
+  00fe7	74 21		 je	 SHORT $L71500
+  00fe9	8a 94 2e 3b 05
+	00 00		 mov	 dl, BYTE PTR [esi+ebp+1339]
+  00ff0	88 54 24 24	 mov	 BYTE PTR -88+[esp+124], dl
+  00ff4	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  00ffa	f6 82 00 00 00
+	00 80		 test	 BYTE PTR _char_types[edx], 128 ; 00000080H
+  01001	75 07		 jne	 SHORT $L71500
+  01003	80 7c 24 24 82	 cmp	 BYTE PTR -88+[esp+124], 130 ; 00000082H
+  01008	75 3f		 jne	 SHORT $L71496
+$L71500:
+  0100a	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0100f	f6 80 00 00 00
+	00 80		 test	 BYTE PTR _char_types[eax], 128 ; 00000080H
+  01016	75 31		 jne	 SHORT $L71496
+
+; 888  : 					{
+; 889  : 						//	MGS		10/14/1999		BATS#876 fix for UK phone numbers (part of it) 
+; 890  : 						pCmd_t->dict_hit_buf[i]=par_dict_lookup(pKsd_t,cm_text_get_word(&(pCmd_t->clausebuf[i]),pCmd_t->wordbuf,0),1);
+
+  01018	8d bd c0 08 00
+	00		 lea	 edi, DWORD PTR [ebp+2240]
+  0101e	6a 01		 push	 1
+  01020	6a 00		 push	 0
+  01022	57		 push	 edi
+  01023	51		 push	 ecx
+  01024	e8 00 00 00 00	 call	 _cm_text_get_word
+  01029	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0102c	50		 push	 eax
+  0102d	8b 44 24 18	 mov	 eax, DWORD PTR _pKsd_t$[esp+132]
+  01031	50		 push	 eax
+  01032	e8 00 00 00 00	 call	 _par_dict_lookup
+  01037	88 04 33	 mov	 BYTE PTR [ebx+esi], al
+
+; 891  : 						i+=strlen(pCmd_t->wordbuf);
+
+  0103a	83 c9 ff	 or	 ecx, -1
+  0103d	33 c0		 xor	 eax, eax
+  0103f	83 c4 0c	 add	 esp, 12			; 0000000cH
+  01042	f2 ae		 repne scasb
+  01044	f7 d1		 not	 ecx
+  01046	49		 dec	 ecx
+  01047	03 f1		 add	 esi, ecx
+$L71496:
+  01049	0f bf 8d 34 05
+	00 00		 movsx	 ecx, WORD PTR [ebp+1332]
+  01050	46		 inc	 esi
+  01051	3b f1		 cmp	 esi, ecx
+  01053	0f 8c 7a ff ff
+	ff		 jl	 $L71495
+$L71497:
+
+; 892  : 					}
+; 893  : 				}
+; 894  : 			
+; 895  : #ifdef DEBUG_PARSER
+; 896  : 				printf("the input to normal .%s.\n",pCmd_t->clausebuf);		
+; 897  : 				printf("the dict hit buf is  ");
+; 898  : 				for (i=0;i<pCmd_t->input_counter;i++)
+; 899  : 				{
+; 900  : 					putc(pCmd_t->dict_hit_buf[i]+'0');
+; 901  : 				}
+; 902  : 				printf("\n");
+; 903  : #endif
+; 904  : 
+; 905  : 				/* 044	MGS		09/24/1997	BATS#469 Fix for NWS parser problem */
+; 906  : 				/*				force mode_flag always set to non-zero          */ 
+; 907  : #ifdef NEW_BINARY_PARSER
+; 908  : 				if (pCmd_t->done==2)
+
+  01059	66 83 bd 72 57
+	00 00 02	 cmp	 WORD PTR [ebp+22386], 2
+
+; 909  : 				{
+; 910  : 					par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 911  : 								  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 912  : 								  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 913  : 								  pKsd_t->modeflag | MODE_CITATION,2,1,&(pCmd_t->match_array),&(pCmd_t->ret_value));
+
+  01061	8d 85 74 57 00
+	00		 lea	 eax, DWORD PTR [ebp+22388]
+  01067	50		 push	 eax
+  01068	75 75		 jne	 SHORT $L71501
+  0106a	8b 74 24 14	 mov	 esi, DWORD PTR _pKsd_t$[esp+128]
+  0106e	8d 95 18 56 00
+	00		 lea	 edx, DWORD PTR [ebp+22040]
+  01074	52		 push	 edx
+  01075	ba 01 00 00 00	 mov	 edx, 1
+  0107a	8b 8e b8 02 00
+	00		 mov	 ecx, DWORD PTR [esi+696]
+  01080	8b 86 c0 03 00
+	00		 mov	 eax, DWORD PTR [esi+960]
+  01086	d3 e2		 shl	 edx, cl
+  01088	6a 01		 push	 1
+  0108a	80 cc 01	 or	 ah, 1
+  0108d	6a 02		 push	 2
+  0108f	50		 push	 eax
+  01090	8d 85 00 41 00
+	00		 lea	 eax, DWORD PTR [ebp+16640]
+  01096	8d 8d 44 0c 00
+	00		 lea	 ecx, DWORD PTR [ebp+3140]
+  0109c	52		 push	 edx
+  0109d	50		 push	 eax
+  0109e	8d 85 e8 2b 00
+	00		 lea	 eax, DWORD PTR [ebp+11240]
+  010a4	8b 94 24 9c 00
+	00 00		 mov	 edx, DWORD PTR _phTTS$[esp+148]
+  010ab	50		 push	 eax
+  010ac	8d 85 d0 16 00
+	00		 lea	 eax, DWORD PTR [ebp+5840]
+  010b2	50		 push	 eax
+  010b3	53		 push	 ebx
+  010b4	8d 85 c8 0f 00
+	00		 lea	 eax, DWORD PTR [ebp+4040]
+  010ba	51		 push	 ecx
+  010bb	50		 push	 eax
+  010bc	8d 85 3c 05 00
+	00		 lea	 eax, DWORD PTR [ebp+1340]
+  010c2	50		 push	 eax
+  010c3	52		 push	 edx
+  010c4	e8 00 00 00 00	 call	 _par_process_input
+  010c9	83 c4 38	 add	 esp, 56			; 00000038H
+
+; 914  :    				}
+; 915  : 				else
+
+  010cc	eb 77		 jmp	 SHORT $L71502
+$L71477:
+
+; 827  : 				{
+; 828  : 					cm_util_flush_init(phTTS);
+
+  010ce	57		 push	 edi
+  010cf	e8 00 00 00 00	 call	 _cm_util_flush_init
+  010d4	83 c4 04	 add	 esp, 4
+  010d7	5f		 pop	 edi
+  010d8	5e		 pop	 esi
+  010d9	5d		 pop	 ebp
+  010da	5b		 pop	 ebx
+
+; 1169 : 
+; 1170 : 	}
+; 1171 : }
+
+  010db	83 c4 6c	 add	 esp, 108		; 0000006cH
+  010de	c3		 ret	 0
+$L71501:
+
+; 916  : 				{
+; 917  : 					par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 918  : 								  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 919  : 								  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 920  : 								  pKsd_t->modeflag | MODE_CITATION,2,0,&(pCmd_t->match_array),&(pCmd_t->ret_value));
+
+  010df	8d 85 18 56 00
+	00		 lea	 eax, DWORD PTR [ebp+22040]
+  010e5	ba 01 00 00 00	 mov	 edx, 1
+  010ea	50		 push	 eax
+  010eb	8b 44 24 18	 mov	 eax, DWORD PTR _pKsd_t$[esp+132]
+  010ef	6a 00		 push	 0
+  010f1	6a 02		 push	 2
+  010f3	8b 88 c0 03 00
+	00		 mov	 ecx, DWORD PTR [eax+960]
+  010f9	80 cd 01	 or	 ch, 1
+  010fc	51		 push	 ecx
+  010fd	8b 88 b8 02 00
+	00		 mov	 ecx, DWORD PTR [eax+696]
+  01103	d3 e2		 shl	 edx, cl
+  01105	8d 85 00 41 00
+	00		 lea	 eax, DWORD PTR [ebp+16640]
+  0110b	8d 8d 44 0c 00
+	00		 lea	 ecx, DWORD PTR [ebp+3140]
+  01111	52		 push	 edx
+  01112	50		 push	 eax
+  01113	8d 85 e8 2b 00
+	00		 lea	 eax, DWORD PTR [ebp+11240]
+  01119	8b 94 24 9c 00
+	00 00		 mov	 edx, DWORD PTR _phTTS$[esp+148]
+  01120	50		 push	 eax
+  01121	8d 85 d0 16 00
+	00		 lea	 eax, DWORD PTR [ebp+5840]
+  01127	50		 push	 eax
+  01128	53		 push	 ebx
+  01129	8d 85 c8 0f 00
+	00		 lea	 eax, DWORD PTR [ebp+4040]
+  0112f	51		 push	 ecx
+  01130	50		 push	 eax
+  01131	8d 85 3c 05 00
+	00		 lea	 eax, DWORD PTR [ebp+1340]
+  01137	50		 push	 eax
+  01138	52		 push	 edx
+  01139	e8 00 00 00 00	 call	 _par_process_input
+  0113e	8b 74 24 48	 mov	 esi, DWORD PTR _pKsd_t$[esp+180]
+  01142	83 c4 38	 add	 esp, 56			; 00000038H
+$L71502:
+
+; 921  : 				}
+; 922  : #else
+; 923  : 				if (pCmd_t->done==2)
+; 924  : 				{
+; 925  : 					par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 926  : 								  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 927  : 								  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 928  : 								  pKsd_t->modeflag | MODE_CITATION,2,1,&(pCmd_t->ret_value));
+; 929  :    				}
+; 930  : 				else
+; 931  : 				{
+; 932  : 					par_process_input(phTTS,pCmd_t->clausebuf,pCmd_t->new_input,pCmd_t->output_buf,
+; 933  : 								  pCmd_t->dict_hit_buf,pCmd_t->input_indexes,pCmd_t->new_input_indexes,
+; 934  : 								  pCmd_t->output_indexes,(0x00000001 << PAR_LANG_CODE),
+; 935  : 								  pKsd_t->modeflag | MODE_CITATION,2,0,&(pCmd_t->ret_value));
+; 936  : 				}
+; 937  : #endif
+; 938  : 				/* cmd_flush return */
+; 939  : 				if (pCmd_t->input_counter == 0) return;
+
+  01145	66 83 bd 34 05
+	00 00 00	 cmp	 WORD PTR [ebp+1332], 0
+  0114d	74 27		 je	 SHORT $L71388
+
+; 940  : 				/* checking cmd_flushing */
+; 941  : 				if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  0114f	8b 86 30 03 00
+	00		 mov	 eax, DWORD PTR [esi+816]
+  01155	85 c0		 test	 eax, eax
+  01157	75 0d		 jne	 SHORT $L71558
+  01159	83 be 2c 03 00
+	00 01		 cmp	 DWORD PTR [esi+812], 1
+  01160	0f 85 26 f5 ff
+	ff		 jne	 $L71504
+$L71558:
+
+; 942  : 				{
+; 943  : 					cm_util_flush_init(phTTS);
+
+  01166	8b 84 24 80 00
+	00 00		 mov	 eax, DWORD PTR _phTTS$[esp+120]
+$L71319:
+
+; 283  : 	{
+; 284  : 		cm_util_flush_init(phTTS);
+
+  0116d	50		 push	 eax
+  0116e	e8 00 00 00 00	 call	 _cm_util_flush_init
+  01173	83 c4 04	 add	 esp, 4
+$L71388:
+  01176	5f		 pop	 edi
+  01177	5e		 pop	 esi
+  01178	5d		 pop	 ebp
+  01179	5b		 pop	 ebx
+
+; 1169 : 
+; 1170 : 	}
+; 1171 : }
+
+  0117a	83 c4 6c	 add	 esp, 108		; 0000006cH
+  0117d	c3		 ret	 0
+$L71521:
+
+; 1012 : 					}				
+; 1013 : 					/* debug switch */
+; 1014 : 					if (DT_DBG(CMD_DBG,0x008))
+
+  0117e	66 8b 8e 40 06
+	00 00		 mov	 cx, WORD PTR [esi+1600]
+  01185	f6 c5 80	 test	 ch, -128		; ffffff80H
+  01188	74 3e		 je	 SHORT $L71522
+  0118a	f6 c1 08	 test	 cl, 8
+  0118d	74 39		 je	 SHORT $L71522
+
+; 1015 : 					{
+; 1016 : #ifndef MSDOS
+; 1017 : 						if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  0118f	8b 8e 44 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1604]
+  01195	85 c9		 test	 ecx, ecx
+  01197	74 16		 je	 SHORT $L71523
+
+; 1018 : 							fprintf((FILE *)pKsd_t->dbglog,"\n%c(%x)",pCmd_t->output_buf[i],pCmd_t->output_buf[i]);
+
+  01199	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0119e	50		 push	 eax
+  0119f	50		 push	 eax
+  011a0	68 00 00 00 00	 push	 OFFSET FLAT:$SG71525
+  011a5	51		 push	 ecx
+  011a6	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  011ac	83 c4 10	 add	 esp, 16			; 00000010H
+$L71523:
+
+; 1019 : #endif						
+; 1020 : 						printf("\n%c(%x)",pCmd_t->output_buf[i],pCmd_t->output_buf[i]);
+
+  011af	33 c0		 xor	 eax, eax
+  011b1	8a 84 2f 44 0c
+	00 00		 mov	 al, BYTE PTR [edi+ebp+3140]
+  011b8	50		 push	 eax
+  011b9	50		 push	 eax
+  011ba	68 00 00 00 00	 push	 OFFSET FLAT:$SG71526
+  011bf	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  011c5	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71522:
+
+; 1021 : 					}
+; 1022 : #ifdef DEBUG_PARSER
+; 1023 : 						putc(pCmd_t->output_buf[i]);
+; 1024 : #endif
+; 1025 : 					pipe_value = (PFASCII<<PSFONT)+pCmd_t->output_buf[i];
+
+  011c8	66 0f b6 84 2f
+	44 0c 00 00	 movzx	 ax, BYTE PTR [edi+ebp+3140]
+  011d1	89 44 24 14	 mov	 DWORD PTR _pipe_value$[esp+124], eax
+
+; 1026 : 					cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+
+  011d5	8b 96 90 02 00
+	00		 mov	 edx, DWORD PTR [esi+656]
+  011db	8d 4c 24 14	 lea	 ecx, DWORD PTR _pipe_value$[esp+124]
+  011df	6a 01		 push	 1
+  011e1	51		 push	 ecx
+  011e2	52		 push	 edx
+
+; 1027 : 				}
+; 1028 : 				if (mode==PAR_OUTPUT_PHONES)
+
+  011e3	e9 85 00 00 00	 jmp	 $L71663
+$L71520:
+  011e8	83 f9 02	 cmp	 ecx, 2
+  011eb	0f 85 85 00 00
+	00		 jne	 $L71527
+
+; 1029 : 				{
+; 1030 : 					if (pCmd_t->output_buf[i]==PAR_PHONES_OFF_D)
+
+  011f1	3c 81		 cmp	 al, 129			; 00000081H
+  011f3	75 09		 jne	 SHORT $L71528
+
+; 1031 : 					{
+; 1032 : 						mode=PAR_OUTPUT_CHARS;
+
+  011f5	89 54 24 18	 mov	 DWORD PTR _mode$[esp+124], edx
+
+; 1033 : 						continue;
+
+  011f9	e9 8f 01 00 00	 jmp	 $L71515
+$L71528:
+
+; 1034 : 					}				
+; 1035 : 					/* debug switch */
+; 1036 : 					if (DT_DBG(CMD_DBG,0x008))
+
+  011fe	66 8b 8e 40 06
+	00 00		 mov	 cx, WORD PTR [esi+1600]
+  01205	f6 c5 80	 test	 ch, -128		; ffffff80H
+  01208	74 3e		 je	 SHORT $L71529
+  0120a	f6 c1 08	 test	 cl, 8
+  0120d	74 39		 je	 SHORT $L71529
+
+; 1037 : 					{
+; 1038 : #ifndef MSDOS
+; 1039 : 						if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  0120f	8b 8e 44 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1604]
+  01215	85 c9		 test	 ecx, ecx
+  01217	74 16		 je	 SHORT $L71530
+
+; 1040 : 							fprintf((FILE *)pKsd_t->dbglog,"\n%c[%x]",pCmd_t->output_buf[i],pCmd_t->output_buf[i]);
+
+  01219	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0121e	50		 push	 eax
+  0121f	50		 push	 eax
+  01220	68 00 00 00 00	 push	 OFFSET FLAT:$SG71532
+  01225	51		 push	 ecx
+  01226	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  0122c	83 c4 10	 add	 esp, 16			; 00000010H
+$L71530:
+
+; 1041 : #endif
+; 1042 : 						printf("\n%c[%x]",pCmd_t->output_buf[i],pCmd_t->output_buf[i]);
+
+  0122f	33 c0		 xor	 eax, eax
+  01231	8a 84 2f 44 0c
+	00 00		 mov	 al, BYTE PTR [edi+ebp+3140]
+  01238	50		 push	 eax
+  01239	50		 push	 eax
+  0123a	68 00 00 00 00	 push	 OFFSET FLAT:$SG71533
+  0123f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  01245	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71529:
+
+; 1043 : 					}
+; 1044 : #ifdef DEBUG_PARSER
+; 1045 : 						putc(pCmd_t->output_buf[i]);
+; 1046 : #endif
+; 1047 : 					pipe_value = pKsd_t->reverse_ascky[pCmd_t->output_buf[i]];
+
+  01248	8b 8e 28 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1576]
+  0124e	33 c0		 xor	 eax, eax
+  01250	8a 84 2f 44 0c
+	00 00		 mov	 al, BYTE PTR [edi+ebp+3140]
+
+; 1048 : 					cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+
+  01257	6a 01		 push	 1
+  01259	66 8b 14 81	 mov	 dx, WORD PTR [ecx+eax*4]
+  0125d	8d 44 24 18	 lea	 eax, DWORD PTR _pipe_value$[esp+128]
+  01261	89 54 24 18	 mov	 DWORD PTR _pipe_value$[esp+128], edx
+  01265	8b 8e 90 02 00
+	00		 mov	 ecx, DWORD PTR [esi+656]
+  0126b	50		 push	 eax
+  0126c	51		 push	 ecx
+$L71663:
+  0126d	56		 push	 esi
+  0126e	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  01273	83 c4 10	 add	 esp, 16			; 00000010H
+$L71527:
+
+; 1049 : 				}
+; 1050 : 			}
+; 1051 : 			if (par_is_index_set(pCmd_t->output_indexes,i))
+
+  01276	66 83 bc 2b 00
+	41 00 00 00	 cmp	 WORD PTR [ebx+ebp+16640], 0
+  0127f	75 1a		 jne	 SHORT $L71599
+  01281	66 83 bc 2b 02
+	41 00 00 00	 cmp	 WORD PTR [ebx+ebp+16642], 0
+  0128a	75 0f		 jne	 SHORT $L71599
+  0128c	66 83 bc 2b 04
+	41 00 00 00	 cmp	 WORD PTR [ebx+ebp+16644], 0
+  01295	0f 84 f2 00 00
+	00		 je	 $L71515
+$L71599:
+
+; 1052 : 			  {
+; 1053 : 			    /* debug switch */
+; 1054 : 			    if (DT_DBG(CMD_DBG,0x008))
+
+  0129b	66 8b 86 40 06
+	00 00		 mov	 ax, WORD PTR [esi+1600]
+  012a2	f6 c4 80	 test	 ah, -128		; ffffff80H
+  012a5	74 7e		 je	 SHORT $L71535
+  012a7	a8 08		 test	 al, 8
+  012a9	74 7a		 je	 SHORT $L71535
+
+; 1055 : 			      {
+; 1056 : 					// * 059	MGS		10/14/1999	BATS#900 Fixed indexing in spanish phone numbers
+; 1057 : 					if (i>0 && pCmd_t->output_buf[i-1] != ' ')
+
+  012ab	85 db		 test	 ebx, ebx
+  012ad	7e 39		 jle	 SHORT $L71536
+  012af	80 bc 2f 43 0c
+	00 00 20	 cmp	 BYTE PTR [edi+ebp+3139], 32 ; 00000020H
+  012b7	74 2f		 je	 SHORT $L71536
+
+; 1058 : 					{
+; 1059 : #ifndef MSDOS
+; 1060 : 						if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  012b9	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  012bf	85 c0		 test	 eax, eax
+  012c1	74 13		 je	 SHORT $L71537
+
+; 1061 : 							fprintf((FILE *)pKsd_t->dbglog,"\n%c(%x)",' ',' ');
+
+  012c3	6a 20		 push	 32			; 00000020H
+  012c5	6a 20		 push	 32			; 00000020H
+  012c7	68 00 00 00 00	 push	 OFFSET FLAT:$SG71539
+  012cc	50		 push	 eax
+  012cd	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  012d3	83 c4 10	 add	 esp, 16			; 00000010H
+$L71537:
+
+; 1062 : #endif						
+; 1063 : 						printf("\n%c(%x)",' ',' ');
+
+  012d6	6a 20		 push	 32			; 00000020H
+  012d8	6a 20		 push	 32			; 00000020H
+  012da	68 00 00 00 00	 push	 OFFSET FLAT:$SG71540
+  012df	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  012e5	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71536:
+
+; 1064 : 					}
+; 1065 : #ifndef MSDOS
+; 1066 : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  012e8	8b 8e 44 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1604]
+  012ee	85 c9		 test	 ecx, ecx
+  012f0	74 1a		 je	 SHORT $L71541
+
+; 1067 : 				  fprintf(pKsd_t->dbglog,"\n%c[%x]",pCmd_t->output_buf[i],pCmd_t->output_buf[i]);
+
+  012f2	33 c0		 xor	 eax, eax
+  012f4	8a 84 2f 44 0c
+	00 00		 mov	 al, BYTE PTR [edi+ebp+3140]
+  012fb	50		 push	 eax
+  012fc	50		 push	 eax
+  012fd	68 00 00 00 00	 push	 OFFSET FLAT:$SG71542
+  01302	51		 push	 ecx
+  01303	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01309	83 c4 10	 add	 esp, 16			; 00000010H
+$L71541:
+
+; 1068 : #endif
+; 1069 : 				printf("\n*%c[%x]",pCmd_t->output_indexes[i].index[1],pCmd_t->output_indexes[i].index[1]);
+
+  0130c	8b 54 24 1c	 mov	 edx, DWORD PTR -96+[esp+124]
+  01310	33 c0		 xor	 eax, eax
+  01312	66 8b 02	 mov	 ax, WORD PTR [edx]
+  01315	50		 push	 eax
+  01316	50		 push	 eax
+  01317	68 00 00 00 00	 push	 OFFSET FLAT:$SG71543
+  0131c	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  01322	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71535:
+
+; 1070 : 			      }
+; 1071 : 				// MGS 10/14/1999 BATS#900 fixed indexing with spanish phone nubmer rules
+; 1072 : 				if (i > 0 && pCmd_t->output_buf[i-1] !=' ' && !par_is_index_set(pCmd_t->output_indexes,i-1))
+
+  01325	85 db		 test	 ebx, ebx
+  01327	7e 4a		 jle	 SHORT $L71544
+  01329	80 bc 2f 43 0c
+	00 00 20	 cmp	 BYTE PTR [edi+ebp+3139], 32 ; 00000020H
+  01331	74 40		 je	 SHORT $L71544
+  01333	66 83 bc 2b fa
+	40 00 00 00	 cmp	 WORD PTR [ebx+ebp+16634], 0
+  0133c	75 35		 jne	 SHORT $L71544
+  0133e	66 83 bc 2b fc
+	40 00 00 00	 cmp	 WORD PTR [ebx+ebp+16636], 0
+  01347	75 2a		 jne	 SHORT $L71544
+  01349	66 83 bc 2b fe
+	40 00 00 00	 cmp	 WORD PTR [ebx+ebp+16638], 0
+  01352	75 1f		 jne	 SHORT $L71544
+
+; 1073 : 				{
+; 1074 : 					pipe_value = (PFASCII<<PSFONT)+' ';
+
+  01354	c7 44 24 14 20
+	00 00 00	 mov	 DWORD PTR _pipe_value$[esp+124], 32 ; 00000020H
+
+; 1075 : 					cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+
+  0135c	8b 8e 90 02 00
+	00		 mov	 ecx, DWORD PTR [esi+656]
+  01362	8d 44 24 14	 lea	 eax, DWORD PTR _pipe_value$[esp+124]
+  01366	6a 01		 push	 1
+  01368	50		 push	 eax
+  01369	51		 push	 ecx
+  0136a	56		 push	 esi
+  0136b	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  01370	83 c4 10	 add	 esp, 16			; 00000010H
+$L71544:
+
+; 1076 : 				}
+; 1077 : 
+; 1078 : 				cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,pCmd_t->output_indexes[i].index,3);
+
+  01373	8b 54 24 1c	 mov	 edx, DWORD PTR -96+[esp+124]
+  01377	8b 86 90 02 00
+	00		 mov	 eax, DWORD PTR [esi+656]
+  0137d	83 c2 fe	 add	 edx, -2			; fffffffeH
+  01380	6a 03		 push	 3
+  01382	52		 push	 edx
+  01383	50		 push	 eax
+  01384	56		 push	 esi
+  01385	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  0138a	83 c4 10	 add	 esp, 16			; 00000010H
+$L71515:
+  0138d	8b 4c 24 1c	 mov	 ecx, DWORD PTR -96+[esp+124]
+  01391	8b 85 80 57 00
+	00		 mov	 eax, DWORD PTR [ebp+22400]
+  01397	47		 inc	 edi
+  01398	83 c3 06	 add	 ebx, 6
+  0139b	83 c1 06	 add	 ecx, 6
+  0139e	3b f8		 cmp	 edi, eax
+  013a0	89 4c 24 1c	 mov	 DWORD PTR -96+[esp+124], ecx
+  013a4	0f 8c 8e f3 ff
+	ff		 jl	 $L71514
+
+; 998  : 		{
+; 999  : 			if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  013aa	33 db		 xor	 ebx, ebx
+$L71516:
+
+; 1079 : 			  }
+; 1080 : 		}                                               
+; 1081 : #ifdef DEBUG_PARSER
+; 1082 : 		printf(".\n output offset=%d\n",pCmd_t->ret_value.output_offset);
+; 1083 : #endif
+; 1084 : 		/* 
+; 1085 : 		 * fix for typing space ctrl-k 
+; 1086 : 		 * ctrl-k is a clause and a space to the parser 
+; 1087 : 		 * and is therefore removed, because only the first 
+; 1088 : 		 * whitespace is kept in the output buffer 
+; 1089 : 		 */
+; 1090 : //		if (pCmd_t->ParseChar == 0xb)   
+; 1091 : 		if (pCmd_t->ParseChar == 0xb || pCmd_t->ParseChar == 0x9)   
+
+  013ac	66 8b 85 28 05
+	00 00		 mov	 ax, WORD PTR [ebp+1320]
+  013b3	66 3d 0b 00	 cmp	 ax, 11			; 0000000bH
+  013b7	74 06		 je	 SHORT $L71546
+  013b9	66 3d 09 00	 cmp	 ax, 9
+  013bd	75 6c		 jne	 SHORT $L71545
+$L71546:
+
+; 1092 : 		{
+; 1093 : 			/* debug switch */
+; 1094 : 			if (DT_DBG(CMD_DBG,0x008))
+
+  013bf	66 8b 8e 40 06
+	00 00		 mov	 cx, WORD PTR [esi+1600]
+  013c6	f6 c5 80	 test	 ch, -128		; ffffff80H
+  013c9	74 3e		 je	 SHORT $L71547
+  013cb	f6 c1 08	 test	 cl, 8
+  013ce	74 39		 je	 SHORT $L71547
+
+; 1095 : 			{
+; 1096 : #ifndef MSDOS
+; 1097 : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  013d0	8b 8e 44 06 00
+	00		 mov	 ecx, DWORD PTR [esi+1604]
+  013d6	3b cb		 cmp	 ecx, ebx
+  013d8	74 16		 je	 SHORT $L71548
+
+; 1098 : 					fprintf((FILE *)pKsd_t->dbglog,"\n%c(*%x)",pCmd_t->ParseChar,pCmd_t->ParseChar);
+
+  013da	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  013df	50		 push	 eax
+  013e0	50		 push	 eax
+  013e1	68 00 00 00 00	 push	 OFFSET FLAT:$SG71550
+  013e6	51		 push	 ecx
+  013e7	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  013ed	83 c4 10	 add	 esp, 16			; 00000010H
+$L71548:
+
+; 1099 : #endif
+; 1100 : 				printf("\n%c(*%x)",pCmd_t->ParseChar,pCmd_t->ParseChar);
+
+  013f0	33 c0		 xor	 eax, eax
+  013f2	66 8b 85 28 05
+	00 00		 mov	 ax, WORD PTR [ebp+1320]
+  013f9	50		 push	 eax
+  013fa	50		 push	 eax
+  013fb	68 00 00 00 00	 push	 OFFSET FLAT:$SG71551
+  01400	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  01406	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71547:
+
+; 1101 : 			}
+; 1102 : 			pipe_value = (PFASCII<<PSFONT)+pCmd_t->ParseChar;
+
+  01409	66 8b 95 28 05
+	00 00		 mov	 dx, WORD PTR [ebp+1320]
+
+; 1103 : 			cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+
+  01410	8d 44 24 14	 lea	 eax, DWORD PTR _pipe_value$[esp+124]
+  01414	89 54 24 14	 mov	 DWORD PTR _pipe_value$[esp+124], edx
+  01418	8b 8e 90 02 00
+	00		 mov	 ecx, DWORD PTR [esi+656]
+  0141e	6a 01		 push	 1
+  01420	50		 push	 eax
+  01421	51		 push	 ecx
+  01422	56		 push	 esi
+  01423	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  01428	83 c4 10	 add	 esp, 16			; 00000010H
+$L71545:
+
+; 1104 : 		}                                               
+; 1105 : 		/* debug switch */
+; 1106 : 		if (DT_DBG(CMD_DBG,0x008))
+
+  0142b	66 8b 86 40 06
+	00 00		 mov	 ax, WORD PTR [esi+1600]
+  01432	f6 c4 80	 test	 ah, -128		; ffffff80H
+  01435	74 2b		 je	 SHORT $L71552
+  01437	a8 08		 test	 al, 8
+  01439	74 27		 je	 SHORT $L71552
+
+; 1107 : 		{
+; 1108 : #ifndef MSDOS
+; 1109 : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt support*/
+
+  0143b	8b 86 44 06 00
+	00		 mov	 eax, DWORD PTR [esi+1604]
+  01441	3b c3		 cmp	 eax, ebx
+  01443	74 0f		 je	 SHORT $L71553
+
+; 1110 : 					fprintf((FILE *)pKsd_t->dbglog,"\n");
+
+  01445	68 00 00 00 00	 push	 OFFSET FLAT:$SG71555
+  0144a	50		 push	 eax
+  0144b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  01451	83 c4 08	 add	 esp, 8
+$L71553:
+
+; 1111 : #endif
+; 1112 : 			printf("\n");
+
+  01454	68 00 00 00 00	 push	 OFFSET FLAT:$SG71556
+  01459	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  0145f	83 c4 04	 add	 esp, 4
+$L71552:
+
+; 1113 : 		}
+; 1114 : 			
+; 1115 : 		/* checking cmd_flushing */
+; 1116 : 		if (pKsd_t->text_flush || (pKsd_t->cmd_flush == CMD_flush_toss))
+
+  01462	39 9e 30 03 00
+	00		 cmp	 DWORD PTR [esi+816], ebx
+  01468	0f 85 f8 fc ff
+	ff		 jne	 $L71558
+  0146e	83 be 2c 03 00
+	00 01		 cmp	 DWORD PTR [esi+812], 1
+  01475	0f 84 eb fc ff
+	ff		 je	 $L71558
+
+; 1117 : 		{
+; 1118 : 			cm_util_flush_init(phTTS);
+; 1119 : 			return;
+; 1120 : 		}              
+; 1121 : 		/* shift the buffers here for the rolling input buffer */
+; 1122 : 		if (pCmd_t->done==2)
+
+  0147b	66 83 bd 72 57
+	00 00 02	 cmp	 WORD PTR [ebp+22386], 2
+  01483	0f 85 0d 01 00
+	00		 jne	 $L71559
+
+; 1123 : 		{
+; 1124 : 			for (i=pCmd_t->ret_value.input_offset+pCmd_t->ret_value.input_pos,j=0;pCmd_t->clausebuf[i];i++,j++)
+
+  01489	8b 8d 78 57 00
+	00		 mov	 ecx, DWORD PTR [ebp+22392]
+  0148f	8b 95 74 57 00
+	00		 mov	 edx, DWORD PTR [ebp+22388]
+  01495	03 ca		 add	 ecx, edx
+  01497	33 d2		 xor	 edx, edx
+  01499	8a 84 29 3c 05
+	00 00		 mov	 al, BYTE PTR [ecx+ebp+1340]
+  014a0	8d b4 29 3c 05
+	00 00		 lea	 esi, DWORD PTR [ecx+ebp+1340]
+  014a7	84 c0		 test	 al, al
+  014a9	74 51		 je	 SHORT $L71562
+
+; 1125 : 			{
+; 1126 : 				pCmd_t->clausebuf[j]=pCmd_t->clausebuf[i];
+
+  014ab	8a 84 29 3c 05
+	00 00		 mov	 al, BYTE PTR [ecx+ebp+1340]
+  014b2	8d 0c 49	 lea	 ecx, DWORD PTR [ecx+ecx*2]
+  014b5	8d bd d0 16 00
+	00		 lea	 edi, DWORD PTR [ebp+5840]
+  014bb	89 bc 24 80 00
+	00 00		 mov	 DWORD PTR 8+[esp+120], edi
+  014c2	8d 8c 4d d0 16
+	00 00		 lea	 ecx, DWORD PTR [ebp+ecx*2+5840]
+$L71560:
+
+; 1127 : #ifdef NEW_INDEXING
+; 1128 : 				/* move the indexes too */
+; 1129 : 				par_copy_index(pCmd_t->input_indexes,j,pCmd_t->input_indexes,i);
+
+  014c9	8b bc 24 80 00
+	00 00		 mov	 edi, DWORD PTR 8+[esp+120]
+  014d0	88 84 2a 3c 05
+	00 00		 mov	 BYTE PTR [edx+ebp+1340], al
+  014d7	8b c1		 mov	 eax, ecx
+  014d9	83 c1 06	 add	 ecx, 6
+  014dc	46		 inc	 esi
+  014dd	42		 inc	 edx
+  014de	8b 18		 mov	 ebx, DWORD PTR [eax]
+  014e0	89 1f		 mov	 DWORD PTR [edi], ebx
+  014e2	66 8b 40 04	 mov	 ax, WORD PTR [eax+4]
+  014e6	8b df		 mov	 ebx, edi
+  014e8	66 89 47 04	 mov	 WORD PTR [edi+4], ax
+  014ec	8a 06		 mov	 al, BYTE PTR [esi]
+  014ee	83 c3 06	 add	 ebx, 6
+  014f1	84 c0		 test	 al, al
+  014f3	89 9c 24 80 00
+	00 00		 mov	 DWORD PTR 8+[esp+120], ebx
+  014fa	75 cd		 jne	 SHORT $L71560
+$L71562:
+
+; 1130 : #endif
+; 1131 : 			}
+; 1132 : 			pCmd_t->roll_text=1;
+; 1133 : 			pCmd_t->input_counter=j;
+; 1134 : 			pCmd_t->prev_word_index-=pCmd_t->ret_value.input_offset+pCmd_t->ret_value.input_pos;
+
+  014fc	66 8b 8d 78 57
+	00 00		 mov	 cx, WORD PTR [ebp+22392]
+
+; 1135 : 			pCmd_t->prevword-=(pCmd_t->ret_value.input_offset+pCmd_t->ret_value.input_pos); 
+
+  01503	8b 85 78 57 00
+	00		 mov	 eax, DWORD PTR [ebp+22392]
+  01509	66 03 8d 74 57
+	00 00		 add	 cx, WORD PTR [ebp+22388]
+  01510	8b b5 74 57 00
+	00		 mov	 esi, DWORD PTR [ebp+22388]
+  01516	03 c6		 add	 eax, esi
+
+; 1136 : 			memset(pCmd_t->clausebuf+j,0,PAR_MAX_INPUT_ARRAY-j-1);
+
+  01518	be 83 03 00 00	 mov	 esi, 899		; 00000383H
+  0151d	66 29 8d 70 57
+	00 00		 sub	 WORD PTR [ebp+22384], cx
+  01524	8b 8d 6c 57 00
+	00		 mov	 ecx, DWORD PTR [ebp+22380]
+  0152a	2b c8		 sub	 ecx, eax
+  0152c	2b f2		 sub	 esi, edx
+  0152e	89 8d 6c 57 00
+	00		 mov	 DWORD PTR [ebp+22380], ecx
+  01534	8b ce		 mov	 ecx, esi
+  01536	8b d9		 mov	 ebx, ecx
+  01538	33 c0		 xor	 eax, eax
+  0153a	8d bc 2a 3c 05
+	00 00		 lea	 edi, DWORD PTR [edx+ebp+1340]
+  01541	66 c7 85 38 05
+	00 00 01 00	 mov	 WORD PTR [ebp+1336], 1
+  0154a	c1 e9 02	 shr	 ecx, 2
+  0154d	66 89 95 34 05
+	00 00		 mov	 WORD PTR [ebp+1332], dx
+
+; 1137 : #ifdef NEW_INDEXING
+; 1138 : 			memset(&(pCmd_t->input_indexes[j].index[0]),0,(PAR_MAX_INPUT_ARRAY-j-1)*sizeof(index_data_t));
+
+  01554	8d 14 52	 lea	 edx, DWORD PTR [edx+edx*2]
+  01557	f3 ab		 rep stosd
+  01559	8b cb		 mov	 ecx, ebx
+  0155b	83 e1 03	 and	 ecx, 3
+  0155e	f3 aa		 rep stosb
+  01560	8d 0c 76	 lea	 ecx, DWORD PTR [esi+esi*2]
+  01563	8d bc 55 d0 16
+	00 00		 lea	 edi, DWORD PTR [ebp+edx*2+5840]
+  0156a	d1 e1		 shl	 ecx, 1
+  0156c	8b d1		 mov	 edx, ecx
+  0156e	33 c0		 xor	 eax, eax
+  01570	c1 e9 02	 shr	 ecx, 2
+  01573	f3 ab		 rep stosd
+  01575	8b ca		 mov	 ecx, edx
+  01577	83 e1 03	 and	 ecx, 3
+  0157a	f3 aa		 rep stosb
+
+; 1139 : #endif
+; 1140 : 		}
+; 1141 : 		else
+
+  0157c	eb 68		 jmp	 SHORT $L71564
+$L71494:
+
+; 1000 : 			{
+; 1001 : 				cm_util_flush_init(phTTS);
+
+  0157e	8b 8c 24 80 00
+	00 00		 mov	 ecx, DWORD PTR _phTTS$[esp+120]
+  01585	51		 push	 ecx
+  01586	e8 00 00 00 00	 call	 _cm_util_flush_init
+  0158b	83 c4 04	 add	 esp, 4
+  0158e	5f		 pop	 edi
+  0158f	5e		 pop	 esi
+  01590	5d		 pop	 ebp
+  01591	5b		 pop	 ebx
+
+; 1169 : 
+; 1170 : 	}
+; 1171 : }
+
+  01592	83 c4 6c	 add	 esp, 108		; 0000006cH
+  01595	c3		 ret	 0
+$L71559:
+
+; 1142 : 		{
+; 1143 : 			memset(pCmd_t->clausebuf,0,PAR_MAX_INPUT_ARRAY);
+
+  01596	8d 95 3c 05 00
+	00		 lea	 edx, DWORD PTR [ebp+1340]
+  0159c	b9 e1 00 00 00	 mov	 ecx, 225		; 000000e1H
+  015a1	33 c0		 xor	 eax, eax
+  015a3	8b fa		 mov	 edi, edx
+  015a5	f3 ab		 rep stosd
+
+; 1144 : 			pCmd_t->roll_text=0;
+; 1145 : 			pCmd_t->input_counter=0;  
+; 1146 : 			pCmd_t->index_counter=0;  
+; 1147 : 			pCmd_t->clausebuf[0]=' ';
+; 1148 :             pCmd_t->prev_word_index=0;
+; 1149 : #ifdef NEW_INDEXING
+; 1150 : 			memset(pCmd_t->input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  015a7	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  015ac	8d bd d0 16 00
+	00		 lea	 edi, DWORD PTR [ebp+5840]
+  015b2	66 89 9d 38 05
+	00 00		 mov	 WORD PTR [ebp+1336], bx
+  015b9	66 89 9d 34 05
+	00 00		 mov	 WORD PTR [ebp+1332], bx
+  015c0	66 89 9d 36 05
+	00 00		 mov	 WORD PTR [ebp+1334], bx
+  015c7	c6 02 20	 mov	 BYTE PTR [edx], 32	; 00000020H
+  015ca	66 89 9d 70 57
+	00 00		 mov	 WORD PTR [ebp+22384], bx
+  015d1	f3 ab		 rep stosd
+
+; 1151 : 			memset(pCmd_t->new_input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  015d3	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  015d8	8d bd e8 2b 00
+	00		 lea	 edi, DWORD PTR [ebp+11240]
+  015de	f3 ab		 rep stosd
+
+; 1152 : #endif
+; 1153 : 			pCmd_t->prevword=&(pCmd_t->clausebuf[0]);
+
+  015e0	89 95 6c 57 00
+	00		 mov	 DWORD PTR [ebp+22380], edx
+$L71564:
+
+; 1154 : 		}
+; 1155 : 		/*re-init*/
+; 1156 : 		memset(pCmd_t->dict_hit_buf,0,PAR_MAX_INPUT_ARRAY);
+
+  015e6	b9 e1 00 00 00	 mov	 ecx, 225		; 000000e1H
+  015eb	33 c0		 xor	 eax, eax
+  015ed	8d bd 4c 13 00
+	00		 lea	 edi, DWORD PTR [ebp+4940]
+  015f3	f3 ab		 rep stosd
+
+; 1157 :         /* save parser_flag */
+; 1158 : 		parser_flag = pCmd_t->ret_value.parser_flag;	
+
+  015f5	66 8b 95 90 57
+	00 00		 mov	 dx, WORD PTR [ebp+22416]
+
+; 1159 : 		memset(&(pCmd_t->ret_value),0,sizeof(return_value_t));
+
+  015fc	b9 08 00 00 00	 mov	 ecx, 8
+  01601	8d bd 74 57 00
+	00		 lea	 edi, DWORD PTR [ebp+22388]
+
+; 1160 :         /* restore parser_flag */
+; 1161 : 		pCmd_t->ret_value.parser_flag = parser_flag;	
+
+  01607	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  0160d	f3 ab		 rep stosd
+
+; 1162 : 		memset(pCmd_t->output_buf,0,PAR_MAX_OUTPUT_ARRAY);
+
+  0160f	b9 e1 00 00 00	 mov	 ecx, 225		; 000000e1H
+  01614	8d bd 44 0c 00
+	00		 lea	 edi, DWORD PTR [ebp+3140]
+  0161a	89 95 90 57 00
+	00		 mov	 DWORD PTR [ebp+22416], edx
+  01620	f3 ab		 rep stosd
+
+; 1163 : 		memset(pCmd_t->new_input,0,PAR_MAX_INPUT_ARRAY);
+
+  01622	b9 e1 00 00 00	 mov	 ecx, 225		; 000000e1H
+  01627	8d bd c8 0f 00
+	00		 lea	 edi, DWORD PTR [ebp+4040]
+  0162d	f3 ab		 rep stosd
+
+; 1164 : #ifdef NEW_INDEXING
+; 1165 : 		memset(pCmd_t->new_input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  0162f	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  01634	8d bd e8 2b 00
+	00		 lea	 edi, DWORD PTR [ebp+11240]
+  0163a	f3 ab		 rep stosd
+
+; 1166 : 		memset(pCmd_t->output_indexes,0,PAR_MAX_OUTPUT_ARRAY*sizeof(index_data_t));
+
+  0163c	b9 46 05 00 00	 mov	 ecx, 1350		; 00000546H
+  01641	8d bd 00 41 00
+	00		 lea	 edi, DWORD PTR [ebp+16640]
+  01647	f3 ab		 rep stosd
+  01649	5f		 pop	 edi
+
+; 1167 : #endif
+; 1168 : 		pCmd_t->done=0;
+
+  0164a	66 89 85 72 57
+	00 00		 mov	 WORD PTR [ebp+22386], ax
+  01651	5e		 pop	 esi
+  01652	5d		 pop	 ebp
+  01653	5b		 pop	 ebx
+
+; 1169 : 
+; 1170 : 	}
+; 1171 : }
+
+  01654	83 c4 6c	 add	 esp, 108		; 0000006cH
+  01657	c3		 ret	 0
+$L71330:
+
+; 342  : 	{
+; 343  : 		if (pCmd_t->ParseChar=='\0')
+
+  01658	66 83 bd 28 05
+	00 00 00	 cmp	 WORD PTR [ebp+1320], 0
+  01660	75 07		 jne	 SHORT $L71331
+
+; 344  : 		{
+; 345  : 			pCmd_t->ParseChar=' ';
+
+  01662	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+$L71331:
+
+; 346  : 		}
+; 347  : 		if (pCmd_t->ParseChar== 0x0fff)
+
+  01669	66 81 bd 28 05
+	00 00 ff 0f	 cmp	 WORD PTR [ebp+1320], 4095 ; 00000fffH
+  01672	75 07		 jne	 SHORT $L71332
+
+; 348  : 		{
+; 349  : 			pCmd_t->ParseChar=' ';
+
+  01674	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+$L71332:
+
+; 350  : 		}			
+; 351  : 		if(pCmd_t->ParseChar == 0x11)
+
+  0167b	66 83 bd 28 05
+	00 00 11	 cmp	 WORD PTR [ebp+1320], 17	; 00000011H
+  01683	75 07		 jne	 SHORT $L71333
+
+; 352  : 		{
+; 353  : 			pCmd_t->ParseChar=' ';
+
+  01685	66 89 9d 28 05
+	00 00		 mov	 WORD PTR [ebp+1320], bx
+$L71333:
+
+; 354  : 		}			
+; 355  : 		pipe_value = (PFASCII<<PSFONT)+pCmd_t->ParseChar;
+
+  0168c	66 8b 8d 28 05
+	00 00		 mov	 cx, WORD PTR [ebp+1320]
+
+; 356  : 		cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+
+  01693	8d 54 24 14	 lea	 edx, DWORD PTR _pipe_value$[esp+124]
+  01697	89 4c 24 14	 mov	 DWORD PTR _pipe_value$[esp+124], ecx
+  0169b	8b 86 90 02 00
+	00		 mov	 eax, DWORD PTR [esi+656]
+  016a1	6a 01		 push	 1
+  016a3	52		 push	 edx
+  016a4	50		 push	 eax
+  016a5	56		 push	 esi
+  016a6	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  016ab	83 c4 10	 add	 esp, 16			; 00000010H
+  016ae	5f		 pop	 edi
+  016af	5e		 pop	 esi
+  016b0	5d		 pop	 ebp
+  016b1	5b		 pop	 ebx
+
+; 1169 : 
+; 1170 : 	}
+; 1171 : }
+
+  016b2	83 c4 6c	 add	 esp, 108		; 0000006cH
+  016b5	c3		 ret	 0
+  016b6	8b ff		 npad	 2
+$L71665:
+  016b8	00 00 00 00	 DD	 $L71445
+  016bc	00 00 00 00	 DD	 $L71449
+  016c0	00 00 00 00	 DD	 $L71453
+  016c4	00 00 00 00	 DD	 $L71443
+  016c8	00 00 00 00	 DD	 $L71447
+  016cc	00 00 00 00	 DD	 $L71451
+  016d0	00 00 00 00	 DD	 $L71434
+$L71664:
+  016d4	00		 DB	 0
+  016d5	06		 DB	 6
+  016d6	06		 DB	 6
+  016d7	06		 DB	 6
+  016d8	06		 DB	 6
+  016d9	06		 DB	 6
+  016da	06		 DB	 6
+  016db	06		 DB	 6
+  016dc	06		 DB	 6
+  016dd	06		 DB	 6
+  016de	06		 DB	 6
+  016df	06		 DB	 6
+  016e0	06		 DB	 6
+  016e1	06		 DB	 6
+  016e2	01		 DB	 1
+  016e3	06		 DB	 6
+  016e4	06		 DB	 6
+  016e5	06		 DB	 6
+  016e6	06		 DB	 6
+  016e7	06		 DB	 6
+  016e8	02		 DB	 2
+  016e9	06		 DB	 6
+  016ea	06		 DB	 6
+  016eb	06		 DB	 6
+  016ec	06		 DB	 6
+  016ed	06		 DB	 6
+  016ee	06		 DB	 6
+  016ef	06		 DB	 6
+  016f0	06		 DB	 6
+  016f1	06		 DB	 6
+  016f2	06		 DB	 6
+  016f3	06		 DB	 6
+  016f4	03		 DB	 3
+  016f5	06		 DB	 6
+  016f6	06		 DB	 6
+  016f7	06		 DB	 6
+  016f8	06		 DB	 6
+  016f9	06		 DB	 6
+  016fa	06		 DB	 6
+  016fb	06		 DB	 6
+  016fc	06		 DB	 6
+  016fd	06		 DB	 6
+  016fe	06		 DB	 6
+  016ff	06		 DB	 6
+  01700	06		 DB	 6
+  01701	06		 DB	 6
+  01702	04		 DB	 4
+  01703	06		 DB	 6
+  01704	06		 DB	 6
+  01705	06		 DB	 6
+  01706	06		 DB	 6
+  01707	06		 DB	 6
+  01708	05		 DB	 5
+_cm_text_getclause ENDP
+_TEXT	ENDS
+END

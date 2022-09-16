@@ -1,0 +1,228 @@
+
+DEVELOPERS NOTES:
+
+10/31/95 DECtalk PC V4.2B 
+
+	INDEXING
+
+               An index mark binds forward to the next speech sound
+        (phoneme) following it. If the index mark is at the end of a phrase
+        following the last word it binds to the silence that follows any 
+        utterance. When that sound is started the index is returned.
+ 
+	 Example: Text sent: It is [:index reply 1] owned!
+		 Phonetics: ih t ih z [:index reply]' ow n d
+		 
+		Index will be returned when "ow" begins.
+
+
+              Get_index now returns the last index spoken(as it always
+        did) but never returns the same index twice (as it could in V4.1).
+ 
+               Index Mark and Index Reply act identically except that
+        with Index Reply it returns the indexs in the character stream
+        as well. The indecies are returned rapidly enough to do a word by
+        word process.
+
+
+V4.2B
+
+1. DECtalk PC V4.2B includes corrections to all known 
+all known bugs in V4.0 and incorporates the changes in the
+letter variants e.g., V4.0E and so forth.   
+
+2. The [: commands have  been speeded up overall to improve the 
+operation of the unit, especially for typing situations.  
+
+3. To allow typing to work as fast as possible, a new TSR call has 
+been added.  The new TSR call is FLUSH_CHAR.  It flushes any
+pending speech, uses a built in translation table to
+convert characters to the sound equivalence,  and sends the
+result directly  to the synthesizer itself, bypassing
+significant pieces of the DECtalk code.  This does a flush-
+and-speak-a-key  function as  fast  as  we  know how to do
+it.  In addition, a means of assigning pitch to a character
+(such as an upper-case character) has  been provided  as  well
+as  a means of redefining keys different from the default.
+A global delta pitch command is  provided to set the change
+in pitch.  Its default is a 35 a hertz increment.
+     
+4. A new TSR call, LAST_INDEX, returns the last seen index as an 
+INT in the C register. It returns a retry if it has not processed
+any indexes since the last time you asked.
+           
+5. The demo program DTDEMO.C and DTCOMMON.C has been updated to incorporate
+the changes. Also, examples are given in this file for using 
+the new commands. 
+
+     General Note on Typing. 
+
+     It is possible to type keys faster than they can be
+heard at which time DECtalk will appear to go silent,
+because in reality the characters are being flushed before 
+they have a chance to get through the synthesizer and be spoken.
+If you wish to have the DECtalk continue to make some sound, the 
+way a serial line DECtalk would, you must send out characters  
+and flushes on timer ticks, to allow time for sounds to be made.
+At high typing rates, the serial DECtalk in reality was not 
+speaking a piece of every character but a piece of every two  
+or three characters. You can achieve this result by slowing down
+the rate of flushing.
+
+
+     Interrupting DECtalk While BUSY.
+
+     The BUSY flag can be very useful in debugging new code.
+The  BUSY  flag  tells  you that somehow you have called the
+DECtalk while it is busy, which usually means that  you  have
+called  it re-entrantly from an interrupt.  By definition, if
+you have interrupted another  call  to  the  TSR,  you  must
+relinquish  control to allow the other call to complete.  If
+you busy-wait the TSR you will be in  a  deadly  embrace  as
+then  the  BUSY  can  never  be cleared.  For example, if
+the keyboard interrupt calls the FLUSH_CHAR routine directly
+from the interrupt and it gets a busy, it must post the
+command for a later retry and exit the interrupt so whatever
+it interrupted can  be completed and the busy cleared.  It is
+critical that the architecture not allow re-entrant calls or
+your  system will  hang.   
+                              
+                              
+     THE NEW TSR CALLS.
+                              
+
+          FLUSH_CHAR       0x2a.
+          
+          Put the character in the c register and the
+          DECtalk will flush any pending text, Pronounce
+          the character as defined in its Typing Table
+          (you can modify the definitions) as fast as
+          possible.
+          
+          
+               The Typing Table can be modified:
+               
+               [:type  (character in decimal) (phonemics to
+               speak)]
+
+               NOTE: The phonemics are represented by a one-
+		     character phonemic alphabet described below. 
+
+               Example: To change the space-bar character
+               from default to say "hello" with elevated
+               pitch enter the following command. The colon
+               character specifies elevated pitch (normal
+               pitch plus 35Hz for the default and the
+               apostrophe before the vowel indicates
+               stress.)
+               
+                              [:type 32 :hxl'o].
+               
+               The one-character phonemic alphabet is included
+	       in Attachment A.
+            
+               [:stress nn]  Changes the default pitch in typing mode
+               from +35 to +nn.
+               
+               
+          
+          LAST_INDEX      0x25.
+          
+          Returns the last seen index as an INT in the C register.
+          It returns a retry if it has not processed any indexes
+          since the last time you asked.
+          
+          
+
+              
+ATTACHMENT A - One Character Phonemic Dictionary.
+
+   
+               
+               Phoneme.   Example.        Phoneme.   Example.
+               
+	       VOWELS:
+
+               e         b-ai-t              ^         b-u-t,
+               
+	       @         b-a-t		     W         b-ou-t,
+	       
+               a         B-o-b               Y         c-u-te,
+               
+               i         b-ee-t              c         b-ou-ght,
+               
+               E         b-e-t               U         b-o-ok,
+               
+               A         b-i-te              |         kiss-e-s,
+               
+               I         b-i-t               x         a-bout,
+               						     
+               O         b-o-y,
+               
+               o         b-oa-t,              
+               
+               u         b-oo-t,              
+               
+               
+               
+               CONSONANTS:
+               
+	       b         b-et	             p         p-et,    
+
+	       C         ch-in 		     r         r-ed,              
+               
+               d         d-ebt		     R         b-ir-d,
+
+	       D         th-is		     s         s-it,              
+               
+	       f         f-in                S         sh-in,
+               
+               g         g-ift               t         t-in,
+
+               h	 h-en		     T         th-in, 
+
+	       J         j-am	     	     v         v-an,
+	
+	       k         k-in	    	     w         w-et,
+
+               l	 l-et		     y         y-et,
+
+	       L	 bott-le	     z         z-oo,
+
+	       m         m-et		     Z         lei-z-ure,
+	   
+	       n         n-et	     	     _	       silence,
+
+	       N	 butt-on,		    
+
+	       G         si-ng,
+	       
+		                     
+               
+               STRESS and SYNTAX SYMBOLS:
+
+	       '	 primary stress,
+		                
+	       `	 secondary stress,
+
+	       "	 emphatic stress,
+
+	       -	 syllable boundary,
+
+	       *	 compound word boundary,	                
+                             
+               #	 compound noun boundary,
+
+	       space	 word boundary,
+
+	       )	 verb phrase start (for sentence intonation),
+
+	       ,	 end of clause,
+
+	       .	 end of sentence,
+
+	       ?	 end of question,
+
+	       !	 end of exclamation,
+               
+               

@@ -1,0 +1,913 @@
+	TITLE	D:\work\Product\dapi\src\API\CRYPT2.C
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_encryptString
+PUBLIC	_sixencode24
+PUBLIC	_trand
+PUBLIC	_rot24
+PUBLIC	_rot32
+EXTRN	__imp__time:NEAR
+_TEXT	SEGMENT
+_string$ = 8
+_key$ = 12
+_output$ = 16
+_outat$ = -4
+_done$ = -8
+_vpar$ = -4
+_encryptString PROC NEAR
+
+; 51   : {
+
+  00000	83 ec 08	 sub	 esp, 8
+  00003	53		 push	 ebx
+  00004	55		 push	 ebp
+  00005	56		 push	 esi
+
+; 52   : 	/* encrypt the null-terminated string 'string' into a slightly */
+; 53   : 	/* longer string 'output'. On call, the string 'output' should */
+; 54   : 	/* be large enough to hold twice the input string + 6 characters. */
+; 55   : 	
+; 56   : 	unsigned long ran1;
+; 57   : 	unsigned long tmplong;
+; 58   : 	unsigned short outat=0; /* placekeeper in the output string.. */
+; 59   : 	unsigned short inat=0;  /* same for input string */
+; 60   : 	unsigned short done=0;  /* flags end of input string.. */
+
+  00006	33 f6		 xor	 esi, esi
+  00008	57		 push	 edi
+
+; 61   : 	unsigned short csum=0;  /* input checksum) */
+; 62   : 	unsigned char vpar=0;   /* input vertical parity */
+
+  00009	32 db		 xor	 bl, bl
+
+; 63   : 	
+; 64   : 	ran1 = trand((long)time(NULL));
+
+  0000b	56		 push	 esi
+  0000c	89 74 24 14	 mov	 DWORD PTR _done$[esp+28], esi
+  00010	88 5c 24 18	 mov	 BYTE PTR _vpar$[esp+28], bl
+  00014	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__time
+  0001a	50		 push	 eax
+  0001b	e8 00 00 00 00	 call	 _trand
+  00020	8b f8		 mov	 edi, eax
+
+; 65   : 	ran1 &= 0xFFFFFF; /* 24 bits, so it fits in a quad of sixels*/  
+; 66   : 	sixencode24(output,ran1);
+
+  00022	8b 44 24 2c	 mov	 eax, DWORD PTR _output$[esp+28]
+  00026	81 e7 ff ff ff
+	00		 and	 edi, 16777215		; 00ffffffH
+  0002c	57		 push	 edi
+  0002d	50		 push	 eax
+  0002e	e8 00 00 00 00	 call	 _sixencode24
+
+; 67   : 	outat += 4; /* end of step 1. */
+; 68   : 			 
+; 69   : 	/* get a new random number (step 3) */
+; 70   : 	ran1 = trand(ran1);
+
+  00033	57		 push	 edi
+  00034	e8 00 00 00 00	 call	 _trand
+
+; 71   : 
+; 72   : 	/* calculate the check bits (step 2) */
+; 73   : 	inat=0;
+; 74   : 	while(string[inat] != '\0')
+
+  00039	8b 54 24 30	 mov	 edx, DWORD PTR _string$[esp+40]
+  0003d	8b e8		 mov	 ebp, eax
+  0003f	83 c4 14	 add	 esp, 20			; 00000014H
+  00042	33 c9		 xor	 ecx, ecx
+  00044	8a 02		 mov	 al, BYTE PTR [edx]
+  00046	84 c0		 test	 al, al
+  00048	74 1b		 je	 SHORT $L519
+$L518:
+
+; 75   : 		{
+; 76   : 		csum += string[inat];
+
+  0004a	66 0f b6 f8	 movzx	 di, al
+  0004e	03 f7		 add	 esi, edi
+
+; 77   : 		vpar ^= string[inat++];
+
+  00050	32 d8		 xor	 bl, al
+  00052	41		 inc	 ecx
+  00053	8b c1		 mov	 eax, ecx
+  00055	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  0005a	8a 04 10	 mov	 al, BYTE PTR [eax+edx]
+  0005d	84 c0		 test	 al, al
+  0005f	75 e9		 jne	 SHORT $L518
+  00061	88 5c 24 14	 mov	 BYTE PTR _vpar$[esp+24], bl
+$L519:
+
+; 78   : 				}
+; 79   : 	inat=0;
+; 80   : 	/* put together the check bits and write them out. */
+; 81   : 	tmplong = ((((unsigned long)csum<<8)&0xffff00))
+; 82   : 			 | ((unsigned long)vpar&0xff);
+; 83   : 	tmplong = tmplong ^ ran1;
+; 84   : 	sixencode24(&output[outat],tmplong);
+
+  00065	8b 4c 24 14	 mov	 ecx, DWORD PTR _vpar$[esp+24]
+  00069	8b 54 24 24	 mov	 edx, DWORD PTR _output$[esp+20]
+  0006d	81 e6 ff ff 00
+	00		 and	 esi, 65535		; 0000ffffH
+  00073	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00079	c1 e6 08	 shl	 esi, 8
+  0007c	0b f1		 or	 esi, ecx
+  0007e	83 c2 04	 add	 edx, 4
+  00081	33 f5		 xor	 esi, ebp
+  00083	33 db		 xor	 ebx, ebx
+  00085	56		 push	 esi
+  00086	52		 push	 edx
+  00087	e8 00 00 00 00	 call	 _sixencode24
+
+; 85   : 	outat += 4;
+
+  0008c	8b 7c 24 28	 mov	 edi, DWORD PTR _key$[esp+28]
+  00090	83 c4 08	 add	 esp, 8
+  00093	c7 44 24 14 08
+	00 00 00	 mov	 DWORD PTR _outat$[esp+24], 8
+$L523:
+
+; 86   : #ifndef ACI_LICENSE
+; 87   : 	// just use the old algorithm
+; 88   : #else
+; 89   : 	ran1 = trand(ran1);	// ACI algorithm
+; 90   : #endif // ACI_LICENSE
+; 91   : 
+; 92   : 	while (!done && (string[inat]!='\0'))
+
+  0009b	8b 4c 24 1c	 mov	 ecx, DWORD PTR _string$[esp+20]
+  0009f	8b c3		 mov	 eax, ebx
+  000a1	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  000a6	8d 34 08	 lea	 esi, DWORD PTR [eax+ecx]
+  000a9	8a 04 08	 mov	 al, BYTE PTR [eax+ecx]
+  000ac	84 c0		 test	 al, al
+  000ae	0f 84 98 00 00
+	00		 je	 $L524
+
+; 93   : 		{
+; 94   : 		/* generate the new key (step b) */
+; 95   : 		key = trand(key);                      
+
+  000b4	57		 push	 edi
+  000b5	e8 00 00 00 00	 call	 _trand
+  000ba	8b f8		 mov	 edi, eax
+
+; 96   : 		/* rotate the random number (step c) */
+; 97   : #ifndef ACI_LICENSE
+; 98   : 		ran1 = rot32(ran1,key&0xf);         // old algorithm
+
+  000bc	8b d7		 mov	 edx, edi
+  000be	83 e2 0f	 and	 edx, 15			; 0000000fH
+  000c1	52		 push	 edx
+  000c2	55		 push	 ebp
+  000c3	e8 00 00 00 00	 call	 _rot32
+
+; 99   : #else
+; 100  : 		ran1 = trand(rot32(ran1,key&0x1f));	// ACI algorithm
+; 101  : #endif //ACI_LICENSE
+; 102  : 		/* generate the new key (step d) */
+; 103  : 		key = trand(key);
+
+  000c8	57		 push	 edi
+  000c9	8b e8		 mov	 ebp, eax
+  000cb	e8 00 00 00 00	 call	 _trand
+  000d0	83 c4 10	 add	 esp, 16			; 00000010H
+  000d3	8b f8		 mov	 edi, eax
+
+; 104  : 		/* pack into a triplet.. (step a)*/
+; 105  : 		{
+; 106  : 		unsigned short i;
+; 107  : 		tmplong=0;       
+
+  000d5	33 c0		 xor	 eax, eax
+  000d7	b9 03 00 00 00	 mov	 ecx, 3
+$L526:
+
+; 109  : 			{
+; 110  : 			tmplong >>= 8;
+
+  000dc	c1 e8 08	 shr	 eax, 8
+
+; 111  : 			if (!done)      
+
+  000df	66 83 7c 24 10
+	00		 cmp	 WORD PTR _done$[esp+24], 0
+  000e5	75 25		 jne	 SHORT $L527
+
+; 112  : 				{
+; 113  : 				tmplong |= ((unsigned long)string[inat++]<<16);
+
+  000e7	33 d2		 xor	 edx, edx
+  000e9	8a 16		 mov	 dl, BYTE PTR [esi]
+
+; 114  : 				if (string[inat] == '\0')
+
+  000eb	8b 74 24 1c	 mov	 esi, DWORD PTR _string$[esp+20]
+  000ef	c1 e2 10	 shl	 edx, 16			; 00000010H
+  000f2	0b c2		 or	 eax, edx
+  000f4	43		 inc	 ebx
+  000f5	8b d3		 mov	 edx, ebx
+  000f7	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  000fd	03 f2		 add	 esi, edx
+  000ff	80 3e 00	 cmp	 BYTE PTR [esi], 0
+  00102	75 08		 jne	 SHORT $L527
+
+; 115  : 					{
+; 116  : 					done++;
+
+  00104	c7 44 24 10 01
+	00 00 00	 mov	 DWORD PTR _done$[esp+24], 1
+$L527:
+
+; 108  : 		for (i=0;i<3;i++)
+
+  0010c	49		 dec	 ecx
+  0010d	75 cd		 jne	 SHORT $L526
+
+; 117  : 					}
+; 118  : 				}
+; 119  : 			}   
+; 120  : 		}
+; 121  : 		/* rotate the triplet (step e)*/
+; 122  : 		tmplong = rot24(tmplong,key&0x1f);
+
+  0010f	8b cf		 mov	 ecx, edi
+  00111	83 e1 1f	 and	 ecx, 31			; 0000001fH
+  00114	51		 push	 ecx
+  00115	50		 push	 eax
+  00116	e8 00 00 00 00	 call	 _rot24
+
+; 123  : 		sixencode24(&output[outat],tmplong^ran1); /* step f */
+
+  0011b	8b 74 24 1c	 mov	 esi, DWORD PTR _outat$[esp+32]
+  0011f	8b 4c 24 2c	 mov	 ecx, DWORD PTR _output$[esp+28]
+  00123	8b d6		 mov	 edx, esi
+  00125	33 c5		 xor	 eax, ebp
+  00127	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  0012d	50		 push	 eax
+  0012e	03 d1		 add	 edx, ecx
+  00130	52		 push	 edx
+  00131	e8 00 00 00 00	 call	 _sixencode24
+  00136	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 124  : 		outat += 4; /* move ahead.. */    
+
+  00139	83 c6 04	 add	 esi, 4
+  0013c	66 83 7c 24 10
+	00		 cmp	 WORD PTR _done$[esp+24], 0
+  00142	89 74 24 14	 mov	 DWORD PTR _outat$[esp+24], esi
+  00146	0f 84 4f ff ff
+	ff		 je	 $L523
+$L524:
+
+; 125  : 		} /* while still work to do.. */
+; 126  : 	/* terminate the output */
+; 127  : 	output[outat]='\0';
+
+  0014c	8b 44 24 14	 mov	 eax, DWORD PTR _outat$[esp+24]
+  00150	8b 4c 24 24	 mov	 ecx, DWORD PTR _output$[esp+20]
+  00154	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00159	5f		 pop	 edi
+  0015a	5e		 pop	 esi
+  0015b	5d		 pop	 ebp
+  0015c	c6 04 08 00	 mov	 BYTE PTR [eax+ecx], 0
+  00160	5b		 pop	 ebx
+
+; 128  : 	
+; 129  : } /* encryptString() */ 
+
+  00161	83 c4 08	 add	 esp, 8
+  00164	c3		 ret	 0
+_encryptString ENDP
+_TEXT	ENDS
+PUBLIC	_decryptString
+PUBLIC	_sixdecode24
+PUBLIC	_unrot24
+_TEXT	SEGMENT
+_input$ = 8
+_key$ = 12
+_string$ = 16
+_ran1$ = -28
+_tmplong$ = -24
+_inat$ = -16
+_csum$ = -12
+_csumin$ = -8
+_vpar$ = -20
+_vparin$ = -4
+_decryptString PROC NEAR
+
+; 134  : {         
+
+  00170	83 ec 1c	 sub	 esp, 28			; 0000001cH
+  00173	53		 push	 ebx
+  00174	55		 push	 ebp
+  00175	56		 push	 esi
+  00176	57		 push	 edi
+
+; 135  : 	/* undo what encryptString does.. */ 
+; 136  : 	/* returns non-zero if successful, zero if something is wrong. */
+; 137  : 	unsigned long ran1;
+; 138  : 	unsigned long tmplong;
+; 139  : 	unsigned int retval=1;
+; 140  : 	unsigned short outat=0,inat=0;
+; 141  : 	unsigned short csum=0, csumin;
+; 142  : 	unsigned short vpar=0, vparin;
+; 143  : 	/* recover the salt.. (step 1) */
+; 144  : 	retval = sixdecode24(&ran1, input);
+
+  00177	8b 7c 24 30	 mov	 edi, DWORD PTR _input$[esp+40]
+  0017b	8d 44 24 10	 lea	 eax, DWORD PTR _ran1$[esp+44]
+  0017f	33 f6		 xor	 esi, esi
+  00181	57		 push	 edi
+  00182	50		 push	 eax
+  00183	33 ed		 xor	 ebp, ebp
+  00185	89 74 24 28	 mov	 DWORD PTR _csum$[esp+52], esi
+  00189	89 74 24 20	 mov	 DWORD PTR _vpar$[esp+52], esi
+  0018d	e8 00 00 00 00	 call	 _sixdecode24
+  00192	83 c4 08	 add	 esp, 8
+
+; 145  : 	inat += 4;
+; 146  : 	if (!retval)
+
+  00195	3b c6		 cmp	 eax, esi
+
+; 147  : 		{
+; 148  : 		/* oops.. couldn't read the input ..*/
+; 149  : 		return(retval);                     
+
+  00197	0f 84 5f 01 00
+	00		 je	 $L642
+
+; 150  : 		}        
+; 151  : 		
+; 152  : 	/* update the random number.. (step 2)*/
+; 153  : 	ran1 = trand(ran1);                     
+
+  0019d	8b 4c 24 10	 mov	 ecx, DWORD PTR _ran1$[esp+44]
+  001a1	51		 push	 ecx
+  001a2	e8 00 00 00 00	 call	 _trand
+  001a7	89 44 24 14	 mov	 DWORD PTR _ran1$[esp+48], eax
+
+; 154  : 	/* get the check bits.. */
+; 155  : 	retval = sixdecode24(&tmplong,&input[inat]);
+
+  001ab	8d 57 04	 lea	 edx, DWORD PTR [edi+4]
+  001ae	8d 44 24 18	 lea	 eax, DWORD PTR _tmplong$[esp+48]
+  001b2	52		 push	 edx
+  001b3	50		 push	 eax
+  001b4	e8 00 00 00 00	 call	 _sixdecode24
+  001b9	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 156  : 	if (!retval)
+
+  001bc	3b c6		 cmp	 eax, esi
+
+; 157  : 		{
+; 158  : 		/* oops.. couldn't read the input ..*/
+; 159  : 		return(retval);                     
+
+  001be	0f 84 38 01 00
+	00		 je	 $L642
+
+; 160  : 		}        
+; 161  : 	inat += 4;
+; 162  : 	/* recover the check info.. */
+; 163  : 	tmplong = tmplong ^ ran1;
+
+  001c4	8b 44 24 14	 mov	 eax, DWORD PTR _tmplong$[esp+44]
+  001c8	8b 54 24 10	 mov	 edx, DWORD PTR _ran1$[esp+44]
+
+; 164  : 	csumin = (unsigned short)((unsigned long)tmplong>>8);
+; 165  : 	vparin = (unsigned char)(tmplong&0xff); 
+; 166  : #ifndef ACI_LICENSE
+; 167  : 	// nothing new
+; 168  : #else
+; 169  : 	ran1 = trand(ran1); //ACI algorithm
+; 170  : #endif //ACI_LICENSE
+; 171  : 
+; 172  : 	while (input[inat] != '\0')
+
+  001cc	8b 5c 24 38	 mov	 ebx, DWORD PTR _string$[esp+40]
+  001d0	33 c2		 xor	 eax, edx
+  001d2	66 33 c9	 xor	 cx, cx
+  001d5	83 c7 08	 add	 edi, 8
+  001d8	89 44 24 14	 mov	 DWORD PTR _tmplong$[esp+44], eax
+  001dc	8b d0		 mov	 edx, eax
+  001de	8a c8		 mov	 cl, al
+  001e0	8a 07		 mov	 al, BYTE PTR [edi]
+  001e2	c1 ea 08	 shr	 edx, 8
+  001e5	84 c0		 test	 al, al
+  001e7	c7 44 24 1c 08
+	00 00 00	 mov	 DWORD PTR _inat$[esp+44], 8
+  001ef	89 54 24 24	 mov	 DWORD PTR _csumin$[esp+44], edx
+  001f3	66 89 4c 24 28	 mov	 WORD PTR _vparin$[esp+44], cx
+  001f8	0f 84 a0 00 00
+	00		 je	 $L555
+
+; 181  : 		/* get three bytes (step a) */
+; 182  : 		retval = sixdecode24(&tmplong,&input[inat]);
+
+  001fe	8b 74 24 34	 mov	 esi, DWORD PTR _key$[esp+40]
+$L554:
+
+; 173  : 		{
+; 174  : 		key = trand(key);   /* make new key (step b)*/
+
+  00202	56		 push	 esi
+  00203	e8 00 00 00 00	 call	 _trand
+  00208	8b f0		 mov	 esi, eax
+
+; 175  : #ifndef ACI_LICENSE
+; 176  : 		ran1 = rot32(ran1,key&0xf); /* new ran1 (step c) */
+
+  0020a	8b 44 24 14	 mov	 eax, DWORD PTR _ran1$[esp+48]
+  0020e	8b d6		 mov	 edx, esi
+  00210	83 e2 0f	 and	 edx, 15			; 0000000fH
+  00213	52		 push	 edx
+  00214	50		 push	 eax
+  00215	e8 00 00 00 00	 call	 _rot32
+
+; 177  : #else
+; 178  : 		ran1 = trand(rot32(ran1,key&0x1f));
+; 179  : #endif //ACI_LICENSE
+; 180  : 		key = trand(key);   /* new key (step d) */
+
+  0021a	56		 push	 esi
+  0021b	89 44 24 20	 mov	 DWORD PTR _ran1$[esp+60], eax
+  0021f	e8 00 00 00 00	 call	 _trand
+
+; 181  : 		/* get three bytes (step a) */
+; 182  : 		retval = sixdecode24(&tmplong,&input[inat]);
+
+  00224	8d 4c 24 24	 lea	 ecx, DWORD PTR _tmplong$[esp+60]
+  00228	57		 push	 edi
+  00229	51		 push	 ecx
+  0022a	8b f0		 mov	 esi, eax
+  0022c	e8 00 00 00 00	 call	 _sixdecode24
+  00231	83 c4 18	 add	 esp, 24			; 00000018H
+
+; 183  : 		if (!retval)
+
+  00234	85 c0		 test	 eax, eax
+  00236	0f 84 c0 00 00
+	00		 je	 $L642
+
+; 184  : 			return(retval); /* decode error. */
+; 185  : 		/* decode it.. */
+; 186  : 		tmplong = tmplong ^ ran1;   /* step e */
+
+  0023c	8b 44 24 14	 mov	 eax, DWORD PTR _tmplong$[esp+44]
+  00240	8b 54 24 10	 mov	 edx, DWORD PTR _ran1$[esp+44]
+  00244	33 c2		 xor	 eax, edx
+
+; 187  : 		/* unrotate it */
+; 188  : 		tmplong = unrot24(tmplong,key&0x1f); /* step f */
+
+  00246	8b d6		 mov	 edx, esi
+  00248	83 e2 1f	 and	 edx, 31			; 0000001fH
+  0024b	89 44 24 14	 mov	 DWORD PTR _tmplong$[esp+44], eax
+  0024f	52		 push	 edx
+  00250	50		 push	 eax
+  00251	e8 00 00 00 00	 call	 _unrot24
+  00256	83 c4 08	 add	 esp, 8
+  00259	b9 03 00 00 00	 mov	 ecx, 3
+$L558:
+
+; 189  : 		/* finally, concatenate it.. */
+; 190  : 		{
+; 191  : 		int i;
+; 192  : 		for (i=0;i<3;i++)
+; 193  : 			{
+; 194  : 			string[outat++] = (unsigned char)(tmplong&0xff);
+
+  0025e	8b d5		 mov	 edx, ebp
+  00260	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  00266	45		 inc	 ebp
+  00267	88 04 1a	 mov	 BYTE PTR [edx+ebx], al
+
+; 195  : 			tmplong >>= 8;
+
+  0026a	c1 e8 08	 shr	 eax, 8
+  0026d	49		 dec	 ecx
+  0026e	75 ee		 jne	 SHORT $L558
+  00270	8b 4c 24 30	 mov	 ecx, DWORD PTR _input$[esp+40]
+  00274	89 44 24 14	 mov	 DWORD PTR _tmplong$[esp+44], eax
+
+; 196  : 			}
+; 197  : 		}                        
+; 198  : 		inat+= 4;
+
+  00278	8b 44 24 1c	 mov	 eax, DWORD PTR _inat$[esp+44]
+  0027c	83 c0 04	 add	 eax, 4
+  0027f	89 44 24 1c	 mov	 DWORD PTR _inat$[esp+44], eax
+  00283	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00288	8d 3c 08	 lea	 edi, DWORD PTR [eax+ecx]
+  0028b	8a 04 08	 mov	 al, BYTE PTR [eax+ecx]
+  0028e	84 c0		 test	 al, al
+  00290	0f 85 6c ff ff
+	ff		 jne	 $L554
+  00296	8b 74 24 20	 mov	 esi, DWORD PTR _csum$[esp+44]
+  0029a	8b 54 24 24	 mov	 edx, DWORD PTR _csumin$[esp+44]
+$L555:
+
+; 199  : 				} /* while input. */
+; 200  : 	string[outat]='\0';
+
+  0029e	81 e5 ff ff 00
+	00		 and	 ebp, 65535		; 0000ffffH
+
+; 201  : 	/* now, recompute the check bits and make sure the data*/
+; 202  : 	/* is good.. */
+; 203  : 	inat=0;
+
+  002a4	33 c0		 xor	 eax, eax
+  002a6	c6 04 2b 00	 mov	 BYTE PTR [ebx+ebp], 0
+
+; 204  : 	while((string[inat] != '\0') && (inat<MAXSTR))
+
+  002aa	8a 0b		 mov	 cl, BYTE PTR [ebx]
+  002ac	84 c9		 test	 cl, cl
+  002ae	74 2e		 je	 SHORT $L564
+$L563:
+  002b0	66 3d 40 00	 cmp	 ax, 64			; 00000040H
+  002b4	73 28		 jae	 SHORT $L564
+
+; 205  : 		{
+; 206  : 		csum += string[inat];
+; 207  : 		vpar ^= string[inat++];
+
+  002b6	8b 7c 24 18	 mov	 edi, DWORD PTR _vpar$[esp+44]
+  002ba	8b c8		 mov	 ecx, eax
+  002bc	81 e1 ff ff 00
+	00		 and	 ecx, 65535		; 0000ffffH
+  002c2	66 0f b6 0c 19	 movzx	 cx, BYTE PTR [ecx+ebx]
+  002c7	03 f1		 add	 esi, ecx
+  002c9	33 f9		 xor	 edi, ecx
+  002cb	40		 inc	 eax
+  002cc	89 7c 24 18	 mov	 DWORD PTR _vpar$[esp+44], edi
+  002d0	8b c8		 mov	 ecx, eax
+  002d2	81 e1 ff ff 00
+	00		 and	 ecx, 65535		; 0000ffffH
+  002d8	80 3c 19 00	 cmp	 BYTE PTR [ecx+ebx], 0
+  002dc	75 d2		 jne	 SHORT $L563
+$L564:
+
+; 208  : 		}  
+; 209  : 	
+; 210  : 	if ((csum == csumin) && (vpar == vparin))
+
+  002de	66 3b f2	 cmp	 si, dx
+  002e1	75 19		 jne	 SHORT $L642
+  002e3	66 8b 54 24 28	 mov	 dx, WORD PTR _vparin$[esp+44]
+  002e8	66 39 54 24 18	 cmp	 WORD PTR _vpar$[esp+44], dx
+  002ed	75 0d		 jne	 SHORT $L642
+  002ef	5f		 pop	 edi
+  002f0	5e		 pop	 esi
+  002f1	5d		 pop	 ebp
+
+; 211  : 		return(1);
+
+  002f2	b8 01 00 00 00	 mov	 eax, 1
+  002f7	5b		 pop	 ebx
+
+; 214  : 	
+; 215  : } /* decryptString */
+
+  002f8	83 c4 1c	 add	 esp, 28			; 0000001cH
+  002fb	c3		 ret	 0
+$L642:
+  002fc	5f		 pop	 edi
+  002fd	5e		 pop	 esi
+  002fe	5d		 pop	 ebp
+
+; 212  : 		else
+; 213  : 			return(0); /* fail. */
+
+  002ff	33 c0		 xor	 eax, eax
+  00301	5b		 pop	 ebx
+
+; 214  : 	
+; 215  : } /* decryptString */
+
+  00302	83 c4 1c	 add	 esp, 28			; 0000001cH
+  00305	c3		 ret	 0
+_decryptString ENDP
+_out$ = 8
+_in$ = 12
+_sixencode24 PROC NEAR
+
+; 222  :  /* encode the low 24 bits of the input as four printable ascii characters.) */
+; 223  : 		unsigned short i;
+; 224  : 	/* encode low-sixel-first */
+; 225  : 	
+; 226  : 	for (i=0;i<4;i++)
+
+  00310	8b 54 24 08	 mov	 edx, DWORD PTR _in$[esp-4]
+  00314	8b 4c 24 04	 mov	 ecx, DWORD PTR _out$[esp-4]
+  00318	56		 push	 esi
+  00319	be 04 00 00 00	 mov	 esi, 4
+$L573:
+
+; 227  : 		{
+; 228  : 		*out = (unsigned char)(in&0x3f); /* strip out the bits */
+
+  0031e	8a c2		 mov	 al, dl
+  00320	24 3f		 and	 al, 63			; 0000003fH
+
+; 229  : 		if (*out <0x0a) *out +=0x30;
+
+  00322	3c 0a		 cmp	 al, 10			; 0000000aH
+  00324	88 01		 mov	 BYTE PTR [ecx], al
+  00326	73 04		 jae	 SHORT $L577
+  00328	04 30		 add	 al, 48			; 00000030H
+
+; 230  : 		  else if (*out < 0x27) *out += 0x34;
+
+  0032a	eb 0a		 jmp	 SHORT $L650
+$L577:
+  0032c	3c 27		 cmp	 al, 39			; 00000027H
+  0032e	73 04		 jae	 SHORT $L579
+  00330	04 34		 add	 al, 52			; 00000034H
+
+; 231  : 		  else *out += 0x3a;
+
+  00332	eb 02		 jmp	 SHORT $L650
+$L579:
+  00334	04 3a		 add	 al, 58			; 0000003aH
+$L650:
+  00336	88 01		 mov	 BYTE PTR [ecx], al
+
+; 232  : 		out++;  
+
+  00338	41		 inc	 ecx
+
+; 233  : 		in = in >>6;
+
+  00339	c1 ea 06	 shr	 edx, 6
+  0033c	4e		 dec	 esi
+  0033d	75 df		 jne	 SHORT $L573
+  0033f	5e		 pop	 esi
+
+; 234  : 			}
+; 235  :  }               
+
+  00340	c3		 ret	 0
+_sixencode24 ENDP
+_out$ = 8
+_in$ = 12
+_sixdecode24 PROC NEAR
+
+; 238  :  {
+
+  00350	56		 push	 esi
+
+; 239  :  /* undo what sixencode24 does.. */
+; 240  :  /* return zero if bad chars.. */
+; 241  : 	unsigned long temp=0;
+; 242  : 	unsigned short j;
+; 243  : 	short i; /* must be signed for the backward loop.. */     
+; 244  : 	unsigned int retval=1; /* assume success.. */
+; 245  : 	
+; 246  : 	for (i=3;(i>=0) && retval;i--)
+
+  00351	8b 74 24 0c	 mov	 esi, DWORD PTR _in$[esp]
+  00355	33 d2		 xor	 edx, edx
+  00357	b9 03 00 00 00	 mov	 ecx, 3
+$L590:
+
+; 247  : 		{               
+; 248  : 		if ((in[i] > 'z') || (in[i] < '0'))
+
+  0035c	0f bf c1	 movsx	 eax, cx
+  0035f	8a 04 30	 mov	 al, BYTE PTR [eax+esi]
+  00362	3c 7a		 cmp	 al, 122			; 0000007aH
+  00364	77 46		 ja	 SHORT $L594
+  00366	3c 30		 cmp	 al, 48			; 00000030H
+  00368	72 42		 jb	 SHORT $L594
+
+; 249  : 			{
+; 250  : 			return(0);
+; 251  : 			}
+; 252  : 		temp <<= 6;
+
+  0036a	c1 e2 06	 shl	 edx, 6
+
+; 253  : 		if (in[i] > 0x60) j = in[i]-0x3a;
+
+  0036d	3c 60		 cmp	 al, 96			; 00000060H
+  0036f	76 09		 jbe	 SHORT $L595
+  00371	66 0f b6 c0	 movzx	 ax, al
+  00375	83 e8 3a	 sub	 eax, 58			; 0000003aH
+
+; 254  : 			else if (in[i] > 0x3d) j = in[i]-0x34;
+
+  00378	eb 18		 jmp	 SHORT $L600
+$L595:
+  0037a	3c 3d		 cmp	 al, 61			; 0000003dH
+  0037c	76 09		 jbe	 SHORT $L597
+  0037e	66 0f b6 c0	 movzx	 ax, al
+  00382	83 e8 34	 sub	 eax, 52			; 00000034H
+
+; 255  : 			else if (in[i] > 0x2f) j = in[i]-0x30;
+
+  00385	eb 0b		 jmp	 SHORT $L600
+$L597:
+  00387	3c 2f		 cmp	 al, 47			; 0000002fH
+  00389	76 21		 jbe	 SHORT $L594
+  0038b	66 0f b6 c0	 movzx	 ax, al
+  0038f	83 e8 30	 sub	 eax, 48			; 00000030H
+$L600:
+
+; 257  : 		temp |= j; 
+
+  00392	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00397	0b d0		 or	 edx, eax
+  00399	49		 dec	 ecx
+  0039a	66 85 c9	 test	 cx, cx
+  0039d	7d bd		 jge	 SHORT $L590
+
+; 258  : 			}
+; 259  : 				 
+; 260  : 		*out = temp;
+
+  0039f	8b 4c 24 08	 mov	 ecx, DWORD PTR _out$[esp]
+
+; 261  : 		return(1);
+
+  003a3	b8 01 00 00 00	 mov	 eax, 1
+  003a8	5e		 pop	 esi
+  003a9	89 11		 mov	 DWORD PTR [ecx], edx
+
+; 262  : }
+
+  003ab	c3		 ret	 0
+$L594:
+
+; 256  : 			else return(0);
+
+  003ac	33 c0		 xor	 eax, eax
+  003ae	5e		 pop	 esi
+
+; 262  : }
+
+  003af	c3		 ret	 0
+_sixdecode24 ENDP
+_in$ = 8
+_trand	PROC NEAR
+
+; 265  : 	/* pseudorandom numbers.. */
+; 266  : #ifndef ACI_LICENSE
+; 267  : 	in = ((in * 23311L)+1) % 65533U;	// old algorithm
+
+  003b0	8b 44 24 04	 mov	 eax, DWORD PTR _in$[esp-4]
+  003b4	8b c8		 mov	 ecx, eax
+  003b6	c1 e1 07	 shl	 ecx, 7
+  003b9	03 c8		 add	 ecx, eax
+  003bb	8d 0c 48	 lea	 ecx, DWORD PTR [eax+ecx*2]
+  003be	8d 0c 89	 lea	 ecx, DWORD PTR [ecx+ecx*4]
+  003c1	8d 14 c9	 lea	 edx, DWORD PTR [ecx+ecx*8]
+  003c4	b9 fd ff 00 00	 mov	 ecx, 65533		; 0000fffdH
+  003c9	8d 44 50 01	 lea	 eax, DWORD PTR [eax+edx*2+1]
+  003cd	33 d2		 xor	 edx, edx
+  003cf	f7 f1		 div	 ecx
+
+; 268  : #else
+; 269  : 	in = ((in * 43313L)+1);				// ACI algorithm
+; 270  : #endif
+; 271  : 	return(in);
+
+  003d1	8b c2		 mov	 eax, edx
+
+; 272  : }
+
+  003d3	c3		 ret	 0
+_trand	ENDP
+_num$ = 8
+_rot$ = 12
+_rot24	PROC NEAR
+
+; 276  : 	unsigned long temp1, temp2;
+; 277  : 	rot = rot%24;
+
+  003e0	8b 44 24 08	 mov	 eax, DWORD PTR _rot$[esp-4]
+  003e4	33 d2		 xor	 edx, edx
+  003e6	b9 18 00 00 00	 mov	 ecx, 24			; 00000018H
+  003eb	56		 push	 esi
+  003ec	f7 f1		 div	 ecx
+
+; 278  : 	
+; 279  : 	temp1 = (num<<rot)&0xffffff;
+; 280  : 	temp2 = ((num&0xffffff)>>(24-rot));
+
+  003ee	8b 74 24 08	 mov	 esi, DWORD PTR _num$[esp]
+  003f2	8b c6		 mov	 eax, esi
+  003f4	25 ff ff ff 00	 and	 eax, 16777215		; 00ffffffH
+  003f9	2b ca		 sub	 ecx, edx
+  003fb	d3 e8		 shr	 eax, cl
+  003fd	8b ca		 mov	 ecx, edx
+  003ff	d3 e6		 shl	 esi, cl
+  00401	81 e6 ff ff ff
+	00		 and	 esi, 16777215		; 00ffffffH
+
+; 281  : 	return(temp1|temp2);
+
+  00407	0b c6		 or	 eax, esi
+  00409	5e		 pop	 esi
+
+; 282  : 	
+; 283  : }                           
+
+  0040a	c3		 ret	 0
+_rot24	ENDP
+_num$ = 8
+_rot$ = 12
+_unrot24 PROC NEAR
+
+; 287  : 	unsigned long temp1, temp2;
+; 288  : 	rot = rot%24;
+
+  00410	8b 44 24 08	 mov	 eax, DWORD PTR _rot$[esp-4]
+  00414	33 d2		 xor	 edx, edx
+  00416	b9 18 00 00 00	 mov	 ecx, 24			; 00000018H
+  0041b	56		 push	 esi
+  0041c	f7 f1		 div	 ecx
+
+; 289  : 	temp1 = ((num&0xffffff)>>rot);
+; 290  : 	temp2 = (num<<(24-rot))&0xffffff;
+
+  0041e	8b 74 24 08	 mov	 esi, DWORD PTR _num$[esp]
+  00422	8b c6		 mov	 eax, esi
+  00424	81 e6 ff ff ff
+	00		 and	 esi, 16777215		; 00ffffffH
+  0042a	2b ca		 sub	 ecx, edx
+  0042c	d3 e0		 shl	 eax, cl
+  0042e	8b ca		 mov	 ecx, edx
+  00430	d3 ee		 shr	 esi, cl
+  00432	25 ff ff ff 00	 and	 eax, 16777215		; 00ffffffH
+
+; 291  : 	return(temp1|temp2);
+
+  00437	0b c6		 or	 eax, esi
+  00439	5e		 pop	 esi
+
+; 292  : }
+
+  0043a	c3		 ret	 0
+_unrot24 ENDP
+_num$ = 8
+_rot$ = 12
+_rot32	PROC NEAR
+
+; 295  : 	unsigned long temp1, temp2;
+; 296  : 	rot = rot%32;
+; 297  : 	temp1 = num<<rot;
+; 298  : 	temp2 = num>>(32-rot);
+
+  00440	8b 54 24 04	 mov	 edx, DWORD PTR _num$[esp-4]
+  00444	56		 push	 esi
+  00445	8b 74 24 0c	 mov	 esi, DWORD PTR _rot$[esp]
+  00449	b9 20 00 00 00	 mov	 ecx, 32			; 00000020H
+  0044e	83 e6 1f	 and	 esi, 31			; 0000001fH
+  00451	8b c2		 mov	 eax, edx
+  00453	2b ce		 sub	 ecx, esi
+  00455	d3 e8		 shr	 eax, cl
+  00457	8b ce		 mov	 ecx, esi
+  00459	5e		 pop	 esi
+  0045a	d3 e2		 shl	 edx, cl
+
+; 299  : 	return(temp1|temp2);
+
+  0045c	0b c2		 or	 eax, edx
+
+; 300  : }
+
+  0045e	c3		 ret	 0
+_rot32	ENDP
+_TEXT	ENDS
+END

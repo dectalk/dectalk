@@ -1,0 +1,1380 @@
+	TITLE	D:\work\Product\dapi\src\NT\opthread.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_OP_CreateThread
+EXTRN	__imp___beginthreadex:NEAR
+_TEXT	SEGMENT
+_StackSize$ = 8
+_ThreadRoutine$ = 12
+_pThreadData$ = 16
+_dwThreadAddr$ = 16
+_OP_CreateThread PROC NEAR
+
+; 172  :   HTHREAD_T pThread;
+; 173  : 
+; 174  : #ifdef OP_POSIX
+; 175  :   THREAD_ATTR_T ThreadAttr;
+; 176  : 
+; 177  :   /********************************************************************/
+; 178  :   /*  Allocate the thread handle.                                     */
+; 179  :   /********************************************************************/
+; 180  : 
+; 181  :   pThread = (HTHREAD_T)malloc( sizeof(pthread_t));
+; 182  : 
+; 183  :   if ( pThread == NULL )
+; 184  :   {
+; 185  :     return NULL;
+; 186  :   }
+; 187  : 
+; 188  :   /********************************************************************/
+; 189  :   /*  Create the thread using posix routines.                         */
+; 190  :   /********************************************************************/
+; 191  :   
+; 192  : #ifdef _PRE_PLATINUM_POSIX_
+; 193  :   if ( pthread_attr_create( &ThreadAttr ))
+; 194  :     {
+; 195  :       return NULL;
+; 196  :     }
+; 197  :   
+; 198  : #else
+; 199  :   /* linux uses non pre-platinum posix routines */
+; 200  :   if ( pthread_attr_init( &ThreadAttr ))
+; 201  :     {
+; 202  :       return NULL;
+; 203  :     }
+; 204  : #endif
+; 205  : #ifndef __linux__
+; 206  :   if ( StackSize != 0 )
+; 207  :     {
+; 208  :       if ( pthread_attr_setstacksize( &ThreadAttr, StackSize ))
+; 209  : 	{
+; 210  : 	  return NULL;
+; 211  : 	}
+; 212  :     }
+; 213  : #endif
+; 214  :   
+; 215  :   if ( pthread_create( pThread,
+; 216  : #ifdef __osf__
+; 217  :                        ThreadAttr,
+; 218  : #else
+; 219  : 		       &ThreadAttr,
+; 220  : #endif
+; 221  : 		       (THREAD_PROCEDURE_T)ThreadRoutine,
+; 222  :                        pThreadData ) != 0 )
+; 223  :     {
+; 224  :       pThread = NULL;
+; 225  :     }
+; 226  : 
+; 227  : #ifdef _PRE_PLATINUM_POSIX_
+; 228  :   
+; 229  :   pthread_attr_delete( &ThreadAttr );
+; 230  :   
+; 231  : #else
+; 232  : 
+; 233  :   pthread_attr_destroy( &ThreadAttr );
+; 234  : 
+; 235  : #endif
+; 236  :   
+; 237  : #endif  /* OP_POSIX */
+; 238  :   
+; 239  :   
+; 240  : #ifdef _WIN32
+; 241  :   
+; 242  :   DWORD dwThreadAddr;
+; 243  :   
+; 244  :   pThread = (HANDLE)_beginthreadex( NULL,
+; 245  :                                     StackSize,
+; 246  :                                     ThreadRoutine,
+; 247  :                                     pThreadData,
+; 248  :                                     0,
+; 249  :                                     &dwThreadAddr );
+
+  00000	8b 4c 24 0c	 mov	 ecx, DWORD PTR _pThreadData$[esp-4]
+  00004	8b 54 24 08	 mov	 edx, DWORD PTR _ThreadRoutine$[esp-4]
+  00008	8d 44 24 0c	 lea	 eax, DWORD PTR _dwThreadAddr$[esp-4]
+  0000c	50		 push	 eax
+  0000d	8b 44 24 08	 mov	 eax, DWORD PTR _StackSize$[esp]
+  00011	6a 00		 push	 0
+  00013	51		 push	 ecx
+  00014	52		 push	 edx
+  00015	50		 push	 eax
+  00016	6a 00		 push	 0
+  00018	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___beginthreadex
+  0001e	83 c4 18	 add	 esp, 24			; 00000018H
+
+; 250  : 
+; 251  :   if ((int)pThread == -1 )
+
+  00021	83 f8 ff	 cmp	 eax, -1
+  00024	75 02		 jne	 SHORT $L69466
+
+; 252  :   {
+; 253  :     pThread = NULL;
+
+  00026	33 c0		 xor	 eax, eax
+$L69466:
+
+; 254  :   }
+; 255  : 
+; 256  : #endif
+; 257  : 
+; 258  :   return pThread;
+; 259  : }
+
+  00028	c3		 ret	 0
+_OP_CreateThread ENDP
+_TEXT	ENDS
+PUBLIC	_OP_GetThreadPriority
+EXTRN	__imp__GetThreadPriority@4:NEAR
+_TEXT	SEGMENT
+_pThread$ = 8
+_OP_GetThreadPriority PROC NEAR
+
+; 289  : 
+; 290  : /* TQL 05/21/1997  change this for OSF build */
+; 291  : #if defined (OP_POSIX) && defined (WIN32)
+; 292  : 
+; 293  :   return pthread_getprio( *pThread );
+; 294  : 
+; 295  : #endif
+; 296  : 
+; 297  : #ifdef OP_POSIX 
+; 298  : #if defined (__osf__) || defined (__linux__)
+; 299  : 
+; 300  : #ifdef _PRE_PLATINUM_POSIX_
+; 301  : 
+; 302  :   return pthread_getprio( *pThread );
+; 303  : 
+; 304  : #else
+; 305  :   int iPriority;
+; 306  :   int iPolicy;
+; 307  :   struct sched_param SchedParam;
+; 308  : 
+; 309  :   if( pthread_getschedparam( *pThread, &iPolicy, &SchedParam ) != 0 )
+; 310  :   {
+; 311  :     iPriority = OP_GET_THREAD_PRIORITY_ERROR;
+; 312  :   }
+; 313  :   else
+; 314  :   {
+; 315  : #ifdef POSIX_4D10
+; 316  :     iPriority = SchedParam.priority;
+; 317  : #else
+; 318  :     iPriority = SchedParam.sched_priority;
+; 319  : #endif
+; 320  :   }
+; 321  :   return iPriority;
+; 322  : 
+; 323  : #endif /* #ifdef _PRE_PLATINUM_POSIX_ */
+; 324  : #endif /* defined (__osf__) || defined (__linux__) */
+; 325  : #endif /* #ifdef OP_POSIX */
+; 326  : 
+; 327  : #ifdef _WIN32
+; 328  : 
+; 329  :   return GetThreadPriority( pThread );
+
+  00030	8b 44 24 04	 mov	 eax, DWORD PTR _pThread$[esp-4]
+  00034	50		 push	 eax
+  00035	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GetThreadPriority@4
+
+; 330  : 
+; 331  : #endif
+; 332  : 
+; 333  : }
+
+  0003b	c3		 ret	 0
+_OP_GetThreadPriority ENDP
+_TEXT	ENDS
+PUBLIC	_OP_SetThreadPriority
+EXTRN	__imp__SetThreadPriority@8:NEAR
+_TEXT	SEGMENT
+_pThread$ = 8
+_ThreadPriority$ = 12
+_OP_SetThreadPriority PROC NEAR
+
+; 372  : 
+; 373  : /* TQL 05/21/1997  change this for OSF build */
+; 374  : #if defined (OP_POSIX) && defined (WIN32)
+; 375  : 
+; 376  :   if ( pthread_setprio( *pThread, ThreadPriority == -1 ))
+; 377  :   {
+; 378  :     return TRUE;
+; 379  :   }
+; 380  : 
+; 381  : #endif
+; 382  : 
+; 383  : #ifdef OP_POSIX 
+; 384  : #if defined (__osf__) || defined (__linux__)
+; 385  : 
+; 386  : #ifdef _PRE_PLATINUM_POSIX_
+; 387  : 
+; 388  :   if ( pthread_setprio( *pThread, ThreadPriority ) == -1 )
+; 389  :   {
+; 390  :     return TRUE;
+; 391  :   }
+; 392  : 
+; 393  : #else
+; 394  : 
+; 395  :   int iPolicy;
+; 396  :   struct sched_param SchedParam;
+; 397  : 
+; 398  :   if( 0 != pthread_getschedparam( *pThread, &iPolicy, &SchedParam ))
+; 399  :   {
+; 400  :     return TRUE;
+; 401  :   }
+; 402  :   else
+; 403  :   {
+; 404  : #ifdef POSIX_4D10
+; 405  :     SchedParam.priority = ThreadPriority;
+; 406  : #else
+; 407  :     SchedParam.sched_priority = ThreadPriority;
+; 408  : #endif
+; 409  :     if( pthread_setschedparam( *pThread, iPolicy, &SchedParam ) != 0)
+; 410  :     {
+; 411  :       return TRUE;
+; 412  :     }
+; 413  :   }
+; 414  : 
+; 415  : #endif /* ifdef _PRE_PLATINUM_POSIX_ */
+; 416  : #endif /* defined (__osf__) || defined (__linux__) */
+; 417  : #endif /* ifdef OP_POSIX */
+; 418  : 
+; 419  : #ifdef _WIN32
+; 420  : 
+; 421  :   if ( ! SetThreadPriority( pThread, ThreadPriority ))
+
+  00040	8b 44 24 08	 mov	 eax, DWORD PTR _ThreadPriority$[esp-4]
+  00044	8b 4c 24 04	 mov	 ecx, DWORD PTR _pThread$[esp-4]
+  00048	50		 push	 eax
+  00049	51		 push	 ecx
+  0004a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetThreadPriority@8
+  00050	f7 d8		 neg	 eax
+  00052	1b c0		 sbb	 eax, eax
+  00054	40		 inc	 eax
+
+; 422  :   {
+; 423  :     return TRUE;
+; 424  :   }
+; 425  : 
+; 426  : #endif
+; 427  : 
+; 428  :   return FALSE;
+; 429  : }
+
+  00055	c3		 ret	 0
+_OP_SetThreadPriority ENDP
+_TEXT	ENDS
+PUBLIC	_OP_ExitThread
+EXTRN	__imp___endthreadex:NEAR
+_TEXT	SEGMENT
+_ThreadStatus$ = 8
+_OP_ExitThread PROC NEAR
+
+; 458  : 
+; 459  : #ifdef OP_POSIX
+; 460  : 
+; 461  :   pthread_exit( ThreadStatus );
+; 462  : 
+; 463  : #endif
+; 464  : 
+; 465  : 
+; 466  : #ifdef _WIN32
+; 467  : 
+; 468  :   _endthreadex( ThreadStatus );
+
+  00060	8b 44 24 04	 mov	 eax, DWORD PTR _ThreadStatus$[esp-4]
+  00064	50		 push	 eax
+  00065	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___endthreadex
+  0006b	59		 pop	 ecx
+
+; 469  : 
+; 470  : #endif
+; 471  : 
+; 472  :   return;
+; 473  : }
+
+  0006c	c3		 ret	 0
+_OP_ExitThread ENDP
+_TEXT	ENDS
+PUBLIC	_OP_WaitForThreadTermination
+EXTRN	__imp__GetExitCodeThread@8:NEAR
+EXTRN	__imp__WaitForSingleObject@8:NEAR
+EXTRN	__imp__CloseHandle@4:NEAR
+_TEXT	SEGMENT
+_pThread$ = 8
+_pThreadStatus$ = 12
+_OP_WaitForThreadTermination PROC NEAR
+
+; 516  : {
+
+  00070	57		 push	 edi
+
+; 517  : unsigned int uiStatus=0;
+; 518  : 
+; 519  : if ( pThread != 0 )
+
+  00071	8b 7c 24 08	 mov	 edi, DWORD PTR _pThread$[esp]
+  00075	33 c0		 xor	 eax, eax
+  00077	85 ff		 test	 edi, edi
+  00079	74 27		 je	 SHORT $L69486
+  0007b	56		 push	 esi
+
+; 520  : {
+; 521  :   
+; 522  : #ifdef OP_POSIX
+; 523  :   
+; 524  :   /******************************************************************/
+; 525  :   /*  Wait for the thread to exit.                                  */
+; 526  :   /******************************************************************/
+; 527  : #ifdef __linux__
+; 528  :   if ( pthread_join((*pThread), pThreadStatus ) == 0 )   
+; 529  : #else
+; 530  :     if ( pthread_join((*pThread), pThreadStatus ) != 0 )
+; 531  : #endif    
+; 532  :       {
+; 533  : 	uiStatus = TRUE;
+; 534  :       }
+; 535  :     else
+; 536  :       {
+; 537  : #ifdef __osf__
+; 538  : 	if( pthread_detach( pThread ) != 0 )
+; 539  : #else	
+; 540  : 	if( pthread_detach( *pThread ) != 0 )
+; 541  : #endif
+; 542  : 	  {
+; 543  : 	    uiStatus = TRUE;
+; 544  : 	  }
+; 545  :       }
+; 546  :   
+; 547  :   /******************************************************************/
+; 548  :   /*  Free the thread handle.                                       */
+; 549  :   /******************************************************************/
+; 550  : 
+; 551  :   free( pThread );
+; 552  : 
+; 553  : #endif
+; 554  :   
+; 555  : #ifdef _WIN32
+; 556  : 
+; 557  :     /******************************************************************/
+; 558  :     /*  Wait for the thread to exit.                                  */
+; 559  :     /******************************************************************/
+; 560  : 
+; 561  : /* TQL 05/21/1997  change this for OSF build */
+; 562  : #ifdef WIN32
+; 563  :     WaitForSingleObject( pThread, INFINITE );
+
+  0007c	6a ff		 push	 -1
+  0007e	57		 push	 edi
+  0007f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__WaitForSingleObject@8
+
+; 564  : #endif
+; 565  : #if defined (__osf__) || defined (__linux__)
+; 566  : 	WaitForSingleObject( pThread, uiMilliSeconds );
+; 567  : #endif
+; 568  : 
+; 569  :     uiStatus = ! GetExitCodeThread( pThread, pThreadStatus );
+
+  00085	8b 44 24 10	 mov	 eax, DWORD PTR _pThreadStatus$[esp+4]
+  00089	50		 push	 eax
+  0008a	57		 push	 edi
+  0008b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GetExitCodeThread@8
+  00091	8b f0		 mov	 esi, eax
+
+; 570  : 
+; 571  :     /******************************************************************/
+; 572  :     /*  Free the thread handle.                                       */
+; 573  :     /******************************************************************/
+; 574  : 
+; 575  :     CloseHandle( pThread );
+
+  00093	57		 push	 edi
+  00094	f7 de		 neg	 esi
+  00096	1b f6		 sbb	 esi, esi
+  00098	46		 inc	 esi
+  00099	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CloseHandle@4
+
+; 576  : 
+; 577  : #endif
+; 578  :   }
+; 579  : 
+; 580  :   return uiStatus;
+
+  0009f	8b c6		 mov	 eax, esi
+  000a1	5e		 pop	 esi
+$L69486:
+  000a2	5f		 pop	 edi
+
+; 581  : }
+
+  000a3	c3		 ret	 0
+_OP_WaitForThreadTermination ENDP
+_TEXT	ENDS
+PUBLIC	_OP_CreateMutex
+EXTRN	__imp__malloc:NEAR
+EXTRN	__imp__InitializeCriticalSection@4:NEAR
+_TEXT	SEGMENT
+_OP_CreateMutex PROC NEAR
+
+; 608  : {
+
+  000b0	56		 push	 esi
+
+; 609  :   HMUTEX_T pMutex;
+; 610  : 
+; 611  :   /********************************************************************/
+; 612  :   /*  Allocate memory for the mutex.                                  */
+; 613  :   /********************************************************************/
+; 614  : 
+; 615  :   pMutex = (HMUTEX_T)malloc( sizeof(MUTEX_T));
+
+  000b1	6a 18		 push	 24			; 00000018H
+  000b3	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__malloc
+  000b9	8b f0		 mov	 esi, eax
+  000bb	83 c4 04	 add	 esp, 4
+
+; 616  : 
+; 617  :   if ( pMutex != NULL )
+
+  000be	85 f6		 test	 esi, esi
+  000c0	74 07		 je	 SHORT $L69589
+
+; 618  :   {
+; 619  : 
+; 620  : /* TQL 05/21/1997  change this for OSF build */
+; 621  : #ifdef OP_POSIX
+; 622  : #ifdef WIN32
+; 623  :     if ( pthread_mutex_init( pMutex,
+; 624  :                              pthread_mutexattr_default ) != 0 )
+; 625  :     {
+; 626  :       free( pMutex );
+; 627  :       pMutex = NULL;
+; 628  :     }
+; 629  : #endif	/* ifdef WIN32 */
+; 630  : #endif	/* ifdef OP_POSIX */
+; 631  : 
+; 632  : #if defined (__osf__) || defined (__linux__)
+; 633  : #ifdef OP_POSIX
+; 634  : #ifdef _PRE_PLATINUM_POSIX_
+; 635  :     if ( pthread_mutex_init( pMutex, 
+; 636  :                              pthread_mutexattr_default ) != 0 )
+; 637  :     {
+; 638  :       free( pMutex );
+; 639  :       pMutex = NULL;
+; 640  :     }
+; 641  : #else
+; 642  :     pthread_mutexattr_t ThreadAttr;
+; 643  :     pthread_mutexattr_init( &ThreadAttr );
+; 644  : 
+; 645  :     if ( pthread_mutex_init( pMutex, &ThreadAttr ) != 0 )
+; 646  :     {
+; 647  :       free( pMutex );
+; 648  :       pMutex = NULL;
+; 649  :     }
+; 650  : 
+; 651  : #ifdef __linux__
+; 652  :     pthread_mutexattr_destroy( &ThreadAttr );
+; 653  : #else
+; 654  :     pthread_attr_destroy( &ThreadAttr );
+; 655  : #endif
+; 656  : #endif	/* ifdef _PRE_PLATINUM_POSIX_ */
+; 657  : #endif	/* ifdef OP_POSIX */
+; 658  : #endif	/* if defined (__osf__) || defined (__linux__) */
+; 659  : #ifdef _WIN32
+; 660  : 
+; 661  :     InitializeCriticalSection( pMutex );
+
+  000c2	56		 push	 esi
+  000c3	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__InitializeCriticalSection@4
+$L69589:
+
+; 662  : 
+; 663  : #endif
+; 664  :       
+; 665  :   }
+; 666  : 
+; 667  :   return pMutex;
+
+  000c9	8b c6		 mov	 eax, esi
+  000cb	5e		 pop	 esi
+
+; 668  : }
+
+  000cc	c3		 ret	 0
+_OP_CreateMutex ENDP
+_TEXT	ENDS
+PUBLIC	_OP_DestroyMutex
+EXTRN	__imp__free:NEAR
+EXTRN	__imp__DeleteCriticalSection@4:NEAR
+_TEXT	SEGMENT
+_pMutex$ = 8
+_OP_DestroyMutex PROC NEAR
+
+; 694  : {
+
+  000d0	56		 push	 esi
+
+; 695  :   /********************************************************************/
+; 696  :   /*  Free memory for the mutex.                                      */
+; 697  :   /********************************************************************/
+; 698  : 
+; 699  :   if ( pMutex != NULL )
+
+  000d1	8b 74 24 08	 mov	 esi, DWORD PTR _pMutex$[esp]
+  000d5	85 f6		 test	 esi, esi
+  000d7	74 11		 je	 SHORT $L69497
+
+; 700  :   {
+; 701  : #ifdef OP_POSIX
+; 702  : 
+; 703  :     pthread_mutex_destroy( pMutex );
+; 704  : 
+; 705  : #endif
+; 706  : 
+; 707  : #ifdef _WIN32
+; 708  : 
+; 709  :     DeleteCriticalSection( pMutex );
+
+  000d9	56		 push	 esi
+  000da	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__DeleteCriticalSection@4
+
+; 710  :     free( pMutex );
+
+  000e0	56		 push	 esi
+  000e1	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__free
+  000e7	83 c4 04	 add	 esp, 4
+$L69497:
+  000ea	5e		 pop	 esi
+
+; 711  : 
+; 712  : #endif
+; 713  :   }
+; 714  : 
+; 715  :   return;
+; 716  : }
+
+  000eb	c3		 ret	 0
+_OP_DestroyMutex ENDP
+_TEXT	ENDS
+PUBLIC	_OP_LockMutex
+EXTRN	__imp__EnterCriticalSection@4:NEAR
+_TEXT	SEGMENT
+_pMutex$ = 8
+_OP_LockMutex PROC NEAR
+
+; 744  :   /********************************************************************/
+; 745  :   /*  Lock the mutex.                                                 */
+; 746  :   /********************************************************************/
+; 747  : 
+; 748  : #ifdef OP_POSIX
+; 749  : 
+; 750  :   pthread_mutex_lock( pMutex );
+; 751  : 
+; 752  : #endif
+; 753  : 
+; 754  : #ifdef _WIN32
+; 755  : 
+; 756  :   EnterCriticalSection( pMutex );
+
+  000f0	8b 44 24 04	 mov	 eax, DWORD PTR _pMutex$[esp-4]
+  000f4	50		 push	 eax
+  000f5	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 757  : 
+; 758  : #endif
+; 759  : 
+; 760  :   return;
+; 761  : }
+
+  000fb	c3		 ret	 0
+_OP_LockMutex ENDP
+_TEXT	ENDS
+PUBLIC	_OP_UnlockMutex
+EXTRN	__imp__LeaveCriticalSection@4:NEAR
+_TEXT	SEGMENT
+_pMutex$ = 8
+_OP_UnlockMutex PROC NEAR
+
+; 789  :   /********************************************************************/
+; 790  :   /*  Unlock the mutex.                                               */
+; 791  :   /********************************************************************/
+; 792  : 
+; 793  : #ifdef OP_POSIX
+; 794  : 
+; 795  :   pthread_mutex_unlock( pMutex );
+; 796  : 
+; 797  : #endif
+; 798  : 
+; 799  : #ifdef _WIN32
+; 800  : 
+; 801  :   LeaveCriticalSection( pMutex );
+
+  00100	8b 44 24 04	 mov	 eax, DWORD PTR _pMutex$[esp-4]
+  00104	50		 push	 eax
+  00105	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 802  : 
+; 803  : #endif
+; 804  : 
+; 805  :   return;
+; 806  : }
+
+  0010b	c3		 ret	 0
+_OP_UnlockMutex ENDP
+_TEXT	ENDS
+PUBLIC	_OP_CreateEvent
+EXTRN	__imp__CreateEventA@16:NEAR
+_TEXT	SEGMENT
+_bManualReset$ = 8
+_bInitialState$ = 12
+_OP_CreateEvent PROC NEAR
+
+; 838  :   HEVENT_T pEvent;
+; 839  : 
+; 840  : #ifdef OP_POSIX
+; 841  : 
+; 842  :   /********************************************************************/
+; 843  :   /*  Allocate memory for the event.                                  */
+; 844  :   /********************************************************************/
+; 845  : 
+; 846  :   pEvent = (HEVENT_T)malloc( sizeof(EVENT_T));
+; 847  : 
+; 848  :   if ( pEvent != NULL )
+; 849  :   {
+; 850  :     pEvent->bManualReset = bManualReset;
+; 851  :     pEvent->pSignalMutex = NULL;
+; 852  :     pEvent->pSignalCondition = NULL;
+; 853  : 
+; 854  :     /******************************************************************/
+; 855  :     /*  Allocate memory for the signal mutex.                         */
+; 856  :     /******************************************************************/
+; 857  : 
+; 858  :     pEvent->pSignalMutex =
+; 859  :       (pthread_mutex_t *)malloc( sizeof(pthread_mutex_t));
+; 860  : 
+; 861  :     if ( pEvent->pSignalMutex == NULL )
+; 862  :     {
+; 863  :       OP_DestroyEvent( pEvent );
+; 864  :       return NULL;
+; 865  :     }
+; 866  : 
+; 867  :     /******************************************************************/
+; 868  :     /*  Initialize the signal mutex.                                  */
+; 869  :     /******************************************************************/
+; 870  : 
+; 871  :     if ( pthread_mutex_init( pEvent->pSignalMutex,
+; 872  :                              pthread_mutexattr_default ) != 0 )
+; 873  :     {
+; 874  :       OP_DestroyEvent( pEvent );
+; 875  :       return NULL;
+; 876  :     }
+; 877  : 
+; 878  :     /******************************************************************/
+; 879  :     /*  Allocate memory for the events condition.                     */
+; 880  :     /******************************************************************/
+; 881  : 
+; 882  :     pEvent->pSignalCondition =
+; 883  :       (pthread_cond_t *)malloc( sizeof(pthread_cond_t));
+; 884  : 
+; 885  :     if ( pEvent->pSignalCondition == NULL )
+; 886  :     {
+; 887  :       OP_DestroyEvent( pEvent );
+; 888  :       return NULL;
+; 889  :     }
+; 890  : 
+; 891  :     /******************************************************************/
+; 892  :     /*  Initialize the events condition.                              */
+; 893  :     /******************************************************************/
+; 894  : 
+; 895  :     if ( pthread_cond_init( pEvent->pSignalCondition,
+; 896  :                             pthread_condattr_default ))
+; 897  :     {
+; 898  :       OP_DestroyEvent( pEvent );
+; 899  :       return NULL;
+; 900  :     }
+; 901  : 
+; 902  :     /******************************************************************/
+; 903  :     /*  Set the initial state of the event.                           */
+; 904  :     /******************************************************************/
+; 905  : 
+; 906  :     if ( bInitialState )
+; 907  :     {
+; 908  :       pEvent->bSignal = TRUE;
+; 909  :     }
+; 910  :     else
+; 911  :     {
+; 912  :       pEvent->bSignal = FALSE;
+; 913  :     }
+; 914  :   }
+; 915  : 
+; 916  : #endif
+; 917  : 
+; 918  : #ifdef _WIN32
+; 919  : 
+; 920  :   pEvent = CreateEvent( NULL, bManualReset, bInitialState, NULL );
+
+  00110	8b 44 24 08	 mov	 eax, DWORD PTR _bInitialState$[esp-4]
+  00114	8b 4c 24 04	 mov	 ecx, DWORD PTR _bManualReset$[esp-4]
+  00118	6a 00		 push	 0
+  0011a	50		 push	 eax
+  0011b	51		 push	 ecx
+  0011c	6a 00		 push	 0
+  0011e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CreateEventA@16
+
+; 921  : 
+; 922  : #endif
+; 923  : 
+; 924  :   return pEvent;
+; 925  : }
+
+  00124	c3		 ret	 0
+_OP_CreateEvent ENDP
+_TEXT	ENDS
+PUBLIC	_OP_DestroyEvent
+_TEXT	SEGMENT
+_pEvent$ = 8
+_OP_DestroyEvent PROC NEAR
+
+; 952  : 
+; 953  :   if ( pEvent != NULL )
+
+  00130	8b 44 24 04	 mov	 eax, DWORD PTR _pEvent$[esp-4]
+  00134	85 c0		 test	 eax, eax
+  00136	74 07		 je	 SHORT $L69516
+
+; 954  :   {
+; 955  : #ifdef OP_POSIX
+; 956  : 
+; 957  :     /******************************************************************/
+; 958  :     /*  Free the event's condition.                                   */
+; 959  :     /******************************************************************/
+; 960  : 
+; 961  :     if ( pEvent->pSignalCondition != NULL )
+; 962  :     {
+; 963  :       pthread_cond_destroy( pEvent->pSignalCondition );
+; 964  :       free( pEvent->pSignalCondition );
+; 965  :     }
+; 966  : 
+; 967  :     /******************************************************************/
+; 968  :     /*  Free the event's condition mutex.                             */
+; 969  :     /******************************************************************/
+; 970  : 
+; 971  :     if ( pEvent->pSignalMutex != NULL )
+; 972  :     {
+; 973  :       pthread_mutex_destroy( pEvent->pSignalMutex );
+; 974  :     }
+; 975  : 
+; 976  :     /******************************************************************/
+; 977  :     /*  Free the event's signal mutex.                                */
+; 978  :     /******************************************************************/
+; 979  : 
+; 980  :     if ( pEvent->pSignalMutex != NULL )
+; 981  :     {
+; 982  :       pthread_mutex_destroy( pEvent->pSignalMutex );
+; 983  :     }
+; 984  : 
+; 985  :     /******************************************************************/
+; 986  :     /*  Free memory for the event.                                    */
+; 987  :     /******************************************************************/
+; 988  : 
+; 989  :     free( pEvent );
+; 990  : #endif
+; 991  : 
+; 992  : #ifdef _WIN32
+; 993  : 
+; 994  :     CloseHandle( pEvent );
+
+  00138	50		 push	 eax
+  00139	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__CloseHandle@4
+$L69516:
+
+; 995  : 
+; 996  : #endif
+; 997  :   }
+; 998  : 
+; 999  :   return;
+; 1000 : }
+
+  0013f	c3		 ret	 0
+_OP_DestroyEvent ENDP
+_TEXT	ENDS
+PUBLIC	_OP_SetEvent
+EXTRN	__imp__SetEvent@4:NEAR
+_TEXT	SEGMENT
+_pEvent$ = 8
+_OP_SetEvent PROC NEAR
+
+; 1027 : 
+; 1028 : #ifdef OP_POSIX
+; 1029 : 
+; 1030 :   /********************************************************************/
+; 1031 :   /*  Set the event to the signalled state.                           */
+; 1032 :   /********************************************************************/
+; 1033 : 
+; 1034 :   pthread_mutex_lock( pEvent->pSignalMutex );
+; 1035 : 
+; 1036 :   pEvent->bSignal = TRUE;
+; 1037 : 
+; 1038 :   /********************************************************************/
+; 1039 :   /*  Broadcast to unblock all threads that are waiting on this       */
+; 1040 :   /*  event.                                                          */
+; 1041 :   /********************************************************************/
+; 1042 : 
+; 1043 :   pthread_cond_broadcast( pEvent->pSignalCondition );
+; 1044 : 
+; 1045 :   pthread_mutex_unlock( pEvent->pSignalMutex );
+; 1046 : 
+; 1047 :   return;
+; 1048 : 
+; 1049 : #endif
+; 1050 : 
+; 1051 : #ifdef _WIN32
+; 1052 : 
+; 1053 :   SetEvent( pEvent );
+
+  00140	8b 44 24 04	 mov	 eax, DWORD PTR _pEvent$[esp-4]
+  00144	50		 push	 eax
+  00145	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 1054 : 
+; 1055 : #endif
+; 1056 : 
+; 1057 :   return;
+; 1058 : }
+
+  0014b	c3		 ret	 0
+_OP_SetEvent ENDP
+_TEXT	ENDS
+PUBLIC	_OP_ResetEvent
+EXTRN	__imp__ResetEvent@4:NEAR
+_TEXT	SEGMENT
+_pEvent$ = 8
+_OP_ResetEvent PROC NEAR
+
+; 1085 : 
+; 1086 : #ifdef OP_POSIX
+; 1087 : 
+; 1088 :   /********************************************************************/
+; 1089 :   /*  Set the event to the non-signalled state.                       */
+; 1090 :   /********************************************************************/
+; 1091 : 
+; 1092 :   pthread_mutex_lock( pEvent->pSignalMutex );
+; 1093 :   pEvent->bSignal = FALSE;
+; 1094 :   pthread_mutex_unlock( pEvent->pSignalMutex );
+; 1095 : 
+; 1096 : #endif
+; 1097 : 
+; 1098 : #ifdef _WIN32
+; 1099 : 
+; 1100 :   ResetEvent( pEvent );
+
+  00150	8b 44 24 04	 mov	 eax, DWORD PTR _pEvent$[esp-4]
+  00154	50		 push	 eax
+  00155	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__ResetEvent@4
+
+; 1101 : 
+; 1102 : #endif
+; 1103 : 
+; 1104 :   return;
+; 1105 : }
+
+  0015b	c3		 ret	 0
+_OP_ResetEvent ENDP
+_TEXT	ENDS
+PUBLIC	_OP_WaitForEvent
+_TEXT	SEGMENT
+_pEvent$ = 8
+_uiMilliSeconds$ = 12
+_OP_WaitForEvent PROC NEAR
+
+; 1139 :   unsigned int uiRet;
+; 1140 :   int retcode=0;
+; 1141 : 
+; 1142 : #ifdef OP_POSIX
+; 1143 : #ifdef __linux__
+; 1144 :   struct timespec WaitTime;
+; 1145 :   struct timespec AbsoluteTime;
+; 1146 :   struct timeval AbsoluteTime_v;
+; 1147 : #else
+; 1148 :   OP_CONDITIONAL_CONST struct timespec WaitTime;
+; 1149 :   OP_CONDITIONAL_CONST struct timespec AbsoluteTime;
+; 1150 : #endif
+; 1151 :   /********************************************************************/
+; 1152 :   /*  Lock the event signal.                                          */
+; 1153 :   /********************************************************************/
+; 1154 :   
+; 1155 :   pthread_mutex_lock( pEvent->pSignalMutex );
+; 1156 :   
+; 1157 :   /********************************************************************/
+; 1158 :   /*  Wait for the event to become signalled. Use differnt waits      */
+; 1159 :   /*  depending upon whether the wait is finite or infinite.          */
+; 1160 :   /********************************************************************/
+; 1161 :   
+; 1162 :   if ( uiMilliSeconds == OP_INFINITE )
+; 1163 :     {
+; 1164 :       /******************************************************************/
+; 1165 :       /*  Wait for the event FOREVER.                                   */
+; 1166 :       /******************************************************************/
+; 1167 :       
+; 1168 :       while ( ! pEvent->bSignal )
+; 1169 : 	{
+; 1170 : 	  pthread_cond_wait( pEvent->pSignalCondition,
+; 1171 : 			     pEvent->pSignalMutex );
+; 1172 : 	}
+; 1173 :       
+; 1174 :       uiRet = OP_WAIT_NORMAL;
+; 1175 :     }
+; 1176 :   else
+; 1177 :     {
+; 1178 :       /******************************************************************/
+; 1179 :       /*  Wait for the event or until a TIMEOUT occurs.                 */
+; 1180 :       /******************************************************************/
+; 1181 :       
+; 1182 :       WaitTime.tv_sec =
+; 1183 : 	( uiMilliSeconds / 1000 );
+; 1184 :       
+; 1185 :       WaitTime.tv_nsec =
+; 1186 : 	NANOSECONDS_PER_MILLISECOND
+; 1187 :         * ( uiMilliSeconds - ( MILLISECONDS_PER_SECOND * WaitTime.tv_sec ));
+; 1188 :       
+; 1189 :       // ETT 07/21/1998 pthread_get_expiration_np not defined in linux
+; 1190 :       // use workaround
+; 1191 : #ifdef __linux__
+; 1192 :       //returns usecs!
+; 1193 :       gettimeofday(&AbsoluteTime_v, NULL);
+; 1194 :       //TIMEVAL_TO_TIMESPEC(&AbsoluteTime_v,&AbsoluteTime);
+; 1195 :       AbsoluteTime.tv_nsec = AbsoluteTime_v.tv_usec * 1000;
+; 1196 :       AbsoluteTime.tv_sec = AbsoluteTime_v.tv_sec;
+; 1197 :       AbsoluteTime.tv_nsec += WaitTime.tv_nsec;
+; 1198 :       if (AbsoluteTime.tv_nsec>999999999)
+; 1199 : 	{
+; 1200 : 	  AbsoluteTime.tv_nsec-=1000000000;
+; 1201 : 	  AbsoluteTime.tv_sec+=1;
+; 1202 : 	}
+; 1203 :       AbsoluteTime.tv_sec += WaitTime.tv_sec;
+; 1204 : #else
+; 1205 :       pthread_get_expiration_np( &WaitTime, &AbsoluteTime );
+; 1206 : #endif 
+; 1207 :       uiRet = 0;
+; 1208 :       
+; 1209 :       while (( ! pEvent->bSignal ) && ( uiRet != OP_WAIT_TIMEOUT ))
+; 1210 : 	{
+; 1211 : 	  if ( (retcode=pthread_cond_timedwait( pEvent->pSignalCondition,
+; 1212 : 				       pEvent->pSignalMutex,
+; 1213 : 				       &AbsoluteTime )) != 0 )
+; 1214 : 	    {
+; 1215 : 	      if (retcode==ETIMEDOUT)
+; 1216 : 	    {
+; 1217 : 	      uiRet = OP_WAIT_TIMEOUT;
+; 1218 : 	    }
+; 1219 : 	    }
+; 1220 : 	  else
+; 1221 : 	    {
+; 1222 : 	      uiRet = OP_WAIT_NORMAL;
+; 1223 : 	    }
+; 1224 : 	}
+; 1225 :     }
+; 1226 :   
+; 1227 :   /********************************************************************/
+; 1228 :   /*  If this is a manual reset event then reset the event.           */
+; 1229 :   /********************************************************************/
+; 1230 : 
+; 1231 :   if ( (! (pEvent->bManualReset))  &&  (uiRet == OP_WAIT_NORMAL))
+; 1232 :     {
+; 1233 :       pEvent->bSignal = FALSE;
+; 1234 :     }
+; 1235 :   
+; 1236 :   /********************************************************************/
+; 1237 :   /*  Unlock the event signal.                                        */
+; 1238 :   /********************************************************************/
+; 1239 :   
+; 1240 :   pthread_mutex_unlock( pEvent->pSignalMutex );
+; 1241 :   
+; 1242 : #endif
+; 1243 :   
+; 1244 :   
+; 1245 : #ifdef _WIN32
+; 1246 :   
+; 1247 :   uiRet = WaitForSingleObject( pEvent, uiMilliSeconds );
+
+  00160	8b 44 24 08	 mov	 eax, DWORD PTR _uiMilliSeconds$[esp-4]
+  00164	8b 4c 24 04	 mov	 ecx, DWORD PTR _pEvent$[esp-4]
+  00168	50		 push	 eax
+  00169	51		 push	 ecx
+  0016a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__WaitForSingleObject@8
+
+; 1248 :   
+; 1249 : #endif
+; 1250 :   
+; 1251 :   return uiRet;
+; 1252 : }
+
+  00170	c3		 ret	 0
+_OP_WaitForEvent ENDP
+_TEXT	ENDS
+PUBLIC	_OP_Sleep
+EXTRN	__imp__Sleep@4:NEAR
+_TEXT	SEGMENT
+_uiMilliSeconds$ = 8
+_OP_Sleep PROC NEAR
+
+; 1281 : 
+; 1282 : #ifdef __unix__
+; 1283 : 
+; 1284 : #ifdef __linux__
+; 1285 :   struct timespec SleepTime;
+; 1286 :   struct timespec Time;
+; 1287 : #else
+; 1288 :   OP_CONDITIONAL_CONST struct timespec SleepTime;
+; 1289 :   OP_CONDITIONAL_CONST struct timespec Time;
+; 1290 : #endif
+; 1291 :   Time.tv_sec=0;
+; 1292 :   Time.tv_nsec=0;
+; 1293 : 
+; 1294 :   if ( uiMilliSeconds == 0 )
+; 1295 :   {
+; 1296 : 
+; 1297 : /* TQL 05/21/1997  change this for OSF build */
+; 1298 : #ifdef WIN32
+; 1299 :     pthread_yield();
+; 1300 : #endif
+; 1301 : 
+; 1302 : #if defined (__osf__) || defined (__linux__)
+; 1303 : #ifdef _PRE_PLATINUM_POSIX_
+; 1304 :     pthread_yield();
+; 1305 : #else
+; 1306 :     sched_yield();
+; 1307 : #endif /* _PRE_PLATINUM_POSIX_ */
+; 1308 : #endif /* if defined (__osf__) || defined (__linux__) */
+; 1309 :   }
+; 1310 :   else
+; 1311 :     {
+; 1312 :       SleepTime.tv_sec =
+; 1313 : 	(unsigned int)( (double)uiMilliSeconds/1000 );
+; 1314 :       
+; 1315 :       // why do we have to make this so complicated???
+; 1316 :       //      SleepTime.tv_nsec =
+; 1317 :       //	NANOSECONDS_PER_MILLISECOND
+; 1318 :       //	* ( uiMilliSeconds - ( MILLISECONDS_PER_SECOND * SleepTime.tv_sec ));
+; 1319 :       // we know there are 10^6 nsecs in a millisec right?
+; 1320 :       SleepTime.tv_nsec = 1000000*(double)uiMilliSeconds;
+; 1321 :       
+; 1322 :       nanosleep( &SleepTime, &Time);
+; 1323 :     }
+; 1324 :   
+; 1325 : #endif /* __unix__ */
+; 1326 :   
+; 1327 :   
+; 1328 : #ifdef __VMS
+; 1329 : 
+; 1330 :   /********************************************************************/
+; 1331 :   /*  VMS will not have kernel threads until version 7.0, so for now  */
+; 1332 :   /*  a sleep will just cause the thread to give up the remainder of  */
+; 1333 :   /*  it's timeslice.                                                 */
+; 1334 :   /********************************************************************/
+; 1335 : 
+; 1336 :   pthread_yield();
+; 1337 : 
+; 1338 : #endif
+; 1339 : 
+; 1340 : 
+; 1341 : #ifdef _WIN32
+; 1342 : 
+; 1343 :   Sleep( uiMilliSeconds );
+
+  00180	8b 44 24 04	 mov	 eax, DWORD PTR _uiMilliSeconds$[esp-4]
+  00184	50		 push	 eax
+  00185	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__Sleep@4
+
+; 1344 : 
+; 1345 : #endif
+; 1346 : 
+; 1347 :   return;
+; 1348 : }
+
+  0018b	c3		 ret	 0
+_OP_Sleep ENDP
+_TEXT	ENDS
+PUBLIC	_ThreadLock
+EXTRN	__imp__GetCurrentThreadId@0:NEAR
+EXTRN	__imp__InterlockedExchange@8:NEAR
+_TEXT	SEGMENT
+_ptlLock$ = 8
+_dwTimeout$ = 12
+_dwThreadId$ = -4
+_ThreadLock PROC NEAR
+
+; 1431 : {
+
+  00190	51		 push	 ecx
+  00191	53		 push	 ebx
+  00192	55		 push	 ebp
+  00193	56		 push	 esi
+  00194	57		 push	 edi
+
+; 1432 : 	// take the lock. Timeout is in seconds, but internally
+; 1433 : 	// we wait far shorter times. Return is TRUE if we get the
+; 1434 : 	// lock, FALSE if we timeout.
+; 1435 : 	DWORD dwLoopLimit;
+; 1436 : 	DWORD dwLoopCount=0;
+
+  00195	33 ed		 xor	 ebp, ebp
+
+; 1437 : 	DWORD dwThreadId=0;
+; 1438 : 	BOOL bGotLock=TRUE;
+; 1439 : 
+; 1440 : 	dwThreadId = GetCurrentThreadId();
+
+  00197	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GetCurrentThreadId@0
+
+; 1441 : 	dwLoopLimit = dwTimeout*TL_ATTEMPTSPERSECOND;
+; 1442 : 
+; 1443 : 	// spin to get the lock. (1 means locked)
+; 1444 : 	while (0 != InterlockedExchange((long *)(&ptlLock->dwLock),1))
+
+  0019d	8b 74 24 18	 mov	 esi, DWORD PTR _ptlLock$[esp+16]
+  001a1	89 44 24 10	 mov	 DWORD PTR _dwThreadId$[esp+20], eax
+  001a5	8b 44 24 1c	 mov	 eax, DWORD PTR _dwTimeout$[esp+16]
+  001a9	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__InterlockedExchange@8
+  001af	6a 01		 push	 1
+  001b1	56		 push	 esi
+  001b2	8d 04 80	 lea	 eax, DWORD PTR [eax+eax*4]
+  001b5	8d 3c 80	 lea	 edi, DWORD PTR [eax+eax*4]
+  001b8	d1 e7		 shl	 edi, 1
+  001ba	ff d3		 call	 ebx
+  001bc	85 c0		 test	 eax, eax
+  001be	74 23		 je	 SHORT $L69604
+$L69545:
+
+; 1445 : 	{
+; 1446 : 		// did not get it, or we already have it.
+; 1447 : 		// check the owning thread to see if we're the owner.
+; 1448 : 		if (ptlLock->dwThread == dwThreadId)
+
+  001c0	8b 46 08	 mov	 eax, DWORD PTR [esi+8]
+  001c3	8b 4c 24 10	 mov	 ecx, DWORD PTR _dwThreadId$[esp+20]
+  001c7	3b c1		 cmp	 eax, ecx
+  001c9	74 18		 je	 SHORT $L69604
+
+; 1449 : 		{
+; 1450 : 			// we own it. bGotLock is already TRUE.
+; 1451 : 			break;
+; 1452 : 		}
+; 1453 : 		dwLoopCount++;
+
+  001cb	45		 inc	 ebp
+
+; 1454 : 		if (dwLoopCount > dwLoopLimit)
+
+  001cc	3b ef		 cmp	 ebp, edi
+  001ce	77 34		 ja	 SHORT $L69602
+
+; 1457 : 
+; 1458 : #ifdef _DEBUG_TLOCK
+; 1459 : 		{
+; 1460 : 			char szTemp[256];
+; 1461 : 			sprintf(szTemp,"TLock: thread %08lx FAILED to lock %08lx, owned by %08lx at %lu\n",
+; 1462 : 				dwThreadId, (DWORD)ptlLock, ptlLock->dwThread, timeGetTime());
+; 1463 : 			OutputDebugString(szTemp);
+; 1464 : 		}
+; 1465 : #endif //_DEBUG_TLOCK
+; 1466 : 			break;
+; 1467 : 		}
+; 1468 : 		OP_Sleep(TL_MSPERATTEMPT);
+
+  001d0	6a 14		 push	 20			; 00000014H
+  001d2	e8 00 00 00 00	 call	 _OP_Sleep
+  001d7	83 c4 04	 add	 esp, 4
+  001da	6a 01		 push	 1
+  001dc	56		 push	 esi
+  001dd	ff d3		 call	 ebx
+  001df	85 c0		 test	 eax, eax
+  001e1	75 dd		 jne	 SHORT $L69545
+$L69604:
+
+; 1469 : 	}
+; 1470 : 	if (bGotLock) // if we own it, by hook or by crook..
+; 1471 : 	{
+; 1472 : 		ptlLock->dwCount++;
+
+  001e3	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+  001e6	41		 inc	 ecx
+  001e7	89 4e 04	 mov	 DWORD PTR [esi+4], ecx
+
+; 1473 : 
+; 1474 : #ifdef _DEBUG_TLOCK
+; 1475 : 		{
+; 1476 : 			char szTemp[256];
+; 1477 : 			sprintf(szTemp,"TLock: thread %08lx locked %08lx, count %08lx at %lu\n",
+; 1478 : 				dwThreadId, (DWORD)ptlLock, ptlLock->dwCount, timeGetTime());
+; 1479 : 			OutputDebugString(szTemp);
+; 1480 : 		}
+; 1481 : #endif //_DEBUG_TLOCK
+; 1482 : 
+; 1483 : 		if (ptlLock->dwCount == 1)
+
+  001ea	8b 46 04	 mov	 eax, DWORD PTR [esi+4]
+  001ed	83 f8 01	 cmp	 eax, 1
+  001f0	75 07		 jne	 SHORT $L69605
+
+; 1484 : 		{
+; 1485 : 			// first time in. Verify that the lock is sane by
+; 1486 : 			// checking the ThreadId
+; 1487 : #ifdef VERIFY_TLOCKS
+; 1488 : #ifndef UNDER_CE
+; 1489 : 			assert(ptlLock->dwThread == 0);
+; 1490 : #endif //UNDER_CE
+; 1491 : #endif //VERIFY_TLOCKS
+; 1492 : 			// set the thread ID
+; 1493 : 			ptlLock->dwThread = dwThreadId;
+
+  001f2	8b 54 24 10	 mov	 edx, DWORD PTR _dwThreadId$[esp+20]
+  001f6	89 56 08	 mov	 DWORD PTR [esi+8], edx
+$L69605:
+  001f9	5f		 pop	 edi
+  001fa	5e		 pop	 esi
+  001fb	5d		 pop	 ebp
+
+; 1494 : 		}
+; 1495 : 	}
+; 1496 : 	// all done..
+; 1497 : 	return (bGotLock);
+
+  001fc	b8 01 00 00 00	 mov	 eax, 1
+  00201	5b		 pop	 ebx
+
+; 1498 : }
+
+  00202	59		 pop	 ecx
+  00203	c3		 ret	 0
+$L69602:
+  00204	5f		 pop	 edi
+  00205	5e		 pop	 esi
+  00206	5d		 pop	 ebp
+
+; 1455 : 		{
+; 1456 : 			bGotLock=FALSE;
+
+  00207	33 c0		 xor	 eax, eax
+  00209	5b		 pop	 ebx
+
+; 1498 : }
+
+  0020a	59		 pop	 ecx
+  0020b	c3		 ret	 0
+_ThreadLock ENDP
+_TEXT	ENDS
+PUBLIC	_ThreadUnlock
+_TEXT	SEGMENT
+_ptlLock$ = 8
+_ThreadUnlock PROC NEAR
+
+; 1502 : 	// unlock the lock..
+; 1503 : 	DWORD dwThreadId = GetCurrentThreadId();
+
+  00210	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GetCurrentThreadId@0
+
+; 1504 : 	// verify that the lock is locked.
+; 1505 : #ifdef VERIFY_TLOCKS
+; 1506 : 	// verify that the lock is locked.
+; 1507 : #ifndef UNDER_CE
+; 1508 : 	assert(ptlLock->dwLock == 1);
+; 1509 : #endif
+; 1510 : #endif //VERIFY_TLOCKS
+; 1511 : 	// ALWAYS verify that we're the owner..
+; 1512 : #ifndef UNDER_CE
+; 1513 : 	assert(ptlLock->dwThread == dwThreadId);
+; 1514 : #endif
+; 1515 : 	// decrement the lock count.
+; 1516 : 	ptlLock->dwCount--;
+
+  00216	8b 44 24 04	 mov	 eax, DWORD PTR _ptlLock$[esp-4]
+  0021a	8b 48 04	 mov	 ecx, DWORD PTR [eax+4]
+  0021d	49		 dec	 ecx
+  0021e	89 48 04	 mov	 DWORD PTR [eax+4], ecx
+
+; 1517 : 
+; 1518 : #ifdef _DEBUG_TLOCK
+; 1519 : 		{
+; 1520 : 			char szTemp[256];
+; 1521 : 			sprintf(szTemp,"TLock: thread %08lx unlocking %08lx, count %08lx at %lu\n",
+; 1522 : 				dwThreadId, (DWORD)ptlLock, ptlLock->dwCount, timeGetTime());
+; 1523 : 			OutputDebugString(szTemp);
+; 1524 : 		}
+; 1525 : #endif //_DEBUG_TLOCK
+; 1526 : 	// if we hit zero, free the lock.
+; 1527 : 	if (ptlLock->dwCount == 0)
+
+  00221	8b 48 04	 mov	 ecx, DWORD PTR [eax+4]
+  00224	85 c9		 test	 ecx, ecx
+  00226	75 10		 jne	 SHORT $L69558
+
+; 1528 : 	{
+; 1529 : 		// clear the thread ID
+; 1530 : 		ptlLock->dwThread = 0;
+
+  00228	c7 40 08 00 00
+	00 00		 mov	 DWORD PTR [eax+8], 0
+
+; 1531 : 		InterlockedExchange((long *)(&ptlLock->dwLock),0);
+
+  0022f	6a 00		 push	 0
+  00231	50		 push	 eax
+  00232	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__InterlockedExchange@8
+$L69558:
+
+; 1532 : 
+; 1533 : #ifdef _DEBUG_TLOCK
+; 1534 : 		{
+; 1535 : 			char szTemp[256];
+; 1536 : 			sprintf(szTemp,"TLock: thread %08lx unlocked %08lx at %lu\n",
+; 1537 : 				dwThreadId, (DWORD)ptlLock, timeGetTime());
+; 1538 : 			OutputDebugString(szTemp);
+; 1539 : 		}
+; 1540 : #endif //_DEBUG_TLOCK
+; 1541 : 	}
+; 1542 : 
+; 1543 : }
+
+  00238	c3		 ret	 0
+_ThreadUnlock ENDP
+_TEXT	ENDS
+END
