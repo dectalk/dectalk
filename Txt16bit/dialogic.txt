@@ -1,0 +1,345 @@
+                         Connecting a DECtalk PC
+                          to a telephone system.
+
+
+          The DECtalk  PC  was  configured  with  (c)DIALOGIC  set  of
+     telephony  products.   A simple demo program supplied by DIALOGIC
+     was modified to prove feasiblilty.  The demo assumed that in most
+     cases the functionality provided by the DECtalk would be to speak
+     a group of utterances, notify the system when  done,  and  to  be
+     able  to  quickly  stop speaking and discard work in process when
+     desired, such as when a touch-tone response is entered.
+
+          The following equipment is needed from (c)DIALOGIC in  order
+     to connect the DECtalk PC module into it:
+
+     1. The D/4x module.
+     2. The AMX/81 module.
+     3. The SA/102 subsystem.
+     4. The cable that connects the AMX/81 board to the SA/102 PN 109-011.
+     5. ESD Suppressor PN 99-0060-001, this is for the SA/102 subsystem.
+     6. AIA/2 subsystem
+
+
+          In addition to the above material you will also need  a  RCA
+     phone to 3.5mm mono cable (Radio shack part number 422444).
+
+          The above items should be connected according  to  figure  1
+     attached,  which  is from the AMX/81 Hardware Installation Guide,
+     version 1.3.
+                     
+	
+	Loading DECtalk PC and the Dialogic boards.
+
+	  In order to properly load both the DECtalk PC card and 
+      the Dialogic cards you must do the following.
+
+      1. Load the DECtalk PC card first! This can be done from 
+     the AUTOEXEC.BAT file. When you install the DECtalk this 
+     will happen automatically. 
+
+       2. Now load the dialogic cards. I'll give you and example
+     of how we did it with our cards. Your switch setting may differ
+     depending on how you set up your Dialogic cards. The first step is
+     to load the D/4X and AMX/81 cards. To do this the command is 
+     D40DRV -H5 -I48. I made a BAT file to do this in my DIALOGIC Directory.
+     The next step is to load the ANSR1 file. I made another 
+     BAT file in the ANSR Directory.  This file contained the following 
+     command, ANSR1 -I5.
+	
+
+		DECtalk PC with a DIALOGIC BOARD.
+
+                               COMMANDS USED.
+
+          The basic functionality required by DECtalk  in  most  phone
+     response  systems  is  to be able to speak text and post an event
+     when done.  This is easy to accomplish.   This  disk  contains  a
+     small  "library"  DTFUN.C,  of  DECtalk  calls that are needed to
+     implement telephone(see the DECtalk PC documentation for  a  full
+     list of DECtalk functions). They are SENDB() (send
+     buffer), GETINDEX() and FLUSHTEXT().  The sendb command  sends  a
+     256  byte buffer of text to the DECtalk to be spoken.  At the end
+     of this text you add and index mark prior to the last punctuation
+     mark  and  the  DECtalk  will  speak the desired text and post an
+     index mark when the desired text is spoken.  The getindex command
+     is  a method of polling the DECtalk to see if when index has been
+     spoken.  The flush command is used to quickly stop and clear  any
+     text stream being processed.
+
+
+                             AUDIO CONNECTION.
+
+                                                         
+          The volume was lowered from it's default value to  a  3  for
+     the  phone  system.   If  you are connecting to other hardware be
+     advised that the output of the DECtalk is a  push-pull  amplifier
+     and  neither side can be connected to ground.  If you need ground
+     connection  you  must  insert  a   8-48   ohm   audio   isolation
+     transformer.
+
+
+                                 OVERVIEW.
+
+
+          The demo program modified was ANSR1.c.  In place of  a  play
+     command a sendbuf was used.  In the waitevent call a DTindex call
+     was issued to see if an index had been posted indicating that the
+     message  had  been  spoken.  If an index has been seen it posts a
+     EOF using a putevent  DIALOGIC  call.   A  setdmask  command  was
+     needed  to  enable  touch-tone  detection  while  the DECtalk was
+     speaking.  If a touch tone was hit a flush command was issued  to
+     stop the message.
+        The code looked like:
+        
+        instead of a play()
+        
+        the DECtalk pc used
+                
+        char greet[]="Hello, welcome to a demonstration of DECtalk[:i m  1]. "
+
+
+        sw(1,1)
+        setdmask(channel,D_DTMF,DT_QUEUE);
+        sendb(dtport,greet,sizeof(greet);
+
+        In the Waitevt routine was added 
+        if (get_index != -1)
+                {
+                putevt(dchannel[dport],T_EOF,0);
+                }
+
+
+
+                        PROGRAMMING CONSIDERATIONS.
+
+          In a real application there are other issues that need to be
+     addressed.    In   most  applications  it  is  assumed  that  the
+     utilization rate is such that one DECtalk per phone line  is  not
+     needed.   Resource sharing and blocking rates must be considered,
+     with appropriate messages for unusual load  conditions.   In  the
+     actual  state  machine  for  an application you have asynchronous
+     timing problems that can occur.  Such as an incoming  touch  tone
+     simultaneous  with  a  index so that you could have two events in
+     either order.  The index is just a number so it could be used  to
+     be  more  clever,  such  as  a  message  complete index plus item
+     index's.  For example, index's could be placed within a  menu  of
+     items  so  that  when a touch tone was hit the last index seen is
+     examined to know which menu item was selected.
+
+                                                              
+          Up to four DECtalk boards can be installed in a  single  PC.
+     The  DECtalk  uses  a single TSR to operate all the boards with a
+     parameter in the call identifying the board.   This  fits  nicely
+     with  the  style imployed in the DIALOGIC tools.  The cross point
+     switch was used to connect an available  DECtalk  to  the  active
+     line needing service.
+
+
+
+
+ FIGURE 1.
+        AMX/81, D/4X Unit, AIA/2, DECtalk PC 
+
+
+                      ___________________________
+                     |             ____________  |
+                     |          P3|            | |
+         _________   |   _________|_           | |
+        |         |  |  |           |          | |
+        | Central |_____| Dialog/4X |   Y Axis | | 
+        | Office  |  |  |           |          | |
+        |         |  |  |___________|          | |
+        |_________|  |                         | |
+                     |              ___________| |  X Axis    
+                     |          P1 |             |    |
+                     |   __________|_            |    |   ________
+                     |  |            |           |    |  |        |
+                     |  | AMX/81     |___________________| SA/102 |
+                     |  | x-point sw | P3        |       |brk-out |
+                     |  |____________|           |       |________|
+                     |                           |           |
+                     |                           |           |
+                     |                           |        ___|______
+                     |                           |       |          |
+                     |                           |       | AIA/2    |
+                     |                           |       |audio adpt|
+                     |                           |       |__________|
+                     |                           |          |
+                     |   ____________            |          | Radio Shack
+                     |  |            |           |          | Cable 42-2444
+                     |  | DECtalk PC |______________________|
+                     |  |            |           |
+                     |  |____________|           | Audio Device
+                     |                           |
+                     |                           |
+                     -----------------------------
+                     |  PC BUS INTERFACE         |
+                     |___________________________|      
+
+
+
+
+/*                     Possible set of function calls for use with
+ *			an intregal phone system
+ */
+#include "dttsr.h"
+#include "dtmul.h"
+#include "string.h"
+struct dectalk_char_buff  dtbuf;
+
+union REGS  regs;
+
+	    
+sendb(int portn, unsigned char  *thebuf, int count)
+{
+	struct  dectalk_char_buff   cb;
+	struct  dectalk_char_buff   __far *cbp;
+
+
+	cb.buff=thebuf;
+	cb.count=count;
+	cbp = &cb;
+
+	do{
+	RW.bx = FP_OFF(cbp);  /* put offset to char buff struct in bx */
+	RW.si = portn;
+	RW.dx = FP_SEG(cbp);  /*put segment in dx */
+	RB.ah = DECTALK_ID;
+	RB.al = SEND_BUFF;
+
+	_int86(0x2f, &regs, &regs);
+	}while (regs.x.ax == TSR_BUSY );
+
+		      
+	return(RW.ax);
+
+}
+
+
+flush(int portn)
+{
+
+
+	do{
+	RB.ah = DECTALK_ID;
+	RB.al = FLUSH_TEXT;
+	RW.si = portn;
+
+	_int86(0x2f, &regs, &regs);
+	}while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY );
+
+	return(1);
+}
+io_prior(int portn)
+{
+
+
+	do{
+	RB.ah = DECTALK_ID;
+	RB.al = IO_PRIORITY;
+	RW.cx=1;
+	RW.si = portn;
+
+	_int86(0x2f, &regs, &regs);
+	}while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY );
+	return(1);
+}
+
+get_index(int portn)
+{
+
+	
+
+	do{
+	RB.ah = DECTALK_ID;
+	RB.al = LAST_INDEX;
+	RW.si=portn;
+	_int86(0x2f, &regs, &regs);
+	}while(regs.x.ax == TSR_BUSY );
+	if ( regs.x.ax == TSR_RETRY )
+		return(-1);
+	return(regs.x.cx);
+}
+
+
+
+
+resume(int portn)
+{       
+	
+
+	do{
+	RB.ah = DECTALK_ID;
+	RB.al = RESUME_OUTPUT;
+	RW.si = portn;
+
+	_int86(0x2f, &regs, &regs);
+	}while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+	return(RW.ax);
+
+}
+
+stopit(int portn)
+
+{
+	
+
+	do{
+	RB.ah = DECTALK_ID;
+	RB.al = PAUSE_OUTPUT;
+	RW.si = portn;
+
+	_int86(0x2f, &regs, &regs);
+	}while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+
+	return(RW.ax);
+
+}
+
+unsigned char gtdch(int portn)
+{       
+	
+	do{
+	RB.ah = DECTALK_ID;
+	RB.al = GET_CHAR;
+	_int86(0x2f, &regs, &regs);
+	RW.si=portn;
+	/*If retry is true  and there is a character to get- keep trying*/
+	}while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY && (regs.x.dx & 0x02));
+	if (regs.x.ax != TSR_SUCCESS)
+	   return(-1);
+	return(RW.bx);
+
+}
+
+
+send_char(int portn, unsigned char schar)
+{       
+	
+
+	do {
+	RB.ah = DECTALK_ID;
+	RB.al = SEND_CHAR;
+	RB.bl = schar;
+	RW.si=portn;
+	_int86(0x2f, &regs, &regs);
+	}while( regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+	return(RW.ax);
+
+}
+
+set_vol(int portn, int vol)
+{       
+	
+
+	do{
+	RB.ah = DECTALK_ID;
+	RB.al = VOLUME_SET;
+	RB.bl = vol;
+	RW.si=portn;
+	_int86(0x2f, &regs, &regs);
+	}while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+	printf("Setting the volume to %d\n.",vol);
+	return(RW.ax);
+}

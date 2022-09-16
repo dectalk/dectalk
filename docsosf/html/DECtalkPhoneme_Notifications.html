@@ -1,0 +1,214 @@
+<HTML>
+<HEAD>
+<TITLE>Phoneme Notifications</TITLE>
+</HEAD><BODY>
+<A HREF= "DECtalkDECtalk.html"><IMG SRC="contents.gif" ALT="contents.gif" BORDER = 0></A><A HREF= "DECtalkindex.html"><IMG SRC="index.gif" ALT="index.gif" BORDER = 0></A><A HREF= "DECtalkCallback_Routines_and_Window_Pro.html"><IMG SRC="prev1.gif" ALT="prev1.gif" BORDER = 0></A><A HREF= "DECtalkPhoneme_Identifiers_and_Phonemic.html"><IMG SRC="next1.gif" ALT="next1.gif" BORDER = 0></A>
+<P>
+<A NAME="off_983453"></A><A NAME="84d7a56d"></A><A NAME="off_983453"></A><A NAME="84d7a56d"></A><A NAME="off_983453"></A><A NAME="84d7a56d"></A><A NAME="off_983453"></A><A NAME="84d7a56d"></A><A NAME="off_983453"></A><A NAME="84d7a56d"></A><A NAME="off_983453"></A><A NAME="84d7a56d"></A><FONT FACE="Arial" SIZE="4"><B>Phoneme Notifications
+<P>
+</B></FONT><FONT FACE="HELVETICA" SIZE="4">Phoneme notifications are sent using the standard notification method
+(callback or message).  The message identifier is the DECtalk_Visual_Message 
+registered window message.  The data portions of the message contain a structure that
+indicates the current phoneme, the next phoneme (not yet implemented), and the
+duration of the current phoneme.
+<P>
+The callback (and message) parameters are as follows:
+<P>
+<IMG SRC="DECtalk00090000.gif" ALT="DECtalk00090000.gif" BORDER=0 WIDTH=6 HEIGHT=16> </FONT><FONT FACE="Courier New" SIZE="4">uiMsg </FONT><FONT FACE="HELVETICA" SIZE="4">DECtalk_Visual_Message
+<P>
+<IMG SRC="DECtalk00090000.gif" ALT="DECtalk00090000.gif" BORDER=0 WIDTH=6 HEIGHT=16> </FONT><FONT FACE="Courier New" SIZE="4">lParam1 </FONT><FONT FACE="HELVETICA" SIZE="4">A DWORD that maps the dwData part of the PHONEME_TAG structure
+<P>
+<IMG SRC="DECtalk00090000.gif" ALT="DECtalk00090000.gif" BORDER=0 WIDTH=6 HEIGHT=16> </FONT><FONT FACE="Courier New" SIZE="4">lParam2 </FONT><FONT FACE="HELVETICA" SIZE="4">The time, in system milliseconds (timeGetTime()), when the phoneme started
+<P>
+The union PHONEME_TAG (from ttsapi.h) defines the data format for the phoneme
+part of the message.  The following is included for reference, but the
+definitions always should be taken from ttsapi.h.
+<P>
+</FONT><FONT FACE="Courier" SIZE="3">typedef struct {
+<P>
+ UCHAR cThisPhoneme; // current phoneme
+<P>
+ UCHAR cNextPhoneme; // next phoneme, if known
+<P>
+ WORD wDuration;  // duration in milliseconds
+<P>
+} PHONEME_MARK;
+<P>
+
+<P>
+typedef union {\
+<P>
+ PHONEME_MARK pmData;
+<P>
+ DWORD dwData
+<P>
+} PHONEME_TAG
+<P>
+
+<P>
+</FONT><FONT FACE="HELVETICA" SIZE="4">The cThisPhoneme and cNextPhoneme fields are ASCII printable single-character
+phoneme identifiers.  The phoneme identifiers are specific to each language. 
+The phoneme identifiers for cThisPhoneme and cNextPhoneme are as follows:
+<P>
+<IMG SRC="DECtalk00090000.gif" ALT="DECtalk00090000.gif" BORDER=0 WIDTH=6 HEIGHT=16> </FONT><FONT FACE="HELVETICA" COLOR="#008000" SIZE="4"><A HREF="DECtalkPhoneme_Identifiers_and_Phonemic.html">English Phoneme Identifiers</A></FONT><FONT FACE="HELVETICA" SIZE="4"> 
+<P>
+
+<P>
+An example callback routine to show phoneme notification is as follows:
+<P>
+</FONT><FONT FACE="Courier" SIZE="3">VOID TTSCallbackRoutine (LONG lParam1,
+<P>
+    LONG lParam2,
+<P>
+    DWORD dwInstanceParam,
+<P>
+    UINT uiMsg)
+<P>
+{
+<P>
+ PHONEME_TAG ptPhoneme; // place to put phoneme data..
+<P>
+ ptPhoneme.dwData = lParam2;
+<P>
+ fprintf(fpLogfil,</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">{%ld} </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3">,timeGetTime());
+<P>
+ if (uiMsg == uiID_Index_Msg)
+<P>
+ {
+<P>
+  fprintf(fpLogfil,
+<P>
+   </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3"> [Index] p1=%081x p2=%081x i=%081x</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">,
+<P>
+   lParam1, lParam2, dwInstanceParam);
+<P>
+  // watch for index marks..
+<P>
+  if (lParam2 == 1)
+<P>
+   uiSystemState = TEXT_STARTED;
+<P>
+  if (lParam2 == 2)
+<P>
+   uiSystemState = TEXT_DONE
+<P>
+ }
+<P>
+ else if (uiMsg == uiID_Error_Msg)
+<P>
+ {
+<P>
+  fprintf(fpLogfil,
+<P>
+   </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3"> [Error] p1=%081x p2=%081x, i=%081x</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">,
+<P>
+   lParam1, lParam2, dwInstanceParam);
+<P>
+ }
+<P>
+ else if (uiMsg == uiID_Buffer_Msg)
+<P>
+ {
+<P>
+  fprintf(fpLogfil,
+<P>
+   </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3"> [Buffer] p1=%081x p2=%081x, i=%081x</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">,
+<P>
+   lParam1, lParam2, dwInstanceParam);
+<P>
+ }
+<P>
+ else if (uiMsg == uiID_Visual_Msg)
+<P>
+  char szThisPhoneme[10]=</FONT><FONT FACE="Times New Roman" SIZE="3">””</FONT><FONT FACE="Courier" SIZE="3">;
+<P>
+  char szNextPhoneme[10]=</FONT><FONT FACE="Times New Roman" SIZE="3">””</FONT><FONT FACE="Courier" SIZE="3">;
+<P>
+  fprintf(fpLogfil,
+<P>
+   </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3"> [Visual] p1=%081x p2=%081x, i=%081x</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">,
+<P>
+   lParam1, lParam2, dwInstanceParam);
+<P>
+  // decode it..
+<P>
+  if (ptPhoneme.pmData.cThisPhoneme ==</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">\0</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">)
+<P>
+  {
+<P>
+   // null
+<P>
+   strcpy (szThisPhoneme,</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">&lt;null&gt;</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">);
+<P>
+  }
+<P>
+  else
+<P>
+  { 
+<P>
+   szThisPhoneme[0]= 
+<P>
+ptPhoneme.pmData.cThisPhoneme;
+<P>
+   szThisPhoneme[1]=</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">\0</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">;
+<P>
+  }
+<P>
+  if (ptPhoneme.pmData.cNextPhoneme ==</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">\0</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">)
+<P>
+  {
+<P>
+   // null
+<P>
+   strcpy (szNextPhoneme,</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">&lt;null&gt;</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">);
+<P>
+  }
+<P>
+  else
+<P>
+  { 
+<P>
+   szNextPhoneme[0]= 
+<P>
+ptPhoneme.pmData.cThisPhoneme;
+<P>
+   szNextPhoneme[1]=</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">\0</FONT><FONT FACE="Times New Roman" SIZE="3">’</FONT><FONT FACE="Courier" SIZE="3">;
+<P>
+  }
+<P>
+  fprintf(fpLogfil,
+<P>
+   </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3"> time: %ld this:%s next:%s expected at %ld</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">,
+<P>
+   lParam1,
+<P>
+   szThisPhoneme,
+<P>
+   szNextPhoneme,
+<P>
+   timeGetTime()+ptPhoneme.pmData.wDuration);
+<P>
+ }
+<P>
+ else
+<P>
+ {
+<P>
+  fprintf(fpLogfil,
+<P>
+   </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3"> [??] msg=%081x, p1=%081x p2=%081x, i=%081x</FONT><FONT FACE="Times New Roman" SIZE="3">”
+<P>
+   </FONT><FONT FACE="Courier" SIZE="3">(DWORD)uiMsg, lParam1, lParam2, 
+<P>
+dwInstanceParam);
+<P>
+ }
+<P>
+ fprintf(fpLogfil, </FONT><FONT FACE="Times New Roman" SIZE="3">“</FONT><FONT FACE="Courier" SIZE="3">\n</FONT><FONT FACE="Times New Roman" SIZE="3">”</FONT><FONT FACE="Courier" SIZE="3">);
+<P>
+}
+<P>
+
+<P>
+</FONT><FONT FACE="HELVETICA" SIZE="4"></FONT></BODY>
+</HTML>

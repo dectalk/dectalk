@@ -1,0 +1,1711 @@
+	TITLE	D:\work\product\dapi\src\Ph\ph_draw.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+$$SYMBOLS	SEGMENT BYTE USE32 'DEBSYM'
+$$SYMBOLS	ENDS
+$$TYPES	SEGMENT BYTE USE32 'DEBTYP'
+$$TYPES	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_phdraw
+EXTRN	_featb:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pDphsettar$ = 8
+_phdraw	PROC NEAR
+
+; 216  : 
+; 217  : 	register PARAMETER     *np;		   /* Pointer to control values    */
+; 218  : 	register short         *parp;	   /* Pointer to output buffer     */
+; 219  : 	register short          value;                           
+; 220  : #ifdef PH_SWAPDATA
+; 221  : 	char outbuf[20];
+; 222  : 	short j;
+; 223  : #endif
+; 224  : 	short			pholas = SIL;
+; 225  : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+
+  00000	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00004	53		 push	 ebx
+  00005	55		 push	 ebp
+  00006	56		 push	 esi
+  00007	8b 48 18	 mov	 ecx, DWORD PTR [eax+24]
+  0000a	57		 push	 edi
+
+; 226  : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+; 227  : 	PDPHSETTAR_ST           pDphsettar = pDph_t->pSTphsettar;
+
+  0000b	8b a9 d0 2b 00
+	00		 mov	 ebp, DWORD PTR [ecx+11216]
+
+; 228  : #ifndef MSDOS
+; 229  : 	/* MGS 10/14/1997 BATS #470 Fixed crashed due to reset */
+; 230  : 	volatile BOOL		*bInReset;
+; 231  : #endif	
+; 232  : 	/* register short          del_av; */
+; 233  : 	/* static short drawinitsw; *//* MVP made instance specific added to PHSETTAR struct */
+; 234  : 	/* static short breathyah,breathytilt; *//* Used to make breathyness  */
+; 235  : 	short                   temptilt;
+; 236  : //	EAB		7/13/98			BATS 711 removed vadjust
+; 237  : #ifndef MSDOS
+; 238  : 	/* MGS 10/14/1997 BATS #470 Fixed crashed due to reset */
+; 239  : 	bInReset=&(pDph_t->phTTS->bInReset);
+
+  00011	8b 99 dc 14 00
+	00		 mov	 ebx, DWORD PTR [ecx+5340]
+  00017	81 c3 d8 00 00
+	00		 add	 ebx, 216		; 000000d8H
+  0001d	89 6c 24 14	 mov	 DWORD PTR _pDphsettar$[esp+12], ebp
+
+; 240  : #endif
+; 241  : /* Loop across all parameters but T0. I changed this so that it    */
+; 242  : /* pulls the value of "parp" from the "outp" field of the struct.  */
+; 243  : /* This lets these loops be written nicely, but makes it possible  */
+; 244  : /* to reorder things in the output.                                */
+; 245  : 
+; 246  : #ifndef MSDOS
+; 247  : 	if (pDphsettar->drawinitsw == 0)
+
+  00021	66 83 bd a6 00
+	00 00 00	 cmp	 WORD PTR [ebp+166], 0
+  00029	0f 85 cc 00 00
+	00		 jne	 $L71223
+
+; 248  : 	{
+; 249  : 		pDphsettar->drawinitsw = 1;
+; 250  : 
+; 251  : 		pDph_t->param[F0].outp = &(pDph_t->parstochip[OUT_T0]);
+
+  0002f	8d 91 8c 03 00
+	00		 lea	 edx, DWORD PTR [ecx+908]
+  00035	66 c7 85 a6 00
+	00 00 01 00	 mov	 WORD PTR [ebp+166], 1
+  0003e	89 51 20	 mov	 DWORD PTR [ecx+32], edx
+
+; 252  : 		pDph_t->param[F1].outp = &(pDph_t->parstochip[OUT_F1]);
+
+  00041	8d 81 7c 03 00
+	00		 lea	 eax, DWORD PTR [ecx+892]
+
+; 253  : 		pDph_t->param[F2].outp = &(pDph_t->parstochip[OUT_F2]);
+
+  00047	8d 91 90 03 00
+	00		 lea	 edx, DWORD PTR [ecx+912]
+  0004d	89 41 44	 mov	 DWORD PTR [ecx+68], eax
+  00050	89 51 68	 mov	 DWORD PTR [ecx+104], edx
+
+; 254  : 		pDph_t->param[F3].outp = &(pDph_t->parstochip[OUT_F3]);
+
+  00053	8d 81 92 03 00
+	00		 lea	 eax, DWORD PTR [ecx+914]
+
+; 255  : 		pDph_t->param[FZ].outp = &(pDph_t->parstochip[OUT_FZ]);
+
+  00059	8d 91 94 03 00
+	00		 lea	 edx, DWORD PTR [ecx+916]
+  0005f	89 81 8c 00 00
+	00		 mov	 DWORD PTR [ecx+140], eax
+  00065	89 91 b0 00 00
+	00		 mov	 DWORD PTR [ecx+176], edx
+
+; 256  : 		pDph_t->param[B1].outp = &(pDph_t->parstochip[OUT_B1]);
+
+  0006b	8d 81 96 03 00
+	00		 lea	 eax, DWORD PTR [ecx+918]
+
+; 257  : 		pDph_t->param[B2].outp = &(pDph_t->parstochip[OUT_B2]);
+
+  00071	8d 91 98 03 00
+	00		 lea	 edx, DWORD PTR [ecx+920]
+  00077	89 81 d4 00 00
+	00		 mov	 DWORD PTR [ecx+212], eax
+  0007d	89 91 f8 00 00
+	00		 mov	 DWORD PTR [ecx+248], edx
+
+; 258  : 		pDph_t->param[B3].outp = &(pDph_t->parstochip[OUT_B3]);
+
+  00083	8d 81 9a 03 00
+	00		 lea	 eax, DWORD PTR [ecx+922]
+
+; 259  : 		pDph_t->param[AV].outp = &(pDph_t->parstochip[OUT_AV]);
+
+  00089	8d 91 8e 03 00
+	00		 lea	 edx, DWORD PTR [ecx+910]
+  0008f	89 81 1c 01 00
+	00		 mov	 DWORD PTR [ecx+284], eax
+  00095	89 91 40 01 00
+	00		 mov	 DWORD PTR [ecx+320], edx
+
+; 260  : 		pDph_t->param[AP].outp = &(pDph_t->parstochip[OUT_AP]);
+
+  0009b	8d 81 7a 03 00
+	00		 lea	 eax, DWORD PTR [ecx+890]
+
+; 261  : 		pDph_t->param[A2].outp = &(pDph_t->parstochip[OUT_A2]);
+
+  000a1	8d 91 7e 03 00
+	00		 lea	 edx, DWORD PTR [ecx+894]
+  000a7	89 81 64 01 00
+	00		 mov	 DWORD PTR [ecx+356], eax
+  000ad	89 91 88 01 00
+	00		 mov	 DWORD PTR [ecx+392], edx
+
+; 262  : 		pDph_t->param[A3].outp = &(pDph_t->parstochip[OUT_A3]);
+
+  000b3	8d 81 80 03 00
+	00		 lea	 eax, DWORD PTR [ecx+896]
+
+; 263  : 		pDph_t->param[A4].outp = &(pDph_t->parstochip[OUT_A4]);
+
+  000b9	8d 91 82 03 00
+	00		 lea	 edx, DWORD PTR [ecx+898]
+  000bf	89 81 ac 01 00
+	00		 mov	 DWORD PTR [ecx+428], eax
+  000c5	89 91 d0 01 00
+	00		 mov	 DWORD PTR [ecx+464], edx
+
+; 264  : 		pDph_t->param[A5].outp = &(pDph_t->parstochip[OUT_A5]);
+
+  000cb	8d 81 84 03 00
+	00		 lea	 eax, DWORD PTR [ecx+900]
+
+; 265  : 		pDph_t->param[A6].outp = &(pDph_t->parstochip[OUT_A6]);
+
+  000d1	8d 91 86 03 00
+	00		 lea	 edx, DWORD PTR [ecx+902]
+  000d7	89 81 f4 01 00
+	00		 mov	 DWORD PTR [ecx+500], eax
+  000dd	89 91 18 02 00
+	00		 mov	 DWORD PTR [ecx+536], edx
+
+; 266  : 		pDph_t->param[AB].outp = &(pDph_t->parstochip[OUT_AB]);
+
+  000e3	8d 81 88 03 00
+	00		 lea	 eax, DWORD PTR [ecx+904]
+
+; 267  : 		pDph_t->param[TILT].outp = &(pDph_t->parstochip[OUT_TLT]);
+
+  000e9	8d 91 8a 03 00
+	00		 lea	 edx, DWORD PTR [ecx+906]
+  000ef	89 81 3c 02 00
+	00		 mov	 DWORD PTR [ecx+572], eax
+  000f5	89 91 60 02 00
+	00		 mov	 DWORD PTR [ecx+608], edx
+$L71223:
+
+; 268  : 	}
+; 269  : #endif
+; 270  : 
+; 271  : 	if (pDph_t->nphone>=1)
+; 272  : 	{
+; 273  : 		pholas = pDph_t->allophons[pDphsettar->np_drawt0 - 1];
+; 274  : 	}
+; 275  : 	else
+; 276  : 		pholas=0;
+; 277  : 
+; 278  : 
+; 279  : 		
+; 280  : 	for (np = &PF1; np <= &PB3; ++np)
+
+  000fb	8d 41 24	 lea	 eax, DWORD PTR [ecx+36]
+  000fe	8d 91 fc 00 00
+	00		 lea	 edx, DWORD PTR [ecx+252]
+  00104	3b c2		 cmp	 eax, edx
+  00106	0f 87 3a 01 00
+	00		 ja	 $L71228
+$L71226:
+
+; 281  : 	{
+; 282  : 		parp = np->outp;			   /* Where it goes.       */
+; 283  : 
+; 284  : 		/* If diphthongized seg, see if new straight line called for.   */
+; 285  : #ifndef MSDOS
+; 286  : 		/* MGS 10/14/1997 BATS #470 Fixed crashed due to reset */
+; 287  : 		if (*bInReset)	return;
+
+  0010c	8b 13		 mov	 edx, DWORD PTR [ebx]
+  0010e	8b 78 20	 mov	 edi, DWORD PTR [eax+32]
+  00111	85 d2		 test	 edx, edx
+  00113	0f 85 af 03 00
+	00		 jne	 $L71275
+
+; 288  : #endif
+; 289  : 	    /* crashing if adjust != 0 eab 11/96 need to fix correctly eab */
+; 290  : 		if (pDph_t->tcum > np->durlin && pDph_t->tcum > 0 && np->durlin >=0)
+
+  00119	66 8b 91 b2 03
+	00 00		 mov	 dx, WORD PTR [ecx+946]
+  00120	66 8b 70 02	 mov	 si, WORD PTR [eax+2]
+  00124	66 3b d6	 cmp	 dx, si
+  00127	7e 38		 jle	 SHORT $L71230
+  00129	66 85 d2	 test	 dx, dx
+  0012c	7e 33		 jle	 SHORT $L71230
+  0012e	66 85 f6	 test	 si, si
+  00131	7c 2e		 jl	 SHORT $L71230
+
+; 291  : 		{
+; 292  : 			np->durlin = *np->ndip++;
+
+  00133	8b 50 1c	 mov	 edx, DWORD PTR [eax+28]
+  00136	66 8b 32	 mov	 si, WORD PTR [edx]
+  00139	83 c2 02	 add	 edx, 2
+  0013c	66 89 70 02	 mov	 WORD PTR [eax+2], si
+  00140	89 50 1c	 mov	 DWORD PTR [eax+28], edx
+
+; 293  : 			np->deldip = *np->ndip++;
+
+  00143	66 8b 32	 mov	 si, WORD PTR [edx]
+  00146	83 c2 02	 add	 edx, 2
+  00149	89 50 1c	 mov	 DWORD PTR [eax+28], edx
+
+; 294  : 			np->tarcur += (np->dipcum DIV_BY8);
+
+  0014c	66 8b 50 06	 mov	 dx, WORD PTR [eax+6]
+  00150	66 c1 fa 03	 sar	 dx, 3
+  00154	66 01 10	 add	 WORD PTR [eax], dx
+  00157	66 89 70 04	 mov	 WORD PTR [eax+4], si
+
+; 295  : 			np->dipcum = 0;
+
+  0015b	66 c7 40 06 00
+	00		 mov	 WORD PTR [eax+6], 0
+$L71230:
+
+; 296  : /* printf("deldipindraw %d %d\n",np->deldip,np->ndip); */
+; 297  : 		}
+; 298  : 
+; 299  : 		/* Set target value and smooth forward. The delta-dipth and the */
+; 300  : 		/* delta-trans are *8 to avoid roundoff propogation.            */
+; 301  : 		np->dipcum += np->deldip;
+
+  00161	66 8b 50 04	 mov	 dx, WORD PTR [eax+4]
+
+; 302  : 		value = np->dipcum + np->ftran;
+
+  00165	66 8b 70 08	 mov	 si, WORD PTR [eax+8]
+  00169	66 01 50 06	 add	 WORD PTR [eax+6], dx
+  0016d	66 8b 50 06	 mov	 dx, WORD PTR [eax+6]
+  00171	03 d6		 add	 edx, esi
+
+; 303  : 
+; 304  : 		/* Then shrink transition magnitude by appropriate increment.   */
+; 305  : 		if (np->ftran != 0)
+
+  00173	66 85 f6	 test	 si, si
+  00176	74 08		 je	 SHORT $L71231
+
+; 306  : 			np->ftran -= np->dftran;
+
+  00178	66 8b 70 0a	 mov	 si, WORD PTR [eax+10]
+  0017c	66 29 70 08	 sub	 WORD PTR [eax+8], si
+$L71231:
+
+; 307  : 
+; 308  : 		/* Smooth backwards. Delta-transition is *8 to avoid roundoff   */
+; 309  : 		/* propogation. Transition magnitude is then changed by the     */
+; 310  : 		/* appropriate increment.                                       */
+; 311  : 		if (pDph_t->tcum >= np->tbacktr)
+
+  00180	66 8b b1 b2 03
+	00 00		 mov	 si, WORD PTR [ecx+946]
+  00187	66 3b 70 10	 cmp	 si, WORD PTR [eax+16]
+  0018b	7c 15		 jl	 SHORT $L71232
+
+; 312  : 		{
+; 313  : 			value += np->btran;
+
+  0018d	66 8b 70 0c	 mov	 si, WORD PTR [eax+12]
+
+; 314  : 			np->btran += np->dbtran;
+
+  00191	66 8b 68 0e	 mov	 bp, WORD PTR [eax+14]
+  00195	03 d6		 add	 edx, esi
+  00197	66 03 ee	 add	 bp, si
+  0019a	66 89 68 0c	 mov	 WORD PTR [eax+12], bp
+  0019e	8b 6c 24 14	 mov	 ebp, DWORD PTR _pDphsettar$[esp+12]
+$L71232:
+
+; 315  : 		}
+; 316  : 
+; 317  : 		/* Vowel-vowel coartic across a consonant, for F2 only.         */
+; 318  : 		if (np == &PF2)
+
+  001a2	8d 71 48	 lea	 esi, DWORD PTR [ecx+72]
+  001a5	3b c6		 cmp	 eax, esi
+  001a7	75 4a		 jne	 SHORT $L71235
+
+; 319  : 		{
+; 320  : 			value += pDph_t->fvvtran;
+
+  001a9	66 8b b1 60 03
+	00 00		 mov	 si, WORD PTR [ecx+864]
+  001b0	03 d6		 add	 edx, esi
+
+; 321  : 			if (pDph_t->fvvtran != 0)
+
+  001b2	66 85 f6	 test	 si, si
+  001b5	74 0e		 je	 SHORT $L71234
+
+; 322  : 				pDph_t->fvvtran -= pDph_t->dfvvtran;
+
+  001b7	66 2b b1 66 03
+	00 00		 sub	 si, WORD PTR [ecx+870]
+  001be	66 89 b1 60 03
+	00 00		 mov	 WORD PTR [ecx+864], si
+$L71234:
+
+; 323  : 			if (pDph_t->tcum >= pDph_t->tvvbacktr)
+
+  001c5	66 8b b1 b2 03
+	00 00		 mov	 si, WORD PTR [ecx+946]
+  001cc	66 3b b1 64 03
+	00 00		 cmp	 si, WORD PTR [ecx+868]
+  001d3	7c 1e		 jl	 SHORT $L71235
+
+; 324  : 			{
+; 325  : 				value += pDph_t->bvvtran;
+
+  001d5	66 8b b1 62 03
+	00 00		 mov	 si, WORD PTR [ecx+866]
+
+; 326  : 				pDph_t->bvvtran += pDph_t->dbvvtran;
+
+  001dc	66 8b a9 68 03
+	00 00		 mov	 bp, WORD PTR [ecx+872]
+  001e3	03 d6		 add	 edx, esi
+  001e5	66 03 ee	 add	 bp, si
+  001e8	66 89 a9 62 03
+	00 00		 mov	 WORD PTR [ecx+866], bp
+  001ef	8b 6c 24 14	 mov	 ebp, DWORD PTR _pDphsettar$[esp+12]
+$L71235:
+
+; 327  : 			}
+; 328  : 		}
+; 329  : 
+; 330  : 		/* 
+; 331  : 		 * Store the computed paramter into the right spot in the block 
+; 332  : 		 * of data about to be sent to the TMS320.                      
+; 333  : 		 */
+; 334  : 		*parp = (value DIV_BY8) + np->tarcur;
+
+  001f3	66 c1 fa 03	 sar	 dx, 3
+  001f7	66 03 10	 add	 dx, WORD PTR [eax]
+  001fa	66 89 17	 mov	 WORD PTR [edi], dx
+
+; 335  : 	
+; 336  : 
+; 337  : 			/* Special rules (I.e. BW windening for aspir)                  */
+; 338  : 			if (np->tspesh > 0)
+
+  001fd	66 8b 70 12	 mov	 si, WORD PTR [eax+18]
+  00201	66 85 f6	 test	 si, si
+  00204	7e 12		 jle	 SHORT $L71236
+
+; 339  : 			{
+; 340  : 				if (pDph_t->tcum < np->tspesh)
+
+  00206	66 39 b1 b2 03
+	00 00		 cmp	 WORD PTR [ecx+946], si
+  0020d	7d 26		 jge	 SHORT $L71227
+
+; 341  : 				{
+; 342  : 					*parp = np->pspesh;
+
+  0020f	66 8b 50 14	 mov	 dx, WORD PTR [eax+20]
+  00213	66 89 17	 mov	 WORD PTR [edi], dx
+
+; 343  : 				}
+; 344  : 			}
+; 345  : 		/* eab 6/24/98 ifdef removed because this is pysiological*/
+; 346  : 			//EAB		7/13/98			BATS 711 
+; 347  : 			/* Breathy voices have wider first formant bandwidth */
+; 348  : 			else if (np == &PB1)
+
+  00216	eb 1d		 jmp	 SHORT $L71227
+$L71236:
+  00218	8d b1 b4 00 00
+	00		 lea	 esi, DWORD PTR [ecx+180]
+  0021e	3b c6		 cmp	 eax, esi
+  00220	75 13		 jne	 SHORT $L71227
+
+; 349  : 			{
+; 350  : 				*parp = frac4mul (*parp, pDph_t->spdefb1off);
+
+  00222	0f bf b1 6c 03
+	00 00		 movsx	 esi, WORD PTR [ecx+876]
+  00229	0f bf d2	 movsx	 edx, dx
+  0022c	0f af f2	 imul	 esi, edx
+  0022f	c1 fe 0c	 sar	 esi, 12			; 0000000cH
+  00232	66 89 37	 mov	 WORD PTR [edi], si
+$L71227:
+  00235	83 c0 24	 add	 eax, 36			; 00000024H
+  00238	8d 91 fc 00 00
+	00		 lea	 edx, DWORD PTR [ecx+252]
+  0023e	3b c2		 cmp	 eax, edx
+  00240	0f 86 c6 fe ff
+	ff		 jbe	 $L71226
+$L71228:
+
+; 351  : 			}
+; 352  : 
+; 353  : 	}
+; 354  : 
+; 355  : 	/* 
+; 356  : 	 * End of loop for F[1,2,3], FZ, B[1,2,3].                         
+; 357  : 	 * Begin loop for amplitude parameters AV, AP, A[2,3,4,5,6], AB.   
+; 358  :  	 */
+; 359  : 
+; 360  : 	for (; np <= &PTILT; np++)
+
+  00246	8d 99 40 02 00
+	00		 lea	 ebx, DWORD PTR [ecx+576]
+  0024c	3b c3		 cmp	 eax, ebx
+  0024e	0f 87 96 00 00
+	00		 ja	 $L71243
+$L71241:
+
+; 361  : 	{
+; 362  : 	
+; 363  : 		parp = np->outp;			   /* Where it goes.       */
+; 364  : 
+; 365  : 		/* Smooth forward, use shift to avoid roundoff propogation.     */
+; 366  : 		value = np->tarcur + (np->ftran DIV_BY8);
+
+  00254	66 8b 70 08	 mov	 si, WORD PTR [eax+8]
+  00258	8b 78 20	 mov	 edi, DWORD PTR [eax+32]
+  0025b	66 8b d6	 mov	 dx, si
+  0025e	66 c1 fa 03	 sar	 dx, 3
+  00262	66 03 10	 add	 dx, WORD PTR [eax]
+
+; 367  : 		/* Then shrink transition magnitude by appropriate increment.   */
+; 368  : 		if (np->ftran != 0)
+
+  00265	66 85 f6	 test	 si, si
+  00268	74 08		 je	 SHORT $L71244
+
+; 369  : 			np->ftran -= np->dftran;
+
+  0026a	66 8b 70 0a	 mov	 si, WORD PTR [eax+10]
+  0026e	66 29 70 08	 sub	 WORD PTR [eax+8], si
+$L71244:
+
+; 370  : 
+; 371  : 		/* 
+; 372  : 		 * Smooth backward, using shift to avoid roundoff propogation.  
+; 373  : 		 * Modify transition magnitude by the appropriate increment.   
+; 374  : 		 */
+; 375  : 		if (pDph_t->tcum >= np->tbacktr)
+
+  00272	66 8b b1 b2 03
+	00 00		 mov	 si, WORD PTR [ecx+946]
+  00279	66 3b 70 10	 cmp	 si, WORD PTR [eax+16]
+  0027d	7c 17		 jl	 SHORT $L71245
+
+; 376  : 		{
+; 377  : 			*parp = value + (np->btran DIV_BY8);
+
+  0027f	66 8b 70 0c	 mov	 si, WORD PTR [eax+12]
+  00283	66 c1 fe 03	 sar	 si, 3
+  00287	03 f2		 add	 esi, edx
+  00289	66 89 37	 mov	 WORD PTR [edi], si
+
+; 378  : 			np->btran += np->dbtran;
+
+  0028c	66 8b 50 0e	 mov	 dx, WORD PTR [eax+14]
+  00290	66 01 50 0c	 add	 WORD PTR [eax+12], dx
+
+; 379  : 		}
+; 380  : 		else
+
+  00294	eb 03		 jmp	 SHORT $L71246
+$L71245:
+
+; 381  : 		{
+; 382  : 			*parp = value;
+
+  00296	66 89 17	 mov	 WORD PTR [edi], dx
+$L71246:
+
+; 383  : 		}
+; 384  : 
+; 385  : 		/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+; 386  : 		/* Special rules (I.e. vot, aspir, and burst dur for plos).     */
+; 387  : 		if (np->tspesh > 0)
+
+  00299	66 8b 50 12	 mov	 dx, WORD PTR [eax+18]
+  0029d	66 85 d2	 test	 dx, dx
+  002a0	7e 3d		 jle	 SHORT $L71242
+
+; 388  : 		{
+; 389  : 			if (pDph_t->tcum < np->tspesh)
+
+  002a2	66 8b b1 b2 03
+	00 00		 mov	 si, WORD PTR [ecx+946]
+  002a9	66 3b f2	 cmp	 si, dx
+  002ac	7d 09		 jge	 SHORT $L71248
+
+; 390  : 			{
+; 391  : 				*parp = np->pspesh;
+
+  002ae	66 8b 50 14	 mov	 dx, WORD PTR [eax+20]
+  002b2	66 89 17	 mov	 WORD PTR [edi], dx
+
+; 392  : 			}
+; 393  : 			else
+
+  002b5	eb 28		 jmp	 SHORT $L71242
+$L71248:
+
+; 394  : 			{
+; 395  : 
+; 396  : #ifdef GERMAN	
+; 397  : 				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+; 398  : 				/* change first part of parallele amplitudes of                     	 */
+; 399  : 				/* german affricate KS                                             	 */
+; 400  : 				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+; 401  : 				if ((pDph_t->allophons[pDphsettar->np_drawt0] == KSX) &&
+; 402  : 					(pDph_t->tcum < (np->tspesh + 3)))
+; 403  : 				{
+; 404  : 					if (np == &PA2)
+; 405  : 					{
+; 406  : 						*parp = 42;
+; 407  : 					}
+; 408  : 					else if (np == &PA3)
+; 409  : 					{
+; 410  : 						*parp = 0;
+; 411  : 					}
+; 412  : 					else if (np == &PA4)
+; 413  : 					{
+; 414  : 						*parp = 31;
+; 415  : 					}
+; 416  : 					else if (np == &PA5)
+; 417  : 					{
+; 418  : 						*parp = 35;
+; 419  : 					}
+; 420  : 					else if (np == &PA6)
+; 421  : 					{
+; 422  : 						*parp = 0;
+; 423  : 					}
+; 424  : 					else if (np == &PAB)
+; 425  : 					{
+; 426  : 						*parp = 0;
+; 427  : 					}
+; 428  : 
+; 429  : #ifdef DBGBUR
+; 430  : 					fprintf (stderr,
+; 431  : 							 "(phdraw)altering /KS/ to %d\n",
+; 432  : 							 *parp);
+; 433  : #endif
+; 434  : 				}
+; 435  : 				/* if */
+; 436  : #endif /* #ifdef GERMAN */
+; 437  :   	   /* Double burst for /k,g,ch,jh/                         */
+; 438  : 				/*per caroline double burst is wrong for UK*/
+; 439  : #ifndef ENGLISH_UK
+; 440  : 				
+; 441  : 				if ((np > &PAP)
+; 442  : 	
+; 443  : #ifdef SPANISH
+; 444  : 					&& (np < &PTILT)
+; 445  : #endif
+; 446  : 					&& (pDph_t->tcum == (np->tspesh + 1))
+; 447  : 					&& (*parp >= 10))
+
+  002b7	8d a9 44 01 00
+	00		 lea	 ebp, DWORD PTR [ecx+324]
+  002bd	3b c5		 cmp	 eax, ebp
+  002bf	76 1a		 jbe	 SHORT $L71284
+  002c1	0f bf d2	 movsx	 edx, dx
+  002c4	0f bf f6	 movsx	 esi, si
+  002c7	42		 inc	 edx
+  002c8	3b f2		 cmp	 esi, edx
+  002ca	75 0f		 jne	 SHORT $L71284
+  002cc	66 8b 17	 mov	 dx, WORD PTR [edi]
+  002cf	66 83 fa 0a	 cmp	 dx, 10			; 0000000aH
+  002d3	7c 06		 jl	 SHORT $L71284
+
+; 448  : 				{
+; 449  : #ifdef GERMAN
+; 450  : 					if (pDph_t->allophons[pDphsettar->np_drawt0] == KSX)
+; 451  : 					{
+; 452  : 						*parp = 0;
+; 453  : 					}
+; 454  : 					else
+; 455  : #endif
+; 456  : 					*parp -= 10;
+
+  002d5	83 c2 f6	 add	 edx, -10		; fffffff6H
+  002d8	66 89 17	 mov	 WORD PTR [edi], dx
+$L71284:
+  002db	8b 6c 24 14	 mov	 ebp, DWORD PTR _pDphsettar$[esp+12]
+$L71242:
+
+; 351  : 			}
+; 352  : 
+; 353  : 	}
+; 354  : 
+; 355  : 	/* 
+; 356  : 	 * End of loop for F[1,2,3], FZ, B[1,2,3].                         
+; 357  : 	 * Begin loop for amplitude parameters AV, AP, A[2,3,4,5,6], AB.   
+; 358  :  	 */
+; 359  : 
+; 360  : 	for (; np <= &PTILT; np++)
+
+  002df	83 c0 24	 add	 eax, 36			; 00000024H
+  002e2	3b c3		 cmp	 eax, ebx
+  002e4	0f 86 6a ff ff
+	ff		 jbe	 $L71241
+$L71243:
+
+; 457  : 				}
+; 458  : #endif
+; 459  : 			}
+; 460  : 		}
+; 461  : 	}
+; 462  : 
+; 463  : #ifdef SPANISH_obsolete
+; 464  : 	/* * * * * * * * * * * * * * */
+; 465  : 	/* Trill /r/ in Spanish:  */
+; 466  : 	/* * * * * * * * * * * * * * */
+; 467  : 	/* 
+; 468  : 	 * Dr. Quilis suggests "closed phase" 15 msec, "open phase" 18 msec.
+; 469  : 	 * Since we work on a 6.4 msec. interval, we choose 2 frames closed,
+; 470  : 	 * and 3 frame open.
+; 471  : 	 */
+; 472  : 	if (pDph_t->istrill)
+; 473  : 	{
+; 474  : /* printf("%d %d %d \n",tcum,trillend,trillcount); */
+; 475  : 
+; 476  : 		if (pDph_t->tcum >= pDph_t->trillend)
+; 477  : 			pDph_t->istrill = FALSE;		   /* The trill is gone  */
+; 478  : 		else
+; 479  : 		{
+; 480  : 			if (pDph_t->trillcount <= TRILL_CLOSED)
+; 481  : 			{
+; 482  : 				pDph_t->trillclosed = 1;
+; 483  : 				pDph_t->arg1 = pDph_t->parstochip[OUT_AV];	/* Closed phase                */
+; 484  : 				pDph_t->arg2 = N70PRCNT;
+; 485  : 				if (pholas == SIL)	   /* onset in initial pos too fast */
+; 486  : 				{
+; 487  : 					pDph_t->arg1 = pDph_t->arg1 >> 1;
+; 488  : 				}
+; 489  : #if 0
+; 490  : 				pDph_t->parstochip[OUT_AV] = mlsh1 (pDph_t->arg1,pDph_t->arg2);
+; 491  : 				pDph_t->parstochip[OUT_A2] >>= 2;	/* Lower parallel       */
+; 492  : 				pDph_t->parstochip[OUT_A3] >>= 2;	/* amplitudes           */
+; 493  : 				pDph_t->parstochip[OUT_AB] >>= 2;	/* too.  8-Jul-86       */
+; 494  : #endif
+; 495  : 				pDph_t->parstochip[OUT_AV] = mlsh1 (pDph_t->arg1,pDph_t->arg2);
+; 496  : 				pDph_t->parstochip[OUT_A2] = 0;		/* Lower parallel */
+; 497  : 				pDph_t->parstochip[OUT_A3] = 0;		/* amplitudes             */
+; 498  : 				pDph_t->parstochip[OUT_AP] = 0;		/* amplitudes             */
+; 499  : 				pDph_t->parstochip[OUT_AB] = 0;		/* too.  8-Jul-86 */
+; 500  : 
+; 501  : 			}
+; 502  : 			pDph_t->trillclosed = 0;
+; 503  : 			if (++(pDph_t->trillcount) > TRILL_CYCLE)
+; 504  : 				pDph_t->trillcount = 0;
+; 505  : 		}
+; 506  : 	}
+; 507  : #endif	/* #ifdef SPANISH */
+; 508  : 
+; 509  : 	/* * * * * * * * * * * * * * */
+; 510  : 	/* Reduce AV if glstop:   	 */
+; 511  : 	/* * * * * * * * * * * * * * */
+; 512  : 
+; 513  : 	if (pDph_t->parstochip[OUT_AV] > 6)
+
+  002ea	66 8b 81 8e 03
+	00 00		 mov	 ax, WORD PTR [ecx+910]
+  002f1	66 3d 06 00	 cmp	 ax, 6
+  002f5	7e 17		 jle	 SHORT $L71251
+
+; 514  : 	{
+; 515  : 		pDph_t->parstochip[OUT_AV] -= pDph_t->avglstop;
+; 516  : #ifdef NEW_INTONATION
+; 517  : 		pDph_t->parstochip[OUT_AV] += pDph_t->avcreek;
+
+  002f7	66 8b 91 b6 03
+	00 00		 mov	 dx, WORD PTR [ecx+950]
+  002fe	66 2b 91 b4 03
+	00 00		 sub	 dx, WORD PTR [ecx+948]
+  00305	03 d0		 add	 edx, eax
+  00307	66 89 91 8e 03
+	00 00		 mov	 WORD PTR [ecx+910], dx
+$L71251:
+
+; 518  : #endif
+; 519  : 	}
+; 520  : 
+; 521  : 	/* * * * * * * * * * * * * * */
+; 522  : 	/* Source spectral tilt:  	 */
+; 523  : 	/* * * * * * * * * * * * * * */
+; 524  : 
+; 525  : 	/* The source spectrum becomes less smooth as F0 decreases if */
+; 526  : 	/* F0 is less than 1400 Hz*10                                 */
+; 527  : 	/* E.g.:  F0    Tilt (Assumes FT = 100 for Paul)              */
+; 528  : 	/* 600       0                                                */
+; 529  : 	/* 800       0                                                */
+; 530  : 	/* 1000       2                                               */
+; 531  : 	/* 1200       8                                               */
+; 532  : 	/* 1400      12                                               */
+; 533  : 	/* 1600      12                                               */
+; 534  : 	/* (don't count glstop, i.e. do after this code)              */
+; 535  : 	// eab Note aboive table is for old tilt filter 2/12/99
+; 536  : 
+; 537  : 	parp = &(pDph_t->parstochip[OUT_TLT]);	/* Where it goes.       */
+; 538  : 
+; 539  : /* Spdef par FT -> 0 < f0_dep_tilt < 100, temptilt = 1/40 (max) of 1400-f0 */
+; 540  : 	/* This code is not good put in a temp improvement til tom's stuff done
+; 541  : 	EAB		7/13/98			BATS 711 */
+; 542  : 	if (pDph_t->malfem == MALE)
+; 543  : 	{
+; 544  : 		temptilt = frac4mul ((pDph_t->f0-900), pDph_t->f0_dep_tilt);
+
+  0030e	0f bf 81 78 03
+	00 00		 movsx	 eax, WORD PTR [ecx+888]
+  00315	ba 01 00 00 00	 mov	 edx, 1
+  0031a	66 39 91 e4 14
+	00 00		 cmp	 WORD PTR [ecx+5348], dx
+  00321	75 07		 jne	 SHORT $L71252
+  00323	2d 84 03 00 00	 sub	 eax, 900		; 00000384H
+
+; 545  : 	}
+; 546  : 	else
+
+  00328	eb 05		 jmp	 SHORT $L71287
+$L71252:
+
+; 547  : 	{
+; 548  : 		temptilt = frac4mul (( pDph_t->f0 -1850), pDph_t->f0_dep_tilt);
+
+  0032a	2d 3a 07 00 00	 sub	 eax, 1850		; 0000073aH
+$L71287:
+  0032f	0f bf b1 72 03
+	00 00		 movsx	 esi, WORD PTR [ecx+882]
+  00336	0f af c6	 imul	 eax, esi
+  00339	c1 f8 0c	 sar	 eax, 12			; 0000000cH
+
+; 549  : 	}
+; 550  : 		
+; 551  : if (temptilt < 0)
+
+  0033c	33 f6		 xor	 esi, esi
+  0033e	66 3b c6	 cmp	 ax, si
+  00341	7d 02		 jge	 SHORT $L71257
+
+; 552  : 		temptilt = 0;
+
+  00343	33 c0		 xor	 eax, eax
+$L71257:
+
+; 553  : 	//EAB		7/13/98			BATS 711 
+; 554  : 	//temptilt = 12 - temptilt;		   /* Reverse sign of this effect */
+; 555  : 	if (temptilt < 0)
+; 556  : 		temptilt = 0;
+; 557  : 	temptilt = temptilt>>1; /* reduce effect until we do the new tilt stuff*/
+
+  00345	66 d1 f8	 sar	 ax, 1
+
+; 558  : #ifdef GERMAN
+; 559  : 		if(pDph_t->allophons[pDphsettar->np_drawt0] == IH)
+; 560  : 	{
+; 561  : 	temptilt +=3;	
+; 562  : 	}
+; 563  : #endif
+; 564  : 
+; 565  : 	*parp += temptilt;
+
+  00348	66 01 81 8a 03
+	00 00		 add	 WORD PTR [ecx+906], ax
+  0034f	66 8b 81 8a 03
+	00 00		 mov	 ax, WORD PTR [ecx+906]
+
+; 566  : 	//EAB		7/13/98			BATS 711 
+; 567  : #ifdef AD_BASE
+; 568  : 	*parp += pDph_t->spdeftltoff;
+
+  00356	66 8b b9 70 03
+	00 00		 mov	 di, WORD PTR [ecx+880]
+  0035d	66 03 f8	 add	 di, ax
+  00360	66 89 b9 8a 03
+	00 00		 mov	 WORD PTR [ecx+906], di
+
+; 569  : #else
+; 570  : 	*parp += pDph_t->spdeftltoff-6;
+; 571  : #endif
+; 572  : 	/* Use -6 to allow higher tilts eab TILT IS A MESSS FULL OF UNKNOWN FUDGE FACTORS LIKE THIS -6
+; 573  : 	AND IN GENERAL TOO STRONG, TOM HAS FOUND THE TILT FILTER TO HAVE TERRIBLE CHARACTERISTICS SO
+; 574  : 	I'M DOING A QUICK FIX FOR NOE WHICH WILL BE MUCH REFINED WHEN TO CAN IMPLEMENT THE NEW FILTER TO ALL THE PLATFORMS*/
+; 575  : 
+; 576  : 	/* eab tilt down for an RR eab 3/5/98 Not seen in oliver's data 
+; 577  : 	so I removed rr tilt*/
+; 578  : 
+; 579  : 
+; 580  : 	/* Breathy offset special code */
+; 581  : 	if (pDph_t->breathysw == 1)
+
+  00367	66 39 91 6a 03
+	00 00		 cmp	 WORD PTR [ecx+874], dx
+  0036e	0f 85 80 00 00
+	00		 jne	 $L71258
+
+; 582  : 	{								   /* Set in ph_setar.c */
+; 583  : 		if (pDph_t->parstochip[OUT_AV] > 40)
+
+  00374	66 83 b9 8e 03
+	00 00 28	 cmp	 WORD PTR [ecx+910], 40	; 00000028H
+  0037c	0f 8e 80 00 00
+	00		 jle	 $L71265
+
+; 584  : 		{							   /* Do only if AV on  */
+; 585  : 			/* Add aspiration to voicing */
+; 586  : 			if (pDphsettar->breathyah < 27)
+
+  00382	66 8b 85 a8 00
+	00 00		 mov	 ax, WORD PTR [ebp+168]
+  00389	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  0038d	7d 0a		 jge	 SHORT $L71260
+
+; 587  : 			{
+; 588  : 				pDphsettar->breathyah += 2;		/* asp increase 32 db/100 ms */
+
+  0038f	83 c0 02	 add	 eax, 2
+  00392	66 89 85 a8 00
+	00 00		 mov	 WORD PTR [ebp+168], ax
+$L71260:
+
+; 589  : 			}
+; 590  : 			value = frac4mul (pDph_t->spdeflaxprcnt, (pDphsettar->breathyah ));
+
+  00399	0f bf 81 6e 03
+	00 00		 movsx	 eax, WORD PTR [ecx+878]
+  003a0	0f bf 95 a8 00
+	00 00		 movsx	 edx, WORD PTR [ebp+168]
+  003a7	0f af c2	 imul	 eax, edx
+
+; 591  : 	
+; 592  : #ifndef UPGRADE1999
+; 593  : 			if (pDph_t->parstochip[OUT_AP] < value)
+
+  003aa	66 8b 91 7a 03
+	00 00		 mov	 dx, WORD PTR [ecx+890]
+  003b1	c1 f8 0c	 sar	 eax, 12			; 0000000cH
+  003b4	66 3b d0	 cmp	 dx, ax
+  003b7	7d 09		 jge	 SHORT $L71262
+
+; 594  : 			{
+; 595  : #if defined (ENGLISH_US) || defined (GERMAN)
+; 596  : 				/* This code overidres the tspesh code causes aspiration to die 
+; 597  : 				at voicing onset the old assumption that you didn't have aspiration during voicing */
+; 598  : 				pDph_t->parstochip[OUT_AP] += value;
+
+  003b9	03 d0		 add	 edx, eax
+  003bb	66 89 91 7a 03
+	00 00		 mov	 WORD PTR [ecx+890], dx
+$L71262:
+
+; 599  : #endif
+; 600  : #ifdef SPANISH
+; 601  : 				pDph_t->parstochip[OUT_AP] =  value; 
+; 602  : #endif //SPANISH
+; 603  : 			}
+; 604  : #endif
+; 605  : #ifdef DEL_AV
+; 606  : 	pDph_t->del_av = 0;
+; 607  : 	if (pDph_t->malfem == FEMALE) {
+; 608  : 	    if ((pDph_t->parstochip[OUT_AV] > 40) && (pDph_t->parstochip[OUT_T0] > 225)) {
+; 609  : 	        pDph_t->del_av = (pDph_t->parstochip[OUT_T0] - 225)>>3;
+; 610  : 	    }
+; 611  : 	}
+; 612  : 	else {
+; 613  : 	    if ((pDph_t->parstochip[OUT_AV] > 40) && (pDph_t->parstochip[OUT_T0] > 370)) {
+; 614  : 		pDph_t->del_av = (pDph_t->parstochip[OUT_T0] - 370)>>3;
+; 615  : 	    }
+; 616  : 	}
+; 617  : 	if (pDph_t->del_av > 0) {
+; 618  : 	    if (pDph_t->del_av > 8)    pDph_t->del_av = 8;
+; 619  : 	    pDph_t->parstochip[OUT_AV] -= pDph_t->del_av;
+; 620  : 	    if (pDph_t->parstochip[OUT_AP] >= pDph_t->del_av) {
+; 621  : 		pDph_t->parstochip[OUT_AP] -= pDph_t->del_av;
+; 622  : 	    }
+; 623  : 	}
+; 624  : #endif //DEL_AVs
+; 625  : 
+; 626  : 
+; 627  : 				
+; 628  : 			/* Tilt down voicing spectrum */
+; 629  : 			if (pDphsettar->breathytilt < 16)
+
+  003c2	66 8b 85 aa 00
+	00 00		 mov	 ax, WORD PTR [ebp+170]
+  003c9	66 3d 10 00	 cmp	 ax, 16			; 00000010H
+  003cd	7d 08		 jge	 SHORT $L71263
+
+; 630  : 			{
+; 631  : 				pDphsettar->breathytilt += 1;	/* tilt decrease 16 dB/100 ms */
+
+  003cf	40		 inc	 eax
+  003d0	66 89 85 aa 00
+	00 00		 mov	 WORD PTR [ebp+170], ax
+$L71263:
+
+; 632  : 			}
+; 633  : 			*parp += frac4mul (pDph_t->spdeflaxprcnt, pDphsettar->breathytilt);
+
+  003d7	0f bf 81 6e 03
+	00 00		 movsx	 eax, WORD PTR [ecx+878]
+  003de	0f bf 95 aa 00
+	00 00		 movsx	 edx, WORD PTR [ebp+170]
+  003e5	0f af c2	 imul	 eax, edx
+  003e8	c1 f8 0c	 sar	 eax, 12			; 0000000cH
+  003eb	66 01 81 8a 03
+	00 00		 add	 WORD PTR [ecx+906], ax
+
+; 634  : #ifdef DEBUGPHT
+; 635  : #if defined (WIN32) && defined (PRINTFDEBUG)
+; 636  : 				WINprintf("til2=%d \n",*parp);
+; 637  : #endif
+; 638  : #endif
+; 639  : 		}
+; 640  : 	}
+; 641  : 	else
+
+  003f2	eb 0e		 jmp	 SHORT $L71265
+$L71258:
+
+; 642  : 	{
+; 643  : 		/* Zero or initialize all breathyness variables */
+; 644  : 		pDphsettar->breathyah = 0;
+
+  003f4	66 89 b5 a8 00
+	00 00		 mov	 WORD PTR [ebp+168], si
+
+; 645  : 		pDphsettar->breathytilt = 0;
+
+  003fb	66 89 b5 aa 00
+	00 00		 mov	 WORD PTR [ebp+170], si
+$L71265:
+
+; 646  : 	}
+; 647  : 
+; 648  : 	/* Source tilt can't be more than 31 dB */
+; 649  : 	if (*parp > 31)
+
+  00402	b8 1f 00 00 00	 mov	 eax, 31			; 0000001fH
+  00407	66 39 81 8a 03
+	00 00		 cmp	 WORD PTR [ecx+906], ax
+  0040e	7e 07		 jle	 SHORT $L71266
+
+; 650  : 	{
+; 651  : 		*parp = 31;
+
+  00410	66 89 81 8a 03
+	00 00		 mov	 WORD PTR [ecx+906], ax
+$L71266:
+
+; 652  : 	}
+; 653  : 	if (*parp < 0)
+
+  00417	66 39 b1 8a 03
+	00 00		 cmp	 WORD PTR [ecx+906], si
+  0041e	7d 07		 jge	 SHORT $L71267
+
+; 654  : 	{
+; 655  : 		*parp = 0;
+
+  00420	66 89 b1 8a 03
+	00 00		 mov	 WORD PTR [ecx+906], si
+$L71267:
+
+; 656  : 	}
+; 657  : 	if(*parp > 18)
+
+  00427	66 83 b9 8a 03
+	00 00 12	 cmp	 WORD PTR [ecx+906], 18	; 00000012H
+  0042f	7e 0e		 jle	 SHORT $L71268
+
+; 658  : #ifdef DEBUGPHT
+; 659  : #if defined (WIN32) && defined (PRINTFDEBUG)
+; 660  : 	WINprintf("til3=%d \n",*parp);
+; 661  : #endif
+; 662  : #endif
+; 663  : #ifdef OPENQ
+; 664  : 
+; 665  : /*  OPEN QUOTIENT (pDph_t->oqtarget is set in PHCLAUSE.C from alloopenq[] */
+; 666  : /*    which is an array set in PHINTON.C) */
+; 667  : /*    Move toward target, rate of change is 2 percent every 6.4 msec */
+; 668  : 
+; 669  : 	if (pDph_t->openquo < pDph_t->oqtarget) 
+; 670  : 	{
+; 671  : 	         pDph_t->openquo++;
+; 672  : 	    if (pDph_t->openquo < pDph_t->oqtarget) {
+; 673  : 		     pDph_t->openquo++;
+; 674  : 	    }
+; 675  : 	}
+; 676  : 	else if (pDph_t->openquo > pDph_t->oqtarget) 
+; 677  : 	{
+; 678  : 			pDph_t->openquo--;
+; 679  : 	    if (pDph_t->openquo > pDph_t->oqtarget) 
+; 680  : 		{
+; 681  : 			pDph_t->openquo--;
+; 682  : 	    }
+; 683  : 	}
+; 684  : #endif //OPENQ
+; 685  : #ifdef NEW_VTM
+; 686  : 	pDph_t->parstochip[OUT_OQ] = pDph_t->openquo;  /* Add speaker dependent offset */
+
+  00431	66 8b 81 ac 03
+	00 00		 mov	 ax, WORD PTR [ecx+940]
+  00438	66 89 81 a4 03
+	00 00		 mov	 WORD PTR [ecx+932], ax
+$L71268:
+
+; 687  : #endif
+; 688  : 
+; 689  : 
+; 690  : 
+; 691  : 
+; 692  : 	/* I think this should be in verify with oliver*/
+; 693  : #if defined (ENGLISH_US) || defined (SPANISH) || defined (GERMAN)
+; 694  : 	/* Compensate for loudness decrease when strongly tilted */
+; 695  : 	if (pDph_t->parstochip[OUT_AV] > 3)
+
+  0043f	66 8b 91 8e 03
+	00 00		 mov	 dx, WORD PTR [ecx+910]
+  00446	66 83 fa 03	 cmp	 dx, 3
+  0044a	7e 1e		 jle	 SHORT $L71269
+
+; 696  : 	{
+; 697  : 		temptilt = (*parp >> 2) - 4;
+
+  0044c	66 8b 81 8a 03
+	00 00		 mov	 ax, WORD PTR [ecx+906]
+  00453	66 c1 f8 02	 sar	 ax, 2
+  00457	83 e8 04	 sub	 eax, 4
+
+; 698  : 		if (temptilt < 0)
+
+  0045a	66 3b c6	 cmp	 ax, si
+  0045d	7d 02		 jge	 SHORT $L71270
+
+; 699  : 			temptilt = 0;			   /* tilt must be 20 or more */
+
+  0045f	33 c0		 xor	 eax, eax
+$L71270:
+
+; 700  : 		pDph_t->parstochip[OUT_AV] += temptilt;
+
+  00461	03 d0		 add	 edx, eax
+  00463	66 89 91 8e 03
+	00 00		 mov	 WORD PTR [ecx+910], dx
+$L71269:
+
+; 701  : 
+; 702  : 		
+; 703  : 	}
+; 704  : #endif
+; 705  : 
+; 706  : 
+; 707  : #ifdef GERMAN
+; 708  : 
+; 709  : 	/* eab 6/25/98 cleanup*/
+; 710  : 	//EAB		7/13/98			BATS 711 
+; 711  : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 712  : 	/* if current phone is uvular /RR/, modulate several parameters      */
+; 713  : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 714  : 	/* EAB boolean true false in r_mod simply defines whether we're done and it's
+; 715  : 	 time to increment the counter*/
+; 716  : 
+; 717  : 
+; 718  : 	if (pDph_t->allophons[pDphsettar->np_drawt0] == KH)
+; 719  : 	{
+; 720  : 	
+; 721  : 		r_modulation (phTTS,pDph_t->param[A2].outp, N10PRCNT, FALSE);
+; 722  : 		r_modulation (phTTS,pDph_t->param[A3].outp, N20PRCNT, FALSE);
+; 723  : 		r_modulation (phTTS,pDph_t->param[AV].outp, N8PRCNT, TRUE);
+; 724  : 	}
+; 725  : 
+; 726  : 	else if (pDph_t->allophons[pDphsettar->np_drawt0] == RR)
+; 727  : 	{
+; 728  : 		if ((featb[ pDph_t->allophons[(pDphsettar->np_drawt0-1)]] & FVOWEL) IS_PLUS)
+; 729  : 		{
+; 730  : 
+; 731  : 			r_modulation (phTTS,pDph_t->param[AB].outp, 0, FALSE);
+; 732  : 			r_modulation (phTTS,pDph_t->param[AV].outp, N5PRCNT-300, FALSE);
+; 733  : 			r_modulation (phTTS,pDph_t->param[A2].outp, N20PRCNT, FALSE);
+; 734  : 			r_modulation (phTTS,pDph_t->param[A3].outp, N20PRCNT, TRUE);
+; 735  : 		}
+; 736  : 		else
+; 737  : 		{
+; 738  : 			r_modulation (phTTS,pDph_t->param[AB].outp, 0, FALSE);
+; 739  : 			r_modulation (phTTS,pDph_t->param[AV].outp, N5PRCNT, FALSE);
+; 740  : 			r_modulation (phTTS,pDph_t->param[A2].outp, N10PRCNT, FALSE);
+; 741  : 			r_modulation (phTTS,pDph_t->param[A3].outp, N10PRCNT, TRUE);
+; 742  : 		}
+; 743  : 
+; 744  : 	}
+; 745  : 	else
+; 746  : 		/* Initialiatize the modulation counter eab 2/6/98*/
+; 747  :  		pDph_t->modulcount =0;
+; 748  : 
+; 749  : 
+; 750  : #endif
+; 751  : 
+; 752  : 
+; 753  : 
+; 754  : #ifdef SPANISH
+; 755  : 		
+; 756  : /* eab 6/25/98 cleanup in AD and RND Old code that helps nothing */
+; 757  : 	 
+; 758  : 	if (pDph_t->allophons[pDphsettar->np_drawt0] == E_R)
+; 759  : 	{
+; 760  : 		// NEW_SPANISH  EAB		7/13/98			BATS 711
+; 761  : 		if(pDph_t->modulcount <=2)
+; 762  : 		{
+; 763  : 		r_modulation (phTTS,pDph_t->param[A2].outp, N10PRCNT, FALSE);
+; 764  : 		r_modulation (phTTS,pDph_t->param[A3].outp, N20PRCNT, FALSE);
+; 765  : 		r_modulation (phTTS,pDph_t->param[AV].outp, N10PRCNT, TRUE);
+; 766  : 		}
+; 767  : 	}
+; 768  : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+; 769  : 	/* if current phone is uvular /RR/, modulate several parameters      */
+; 770  : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+; 771  : 	/* eab 2/14/97 Improve perception of rr by adding an av component*/
+; 772  : 	else if (pDph_t->allophons[pDphsettar->np_drawt0] == E_RR)
+; 773  : 	{
+; 774  : 	
+; 775  : 		// NEW_SPANISH  EAB		7/13/98			BATS 711
+; 776  : 	
+; 777  : #ifdef SPANISH_LA
+; 778  : 		r_modulation (phTTS,pDph_t->param[AV].outp, N10PRCNT, FALSE);
+; 779  : 		r_modulation (phTTS,pDph_t->param[A2].outp, N20PRCNT, FALSE);
+; 780  : 		r_modulation (phTTS,pDph_t->param[A3].outp, N20PRCNT, TRUE);
+; 781  : #endif
+; 782  : #ifdef SPANISH_SP
+; 783  : 		r_modulation (phTTS,pDph_t->param[AV].outp, N20PRCNT, FALSE);
+; 784  : 		r_modulation (phTTS,pDph_t->param[A2].outp, N20PRCNT, FALSE);
+; 785  : 		r_modulation (phTTS,pDph_t->param[A3].outp, N20PRCNT, TRUE);
+; 786  : #endif
+; 787  : 
+; 788  : 	
+; 789  : 	}
+; 790  : 	else
+; 791  : 		/* Initialiatize the modulation counter eab 2/6/98*/
+; 792  : 		pDph_t->modulcount =0;
+; 793  : 
+; 794  : 
+; 795  : #endif
+; 796  : 
+; 797  : 	/* eab 12/12/96 Special code to allow for a burst + frication which occurs in the
+; 798  : 	german sound TS the present code does not allow for this. This is a quick hack for 44
+; 799  : 	until we're able to rewrite the burst/frication code in general This is not
+; 800  : 	elegant but will work fine*/
+; 801  : #ifdef GERMAN
+; 802  : 	/* eab 3/25/98 warning at high speeds this breaks*/
+; 803  : 	if(pDphsettar->phcur == TS )
+; 804  : 	{
+; 805  : 		pDphsettar->delay_cnt++;
+; 806  : 		if(pDphsettar->delay_cnt <5)
+; 807  : 		{
+; 808  : 				pDph_t->parstochip[OUT_A6]=0;
+; 809  : 				pDph_t->parstochip[OUT_A5]=0;
+; 810  : 				pDph_t->parstochip[OUT_A4]=0;
+; 811  : 				pDph_t->parstochip[OUT_A3]=0;
+; 812  : 				pDph_t->parstochip[OUT_A2]=0;
+; 813  : 				pDph_t->parstochip[OUT_AB]=0;
+; 814  : 		}
+; 815  : 
+; 816  : 		else if(pDphsettar->delay_cnt ==5)
+; 817  : 		{
+; 818  : 				pDph_t->parstochip[OUT_A6]=0;
+; 819  : 				pDph_t->parstochip[OUT_A5]=0;
+; 820  : 				pDph_t->parstochip[OUT_A4]=0;
+; 821  : 				pDph_t->parstochip[OUT_A3]=0;
+; 822  : 				pDph_t->parstochip[OUT_A2]=0;
+; 823  : 			//  CHANGES EAB		7/13/98			BATS 711 Way too hot!
+; 824  : 				pDph_t->parstochip[OUT_AB]=53;
+; 825  : 		}
+; 826  : 	}
+; 827  : 	else if( pDphsettar->phcur == TJ)
+; 828  : 	{
+; 829  : 		pDphsettar->delay_cnt++;
+; 830  : 		if(pDphsettar->delay_cnt <5)
+; 831  : 		{
+; 832  : 				pDph_t->parstochip[OUT_A6]=0;
+; 833  : 				pDph_t->parstochip[OUT_A5]=0;
+; 834  : 				pDph_t->parstochip[OUT_A4]=0;
+; 835  : 				pDph_t->parstochip[OUT_A3]=0;
+; 836  : 				pDph_t->parstochip[OUT_A2]=0;
+; 837  : 				pDph_t->parstochip[OUT_AB]=0;
+; 838  : 		}
+; 839  : 
+; 840  : 		else if(pDphsettar->delay_cnt ==5)
+; 841  : 		{
+; 842  : 				pDph_t->parstochip[OUT_A6]=55;
+; 843  : 				pDph_t->parstochip[OUT_A5]=0;
+; 844  : 				pDph_t->parstochip[OUT_A4]=50;
+; 845  : 				pDph_t->parstochip[OUT_A3]=50;
+; 846  : 				pDph_t->parstochip[OUT_A2]=0;
+; 847  : 				pDph_t->parstochip[OUT_AB]=40;
+; 848  : 		}
+; 849  : 		else if(pDphsettar->delay_cnt ==6 )
+; 850  : 		{
+; 851  : 				pDph_t->parstochip[OUT_A6]=0;
+; 852  : 				pDph_t->parstochip[OUT_A5]=40;
+; 853  : 				pDph_t->parstochip[OUT_A4]=30;
+; 854  : 				pDph_t->parstochip[OUT_A3]=30;
+; 855  : 				pDph_t->parstochip[OUT_A2]=0;
+; 856  : 				pDph_t->parstochip[OUT_AB]=0;
+; 857  : 		}
+; 858  : 		else if(pDphsettar->delay_cnt ==7 )
+; 859  : 		{
+; 860  : 				pDph_t->parstochip[OUT_A6]=0;
+; 861  : 				pDph_t->parstochip[OUT_A5]=43;
+; 862  : 				pDph_t->parstochip[OUT_A4]=33;
+; 863  : 				pDph_t->parstochip[OUT_A3]=33;
+; 864  : 				pDph_t->parstochip[OUT_A2]=0;
+; 865  : 				pDph_t->parstochip[OUT_AB]=0;
+; 866  : 		}
+; 867  : 		else if(pDphsettar->delay_cnt ==8 )
+; 868  : 		{
+; 869  : 				pDph_t->parstochip[OUT_A6]=0;
+; 870  : 				pDph_t->parstochip[OUT_A5]=46;
+; 871  : 				pDph_t->parstochip[OUT_A4]=36;
+; 872  : 				pDph_t->parstochip[OUT_A3]=36;
+; 873  : 				pDph_t->parstochip[OUT_A2]=0;
+; 874  : 				pDph_t->parstochip[OUT_AB]=0;
+; 875  : 		}
+; 876  : 		else if(pDphsettar->delay_cnt >= 9 && pDphsettar->delay_cnt <= 11 )
+; 877  : 		{
+; 878  : 				pDph_t->parstochip[OUT_A6]=0;
+; 879  : 				pDph_t->parstochip[OUT_A5]=49;
+; 880  : 				pDph_t->parstochip[OUT_A4]=39;
+; 881  : 				pDph_t->parstochip[OUT_A3]=39;
+; 882  : 				pDph_t->parstochip[OUT_A2]=0;
+; 883  : 				pDph_t->parstochip[OUT_AB]=0;
+; 884  : 		}
+; 885  : 		else if(pDphsettar->delay_cnt >11)
+; 886  : 		{
+; 887  : 				pDph_t->parstochip[OUT_A6]=0;
+; 888  : 				pDph_t->parstochip[OUT_A5]=50;
+; 889  : 				pDph_t->parstochip[OUT_A4]=50;
+; 890  : 				pDph_t->parstochip[OUT_A3]=45;
+; 891  : 				pDph_t->parstochip[OUT_A2]=0;
+; 892  : 				pDph_t->parstochip[OUT_AB]=0;
+; 893  : 		}
+; 894  : 
+; 895  : 	}
+; 896  : 	else
+; 897  : 			/* if phcur !=ts then reset count*/
+; 898  : 		pDphsettar->delay_cnt =0;
+; 899  : 
+; 900  : 	
+; 901  : 
+; 902  : 
+; 903  : 	
+; 904  : #endif
+; 905  : #ifdef PH_DEBUG
+; 906  : 
+; 907  : /* DEBUG Code  verifies variables that should never hit 
+; 908  : 	ceratin values  EAB 6/24/98*/
+; 909  : 
+; 910  : 	if (pDph_t->parstochip[OUT_F1] < 200)
+; 911  : 	{
+; 912  : 		pDph_t->parstochip[OUT_F1] = 200;
+; 913  : 	}
+; 914  : 		
+; 915  : 	if ((pDph_t->parstochip[OUT_T0] < 0)  ||
+; 916  : 		   (pDph_t->parstochip[OUT_F1] < 0)  ||
+; 917  : 		   (pDph_t->parstochip[OUT_F2] < 0)  ||
+; 918  : 		   (pDph_t->parstochip[OUT_F3] < 0)  ||
+; 919  : 		   (pDph_t->parstochip[OUT_FZ] < 0)  ||
+; 920  : 		   (pDph_t->parstochip[OUT_B1] < 0)  ||
+; 921  : 		   (pDph_t->parstochip[OUT_B2] < 0)  ||
+; 922  : 		   (pDph_t->parstochip[OUT_B3] < 0)  ||
+; 923  : 		   (pDph_t->parstochip[OUT_AV] < 0)  ||
+; 924  : 		   (pDph_t->parstochip[OUT_AP] < 0)  ||
+; 925  : 		   (pDph_t->parstochip[OUT_A2] < 0)  ||
+; 926  : 		   (pDph_t->parstochip[OUT_A3] < 0)  ||
+; 927  : 		   (pDph_t->parstochip[OUT_A4] < 0)  ||
+; 928  : 		   (pDph_t->parstochip[OUT_A5] < 0)  ||
+; 929  : 		   (pDph_t->parstochip[OUT_A6] < 0)  ||
+; 930  : 		   (pDph_t->parstochip[OUT_AB] < 0)  ||
+; 931  : 		   (pDph_t->parstochip[OUT_TLT] < 0 ))
+; 932  : 		{
+; 933  : #ifndef UNDER_CE
+; 934  : 		WINprint(" ERROR Negative value \n");
+; 935  : #endif
+; 936  : 		}
+; 937  : 
+; 938  : 	
+; 939  : #endif
+; 940  : 
+; 941  : 
+; 942  : #ifdef NEW_VTM
+; 943  : 
+; 944  : 	/* eab 3/4/98 */
+; 945  : 	/* eab same as before except new added parameters*/
+; 946  : 
+; 947  : 		pDph_t->parstochip[OUT_GS] = pDph_t->spdefglspeed ;
+
+  0046a	66 8b 91 d8 14
+	00 00		 mov	 dx, WORD PTR [ecx+5336]
+
+; 948  : #ifdef NEW_VOCAL_TRACT_NASAL
+; 949  : 		if(pDph_t->parstochip[OUT_FZ] == 1050)
+; 950  : 		{
+; 951  : 			pDph_t->parstochip[OUT_FNP]=850; //labial nasal consonant
+; 952  : 		}
+; 953  : 		else if(pDph_t->parstochip[OUT_FZ] == 1800)
+; 954  : 		{
+; 955  : 			pDph_t->parstochip[OUT_FNP]=1025; //alevelar nasal consonant
+; 956  : 		}
+; 957  : 		else
+; 958  : 		{
+; 959  : 			pDph_t->parstochip[OUT_FNP] = 500; 
+; 960  : 		}
+; 961  : #else
+; 962  : 			pDph_t->parstochip[OUT_FNP] = 290; 
+
+  00471	66 c7 81 a0 03
+	00 00 22 01	 mov	 WORD PTR [ecx+928], 290	; 00000122H
+  0047a	66 89 91 a2 03
+	00 00		 mov	 WORD PTR [ecx+930], dx
+
+; 963  : #endif
+; 964  : 		
+; 965  : #ifdef GERMAN
+; 966  : 	if(pDph_t->allophons[pDphsettar->np_drawt0] == RR)
+; 967  : 	{
+; 968  : 			pDph_t->parstochip[OUT_GS] += 1200;
+; 969  : 	}
+; 970  : 
+; 971  : 
+; 972  : 
+; 973  : 	if((featb[ pDph_t->allophons[pDphsettar->np_drawt0]] & FNASAL) IS_PLUS)
+; 974  : 	{
+; 975  : 		if(pDph_t->malfem == MALE)
+; 976  : 		{
+; 977  : 			/* eab 4/23/98 If phoneme is less than M then it's a nasalized french vowel*/
+; 978  : 			if(pDph_t->allophons[pDphsettar->np_drawt0] <	M)
+; 979  : 			{
+; 980  : 				pDph_t->parstochip[OUT_GS] = 1400;
+; 981  : 			}
+; 982  : 			// 9/24/98 Increased gs from nasal to reduce "nasality per ginger"
+; 983  : 			//request
+; 984  : 			else
+; 985  : 			{
+; 986  : 				//  EAB		7/13/98			BATS 711
+; 987  : 				pDph_t->parstochip[OUT_GS] = 1100;
+; 988  : 			}
+; 989  : 			
+; 990  : 		}
+; 991  : 		else
+; 992  : 		{
+; 993  : 				/* eab 4/23/98 If phoneme is less than M then it's a nasalized french vowel*/
+; 994  : 			if(pDph_t->allophons[pDphsettar->np_drawt0] <	M)
+; 995  : 			{
+; 996  : 				pDph_t->parstochip[OUT_GS] = 1500;
+; 997  : 			}
+; 998  : 			else
+; 999  : 			{
+; 1000 : 				pDph_t->parstochip[OUT_GS] = 1200;
+; 1001 : 			}
+; 1002 : 			
+; 1003 : 		}
+; 1004 : 
+; 1005 : 	}
+; 1006 : 	if(pDph_t->allophons[pDphsettar->np_drawt0 ] == Z)
+; 1007 : 	{
+; 1008 : 		if (pDph_t->malfem == MALE)
+; 1009 : 		{
+; 1010 : 			pDph_t->parstochip[OUT_GS] = 700;
+; 1011 : 			pDph_t->parstochip[OUT_AP] = 20;
+; 1012 : 		}
+; 1013 : 		else
+; 1014 : 		{
+; 1015 : 			pDph_t->parstochip[OUT_GS] = 600;
+; 1016 : 			pDph_t->parstochip[OUT_AP] = 20;
+; 1017 : 		}
+; 1018 : 
+; 1019 : 	}
+; 1020 : 
+; 1021 : 		/* In a lateral like l av jumps whem mouth and tongue open tract*/
+; 1022 : 	if(pDph_t->allophons[pDphsettar->np_drawt0] == L )
+; 1023 : 	{
+; 1024 : 		pDph_t->parstochip[OUT_AV] -=6;
+; 1025 : 			/* BATS 690 There is evidently a slight discrepancy between where ph_draw
+; 1026 : 		thinks it is and where other parts of the code think they are, but this is too big
+; 1027 : 		to ponder now- this boiler plate will solve the problem*/
+; 1028 : 		if(pDph_t->parstochip[OUT_AV] <0)
+; 1029 : 			pDph_t->parstochip[OUT_AV]=0;
+; 1030 : 	}
+; 1031 : 	/* eab 4/23/98 Reduce av when a release schwa this code had the undesireable effect
+; 1032 : 	of reducing al occurrances of ex in  final position but it may be OKAY*/
+; 1033 : 	if ((pDph_t->allophons[pDphsettar->np_drawt0+1] == SIL)
+; 1034 : 		&& (pDph_t->allophons[pDphsettar->np_drawt0] == EX))
+; 1035 : 
+; 1036 : 		pDph_t->parstochip[OUT_AV] -=3;
+; 1037 : 
+; 1038 : 
+; 1039 : #endif	/* GERMAN*/
+; 1040 : 			// CHANGES EAB		7/13/98			BATS 711 All of this stuff
+; 1041 : 		    // needs to go into rnd code
+; 1042 : 
+; 1043 : #ifdef SPANISH
+; 1044 : 
+; 1045 : 	
+; 1046 : 	if((featb[ pDph_t->allophons[pDphsettar->np_drawt0]] & FNASAL) IS_PLUS)
+; 1047 : 	{
+; 1048 : 		if(pDph_t->malfem == MALE)
+; 1049 : 		{				
+; 1050 : 			pDph_t->parstochip[OUT_GS] = 1500;
+; 1051 : 
+; 1052 : 		}
+; 1053 : 		else
+; 1054 : 		{
+; 1055 : 			
+; 1056 : 			pDph_t->parstochip[OUT_GS] = 2500;
+; 1057 : 			
+; 1058 : 		}
+; 1059 : 
+; 1060 : 	}
+; 1061 : 
+; 1062 : 	
+; 1063 : 
+; 1064 : 
+; 1065 : 	if(pDph_t->allophons[pDphsettar->np_drawt0] == E_RR)
+; 1066 : 	{
+; 1067 : 			pDph_t->parstochip[OUT_GS] += 2200;
+; 1068 : 	}
+; 1069 : 
+; 1070 : 
+; 1071 : 
+; 1072 : 	
+; 1073 : 	if(pDph_t->allophons[pDphsettar->np_drawt0 ] == E_Z)
+; 1074 : 	{
+; 1075 : 		if (pDph_t->malfem == MALE)
+; 1076 : 		{
+; 1077 : 			pDph_t->parstochip[OUT_GS] = 700;
+; 1078 : 			pDph_t->parstochip[OUT_AP] = 20;
+; 1079 : 		}
+; 1080 : 		else
+; 1081 : 		{
+; 1082 : 			pDph_t->parstochip[OUT_GS] = 600;
+; 1083 : 			pDph_t->parstochip[OUT_AP] = 20;
+; 1084 : 		}
+; 1085 : 
+; 1086 : 	}
+; 1087 : 
+; 1088 : 		
+; 1089 : 	if(pDph_t->allophons[pDphsettar->np_drawt0] == E_L )
+; 1090 : 		{
+; 1091 : 		
+; 1092 : 		pDph_t->parstochip[OUT_AV] -=3;
+; 1093 : 			/* BATS 690 There is evidently a slight discrepancy between where ph_draw
+; 1094 : 		thinks it is and where other parts of the code think they are, but this is too big
+; 1095 : 		to ponder now- this boiler plate will solve the problem*/
+; 1096 : 		if(pDph_t->parstochip[OUT_AV] <0)
+; 1097 : 			pDph_t->parstochip[OUT_AV]=0;
+; 1098 : 		}
+; 1099 : 
+; 1100 : 
+; 1101 : 	/* eab 4/23/98 Reduce av when a release schwa this code had the undesireable effect
+; 1102 : 	of reducing al occurrances of ex in  final position but it may be OKAY*/
+; 1103 : 	if ((pDph_t->allophons[pDphsettar->np_drawt0+1] == SIL)
+; 1104 : 		&& (pDph_t->allophons[pDphsettar->np_drawt0] == E_IX))
+; 1105 : 		pDph_t->parstochip[OUT_AV] -=3;
+; 1106 : 
+; 1107 : 	if(pDph_t->allophons[pDphsettar->np_drawt0] == E_BH )
+; 1108 : 	{
+; 1109 : 		
+; 1110 : 		if (pDph_t->malfem == MALE)
+; 1111 : 		{
+; 1112 : 			pDph_t->parstochip[OUT_GS] = 1200;
+; 1113 : 		}
+; 1114 : 		else
+; 1115 : 		{
+; 1116 : 			pDph_t->parstochip[OUT_GS] = 1800;
+; 1117 : 			
+; 1118 : 		} 
+; 1119 : 	}
+; 1120 : 
+; 1121 : 
+; 1122 : 
+; 1123 : 
+; 1124 : #endif	/* spanish*/
+; 1125 : #endif /*NEW_VTM*/
+; 1126 : #if (defined NOAA || defined ENGLISH_UK)
+; 1127 : 		/* eab 4/5/98 For 5.0 all languages should do this */
+; 1128 : 		/* In a lateral like l av jumps whem mouth and tongue open tract*/
+; 1129 : 			if(pDph_t->allophons[pDphsettar->np_drawt0] == LL)
+; 1130 : 
+; 1131 : 				pDph_t->parstochip[OUT_AV] -=6;
+; 1132 : 				/* BATS 690 There is evidently a slight discrepancy between where ph_draw
+; 1133 : 		thinks it is and where other parts of the code think they are, but this is too big
+; 1134 : 		to ponder now- this boiler plate will solve hte problem */
+; 1135 : 		if(pDph_t->parstochip[OUT_AV] <0)
+; 1136 : 			pDph_t->parstochip[OUT_AV]=0;
+; 1137 : 	
+; 1138 : #endif
+; 1139 : 
+; 1140 : 
+; 1141 : #if (defined  AD_BASE) && !(defined NWS_LA ) && !(defined NWS_US )
+; 1142 : 
+; 1143 : 
+; 1144 : 		//temp test code eab 2/18/99 Under development
+; 1145 : 	if((featb[ pDph_t->allophons[pDphsettar->np_drawt0]] & FVOWEL) IS_PLUS)
+
+  00481	0f bf 45 74	 movsx	 eax, WORD PTR [ebp+116]
+  00485	0f bf 94 41 c6
+	03 00 00	 movsx	 edx, WORD PTR [ecx+eax*2+966]
+  0048d	f6 04 55 00 00
+	00 00 04	 test	 BYTE PTR _featb[edx*2], 4
+  00495	74 21		 je	 SHORT $L71274
+
+; 1146 : 		if(pDph_t->parstochip[OUT_BR] <= 40 )
+
+  00497	66 8b 81 a6 03
+	00 00		 mov	 ax, WORD PTR [ecx+934]
+  0049e	66 3d 28 00	 cmp	 ax, 40			; 00000028H
+  004a2	7f 05		 jg	 SHORT $L71272
+
+; 1147 : 			pDph_t->parstochip[OUT_BR] += 2;
+
+  004a4	83 c0 02	 add	 eax, 2
+
+; 1148 : 		else
+
+  004a7	eb 08		 jmp	 SHORT $L71288
+$L71272:
+
+; 1149 : 			if(pDph_t->parstochip[OUT_BR] >0)
+
+  004a9	66 3b c6	 cmp	 ax, si
+  004ac	7e 0a		 jle	 SHORT $L71274
+
+; 1150 : 				pDph_t->parstochip[OUT_BR] -=10;
+
+  004ae	83 c0 f6	 add	 eax, -10		; fffffff6H
+$L71288:
+  004b1	66 89 81 a6 03
+	00 00		 mov	 WORD PTR [ecx+934], ax
+$L71274:
+
+; 1151 : 			if(pDph_t->parstochip[OUT_BR] <0)
+
+  004b8	66 39 b1 a6 03
+	00 00		 cmp	 WORD PTR [ecx+934], si
+  004bf	7d 07		 jge	 SHORT $L71275
+
+; 1152 : 				pDph_t->parstochip[OUT_BR] = 0;
+
+  004c1	66 89 b1 a6 03
+	00 00		 mov	 WORD PTR [ecx+934], si
+$L71275:
+  004c8	5f		 pop	 edi
+  004c9	5e		 pop	 esi
+  004ca	5d		 pop	 ebp
+  004cb	5b		 pop	 ebx
+
+; 1153 : #endif
+; 1154 : 
+; 1155 : 
+; 1156 : 
+; 1157 : 
+; 1158 : #ifdef PH_SWAPDATA
+; 1159 : 	
+; 1160 : 		j=sprintf(outbuf,"phdata%d",pDph_t->PHSwapCnt);
+; 1161 : 		j=sprintf(outbuf+j,".out");
+; 1162 : 
+; 1163 : 
+; 1164 :         if (pDph_t->PHSwapIn == NULL && pDph_t->PHSwapOut == NULL)
+; 1165 :         {
+; 1166 :                 pDph_t->PHSwapIn = fopen("phdata.in","rb");
+; 1167 : 				if(pDph_t->PHSwapIn == NULL)
+; 1168 : 				{
+; 1169 : 					pDph_t->PHSwapOut = fopen(outbuf,"wb");
+; 1170 : 					fprintf(pDph_t->PHSwapOut," AP   F1   A2   A3   A4   A5   A6   AB  TILT  T0   AV   F2   F3    FZ   B1   B2   B3       \r\n");
+; 1171 : 				}
+; 1172 :                 if (pDph_t->PHSwapIn != NULL)   fscanf(pDph_t->PHSwapIn," AP   F1   A2   A3   A4   A5   A6   AB  TILT  T0   AV   F2   F3   FZ   B1   B2   B3\r\n");
+; 1173 :         }
+; 1174 :         if (pDph_t->PHSwapOut != NULL) {
+; 1175 :                 for (ii = 0; ii < 24; ii++) {
+; 1176 :                         fprintf(pDph_t->PHSwapOut,"%4d ",pDph_t->parstochip[ii]);
+; 1177 :                 }
+; 1178 :                 fprintf(pDph_t->PHSwapOut,"\r\n");
+; 1179 :         }
+; 1180 :         if (pDph_t->PHSwapIn != NULL) {
+; 1181 :                 for (ii = 0; ii < 24; ii++) {
+; 1182 :                         fscanf(pDph_t->PHSwapIn,"%4d ",&pDph_t->parstochip[ii]);
+; 1183 :                 }
+; 1184 :                 fscanf(pDph_t->PHSwapIn,"\r\n");
+; 1185 :                 if (feof(pDph_t->PHSwapIn)) {
+; 1186 :                         fclose(pDph_t->PHSwapIn);
+; 1187 :                         pDph_t->PHSwapIn = fopen("phdata.in","rb");
+; 1188 :                         fscanf(pDph_t->PHSwapIn," AP   F1   A2   A3   A4   A5   A6   AB  TILT  T0   AV   F2   F3   F4   FZ   B1   B2   B3   B4   PH   DU   DP  OPENQ FNP  FNF  GNF GSPD\r\n");
+; 1189 :                 }
+; 1190 :         }
+; 1191 : 
+; 1192 : #endif
+; 1193 : 		
+; 1194 : #ifdef PH_DEBUG
+; 1195 : 	if(DT_DBG(PH_DBG,0x020))
+; 1196 : 	{
+; 1197 : 	if( pDphsettar->phcur != 0)
+; 1198 : 	{
+; 1199 : #ifdef DEBUGPHT
+; 1200 : #if defined (WIN32) && defined (PRINTFDEBUG)
+; 1201 : 		WINprintf ("*phcur= %d \n", pDphsettar->phcur);
+; 1202 : #else
+; 1203 : 		printf ("*phcur= %d \n", pDphsettar->phcur);
+; 1204 : #endif
+; 1205 : #endif
+; 1206 : #ifndef UNDER_CE
+; 1207 : 		WINprintf ("phon= %d  ", (pDph_t->allophons[pDphsettar->np_drawt0]));
+; 1208 : #endif
+; 1209 : 		for (ii = 0; ii<=24; ii++)			   /* EAB FOR REGRESSION TESTING */
+; 1210 : 		{
+; 1211 : 			WAIT_PRINT;
+; 1212 : #if defined (WIN32) && defined (PRINTFDEBUG)
+; 1213 : 			WINprintf("%d ", pDph_t->parstochip[ii]);
+; 1214 : #else
+; 1215 : 			printf("%d ", pDph_t->parstochip[ii]);
+; 1216 : #endif
+; 1217 : 			SIGNAL_PRINT;
+; 1218 : 		}
+; 1219 : 		WAIT_PRINT;
+; 1220 : 
+; 1221 : #if defined (WIN32) && defined (PRINTFDEBUG)
+; 1222 : 		WINprintf ("\n");
+; 1223 : #else
+; 1224 : 		printf ("\n");
+; 1225 : #endif
+; 1226 : 
+; 1227 : 		SIGNAL_PRINT;
+; 1228 : 	}
+; 1229 : 	}
+; 1230 : #endif
+; 1231 : 	
+; 1232 : 
+; 1233 : }
+
+  004cc	c3		 ret	 0
+_phdraw	ENDP
+_TEXT	ENDS
+END

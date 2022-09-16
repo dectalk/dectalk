@@ -1,0 +1,767 @@
+	TITLE	D:\work\product\dapi\src\Lts\loaddict.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+$$SYMBOLS	SEGMENT BYTE USE32 'DEBSYM'
+$$SYMBOLS	ENDS
+$$TYPES	SEGMENT BYTE USE32 'DEBTYP'
+$$TYPES	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_unload_dictionary
+EXTRN	_freeLock:NEAR
+_TEXT	SEGMENT
+_dict_ref$ = 8
+_dict_siz$ = 12
+_unload_dictionary PROC NEAR
+
+; 87   : {
+
+  00000	56		 push	 esi
+  00001	57		 push	 edi
+
+; 88   : 	if (( *dict_siz > 0 ) && ( dict_ref != NULL ))
+
+  00002	8b 7c 24 10	 mov	 edi, DWORD PTR _dict_siz$[esp+4]
+  00006	83 3f 00	 cmp	 DWORD PTR [edi], 0
+  00009	76 20		 jbe	 SHORT $L71852
+  0000b	8b 74 24 0c	 mov	 esi, DWORD PTR _dict_ref$[esp+4]
+  0000f	85 f6		 test	 esi, esi
+  00011	74 18		 je	 SHORT $L71852
+
+; 89   : 	{
+; 90   : 		*dict_ref = (void *) (((long) *dict_ref) - sizeof(long) ); 
+
+  00013	8b 16		 mov	 edx, DWORD PTR [esi]
+  00015	83 c2 fc	 add	 edx, -4			; fffffffcH
+  00018	8b c2		 mov	 eax, edx
+  0001a	89 16		 mov	 DWORD PTR [esi], edx
+
+; 91   : 		/* Make dict_ref point to real head of dictionary 
+; 92   : 		   (including the 4 bytes storing the size), JAW 7/7/98 */
+; 93   : #if (defined WIN32) && (!defined UNDER_CE)
+; 94   : 	   freeLock( *dict_ref );
+
+  0001c	50		 push	 eax
+  0001d	e8 00 00 00 00	 call	 _freeLock
+  00022	83 c4 04	 add	 esp, 4
+
+; 95   : #else
+; 96   : 	   free( *dict_ref );
+; 97   : #endif
+; 98   : 	   *dict_ref = (void *)NULL;
+
+  00025	c7 06 00 00 00
+	00		 mov	 DWORD PTR [esi], 0
+$L71852:
+
+; 99   : 	} 
+; 100  : 	*dict_siz = 0;
+
+  0002b	c7 07 00 00 00
+	00		 mov	 DWORD PTR [edi], 0
+  00031	5f		 pop	 edi
+  00032	5e		 pop	 esi
+
+; 101  : 	return;
+; 102  : }
+
+  00033	c3		 ret	 0
+_unload_dictionary ENDP
+_TEXT	ENDS
+PUBLIC	_load_dictionary
+EXTRN	_mallocLock:NEAR
+EXTRN	__imp___strdate:NEAR
+EXTRN	__imp___strtime:NEAR
+EXTRN	__imp__fclose:NEAR
+EXTRN	__imp__fflush:NEAR
+EXTRN	__imp__fopen:NEAR
+EXTRN	__imp__fprintf:NEAR
+EXTRN	__imp__fread:NEAR
+EXTRN	_TextToSpeechErrorHandler:NEAR
+_DATA	SEGMENT
+$SG71809 DB	'rb', 00H
+	ORG $+1
+$SG71813 DB	'a+', 00H
+	ORG $+1
+$SG71814 DB	'\dtdic.log', 00H
+	ORG $+1
+$SG71818 DB	'%s %s : Dictionary %s not found.', 0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_dict_ref$ = 12
+_dict_siz$ = 16
+_dict_nam$ = 20
+_bRequired$ = 24
+_bReportToWindow$ = 28
+_entries$ = -144
+_bytes$ = -136
+_offset$ = -132
+_base$ = -140
+_szDateBuf$71816 = -64
+_szTimeBuf$71817 = -128
+_load_dictionary PROC NEAR
+
+; 138  : 
+; 139  :   FILE *dict_file;
+; 140  :   void **ip, *dict_buffer;
+; 141  :   int i, entries, bytes, size, offset, pointer_list_size;
+; 142  :   int status;
+; 143  :   char *base;
+; 144  :   
+; 145  : #ifdef DBGDIC
+; 146  :   struct dic_entry far *ent;
+; 147  : #endif
+; 148  :   /*
+; 149  :    * set error return values
+; 150  :    */
+; 151  :   if ( *dict_siz > 0 )
+
+  00040	8b 44 24 0c	 mov	 eax, DWORD PTR _dict_siz$[esp-4]
+  00044	81 ec 90 00 00
+	00		 sub	 esp, 144		; 00000090H
+  0004a	8b 08		 mov	 ecx, DWORD PTR [eax]
+  0004c	53		 push	 ebx
+  0004d	55		 push	 ebp
+  0004e	56		 push	 esi
+  0004f	85 c9		 test	 ecx, ecx
+  00051	57		 push	 edi
+
+; 152  :     return( MMSYSERR_ERROR );
+
+  00052	0f 87 2b 02 00
+	00		 ja	 $L71860
+
+; 153  :   
+; 154  :   *dict_siz = 0;
+; 155  :   *dict_ref = (void *)NULL;
+; 156  : #ifdef DBGDIC
+; 157  :   printf("In load dict:%s \n", dict_nam);
+; 158  : #endif
+; 159  :   if (( dict_file = fopen( dict_nam, "rb" )) == 0 )
+
+  00058	8b 9c 24 b0 00
+	00 00		 mov	 ebx, DWORD PTR _dict_nam$[esp+156]
+  0005f	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fopen
+  00065	c7 00 00 00 00
+	00		 mov	 DWORD PTR [eax], 0
+  0006b	8b 84 24 a8 00
+	00 00		 mov	 eax, DWORD PTR _dict_ref$[esp+156]
+  00072	68 00 00 00 00	 push	 OFFSET FLAT:$SG71809
+  00077	53		 push	 ebx
+  00078	c7 00 00 00 00
+	00		 mov	 DWORD PTR [eax], 0
+  0007e	ff d6		 call	 esi
+  00080	8b f8		 mov	 edi, eax
+  00082	83 c4 08	 add	 esp, 8
+  00085	85 ff		 test	 edi, edi
+  00087	75 72		 jne	 SHORT $L71808
+
+; 160  :   {
+; 161  :       if ( bRequired )
+
+  00089	8b 84 24 b4 00
+	00 00		 mov	 eax, DWORD PTR _bRequired$[esp+156]
+  00090	85 c0		 test	 eax, eax
+  00092	0f 84 28 02 00
+	00		 je	 $L71810
+
+; 162  : 	{
+; 163  : #ifdef WIN32
+; 164  : #ifndef UNDER_CE
+; 165  : 	  /* tek 14may98 We have had several OEMs who have had trouble
+; 166  : 	     getting their registry entries and install scripts configured
+; 167  : 	     to load the dictionary correctly. To help with this, log
+; 168  : 	     load failures to a file. */
+; 169  : 	  FILE *fpDicLogFile = NULL;
+; 170  : 	  fpDicLogFile = fopen("\\dtdic.log","a+"); /* open for append, handle EOF */
+
+  00098	68 00 00 00 00	 push	 OFFSET FLAT:$SG71813
+  0009d	68 00 00 00 00	 push	 OFFSET FLAT:$SG71814
+  000a2	ff d6		 call	 esi
+  000a4	8b f0		 mov	 esi, eax
+  000a6	83 c4 08	 add	 esp, 8
+
+; 171  : 	  if (fpDicLogFile)
+
+  000a9	85 f6		 test	 esi, esi
+  000ab	74 3e		 je	 SHORT $L71815
+
+; 172  : 	    {
+; 173  : 	      char szDateBuf[64];
+; 174  : 	      char szTimeBuf[64];
+; 175  : 	      /* log the pertinent info */
+; 176  : 	      _strdate(szDateBuf);
+
+  000ad	8d 4c 24 60	 lea	 ecx, DWORD PTR _szDateBuf$71816[esp+160]
+  000b1	51		 push	 ecx
+  000b2	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strdate
+
+; 177  : 	      _strtime(szTimeBuf);
+
+  000b8	8d 54 24 24	 lea	 edx, DWORD PTR _szTimeBuf$71817[esp+164]
+  000bc	52		 push	 edx
+  000bd	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp___strtime
+
+; 178  : 	      fprintf(fpDicLogFile,"%s %s : Dictionary %s not found.\n",
+; 179  : 		      szDateBuf, szTimeBuf, dict_nam);
+
+  000c3	8d 44 24 28	 lea	 eax, DWORD PTR _szTimeBuf$71817[esp+168]
+  000c7	53		 push	 ebx
+  000c8	8d 4c 24 6c	 lea	 ecx, DWORD PTR _szDateBuf$71816[esp+172]
+  000cc	50		 push	 eax
+  000cd	51		 push	 ecx
+  000ce	68 00 00 00 00	 push	 OFFSET FLAT:$SG71818
+  000d3	56		 push	 esi
+  000d4	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+
+; 180  : 	      fflush(fpDicLogFile);
+
+  000da	56		 push	 esi
+  000db	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fflush
+
+; 181  : 	      fclose(fpDicLogFile);
+
+  000e1	56		 push	 esi
+  000e2	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  000e8	83 c4 24	 add	 esp, 36			; 00000024H
+$L71815:
+  000eb	5f		 pop	 edi
+  000ec	5e		 pop	 esi
+  000ed	5d		 pop	 ebp
+
+; 182  : 	    }
+; 183  : #endif //UNDER_CE
+; 184  : 	  
+; 185  : 	  /************************************************************/
+; 186  : 	  /*  The dictionary size is set to 0xFFFFFFFF to signal the  */
+; 187  : 	  /*  TextToSpeechStartup() function that the dictionary was  */
+; 188  : 	  /*  not found.                                              */
+; 189  : 	  /************************************************************/
+; 190  : 	  /*MVP : Commented out,The error notification is sent to TextToSpeechStartup*/
+; 191  : 	  /*    *dict_siz = 0xFFFFFFFF;   */
+; 192  : #else
+; 193  : 	  fprintf(stderr,"Failed to open dictionary file %s\n",dict_nam);
+; 194  : #endif //WIN32
+; 195  : 	  return( MMSYSERR_INVALPARAM );
+
+  000ee	b8 0b 00 00 00	 mov	 eax, 11			; 0000000bH
+  000f3	5b		 pop	 ebx
+
+; 386  : }
+
+  000f4	81 c4 90 00 00
+	00		 add	 esp, 144		; 00000090H
+  000fa	c3		 ret	 0
+$L71808:
+
+; 196  : 	  
+; 197  : 	}
+; 198  :       /*MVP : To make the loading user dictionary  an optional ,i.e if the user 
+; 199  : 	dictionary file doesn't exist don't generate an error, return success.
+; 200  : the flag brequired for loading of user dictionary is FALSE.
+; 201  : 	*/
+; 202  :       return( MMSYSERR_NOERROR ); 
+; 203  :     }
+; 204  :   /* Read in file header */
+; 205  :   if ( fread( &entries, 4, 1, dict_file ) != 1 )
+
+  000fb	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fread
+  00101	57		 push	 edi
+  00102	6a 01		 push	 1
+  00104	8d 54 24 18	 lea	 edx, DWORD PTR _entries$[esp+168]
+  00108	6a 04		 push	 4
+  0010a	52		 push	 edx
+  0010b	ff d6		 call	 esi
+  0010d	83 c4 10	 add	 esp, 16			; 00000010H
+  00110	83 f8 01	 cmp	 eax, 1
+  00113	74 39		 je	 SHORT $L71819
+
+; 206  :     {
+; 207  : #ifdef WIN32
+; 208  :       
+; 209  :       if ( bReportToWindow )
+
+  00115	8b 84 24 b8 00
+	00 00		 mov	 eax, DWORD PTR _bReportToWindow$[esp+156]
+  0011c	85 c0		 test	 eax, eax
+  0011e	74 14		 je	 SHORT $L71824
+
+; 210  : 	{
+; 211  : 	  TextToSpeechErrorHandler( phTTS,
+; 212  : 				    ERROR_READING_DICTIONARY,
+; 213  : 				    MMSYSERR_ERROR );
+
+  00120	8b 84 24 a4 00
+	00 00		 mov	 eax, DWORD PTR _phTTS$[esp+156]
+  00127	6a 01		 push	 1
+  00129	6a 04		 push	 4
+  0012b	50		 push	 eax
+$L71861:
+  0012c	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  00131	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71824:
+
+; 214  : 	}
+; 215  :       
+; 216  : #else
+; 217  :       fprintf(stderr,"Error reading dictionary database: %s\n",dict_nam);
+; 218  :       perror("load_dictionary");
+; 219  :       
+; 220  : #endif
+; 221  : 
+; 222  :       fclose(dict_file);
+
+  00134	57		 push	 edi
+  00135	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  0013b	83 c4 04	 add	 esp, 4
+
+; 361  : 		return( MMSYSERR_ERROR );
+
+  0013e	b8 01 00 00 00	 mov	 eax, 1
+  00143	5f		 pop	 edi
+  00144	5e		 pop	 esi
+  00145	5d		 pop	 ebp
+  00146	5b		 pop	 ebx
+
+; 386  : }
+
+  00147	81 c4 90 00 00
+	00		 add	 esp, 144		; 00000090H
+  0014d	c3		 ret	 0
+$L71819:
+
+; 223  : 
+; 224  :       return( MMSYSERR_ERROR );
+; 225  :     }
+; 226  : 
+; 227  : #ifdef DBGDIC
+; 228  : printf("ent:%d %x\n", entries,entries);
+; 229  : #endif
+; 230  :   /* tek 30jan97 bail with no error if the dictionary has no entries */
+; 231  :   if (entries == 0)
+
+  0014e	8b 44 24 10	 mov	 eax, DWORD PTR _entries$[esp+160]
+  00152	85 c0		 test	 eax, eax
+  00154	75 17		 jne	 SHORT $L71821
+
+; 232  :     {
+; 233  :       fclose(dict_file);
+
+  00156	57		 push	 edi
+  00157	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  0015d	83 c4 04	 add	 esp, 4
+
+; 374  : #ifdef DBGDIC
+; 375  : #define DICT_HEAD       ((struct dic_entry far * far *)dict_buffer)
+; 376  : /*
+; 377  :    for (i=0; i< entries; i++)
+; 378  :    {
+; 379  : 		ent = DICT_HEAD[i];
+; 380  : 		printf("ent No:%d = %s\n",i, (*ent).text);
+; 381  :    }
+; 382  : */
+; 383  : #endif
+; 384  : 
+; 385  :   return( MMSYSERR_NOERROR );
+
+  00160	33 c0		 xor	 eax, eax
+  00162	5f		 pop	 edi
+  00163	5e		 pop	 esi
+  00164	5d		 pop	 ebp
+  00165	5b		 pop	 ebx
+
+; 386  : }
+
+  00166	81 c4 90 00 00
+	00		 add	 esp, 144		; 00000090H
+  0016c	c3		 ret	 0
+$L71821:
+
+; 234  : 
+; 235  :       return (MMSYSERR_NOERROR);
+; 236  :     }
+; 237  :   
+; 238  :   pointer_list_size = ( entries * sizeof(long) );
+; 239  :   if ( fread( &bytes, 4, 1, dict_file ) != 1 )
+
+  0016d	57		 push	 edi
+  0016e	6a 01		 push	 1
+  00170	8d 4c 24 20	 lea	 ecx, DWORD PTR _bytes$[esp+168]
+  00174	6a 04		 push	 4
+  00176	51		 push	 ecx
+  00177	8d 1c 85 00 00
+	00 00		 lea	 ebx, DWORD PTR [eax*4]
+  0017e	ff d6		 call	 esi
+  00180	83 c4 10	 add	 esp, 16			; 00000010H
+  00183	83 f8 01	 cmp	 eax, 1
+  00186	74 19		 je	 SHORT $L71823
+
+; 240  :     {
+; 241  :       
+; 242  : #ifdef WIN32
+; 243  :       
+; 244  :       if ( bReportToWindow )
+
+  00188	8b 84 24 b8 00
+	00 00		 mov	 eax, DWORD PTR _bReportToWindow$[esp+156]
+  0018f	85 c0		 test	 eax, eax
+  00191	74 a1		 je	 SHORT $L71824
+
+; 245  : 	{
+; 246  : 	  TextToSpeechErrorHandler( phTTS,
+; 247  : 				    ERROR_READING_DICTIONARY,
+; 248  : 				    MMSYSERR_ERROR );
+
+  00193	8b 94 24 a4 00
+	00 00		 mov	 edx, DWORD PTR _phTTS$[esp+156]
+  0019a	6a 01		 push	 1
+  0019c	6a 04		 push	 4
+  0019e	52		 push	 edx
+
+; 249  : 	}
+; 250  : #else
+; 251  :       
+; 252  :       fprintf(stderr,"Error reading dictionary database: %s\n",dict_nam);
+; 253  :       perror("load_dictionary");
+; 254  :       
+; 255  : #endif
+; 256  :       fclose(dict_file);
+; 257  :       return( MMSYSERR_ERROR );
+
+  0019f	eb 8b		 jmp	 SHORT $L71861
+$L71823:
+
+; 258  :     }
+; 259  :   
+; 260  : #ifdef DBGDIC
+; 261  :   printf("bytes:%d %x\n",bytes,bytes);
+; 262  : #endif
+; 263  :   
+; 264  :   /* Compute & allocate required memory for both parts of dictionary */
+; 265  :   /* Allocated 4 (8 on alpha) extra bytes to store the size of the dictionary in bytes.  JAW 7/7/98 */
+; 266  :   size = pointer_list_size + bytes;
+; 267  : #if (defined WIN32) && (!defined UNDER_CE)
+; 268  :   if ( !( dict_buffer = (void *)mallocLock(size + 4)))
+
+  001a1	8b 44 24 18	 mov	 eax, DWORD PTR _bytes$[esp+160]
+  001a5	8d 6c 18 04	 lea	 ebp, DWORD PTR [eax+ebx+4]
+  001a9	55		 push	 ebp
+  001aa	e8 00 00 00 00	 call	 _mallocLock
+  001af	8b f0		 mov	 esi, eax
+  001b1	83 c4 04	 add	 esp, 4
+  001b4	85 f6		 test	 esi, esi
+  001b6	75 39		 jne	 SHORT $L71826
+
+; 269  : #else
+; 270  :     if ( !( dict_buffer = (void *)malloc(size + sizeof(long))))
+; 271  : #endif
+; 272  : 	{
+; 273  : 
+; 274  : #ifdef WIN32
+; 275  : 
+; 276  : 	  if ( bReportToWindow )
+
+  001b8	8b 84 24 b8 00
+	00 00		 mov	 eax, DWORD PTR _bReportToWindow$[esp+156]
+  001bf	85 c0		 test	 eax, eax
+  001c1	74 14		 je	 SHORT $L71827
+
+; 277  : 	  {
+; 278  : 		TextToSpeechErrorHandler( phTTS,
+; 279  : 								  ERROR_READING_DICTIONARY,
+; 280  : 								  MMSYSERR_NOMEM );
+
+  001c3	8b 8c 24 a4 00
+	00 00		 mov	 ecx, DWORD PTR _phTTS$[esp+156]
+  001ca	6a 07		 push	 7
+  001cc	6a 04		 push	 4
+  001ce	51		 push	 ecx
+  001cf	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  001d4	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71827:
+
+; 281  : 	  }
+; 282  : #else
+; 283  : 
+; 284  : 	  fprintf(stderr,"Failed to allocated required %d bytes of memory to load dictionary\n",size + sizeof(long));
+; 285  : 
+; 286  : #endif
+; 287  : 	  fclose(dict_file);
+
+  001d7	57		 push	 edi
+  001d8	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  001de	83 c4 04	 add	 esp, 4
+
+; 288  : 
+; 289  : 	  return( MMSYSERR_NOMEM );
+
+  001e1	b8 07 00 00 00	 mov	 eax, 7
+  001e6	5f		 pop	 edi
+  001e7	5e		 pop	 esi
+  001e8	5d		 pop	 ebp
+  001e9	5b		 pop	 ebx
+
+; 386  : }
+
+  001ea	81 c4 90 00 00
+	00		 add	 esp, 144		; 00000090H
+  001f0	c3		 ret	 0
+$L71826:
+
+; 290  : 	}
+; 291  : 
+; 292  : 	*((long *) dict_buffer) = size + sizeof(long);
+
+  001f1	89 2e		 mov	 DWORD PTR [esi], ebp
+
+; 293  : 	dict_buffer = (void *) ((long) dict_buffer + sizeof(long));
+; 294  : 
+; 295  : 	/* Read in and fix up addresses for index entries */
+; 296  : 	base = (char *)dict_buffer + pointer_list_size;
+; 297  : 	ip = dict_buffer;
+; 298  : 	for ( i=0 ; i<entries ; i++ )
+
+  001f3	8b 44 24 10	 mov	 eax, DWORD PTR _entries$[esp+160]
+  001f7	83 c6 04	 add	 esi, 4
+  001fa	33 ed		 xor	 ebp, ebp
+  001fc	85 c0		 test	 eax, eax
+  001fe	8d 14 1e	 lea	 edx, DWORD PTR [esi+ebx]
+  00201	8b de		 mov	 ebx, esi
+  00203	89 54 24 14	 mov	 DWORD PTR _base$[esp+160], edx
+  00207	7e 30		 jle	 SHORT $L71836
+$L71834:
+
+; 299  : 	  {
+; 300  : 	    if ( fread( &offset, 4, 1, dict_file ) != 1 )
+
+  00209	57		 push	 edi
+  0020a	6a 01		 push	 1
+  0020c	8d 44 24 24	 lea	 eax, DWORD PTR _offset$[esp+168]
+  00210	6a 04		 push	 4
+  00212	50		 push	 eax
+  00213	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fread
+  00219	83 c4 10	 add	 esp, 16			; 00000010H
+  0021c	83 f8 01	 cmp	 eax, 1
+  0021f	75 72		 jne	 SHORT $L71856
+
+; 328  : 	}
+; 329  : 
+; 330  : 	*ip++ = (void *)(base+offset);  /* relocate pointer to absolute addr */
+
+  00221	8b 4c 24 1c	 mov	 ecx, DWORD PTR _offset$[esp+160]
+  00225	8b 54 24 14	 mov	 edx, DWORD PTR _base$[esp+160]
+  00229	03 ca		 add	 ecx, edx
+  0022b	89 0b		 mov	 DWORD PTR [ebx], ecx
+  0022d	8b 44 24 10	 mov	 eax, DWORD PTR _entries$[esp+160]
+  00231	83 c3 04	 add	 ebx, 4
+  00234	45		 inc	 ebp
+  00235	3b e8		 cmp	 ebp, eax
+  00237	7c d0		 jl	 SHORT $L71834
+$L71836:
+
+; 331  : 
+; 332  : #ifdef DBGDIC
+; 333  :     printf("offset:%d %x\n",offset,offset); 
+; 334  : #endif
+; 335  : 	}
+; 336  : 
+; 337  : 	/* Read in the rest of the dictionary */
+; 338  : 	  if ( fread( base, bytes, 1, dict_file ) != 1 )
+
+  00239	8b 4c 24 18	 mov	 ecx, DWORD PTR _bytes$[esp+160]
+  0023d	8b 54 24 14	 mov	 edx, DWORD PTR _base$[esp+160]
+  00241	57		 push	 edi
+  00242	6a 01		 push	 1
+  00244	51		 push	 ecx
+  00245	52		 push	 edx
+  00246	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fread
+  0024c	83 c4 10	 add	 esp, 16			; 00000010H
+  0024f	83 f8 01	 cmp	 eax, 1
+  00252	74 4c		 je	 SHORT $L71840
+
+; 339  : 	    {
+; 340  : #ifdef WIN32
+; 341  : 	      
+; 342  : 	      if ( bReportToWindow )
+
+  00254	8b 84 24 b8 00
+	00 00		 mov	 eax, DWORD PTR _bReportToWindow$[esp+156]
+  0025b	85 c0		 test	 eax, eax
+  0025d	74 14		 je	 SHORT $L71838
+$L71859:
+
+; 343  : 		{
+; 344  : 		  TextToSpeechErrorHandler( phTTS,
+; 345  : 					    ERROR_READING_DICTIONARY,
+; 346  : 					    MMSYSERR_ERROR );
+
+  0025f	8b 84 24 a4 00
+	00 00		 mov	 eax, DWORD PTR _phTTS$[esp+156]
+  00266	6a 01		 push	 1
+  00268	6a 04		 push	 4
+  0026a	50		 push	 eax
+  0026b	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  00270	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71838:
+
+; 347  : 		}
+; 348  : 
+; 349  : #ifndef UNDER_CE
+; 350  : 		freeLock(dict_buffer);
+
+  00273	56		 push	 esi
+  00274	e8 00 00 00 00	 call	 _freeLock
+
+; 351  : #else
+; 352  : 		free(dict_buffer);
+; 353  : #endif
+; 354  : 
+; 355  : #else
+; 356  : 	fprintf(stderr,"Error reading dictionary database: %s\n",dict_nam);
+; 357  : 	perror("load_dictionary");
+; 358  : 		free(dict_buffer);
+; 359  : #endif
+; 360  : 		fclose(dict_file);
+
+  00279	57		 push	 edi
+  0027a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+  00280	83 c4 08	 add	 esp, 8
+$L71860:
+  00283	5f		 pop	 edi
+  00284	5e		 pop	 esi
+  00285	5d		 pop	 ebp
+
+; 361  : 		return( MMSYSERR_ERROR );
+
+  00286	b8 01 00 00 00	 mov	 eax, 1
+  0028b	5b		 pop	 ebx
+
+; 386  : }
+
+  0028c	81 c4 90 00 00
+	00		 add	 esp, 144		; 00000090H
+  00292	c3		 ret	 0
+$L71856:
+
+; 301  : 	      {
+; 302  : #ifdef WIN32
+; 303  : 		
+; 304  : 		if ( bReportToWindow )
+
+  00293	8b 84 24 b8 00
+	00 00		 mov	 eax, DWORD PTR _bReportToWindow$[esp+156]
+  0029a	85 c0		 test	 eax, eax
+  0029c	74 d5		 je	 SHORT $L71838
+
+; 305  : 		  {
+; 306  : 		    TextToSpeechErrorHandler( phTTS,
+; 307  : 					      ERROR_READING_DICTIONARY,
+; 308  : 					      MMSYSERR_ERROR );
+; 309  : 		  }
+; 310  : 		
+; 311  : 		status = feof( dict_file );
+; 312  : #ifndef UNDER_CE
+; 313  : 			freeLock(dict_buffer);
+; 314  : #else
+; 315  : 			free(dict_buffer);
+; 316  : #endif
+; 317  : 
+; 318  : #else
+; 319  : 		fprintf(stderr,"Error reading dictionary database: %s\n",dict_nam);
+; 320  : 		perror("load_dictionary");
+; 321  : 
+; 322  : 			status = feof( dict_file );
+; 323  : 			free(dict_buffer);
+; 324  : #endif
+; 325  : 			fclose(dict_file);
+; 326  : 
+; 327  : 			return( MMSYSERR_ERROR );
+
+  0029e	eb bf		 jmp	 SHORT $L71859
+$L71840:
+
+; 362  : 	    }
+; 363  : 	  
+; 364  : #ifdef DBGDIC
+; 365  : 	printf("base:%d %x\n",base,base);
+; 366  : 	printf("sizeof(void*)=%d\n",sizeof(void *));
+; 367  : #endif
+; 368  : 	fclose(dict_file);
+
+  002a0	57		 push	 edi
+  002a1	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fclose
+
+; 369  :        
+; 370  : 
+; 371  : 	/* write output parameters */
+; 372  : 	*dict_ref = dict_buffer;
+
+  002a7	8b 8c 24 ac 00
+	00 00		 mov	 ecx, DWORD PTR _dict_ref$[esp+160]
+
+; 373  : 	*dict_siz = entries;
+
+  002ae	8b 84 24 b0 00
+	00 00		 mov	 eax, DWORD PTR _dict_siz$[esp+160]
+  002b5	8b 54 24 14	 mov	 edx, DWORD PTR _entries$[esp+164]
+  002b9	83 c4 04	 add	 esp, 4
+  002bc	89 31		 mov	 DWORD PTR [ecx], esi
+  002be	89 10		 mov	 DWORD PTR [eax], edx
+$L71810:
+  002c0	5f		 pop	 edi
+  002c1	5e		 pop	 esi
+  002c2	5d		 pop	 ebp
+
+; 374  : #ifdef DBGDIC
+; 375  : #define DICT_HEAD       ((struct dic_entry far * far *)dict_buffer)
+; 376  : /*
+; 377  :    for (i=0; i< entries; i++)
+; 378  :    {
+; 379  : 		ent = DICT_HEAD[i];
+; 380  : 		printf("ent No:%d = %s\n",i, (*ent).text);
+; 381  :    }
+; 382  : */
+; 383  : #endif
+; 384  : 
+; 385  :   return( MMSYSERR_NOERROR );
+
+  002c3	33 c0		 xor	 eax, eax
+  002c5	5b		 pop	 ebx
+
+; 386  : }
+
+  002c6	81 c4 90 00 00
+	00		 add	 esp, 144		; 00000090H
+  002cc	c3		 ret	 0
+_load_dictionary ENDP
+_TEXT	ENDS
+END

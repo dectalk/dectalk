@@ -1,0 +1,175 @@
+	TITLE	D:\work\product\dapi\src\NT\mmalloc.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+$$SYMBOLS	SEGMENT BYTE USE32 'DEBSYM'
+$$SYMBOLS	ENDS
+$$TYPES	SEGMENT BYTE USE32 'DEBTYP'
+$$TYPES	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_mallocLock
+EXTRN	__imp__GlobalAlloc@8:NEAR
+EXTRN	__imp__GlobalLock@4:NEAR
+_TEXT	SEGMENT
+_uiSize$ = 8
+_mallocLock PROC NEAR
+
+; 628  :   HGLOBAL hMem;
+; 629  : 
+; 630  :   /********************************************************************/
+; 631  :   /*  Allocate and Lock Global Memory.                                */
+; 632  :   /********************************************************************/
+; 633  : 
+; 634  :   hMem = GlobalAlloc( GMEM_MOVEABLE, (size_t)uiSize );
+
+  00000	8b 44 24 04	 mov	 eax, DWORD PTR _uiSize$[esp-4]
+  00004	50		 push	 eax
+  00005	6a 02		 push	 2
+  00007	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalAlloc@8
+
+; 635  : 
+; 636  :   return GlobalLock( hMem );
+
+  0000d	50		 push	 eax
+  0000e	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalLock@4
+
+; 637  : }
+
+  00014	c3		 ret	 0
+_mallocLock ENDP
+_TEXT	ENDS
+PUBLIC	_reallocLock
+EXTRN	__imp__GlobalReAlloc@12:NEAR
+EXTRN	__imp__GlobalHandle@4:NEAR
+_TEXT	SEGMENT
+_pMem$ = 8
+_size$ = 12
+_reallocLock PROC NEAR
+
+; 670  :   HGLOBAL hMem;
+; 671  :   void *pvReturn; // tek 18jun98 debugging
+; 672  : 
+; 673  :   hMem = GlobalHandle( pMem );
+
+  00020	8b 44 24 04	 mov	 eax, DWORD PTR _pMem$[esp-4]
+  00024	50		 push	 eax
+  00025	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalHandle@4
+
+; 674  : 
+; 675  : #ifdef _DEBUG
+; 676  :   {
+; 677  : 	  char szTemp[256];
+; 678  : 	  sprintf(szTemp,"reallocLock: was ptr:%08lx  hMem:%08lx\n",
+; 679  : 	  pMem, hMem);
+; 680  : 	  OutputDebugString(szTemp);
+; 681  :   }
+; 682  : #endif //_DEBUG
+; 683  : 
+; 684  :   hMem = GlobalReAlloc( hMem, size, GMEM_MOVEABLE );
+
+  0002b	8b 4c 24 08	 mov	 ecx, DWORD PTR _size$[esp-4]
+  0002f	6a 02		 push	 2
+  00031	51		 push	 ecx
+  00032	50		 push	 eax
+  00033	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalReAlloc@12
+
+; 685  : 
+; 686  :   pvReturn = GlobalLock( hMem );
+
+  00039	50		 push	 eax
+  0003a	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalLock@4
+
+; 687  : #ifdef _DEBUG
+; 688  :   {
+; 689  : 	  char szTemp[256];
+; 690  : 	  sprintf(szTemp,"reallocLock: (ptr was %08lx) is ptr:%08lx  hMem:%08lx\n",
+; 691  : 	  pMem, pvReturn, hMem);
+; 692  : 	  OutputDebugString(szTemp);
+; 693  :   }
+; 694  : #endif //_DEBUG
+; 695  : 
+; 696  :   return(pvReturn);
+; 697  : }
+
+  00040	c3		 ret	 0
+_reallocLock ENDP
+_TEXT	ENDS
+PUBLIC	_freeLock
+EXTRN	__imp__GlobalUnlock@4:NEAR
+EXTRN	__imp__GlobalFree@4:NEAR
+_TEXT	SEGMENT
+_pMem$ = 8
+_freeLock PROC NEAR
+
+; 728  :   HGLOBAL hMem;
+; 729  : 
+; 730  :   hMem = GlobalHandle( pMem );
+
+  00050	8b 44 24 04	 mov	 eax, DWORD PTR _pMem$[esp-4]
+  00054	56		 push	 esi
+  00055	50		 push	 eax
+  00056	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalHandle@4
+  0005c	8b f0		 mov	 esi, eax
+
+; 731  : 
+; 732  :   if ( GlobalUnlock( hMem ))
+
+  0005e	56		 push	 esi
+  0005f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalUnlock@4
+  00065	85 c0		 test	 eax, eax
+  00067	74 07		 je	 SHORT $L69250
+
+; 733  :     return TRUE;
+
+  00069	b8 01 00 00 00	 mov	 eax, 1
+  0006e	5e		 pop	 esi
+
+; 736  :     return TRUE;
+; 737  : 
+; 738  :   return FALSE;
+; 739  : }
+
+  0006f	c3		 ret	 0
+$L69250:
+
+; 734  : 
+; 735  :   if( GlobalFree( hMem ) != NULL )
+
+  00070	56		 push	 esi
+  00071	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__GlobalFree@4
+  00077	f7 d8		 neg	 eax
+  00079	1b c0		 sbb	 eax, eax
+  0007b	5e		 pop	 esi
+  0007c	f7 d8		 neg	 eax
+
+; 736  :     return TRUE;
+; 737  : 
+; 738  :   return FALSE;
+; 739  : }
+
+  0007e	c3		 ret	 0
+_freeLock ENDP
+_TEXT	ENDS
+END

@@ -1,0 +1,258 @@
+	TITLE	D:\work\product\dapi\src\Ph\phinit.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+$$SYMBOLS	SEGMENT BYTE USE32 'DEBSYM'
+$$SYMBOLS	ENDS
+$$TYPES	SEGMENT BYTE USE32 'DEBTYP'
+$$TYPES	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_phinit
+EXTRN	_init_phclause:NEAR
+EXTRN	_saveval:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_bResetAll$ = 12
+_phinit	PROC NEAR
+
+; 100  : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+
+  00000	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00004	53		 push	 ebx
+  00005	56		 push	 esi
+  00006	57		 push	 edi
+
+; 101  : 	PDPH_T pDph_t = phTTS->pPHThreadData;
+
+  00007	8b 70 18	 mov	 esi, DWORD PTR [eax+24]
+  0000a	8b 78 08	 mov	 edi, DWORD PTR [eax+8]
+
+; 102  : 
+; 103  : 	init_phclause (pDph_t);
+
+  0000d	56		 push	 esi
+  0000e	e8 00 00 00 00	 call	 _init_phclause
+
+; 104  : 
+; 105  : 	if (bResetAll)
+
+  00013	8b 44 24 18	 mov	 eax, DWORD PTR _bResetAll$[esp+12]
+  00017	33 db		 xor	 ebx, ebx
+  00019	83 c4 04	 add	 esp, 4
+  0001c	3b c3		 cmp	 eax, ebx
+  0001e	0f 84 ef 00 00
+	00		 je	 $L71208
+
+; 106  : 	{
+; 107  : 		pKsd_t->sprate = 180;
+; 108  : 		pDph_t->perpause = 0;
+; 109  : 		pDph_t->compause = 0;
+; 110  : 
+; 111  : 		pDph_t->param[F0].outp = &(pDph_t->parstochip[OUT_T0]);
+
+  00024	8d 86 8c 03 00
+	00		 lea	 eax, DWORD PTR [esi+908]
+
+; 112  : 		pDph_t->param[F1].outp = &(pDph_t->parstochip[OUT_F1]);
+
+  0002a	8d 8e 7c 03 00
+	00		 lea	 ecx, DWORD PTR [esi+892]
+  00030	66 c7 87 22 02
+	00 00 b4 00	 mov	 WORD PTR [edi+546], 180	; 000000b4H
+
+; 113  : 		pDph_t->param[F2].outp = &(pDph_t->parstochip[OUT_F2]);
+
+  00039	8d 96 90 03 00
+	00		 lea	 edx, DWORD PTR [esi+912]
+  0003f	89 46 20	 mov	 DWORD PTR [esi+32], eax
+  00042	89 4e 44	 mov	 DWORD PTR [esi+68], ecx
+  00045	89 56 68	 mov	 DWORD PTR [esi+104], edx
+
+; 114  : 		pDph_t->param[F3].outp = &(pDph_t->parstochip[OUT_F3]);
+
+  00048	8d 86 92 03 00
+	00		 lea	 eax, DWORD PTR [esi+914]
+
+; 115  : 		pDph_t->param[FZ].outp = &(pDph_t->parstochip[OUT_FZ]);
+
+  0004e	8d 8e 94 03 00
+	00		 lea	 ecx, DWORD PTR [esi+916]
+
+; 116  : 		pDph_t->param[B1].outp = &(pDph_t->parstochip[OUT_B1]);
+
+  00054	8d 96 96 03 00
+	00		 lea	 edx, DWORD PTR [esi+918]
+  0005a	89 86 8c 00 00
+	00		 mov	 DWORD PTR [esi+140], eax
+  00060	89 8e b0 00 00
+	00		 mov	 DWORD PTR [esi+176], ecx
+  00066	89 96 d4 00 00
+	00		 mov	 DWORD PTR [esi+212], edx
+
+; 117  : 		pDph_t->param[B2].outp = &(pDph_t->parstochip[OUT_B2]);
+
+  0006c	8d 86 98 03 00
+	00		 lea	 eax, DWORD PTR [esi+920]
+
+; 118  : 		pDph_t->param[B3].outp = &(pDph_t->parstochip[OUT_B3]);
+
+  00072	8d 8e 9a 03 00
+	00		 lea	 ecx, DWORD PTR [esi+922]
+
+; 119  : 		pDph_t->param[AV].outp = &(pDph_t->parstochip[OUT_AV]);
+
+  00078	8d 96 8e 03 00
+	00		 lea	 edx, DWORD PTR [esi+910]
+  0007e	89 86 f8 00 00
+	00		 mov	 DWORD PTR [esi+248], eax
+  00084	89 8e 1c 01 00
+	00		 mov	 DWORD PTR [esi+284], ecx
+  0008a	89 96 40 01 00
+	00		 mov	 DWORD PTR [esi+320], edx
+
+; 120  : 		pDph_t->param[AP].outp = &(pDph_t->parstochip[OUT_AP]);
+
+  00090	8d 86 7a 03 00
+	00		 lea	 eax, DWORD PTR [esi+890]
+
+; 121  : 		pDph_t->param[A2].outp = &(pDph_t->parstochip[OUT_A2]);
+
+  00096	8d 8e 7e 03 00
+	00		 lea	 ecx, DWORD PTR [esi+894]
+
+; 122  : 		pDph_t->param[A3].outp = &(pDph_t->parstochip[OUT_A3]);
+
+  0009c	8d 96 80 03 00
+	00		 lea	 edx, DWORD PTR [esi+896]
+  000a2	89 86 64 01 00
+	00		 mov	 DWORD PTR [esi+356], eax
+  000a8	89 8e 88 01 00
+	00		 mov	 DWORD PTR [esi+392], ecx
+  000ae	89 96 ac 01 00
+	00		 mov	 DWORD PTR [esi+428], edx
+
+; 123  : 		pDph_t->param[A4].outp = &(pDph_t->parstochip[OUT_A4]);
+
+  000b4	8d 86 82 03 00
+	00		 lea	 eax, DWORD PTR [esi+898]
+
+; 124  : 		pDph_t->param[A5].outp = &(pDph_t->parstochip[OUT_A5]);
+
+  000ba	8d 8e 84 03 00
+	00		 lea	 ecx, DWORD PTR [esi+900]
+
+; 125  : 		pDph_t->param[A6].outp = &(pDph_t->parstochip[OUT_A6]);
+
+  000c0	8d 96 86 03 00
+	00		 lea	 edx, DWORD PTR [esi+902]
+  000c6	89 86 d0 01 00
+	00		 mov	 DWORD PTR [esi+464], eax
+  000cc	89 8e f4 01 00
+	00		 mov	 DWORD PTR [esi+500], ecx
+  000d2	89 96 18 02 00
+	00		 mov	 DWORD PTR [esi+536], edx
+
+; 126  : 		pDph_t->param[AB].outp = &(pDph_t->parstochip[OUT_AB]);
+
+  000d8	8d 86 88 03 00
+	00		 lea	 eax, DWORD PTR [esi+904]
+
+; 127  : 		pDph_t->param[TILT].outp = &(pDph_t->parstochip[OUT_TLT]);
+
+  000de	8d 8e 8a 03 00
+	00		 lea	 ecx, DWORD PTR [esi+906]
+
+; 128  : 
+; 129  : 		pKsd_t->speaker = (int *) &(pDph_t->curspdef[0]);
+
+  000e4	8d 96 7a 17 00
+	00		 lea	 edx, DWORD PTR [esi+6010]
+  000ea	66 89 9e b8 18
+	00 00		 mov	 WORD PTR [esi+6328], bx
+  000f1	66 89 9e b6 18
+	00 00		 mov	 WORD PTR [esi+6326], bx
+  000f8	89 86 3c 02 00
+	00		 mov	 DWORD PTR [esi+572], eax
+  000fe	89 8e 60 02 00
+	00		 mov	 DWORD PTR [esi+608], ecx
+
+; 130  : 
+; 131  : //		usevoice (phTTS, PAUL); redundant initalization call out eab 4/12/00
+; 132  : 		// see ph_task
+; 133  : 
+; 134  : 		saveval (pDph_t);
+
+  00104	56		 push	 esi
+  00105	89 97 4c 02 00
+	00		 mov	 DWORD PTR [edi+588], edx
+  0010b	e8 00 00 00 00	 call	 _saveval
+  00110	83 c4 04	 add	 esp, 4
+$L71208:
+
+; 135  : 	}
+; 136  : 
+; 137  : 	/* new_phone is not a gloabl variable. new_phone = TRUE; */
+; 138  : 	pDph_t->reset_pitch = FALSE;
+; 139  : 	pDph_t->symbols[0] = COMMA;
+
+  00113	b8 73 00 00 00	 mov	 eax, 115		; 00000073H
+  00118	89 9e 9c 23 00
+	00		 mov	 DWORD PTR [esi+9116], ebx
+  0011e	66 89 86 fe 14
+	00 00		 mov	 WORD PTR [esi+5374], ax
+
+; 140  : 	pDph_t->bound = COMMA;
+
+  00125	89 86 a0 23 00
+	00		 mov	 DWORD PTR [esi+9120], eax
+
+; 141  : 	pDph_t->lastoffs = 0;
+
+  0012b	89 9e a8 23 00
+	00		 mov	 DWORD PTR [esi+9128], ebx
+
+; 142  : 	pDph_t->nsymbtot = 1;
+
+  00131	66 c7 86 5a 17
+	00 00 01 00	 mov	 WORD PTR [esi+5978], 1
+
+; 143  : 	pDph_t->nphone = 0;
+
+  0013a	66 89 9e a4 23
+	00 00		 mov	 WORD PTR [esi+9124], bx
+
+; 144  : 	pDph_t->asperation = 0;
+
+  00141	89 9e 98 23 00
+	00		 mov	 DWORD PTR [esi+9112], ebx
+
+; 145  : 	pKsd_t->dwLastPhoneme = 0xFFFFFFFF;
+
+  00147	c7 87 28 02 00
+	00 ff ff ff ff	 mov	 DWORD PTR [edi+552], -1
+  00151	5f		 pop	 edi
+  00152	5e		 pop	 esi
+  00153	5b		 pop	 ebx
+
+; 146  : 
+; 147  : 	return;
+; 148  : }
+
+  00154	c3		 ret	 0
+_phinit	ENDP
+_TEXT	ENDS
+END

@@ -1,0 +1,729 @@
+/***********************************************************************
+*
+*                           Copyright (c)
+*	      © SMART Modular Technologies, 2000. All rights reserved.
+*    © Force Computers, a Solectron Company, 2000. All rights reserved.
+*
+*    Restricted Rights: Use, duplication, or disclosure by the U.S.
+*    Government is subject to restrictions as set forth in subparagraph
+*    (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
+*    52.227-14 Alt. III, as applicable.
+*
+*    This software is proprietary to and embodies the confidential
+*    technology of Digital Equipment Corporation and other parties.
+*    Possession, use, or copying of this software and media is authorized
+*    only pursuant to a valid written license from Digital or an
+*    authorized sublicensor.
+*
+***********************************************************************
+*    File Name:    p_gr_vdf_tune.c
+******************
+*    FILE CREATED ON: Thu Jun 08 17:22:38 2000
+*    TUNED WITH FILE: maintune_gr.txt (size: 71136)
+******************
+*    Functionality:
+*    Speaker voice definition for tuned voice params
+*    Created automatically by Autotuner in CreateOffsetFile()
+***********************************************************************/
+
+short			paul_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	4,
+	9,
+	0,
+	7,
+	-4,
+	5,
+	-21,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			betty_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	2,
+	7,
+	1,
+	-5,
+	6,
+	10,
+	-18,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			harry_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	4,
+	3,
+	-2,
+	6,
+	12,
+	6,
+	-29,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			frank_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	3,
+	2,
+	-2,
+	5,
+	10,
+	4,
+	-23,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			kit_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	-1,
+	11,
+	-2,
+	1,
+	4,
+	3,
+	-12,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			ursula_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	-1,
+	6,
+	-2,
+	3,
+	5,
+	6,
+	-15,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			rita_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	3,
+	5,
+	-2,
+	1,
+	8,
+	10,
+	-19,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			wendy_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	1,
+	8,
+	-2,
+	-3,
+	6,
+	8,
+	-19,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			dennis_8_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	7,
+	-5,
+	-2,
+	2,
+	13,
+	7,
+	-26,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			paul_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	-7,
+	5,
+	-6,
+	0,
+	1,
+	-1,
+	3,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			betty_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	4,
+	0,
+	-1,
+	9,
+	2,
+	-4,
+	-7,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			harry_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	-7,
+	6,
+	-4,
+	-2,
+	1,
+	-1,
+	4,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			frank_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	6,
+	-6,
+	-1,
+	14,
+	7,
+	2,
+	-24,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			kit_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	4,
+	0,
+	-1,
+	6,
+	11,
+	0,
+	-17,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			ursula_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	4,
+	-1,
+	0,
+	2,
+	3,
+	0,
+	-7,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			rita_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	4,
+	-4,
+	-1,
+	9,
+	8,
+	1,
+	-18,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			wendy_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	3,
+	2,
+	-3,
+	2,
+	9,
+	3,
+	-22,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};
+
+short			dennis_tune[] =
+{
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	-1,
+	0,
+	6,
+	10,
+	9,
+	-3,
+	-24,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+#ifndef MSDOS
+	0
+#endif
+};

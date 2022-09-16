@@ -1,0 +1,552 @@
+! 
+! @DEC_COPYRIGHT@
+!
+! HISTORY
+! Revision 1.1.2.2  1995/07/05  18:09:57  Krishna_Mangipudi
+! 	Moved from ./src/clients
+! 	[1995/07/05  18:09:11  Krishna_Mangipudi]
+!
+! Revision 1.2.2.2  1994/11/07  22:42:19  Krishna_Mangipudi
+! 	Initial Check-in
+! 	[1994/11/07  21:46:26  Krishna_Mangipudi]
+! 
+! Revision 1.2  1994/11/04  18:33:29  root
+! 	Initial load of project
+! 
+! $EndLog$
+! 
+!**********************************************************************
+!*                                                                    
+!*  Copyright Digital Equipment Corporation, 1994,                    
+!*  All rights reserved.                                              
+!*                                                                    
+!*  This software is proprietary to and embodies the confidential     
+!*  technology of Digital Equipment Corporation. Possession, use,     
+!*  or copying of this software and media is authorized only pursuant 
+!*  to a valid written license from Digital or an authorized          
+!*  sublicensor.                                                      
+!*                                                                    
+!*  Restricted Rights: Use, duplication, or disclosure by the         
+!*  U.S. Government is subject to restrictions as set forth in        
+!*  subparagraph (c) (1) (ii) of DFARS 252.227-7013, or in            
+!*  FAR 52.227-19, or in FAR 52.227-14 Alt. III as applicable.        
+!*                                                                    
+!*  The name of Digital Equipment Corporation may not be used to      
+!*  endorse or promote products derived from this software without    
+!*  specific prior written permission. All other rights reserved.     
+!*                                                                    
+!*  This software is provided "as is" and without any express or      
+!*  implied warranties, including, without limitation, implied        
+!*  warranties of non-infringement, merchantibility or fitness        
+!*  for a particular purpose. Digital assumes no responsibility AT    
+!*  ALL for the use or reliability of this software.                  
+!*                                                                    
+!*********************************************************************
+!**************************************************************************
+!**  PROGRAM:
+!**    windict.uil
+!**
+!**  ABSTRACT:
+!**     
+!**     This is the UIL file that goes with windict.c.  It contains a 
+!**     description of the widgets used and the callback routines 
+!**     associated with them.
+!**
+!**  ENVIRONMENT:
+!**
+!**      OSF/1 AXP
+!**
+!**  AUTHOR(S):
+!**
+!**      Krishna Mangipudi 
+!**      June 1994
+!**
+!**  MODIFICATIONS:
+!**
+!**     06 Oct 94   KM    Added TextWidgetModified
+!**
+!**
+!**
+!***************************************************************************
+module windict 
+	names = case_sensitive
+	objects = {
+!		XmPushButton = gadget;
+!		XmToggleButton = gadget;
+	}
+
+procedure
+	WidgetCreate(integer);
+        FileMenuSelect(integer);
+        EditMenuSelect(integer);
+	ProcessName(integer);
+	CancelPrompt();
+	ProcessSave(integer);
+	QuitProc(integer);
+        PronounceWord(integer);
+        TranslatePhoneme();
+        TextWidgetModified();
+value
+	file_label_text             : "File";
+	open_button_text            : "Open...";
+	compile_button_text         : "Compile Dictionary";
+        save_button_text            : "Save";
+        saveas_button_text          : "Save as...";
+	exit_button_text            : "Exit";
+	open_error_text             : "Can't Open Specified Text File.";
+        compile_inprogress_text     : "Compiling User Dictionary ";
+        compile_done_text           : "User Dictionary Compiled";
+        save_onexit_text            : "Save file before continuing?";
+value
+        menu_open                   : 1;
+        menu_compile                : 2;
+        menu_dict                   : 3;
+        menu_save                   : 4;
+        menu_saveas                 : 5;
+        menu_exit                   : 6;
+        menu_undo                   : 7;
+        menu_cut                    : 8;
+        menu_copy                   : 9;
+        menu_paste                  : 10;
+        menu_delete                 : 11;
+        menu_selectall              : 12;
+value
+        pron_this                   : 0;
+        pron_next                   : 1;
+        pron_prev                   : 2;
+value
+	edit_label_text             : "Edit";
+	undo_text                   : "Undo";
+	cut_text                    : "Cut";
+	copy_text                   : "Copy";
+	paste_text                  : "Paste";
+	delete_text                 : "Delete";
+	select_text                 : "Select All";
+        find_text                   : "Find...";
+value
+	help_label_text             : "Help";
+	about_label_text            : "About Windict   ";
+value
+	translate_label_text        : "Translate";
+
+value
+	PRONOUNCE  : 0;
+	PREVIOUS   : 1;
+	NEXT       : 2;
+	TEXT       : 3;
+        TRANSLATE  : 4;
+	UNDO       : 5;
+	CUT        : 6;
+	COPY       : 7;
+	PASTE      : 8;
+	DELETE     : 9;
+	SELECTALL  : 10;
+
+object windict_main : XmPanedWindow {
+	controls {
+		XmForm form;
+	};
+};
+
+object form : XmForm {
+	controls {
+		XmMenuBar menu_bar;
+		XmPushButton pronounce_button;
+		XmPushButton previous_button;
+		XmPushButton next_button;
+		XmScrolledText text_1;
+	};
+};
+
+object menu_bar : XmMenuBar {
+	arguments {
+		XmNleftAttachment = XmATTACH_FORM;
+		XmNrightAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_FORM;
+		XmNshadowThickness = 3;
+                XmNspacing = 20; 
+	};
+	controls {
+		XmCascadeButton file_button;
+		XmCascadeButton edit_button;
+		XmCascadeButton translate_button;
+!		XmCascadeButton help_button;
+	};
+};
+
+object file_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = file_label_text;
+	};
+	controls {
+		XmPulldownMenu file_menu;
+	};
+};
+
+object file_menu : XmPulldownMenu {
+	controls {
+		XmPushButton open_button;
+		XmPushButton compile_button;
+		XmPushButton save_button;
+		XmPushButton saveas_button;
+                XmPushButton exit_button;
+	};
+};
+
+object open_button : XmPushButton {
+	arguments {
+		XmNlabelString = open_button_text;
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_open);
+	};
+};
+
+object compile_button : XmPushButton {
+        arguments {
+                XmNlabelString = compile_button_text;
+        };
+        callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_compile);
+        };
+};
+
+object save_button : XmPushButton {
+        arguments {
+                XmNlabelString = save_button_text;
+        };
+        callbacks {
+                XmNactivateCallback = procedure FileMenuSelect(menu_save);
+        };
+};
+
+object saveas_button : XmPushButton {
+        arguments {
+                XmNlabelString = saveas_button_text;
+        };
+        callbacks {
+		XmNactivateCallback     = procedure FileMenuSelect(menu_saveas);
+        };
+};
+
+object exit_button : XmPushButton {
+	arguments {
+		XmNlabelString = exit_button_text;
+		XmNaccelerator          = "Ctrl<Key>z";
+                XmNacceleratorText      = "Ctrl/Z";
+	};
+	callbacks {
+		XmNactivateCallback = procedure FileMenuSelect(menu_exit);
+	};
+};
+
+object edit_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = edit_label_text;
+	};
+	controls {
+		XmPulldownMenu edit_menu;
+	};
+};
+
+object edit_menu : XmPulldownMenu {
+	controls {
+		XmPushButton undo_button;
+                XmSeparator  {};
+		XmPushButton cut_button;
+		XmPushButton copy_button;
+		XmPushButton paste_button;
+		XmPushButton delete_button;
+                XmSeparator  {};
+		XmPushButton select_button;
+!		XmSeparator  {};
+!		XmPushButton find_button;
+	};
+};
+
+object translate_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = translate_label_text;
+	};
+	callbacks {
+                XmNactivateCallback     = procedure  TranslatePhoneme();
+	};
+};
+
+object help_button : XmCascadeButton {
+	arguments {
+		XmNlabelString = help_label_text;
+	};
+	controls {
+                XmPulldownMenu help_menu;
+	};
+};
+
+object help_menu : XmPulldownMenu {
+	controls {
+		XmPushButton about_button;
+        };
+};
+
+object about_button : XmPushButton {
+        arguments {
+                XmNlabelString = about_label_text;
+        };
+        callbacks {
+        };
+};
+
+object undo_button : XmPushButton {
+	arguments {
+		XmNlabelString = undo_text;
+                XmNaccelerator          = "Ctrl<Key>u";
+                XmNacceleratorText      = "Ctrl/U";
+                XmNsensitive            = false;
+	};
+	callbacks {
+                MrmNcreateCallback      = procedure WidgetCreate(menu_undo);
+                XmNactivateCallback     = procedure EditMenuSelect(menu_undo);
+	};
+};
+
+object cut_button : XmPushButton {
+	arguments {
+		XmNlabelString = cut_text;
+                XmNaccelerator          = "Ctrl<Key>t";
+                XmNacceleratorText      = "Ctrl/T";
+                XmNsensitive            = false;
+	};
+	callbacks {
+                MrmNcreateCallback      = procedure WidgetCreate(menu_cut);
+                XmNactivateCallback     = procedure EditMenuSelect(menu_cut);
+	};
+};
+
+object copy_button : XmPushButton {
+	arguments {
+		XmNlabelString = copy_text;
+                XmNaccelerator          = "Ctrl<Key>c";
+                XmNacceleratorText      = "Ctrl/C";
+                XmNsensitive            = false;
+	};
+	callbacks {
+                MrmNcreateCallback      = procedure WidgetCreate(menu_copy);
+                XmNactivateCallback     = procedure EditMenuSelect(menu_copy);
+	};
+};
+
+object paste_button : XmPushButton {
+	arguments {
+		XmNlabelString = paste_text;
+                XmNaccelerator          = "Ctrl<Key>p";
+                XmNacceleratorText      = "Ctrl/P";
+                XmNsensitive            = false;
+	};
+	callbacks {
+                MrmNcreateCallback      = procedure WidgetCreate(menu_paste);
+                XmNactivateCallback = procedure EditMenuSelect(menu_paste);
+	};
+};
+
+object delete_button : XmPushButton {
+	arguments {
+		XmNlabelString = delete_text;
+                XmNaccelerator          = "Ctrl<Key>d";
+                XmNacceleratorText      = "Ctrl/D";
+                XmNsensitive            = false;
+	};
+	callbacks {
+                MrmNcreateCallback  = procedure WidgetCreate(menu_delete);
+                XmNactivateCallback = procedure EditMenuSelect(menu_delete);
+	};
+};
+
+object select_button : XmPushButton {
+	arguments {
+		XmNlabelString = select_text;
+                XmNaccelerator          = "Ctrl<Key>a";
+                XmNacceleratorText      = "Ctrl/A";
+                XmNsensitive            = true;
+	};
+	callbacks {
+                MrmNcreateCallback  = procedure WidgetCreate(menu_selectall);
+                XmNactivateCallback = procedure EditMenuSelect(menu_selectall);
+	};
+};
+
+object find_button : XmPushButton {
+	arguments {
+		XmNlabelString = find_text;
+	};
+	callbacks {
+	};
+};
+
+object pronounce_button : XmPushButton {
+	arguments {
+		XmNleftAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNtopWidget = menu_bar;
+		XmNlabelString = "Pronounce Word";
+		XmNforeground = color('steelblue');
+		XmNbackground = color('wheat');
+		XmNtopShadowColor = color('lightblue');
+		XmNbottomShadowColor = color('steelblue');
+		XmNshadowThickness = 3;
+		XmNhighlightThickness = 0;
+		XmNmarginWidth = 90;
+	};
+	callbacks {
+                XmNactivateCallback = procedure PronounceWord(pron_this);
+	};
+};
+
+object previous_button : XmPushButton {
+	arguments {
+		XmNleftAttachment = XmATTACH_WIDGET;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNrightAttachment = XmATTACH_WIDGET;
+		XmNleftWidget = pronounce_button;
+		XmNtopWidget = menu_bar;
+		XmNrightWidget = next_button;
+		XmNlabelString = "Previous";
+		XmNforeground = color('steelblue');
+		XmNbackground = color('wheat');
+		XmNtopShadowColor = color('lightblue');
+		XmNbottomShadowColor = color('steelblue');
+		XmNshadowThickness = 3;
+		XmNhighlightThickness = 0;
+	};
+	callbacks {
+                XmNactivateCallback = procedure PronounceWord(pron_prev);
+	};
+};
+
+object next_button : XmPushButton {
+	arguments {
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNrightAttachment = XmATTACH_FORM;
+		XmNtopWidget = menu_bar;
+		XmNlabelString = "Next";
+		XmNforeground = color('steelblue');
+		XmNbackground = color('wheat');
+		XmNtopShadowColor = color('lightblue');
+		XmNbottomShadowColor = color('steelblue');
+		XmNshadowThickness = 3;
+		XmNmarginWidth = 90;
+		XmNhighlightThickness = 0;
+	};
+	callbacks {
+                XmNactivateCallback = procedure PronounceWord(pron_next);
+	};
+};
+
+object    text_1 : XmScrolledText {
+        arguments {
+		XmNleftAttachment = XmATTACH_FORM;
+		XmNrightAttachment = XmATTACH_FORM;
+		XmNtopAttachment = XmATTACH_WIDGET;
+		XmNtopWidget = pronounce_button;
+		XmNcolumns = 80;
+		XmNrows = 24;
+		XmNresizeWidth = false;
+		XmNresizeHeight = false;
+		XmNeditMode = XmMULTI_LINE_EDIT;
+		XmNshadowThickness = 3;
+        };
+	callbacks {
+                MrmNcreateCallback = procedure WidgetCreate(TEXT);
+                XmNvalueChangedCallback = procedure TextWidgetModified();
+	};
+    };
+
+!**************************************************************************
+!*      Popups that are called from within the xmspeak source program.
+!**************************************************************************
+
+object open_fs_box : XmFileSelectionDialog {
+        arguments {
+                XmNdirMask      = "*.tab";
+                XmNdialogTitle  = "Open File";
+        };
+        callbacks {
+                XmNcancelCallback = procedure CancelPrompt();
+                XmNokCallback = procedure ProcessName(menu_open);
+        };
+};
+
+object saveas_fs_box : XmFileSelectionDialog {
+        arguments {
+                XmNdirMask      = "*.tab";
+                XmNdialogTitle  = "Save As ";
+        };
+        callbacks {
+                XmNcancelCallback = procedure CancelPrompt();
+                XmNokCallback = procedure ProcessName(menu_saveas);
+        };
+};
+
+object dict_fs_box : XmFileSelectionDialog {
+        arguments {
+                XmNdirMask      = "*.dic";
+                XmNdialogTitle  = "Save Compiled Dictionary As";
+        };
+        callbacks {
+                XmNcancelCallback = procedure CancelPrompt();
+                XmNokCallback = procedure ProcessName(menu_dict);
+        };
+};
+
+object messageWidget : XmErrorDialog {
+        arguments {
+                XmNmessageString = open_error_text;
+                XmNdialogTitle  = "Windict Error Message";
+        };
+};
+
+object compile_inprogress : XmMessageDialog {
+        arguments {
+                XmNmessageString = compile_inprogress_text;
+                XmNdialogTitle  = "Windict Message";
+        };
+};
+
+object compile_done : XmMessageDialog {
+        arguments {
+                XmNmessageString = compile_done_text;
+                XmNdialogTitle  = "Windict Message";
+        };
+};
+
+object save_onexit : XmQuestionDialog {
+        arguments {
+                XmNnoResize = true;
+                XmNdialogTitle = "Windict: Quit?";
+                XmNdialogStyle = XmDIALOG_FULL_APPLICATION_MODAL;
+                XmNmessageString = "Do you want to save the file?";
+                XmNdefaultPosition = true;
+                XmNokLabelString = "Yes";
+                XmNhelpLabelString = "No";
+       };
+       callbacks {
+                XmNokCallback = procedure ProcessSave(menu_exit); 
+                XmNhelpCallback = procedure QuitProc(menu_exit);
+      };
+};
+
+object save_oncompile : XmQuestionDialog {
+        arguments {
+                XmNnoResize = true;
+                XmNdialogTitle = "Windict: Save Dictionary?";
+                XmNdialogStyle = XmDIALOG_FULL_APPLICATION_MODAL;
+                XmNmessageString = "Do you want to save the file?";
+                XmNdefaultPosition = true;
+                XmNokLabelString = "Yes";
+                XmNhelpLabelString = "No";
+       };
+       callbacks {
+                XmNokCallback = procedure ProcessSave(menu_compile); 
+                XmNhelpCallback = procedure QuitProc(menu_compile);
+      };
+};
+end module;

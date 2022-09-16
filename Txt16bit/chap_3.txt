@@ -1,0 +1,1473 @@
+                               CHAPTER 3
+                    HOW TO COMMUNICATE WITH DECTALK.
+
+COMMUNICATING WITH THE DECTALK PC.
+      The  primary function of the DECtalk PC is to convert ASCII text
+files  into synthesized speech output. In addition, a large number  of
+control  and status functions are available. These functions are  used
+to  modify  the  speech parameters of the DECtalk PC  and  to  provide
+status and control to the application program.
+
+DECtalk Driver - DT_DRIV.
+All text and control communications to the DECtalk PC are done via the
+DECtalk Terminate and Stay Resident (TSR) driver, DT_DRIV.EXE.   There
+are three basic ways to communicate with the TSR.It can be done by;
+     1.  Using the DOS commands COPY and PRINT,
+     2.  Using DOS  (Int 86) BIOS calls to a COMM or LPT port
+     3.  Interfacing directly with the TSR using Int 2f multithreaded
+	 interrupts.
+
+SENDING ASCII TEXT.
+It  is  the responsibility of the PC user or the application to insure
+that  only  ASCII  based  text is sent to the DECtalk  to  synthesize.
+DECtalk  PC includes its own set of built-in rules for text processing
+as  well  as  a   large integral dictionary. In addition,  application
+specific  dictionaries can be included. All text input to the  DECtalk
+are processed based on these rules and dictionaries.
+Text Processing Rules
+
+     Many  applications manipulate the text input to  the  DECtalk  to
+control  how it is to be spoken. Prior to modifying the text input  to
+gain  the desired result, it is important to the application developer
+to know the text processing rules that are already programmed into the
+DECtalk.  These  rules are described in Chapter 4 and  include  number
+processing,  abbreviations, word spellout  strategies  and  homographs
+(words  with  two  pronunciations). In every case the  latest  release
+notes  should  be  consulted to see if any of these  rules  have  been
+modified.
+
+Application DICTIONARIES.
+      Dictionaries containing words, acronyms, etc. that are  specific
+to  an application and that DECtalk needs help in pronuncing correctly
+can  be  created and loaded into the  memory on the DECtalk PC  board.
+Appendix  E.  describes  the procedure for  creating  and  loading  an
+application dictionary.
+
+DECtalk searches dictionaries in the reverse order in which they  were
+loaded. Therefore it will search the last loaded dictionary first  and
+so  on. If you want to override the pronunciation of a word which  may
+be   in  the  internal  dictionary,  DTPC.DIC,  then  the  application
+dictionary  must be loaded after it. The DT_LOAD command  is  used  to
+load  a  dictionary.  The command can be used anytime  after  the  the
+DECtalk  PC  has been initialized and loaded with its basic operating
+modules.  Or  the compiled application dictionaries's  file  name  can
+added  onto the end of the DT_LOAD command that is included in DECtalk
+PC's AUTOEXEC.BAT  file commands.
+
+     Examples:
+          DT_LOAD  personal.dtu
+               or
+          DT_LOAD  kernel.sys dtpc.dic ... mydict.dtu
+
+CONTROL AND STATUS FUNCTIONS.
+      In  addition to being able to send ASCII text to the DECtalk for
+it to convert into synthesized speech output, there are a large number
+of  operating  parameters which can be controlled  by  an  application
+program. These parameters include selecting the speaking voice,  rate,
+and volume, tone generation, and pause lengths. Various modes can also
+be  set  such as punctuation, logging, spelling, and speaking.  Lastly
+status  and control functions such as indexing and output control  are
+available to the application program. The description and use of these
+status and control functions are described later in this chapter.
+
+DT_DRIVE CONFIGURATION OPTIONS.
+        The  DT_DRIV.EXE program will take various arguments to allow
+for  different desired configurations. The default configuration  for
+DECtalk is a base address of 340, and serial trapping enabled on port
+3  (COM4).  The following is a list of the arguments that the  driver
+program accepts.  The I/O address is set via switches 6 and 7 of  the
+DIP  switch  pack  on the DECtalk PC board. The DT_DRIV  comand  line
+switch options are:
+
+       Table 3.1  DT_DRIV Configuration Options
+
+     -C  DD     Enables com port trapping(01 = COM2, 02 = COM3,
+                                              or 03 = COM4).
+     -L   DD      Enables parallel printer trapping (01 = LPT2, 02  =
+                  LPT3).
+     -B  XX     Sets the base module address to XX (hex number).
+     -R         Removes the driver from memeory.
+     -V          Calls  for  verbose printout of information  by  the
+                 driver.
+
+Configuring Multiple DECtalk PC Boards.
+	If you are using more than one DECtalk PC board in a single PC,
+please refer to appendix F.
+
+
+DOS BIOS Calls.		    
+        The  DECtalk PC can be treated as a standard ASCII device  as
+though  it  was  connected to either a serial com port  (COMx)  or  a
+parallel  printer  port  (LPTx). DOS INT86 BIOS  calls  made  to  the
+specific  port  are  trapped  by  DT_DRIV  which  then  directs   the
+information to the DECtalk PC card on the PC bus.
+
+SING DOS COPY AND PRINT.
+        The  simplest way to communicate with the TSR is to  use  the
+DOS  COPY  command. The DOS syntax  "COPY filename.txt COMx"  can  be
+used where filename.txt is a file containing ASCII formatted text and
+COMx  is  the COM port that the DT_DRIV driver is trapping calls  to.
+The  default  COM port for DECtalk PC is COM4. The PRINT command  can
+also  be  used  if the printer switch is activiated  in  the  DT_DRIV
+command line.  The ports can be changed using switches in the DT_DRIV
+command line.
+
+DT_DRIV  will  trap the BIOS call made to COM4 and instead  send  the
+text file to the DECtalk PC installed on the PC bus.  Thr DECtalk  PC
+then converts the text into synthesized speech.
+
+PROGRAMMING DOS BIOS CALLS.
+      The  DECtalk driver will trap any COPY or PRINT BIOS  interrupts
+for  whichever  device  it has been configured to  emulate(see  Driver
+Configuration Options above) and  should appear to the calling program
+just  like  a normal serial or parallel card at the BIOS level.  Since
+there isn't any actual parallel or serial hardware,  baud rate and the
+like  will be emulated and echoed, but nothing is done with these.  In
+emulation  mode,  the DECtalk will operate just as quickly  with  baud
+rate set at 110 baud as it will at 19.2kbaud.
+
+      As an example of a COM BIOS call, the status information for the
+DECtalk was obtained by an INT14 .
+ 
+    Example:
+          gt_stat(int dtport)
+          {
+               do{
+               RB.ah = _COM_STATUS;
+               RB.al = 0;
+               RW.dx = dtport;
+               RW.si = 0;
+               _int86(0x14, &regs, &regs);
+               }while(regs.x.ax == TSR_BUSY || regs.x.ax ==
+          TSR_RETRY);
+               return(RW.ax);
+          }
+
+This  manual  will not address how to make BIOS calls to a  serial  or
+parallel  device.  That  information is generally  available  and  the
+details  are specific to the compiler being utilized, rather  than  to
+the  DECtalk. For informational purposes, the definitions for the comm
+port bits have been included in the DTTSR.H file which is provided  as
+part of the distribution.
+
+NOTE  -  Some communications programs will try to deal directly  with
+the  port hardware on the PC thereby bypassing the BIOS. If  this  is
+the  case,  the  DECtalk  TSR  will never  see  the  commands.  Other
+applications, like KERMIT, will revert to BIOS if it does not see any
+hardware  at the designated port. DECtalk PC should work  with  these
+types  of  programs as long as the port selected does  not  have  any
+physical hardware in the PC designated with the same port name.
+Communicating Directly with the TSR.
+
+Application programs can interface directly with the DECtalk  TSR  to
+both control the DECtalk PC and to send it text to speak.
+
+2F MULTI-THREADED INTERUPT.
+        To  interface  directly  with the TSR  driver,  DT_DRIV,  the
+application  must utilize the 2F multi-threaded INT86 interrupt.  The
+call is made using a INT86 structure with the ah = DECTALK_ID and the
+al  =  the command function code. The bl contains any parameters that
+need  to be passed along with the command. The Status command returns
+the  status  of the DECtalk and not comm status. The dx contains  the
+comm  status information in this case, so you can get the comm status
+from the GET_STATUS command.
+
+       Example:
+       stopit()
+
+{
+       do{
+       RB.ah = DECTALK_ID;
+       RB.al = PAUSE_OUTPUT;
+       RW.si = 0;
+        _int86(0x2f, &regs, &regs);
+       }while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+       return(RW.ax);
+
+Embedding DECtalk commands in the text string
+In  addition to controlling DECtalk directly via TSR commands, it can
+also  be  controlled by embedding commands in the ASCII text  string.
+
+These  are  known as "square bracket" commands because the syntax  is
+[:CMND DD].
+
+For  example, to change the speaking rate to 220 words per minute the
+following  command could be included in the text file  at  the  point
+where the change in rate was desired:
+               [:Rate 220]
+
+The  "square  bracket"  commands are listed  in  the  Speech  Control
+Commands section later in this chapter.
+Mixed Control
+
+     Both types of command functionality can be present simultaneously
+so it is possible to utilize both types at the same time. For example
+the TSR command to send a buffer could include an ASCII string
+containing "square bracket" speech control commands. Synchronization
+of commands and data if both paths were utilized would be the
+responsibility of the application.
+
+SPEECH CONTROL.
+There are four (4) ways to control speech in the DECtalk PC.
+
+        1.   Through  English  text (sentences  in  standard  English
+format  and spelling). DECtalk speaks this text as  written according
+to  a  set  of predefined rules. Chapter 4 discusses these rules   in
+more detail.
+
+        2.   Through phonemic spelling (sentences or phrases  written
+in  phonemic  symbols). Phonemic spelling is  closer  to  the  actual
+pronunciation  of the text. Phonemic spelling is always  enclosed  in
+square  brackets. E.g., if you were to phonemicize the sentence  This
+is  an  example of       phonemic spelling, it would look like  this:
+[dh'ihs ihz  axn ixgz'aempel axv  faxn'iymixk sp'ehlixnx]. Chapter  5
+Phonemics discusses phonemic control in more detail.
+NOTE: To use the Phonemic spelling function it must be turned ON.
+
+        3.  Through voice control, [:dv XX], commands. These commands
+control  features  of speech that are not obvious  from  the  visible
+text,  such  as  sex  of  the speaker, and excitement  level.   These
+commands  are  a   subset  of  the overall speech  control  commands.
+Chapter  6   Modifying  the Voices discusses voice  control  in  more
+detail.
+
+        4.  Through  speech control commands. These "square  bracket"
+([:CMND   XX])  commands  control  the  overall  operation   of   the
+synthesizer  as  well as its many special features.  They  allow  the
+various  voices to be selected, the speaking  rate and volume  to  be
+set and the various operating modes (like spell, log and math, to  be
+set.  .  The  also  control  the  generation  of  tones,  punctuation
+pronunciation, the length of pauses after periods and  commas.  These
+commands are listed in the Speech Control Commands  section  of  this
+chapter.
+
+USING SPEECH CONTROL COMMANDS.
+Speech  control  commands  can  be broadly  defined  as  being  either
+synchronous  or asynchronous. Speech control commands are  synchronous
+unless  otherwise stated in their individual descriptions. Synchronous
+commands  take effect when they are encountered in the text string  by
+the  DECtalk  synthesizer. For example a voice change command,  [:nX],
+will  take effect at the point the command is encountered in the text.
+Asynchronous  commands on the other hand are intended to provide  fast
+response  and  therefore  when parsed by  the  DECtalk  TSR  are  sent
+directly to the DECtalk synthesizer  for immediate processing.
+
+SYNCHRONIZING ASYNCHRONOUS COMMANDS.
+         The   immediate  processing  of  asynchronous  commands   is
+beneficial when fast response is desired. However caution  should  be
+exercised when using commands that are listed as asynchronous and the
+intent  is to have them take effect at a specific point in the  text.
+
+If  it  is  desired to synchcronize an asynchronous command then  the
+[:SYNCH]  command should be used in conjunction with it. For  example
+to  use  the asynchronous PAUSE command to place a pause of 500ms  at
+the  begining of a paragraph the following command sequence would  be
+used:
+       Text of Paragraph 1.
+       [:synch :pause 500]  Text of Paragraph 2.
+
+COMMAND ERRORS.
+If  an incorrect syntax is sent in a command, the closing bracket may
+be  ignored as it might be considered part of the illegal string.  To
+help  avoid  this  situation,  set the  [:  error  speak  on]  during
+development. If a flush occurs in the middle of processing a  command
+string,  it will report an error. Therefore, not all reported command
+errors represent a problem.
+
+Speech Control commands.
+The  following is an alphabetized list of the speech control commands
+for  DECtalk. Each entry consists of (a) Function:  what the  command
+is  supposed to accomplish; (b) Command: the text you type in to tell
+DECtalk  what to do. All commands begin with a "[:" and  end  with  a
+"]".   Any unique substring of the command is valid, e.g., [:ra  180]
+is  equivalent to [:rate 180], (:co is sufficient for [:comma pause],
+and  so  on.    (c) Options:  (d) Parameters: the required parameters
+for those options;  (e) Default; (f) Examples: (g) Description: a non-
+formal  description  of what the command does  along  with   examples
+where pertinent.
+
+FUNCTION:                             COMMA PAUSE
+COMMAND:                              [:COmma DD]
+OPTIONS (XX):                         None
+PARAMETERS (DD):                      Pause time increment in
+                                       milliseconds
+                                      Min -40
+                                      MAX  +30000
+DEFAULT:                              160 ms.
+EXAMPLES:                             [:comma 250]
+DESCRIPTION:
+Comma  pause may be incremented and decremented. [:cp 0]  resets  the
+comma pause to its default state (approximately 160 ms.) Comma pauses
+can be incremented by 30000ms and decremented by -40 ms.) All  values
+outside legal range will default to the nearest legal values.
+Note:  Comma pauses may be lengthened or shortened only by the  above
+method. Angle bracket notation using durations may no longer be used.
+
+FUNCTION:                             DEFINE VOICE
+COMMAND:                              [:DEfine  XX DD (SAVE)]
+                                      [:DV XX DD (SAVE)]
+OPTIONS (XX):                         See Chapter 6.
+       (SAVE)                         SAVE  saves the specified
+                                      parameters into the VAL voice.
+PARAMETERS (DD):                      See Chapter  6. Modifying the
+                                      Voices
+DEFAULT:                              Parameters for Paul Voice
+EXAMPLES:                             [:dv ap 120]
+                                      [:dv pr 130 SAVE]
+DESCRIPTION:
+This  command allow the user to set speech parameters such  as  pitch
+range  (for  a  greater excitement level), head size  (for  a  deeper
+voice)  and  the like. XX is a mnemonic which stands for an  acoustic
+parameter. DD is some decimal value of the parameter. See Appendix  D
+for  a  list of these parameters. For example, to change the  average
+pitch  to  120,  type [:dv ap 120]. To save these parameters  to  the
+variable  val voice, you may use the [:dv save] command.  Then,  when
+you  type [:nv] or [:name val] these saved parameters will define the
+current voice.
+Note:  You  should leave a space between the parameter name  and  the
+value.  Thus, to set the pitch range to 0, type [:dv pr  0]  and  not
+[:dv pr0].
+
+
+FUNCTION:                             DIAL TONES
+COMMAND:                              [:DIal "D,DDD-DDD-DDD"]
+OPTIONS (XX):                         None
+PARAMETERS  (DD):                      String of dial characters  (0-
+9,
+                                      A,B,C,D,#,*,(comma))
+                                      bounded by quotation marks
+DEFAULT:                              None
+EXAMPLES:                             [:dial "1,508-555-1212"]
+DESCRIPTION:This  command generates tones called Dual  Tone  Multiple
+Frequency  (DTMF) Tones or Touch-Tonestm. The tones  are  the  touch-
+tones  for  0-9, *, #, "," (comma) and uppercase A,  B,  C,  D   (for
+certain  types of  handsets only).  The comma can be used to generate
+a 2-second  pause. Quotation marks are required around the digits and
+dashes  should  be used where appropriate in telephone  numbers.  The
+dial tone command is asynchronous.
+Note:  The  DTMF generated by this command are the same  tones  which
+are used to dial a telephone. However, tone levels may not always  be
+adequate to signal switch DTMF detectors and thus this is not  always
+reliable. You can adjust volume using the [:vs XX]  command.
+
+
+FUNCTION:                             ENABLE
+COMMAND:                              [:ENable]
+OPTION (XX):                          None
+PARAMETERS (DD)                None
+DEFAULT:                              On
+DESCRIPTION:
+Enables speaking after a selective text flush. This command is needed
+only  after a flush text command or if a TSR call of FLUSH_SPEECH  is
+used.
+EXAMPLE:
+
+
+FUNCTION:                             ERROR
+COMMAND:                              [:ERror XX]
+OPTIONS (XX):
+       Ignore :                Ignore all errors
+       TExt :          Send errors back as text strings of the form:
+                       [:error <type>]
+       Escape :        Send errors back as escape sequences of the
+form:
+                        ESC P 0 ; 300 ; <error code>
+       Speak : Speak error string in current voice, rate, etc.
+       TOne :  Generate error tone.
+PARAMETERS:                           None
+DEFAULT:                              Ignore
+EXAMPLE                        [:error sp]
+DESCRIPTION:
+This  command  sets the error mode for the module.  This  command  is
+useful for debugging in an application development setting.
+
+
+FUNCTION:                             FLUSH
+COMMAND:                              [:Flush XX DD]
+OPTIONS (XX):
+       ALl :  Flush all text. (see the flush_text TSR command above)
+       Until : Flush until the specified index mark is found.
+       Mask : Flush until mask and index bit coincide.
+       AFter : Flush all text after index mark.
+       Speech : Flush all speaking but continues to process
+commands. This mode is ended by the enable ([:enable]) command.
+PARAMETERS (DD):                      Index mark value or mask
+                                      value
+DEFAULT:                              None
+EXAMPLES:                             [:flush after 193]
+DESCRIPTION:
+This  command allows speech to be discarded. All pending but unspoken
+text is lost, including index markers that may have been sent by  the
+PC. This  command stops speech, even if DECtalk is  in the middle  of
+a sentence. Speech stops and all internal buffers are re-initialized.
+The flush command is asynchronous.
+Note: If a Ctrl K is used to flush text while in phonemic mode,   the
+text  will  be  flushed but it may result in an  "error  in  phoneme"
+message.
+
+
+FUNCTION:                             INDEX
+COMMAND:                              [:Index XX DD]
+OPTIONS (XX):
+       Mark:   Insert mark into text at current position.
+        Reply:  Insert mark and reply when encountered.  (reply  =ESC
+P 0 ; 31 ; DD z)
+        Query:  Respond with last encountered index.   (reply =ESC  P
+0 ; 32 ; DD z)
+PARAMETERS (DD):                      Index Mark Value
+                                      Index Reply Value
+                                      Index Query Value
+RESPONSE:
+DEFAULT:                              None
+EXAMPLES:                             [:index reply 123]
+DESCRIPTION:
+Text  sent  to  DECtalk  can  contain index  marks.  The  application
+"listens"   to  the  spoken text (by reading the value  of  the  last
+index) to  determine how much transmitted text has been spoken. Index
+markers  are  truly  marks;  they do not modify  heuristics  or  word
+pronunciations in any way.  The mark sequence inserts an index marker
+(flag)  in  the  text  stream sent to DECtalk. Mark  simply  marks  a
+position  in  the text. Reply marks a position, but also has  DECtalk
+inform  the  PC   when the index is spoken. When DECtalk  speaks  the
+reply  sequence, it sends a reply to the PC.  Note: The  Index  Reply
+will  always  be the same number as the Index.  Index Query  requests
+DECtalk  to  reply to the PC with the last index marker spoken  (that
+is,  the last portion of spoken  text that had an index marker).   It
+will send back [:index xxx].
+
+
+FUNCTION:                             LOG
+COMMAND:                              [:LOg XX YY]
+OPTIONS (XX YY):
+       XX:
+               Text            Log all text except escape sequences
+               Phonemes               Log converted phonemic text
+       YY:
+               ON              Absolute
+               OFf             Enable mode
+               Set             Disable mode
+PARAMETERS :                          None
+DEFAULT:                              Off
+EXAMPLES:                             [:log text on]
+DESCRIPTION:
+This commmand sets text logging modes for the module. The log command
+controls DECtalk logging of input text. This  command allows  DECtalk
+to  send  the phonemes corresponding to the  input text back  to  the
+PC.  The PC must be prepared to receive the characters when  they are
+sent, or they will be lost
+
+
+FUNCTION:                             MODES
+COMMAND:                              [:Mode XX YY]
+OPTIONS (XX YY):
+       XX:
+               Math    Change interpretation of selected symbols
+               Europe  Select European monetary pronunciation
+               SPell   Spell all words
+               Name    Pronounce all proper names (see also [:pronounce
+                       name])
+               Citation  Say certain function words differently when 
+                         said in isolation (Default ON)
+               Homograph Reserved for Future Use
+       YY:
+               ON      Absolute.
+               OFf     Enable mode
+               Set     Disable mode
+PARAMETERS (DD):                      None
+DEFAULT:                              Off (except Citation)
+EXAMPLES:                             [:mode spell on]
+
+DESCRIPTION
+When  mode  is set to Europe, "," is a separator between the  integer
+and  fraction  part  of a number and "."  is a separator  between  3-
+digit   blocks.  Ex:  1.255  (US) = 1,255 (Europe);  125,873  (US)  =
+125.873  (Europe).   1  =  set;  2 =  clear.   Math  takes  ambiguous
+characters   and   pronounces   them  with   mathematical   meanings.
+
+Specifically, the following characters are treated differently:
+       Character               Clear (Off)    Set (On)
+       +               plus           (no change)
+       -               dash           minus
+       *               asterisk               multiplied  by
+       /               slash          divided by
+       xxE-xx          (spelled)              (scientific notation)
+       ^               carat          to the power of
+       <               left angle bracket     less than
+       >               right angle bracket    greater than
+       =               equals         (no change)
+       %               percent        (no change)
+       .               period         point
+
+Mode  NAME allows uppercase words which occur in non sentence initial
+position to be interpreted as special cases and pronounced as names.
+Note:  Do not enable Mode Name except when pronouncing lists of names
+only.  Mode  Name will interpret any uppercase word as a  name.  When
+finished, make sure that this mode is set to OFF.  For the occasional
+use of this utility,  use the [:pronounce name] command (below).
+Mode commands are asynchronous.
+
+
+FUNCTION:                             PAUSE
+COMMAND:                              [:PAuse DDD]
+OPTIONS (XX):                         None
+PARAMETERS (DD):                      Pause time in ms.
+                                      0 = forever.
+DEFAULT:                              N/A
+EXAMPLES:
+                                      [:pause 200]
+DESCRIPTION:
+This  command pauses the audio output of the module. Any pending  but
+unspoken text is retained, including index markers that may have been
+sent by the PC.  The user now has the option of flushing all text  or
+resuming  speech  where  it  was left  off.   The  pause  command  is
+asynchronous.  It  must  be  used in conjunction  with  the  [:SYNCH]
+command to have its effect take palce at a certain place in the  text
+e,g. [:Pause 500 :Synch]Pause here in the text.
+
+
+FUNCTION:                             PERIOD PAUSE
+COMMAND:                              [:PEriod  DDD]
+OPTIONS (XX):                         None
+PARAMETERS (DD):                      Increment Pause time in
+                                      milliseconds
+                                      MIN -380
+                                      MAX +30000
+DEFAULT:                              640 ms.
+EXAMPLES:                             [:pe 250]
+DESCRIPTION:
+Period  pause may be incremented and decremented. [:pp 0] resets  the
+period  pause  to  its default state (approximately 540  ms.)  Period
+pauses  can be incremented by 30000 ms. and decremented by -380  ms.)
+All   values  outside legal range will default to the  nearest  legal
+values.
+Note:  Period pauses may be lengthened or shortened only by the above
+method. Angle bracket notation using durations may no longer be used.
+
+
+FUNCTION:                      PHONEME INTERPRETATION
+COMMAND:                       [:PHoneme XX YY ON/OFF]
+OPTIONS (XX YY ON/OFF):
+       XX:
+               ASky    Reserved for Future Use
+               ARpabet Set phonemic interpretation to arpabet
+                        phonemic alphabet
+       YY:
+               SPeak   Speak encountered phonemes
+               SIlent  Do not speak encountered phonemes
+       ON/OFF:
+               ON      Set phonemic interpretation on
+               OFf     Set phonemic interpretation off
+PARAMETERS (DD):                      None
+DEFAULT:                              Off
+EXAMPLES:                             [:ph ar sp on]
+DESCRIPTION:  When set, this command allows everything within  square
+brackets to be interpreted as phonemic text (unless [ is followed  by
+:  in  which case it is interpreted as a command). When phonemicizing
+text, simply put legal phoneme strings in square brackets. This  will
+allow for the preferred pronunciation of a word or phrase.   This  is
+an  extremely   important function since it sets the  characters  "["
+and  "]" as phoneme delimiters. This means that when this command  is
+set,  all  text  and characters which appear between square  brackets
+will  be interpreted as phonemic text and will be pronounced as such.
+This  is  useful if you do not wish to turn this on but wish to  have
+something   read  phonetically. For example, to  say  the  word  red,
+simply put the phonemic string [r'ehd] in the text.  Default for this
+mode is OFF.
+
+Note:  It   is important to make sure that you close square  brackets
+after  phonemic text when this command is set. Otherwise,  if  normal
+text appears in square brackets, speech will sound garbled. Also,  in
+previous versions of DECtalk, square brackets were nested. This is no
+longer  the case. One square bracket is sufficient to close  phonemic
+mode.  It  is sometimes useful to  begin a  text file with  a  closed
+square  bracket  ("]") to ensure that text will  not  be  interpreted
+phonemically.  Also,  the command sequence   consisting  of  an  open
+square bracket folowed by a colon ("[:") is always interpreted as the
+beginning  of  a  voice command and cannot be interpreted  literally.
+Default  for  phonemic mode is OFF and it must  be  turned  on  by  a
+special command.
+
+
+FUNCTION:                             PITCH CHANGE
+COMMAND:                              [:PItch DD]
+OPTIONS (XX):                         None
+PARAMETERS (DD):                      Pitch delta  in Hz.
+DEFAULT:                              35Hz
+EXAMPLES:                             [:pi   45]
+DESCRIPTION:
+Allows characters  or  words  specified  in the typing table   to  be
+pronounced   with  a  pitch  delta  change. Useful  for  differenting
+capitalized         letters         from         lower          case.
+
+
+FUNCTION:                             PRONOUNCE NAME
+COMMAND:                              [:PRonounce XX]Name
+OPTIONS (XX):
+       Name    Proper name
+       Primary
+       Alternate
+PARAMETERS (DD):                      None
+DEFAULT:                              Off
+EXAMPLES:                             [:pron name] Iacocca
+                                      [: pron  alternate]
+DESCRIPTION:
+DECtalk is now capable of pronouncing proper names with a high degree
+of  accuracy.  This  should  be a great help  to  applications  which
+require  peoples names and addresses to be pronounced correctly.  The
+command  is  placed  in  front of the  proper  name  that  is  to  be
+pronounced.
+
+FUNCTION:                             PUNCTUATION
+COMMANDS:                             [:PUnct XX]
+OPTIONS (XX):
+        None           No puncuation spoken; all punctuation treated
+                       as text breaks
+       Some            Standard DECtalk punctuation pronunciation
+       All             All  punctuation is spoken.
+PARAMETERS (DD):                      None
+DEFAULT:                              [:punc some]
+EXAMPLES:                             [:pu  n]
+DESCRIPTION:
+There   are  three  modes  of  punctuation  pronunciation.   (1)   No
+punctuation  is  spoken;  (2)  only non  clause-final  puncuation  is
+spoken;  (3)  all  punctuation is spoken. The last  function  may  be
+useful  in proofreading as well as in those applications when special
+characters are encountered as in computer programs and the like.  The
+default is that no punctuation is spoken.
+Note:  When the [:punc none] command is used, no punctuation will  be
+pronounced. This will affect dollar amounts ($3.25), percentages (5%)
+and similar sequences normally processed by special rules.
+
+
+FUNCTION:                             RATE SELECTION
+COMMAND:                              [:RAte DD]
+OPTIONS:                              None
+PARAMETERS (DD):                      Rate in words per minute
+                                      MIN  - 75
+                                      MAX  - 650
+DEFAULT:                              180 wpm
+EXAMPLES:                             [:ra 400]
+DESCRIPTION:
+The speaking rate in DECtalk can be selected from 75 words per minute
+to  650 words per minute. All values outside the range of 75-650 will
+default  to  the  nearest legal value. Therefore,  if  you  select  a
+speaking  rate of [:ra 880] or 880 words per minute, it will  default
+to the nearest legal value or 650 words per minute.
+
+
+FUNCTION:                             SAY MODE
+COMMAND:                              [:SAy XX]
+OPTIONS (XX):
+       Clause  Speak on end of clause
+       Word    Speak on end of word
+       LEtter  Speak on end of letter
+       LIne            Speak on end of line
+PARAMETERS (DD):                      None
+DEFAULT:                              [:say clause]
+EXAMPLES:                             [:sa  w]
+DESCRIPTION:
+In  DECtalk,  each clause, word, or letter can be spoken as  entered.
+In  word and letter mode, DECtalk does not need to wait for a  clause
+terminator  to  begin  speaking.  This  command  interacts  with  the
+speaking  rate  command so that you can set both  speaking  rate  and
+speak word or letter mode for the optimal output. Word mode acts like
+letter mode except text is spoken a word at a time.  A white space or
+equivalent  after  a  character or string of characters  causes  that
+string  to  be spoken.  This mode interacts with speaking  rate  such
+that  you can increase or decrease the rate at which letters or words
+are  spoken. For example, for rapid feedback of what is being  typed,
+try  letter  mode with a rate of 400 wpm.  In clause  mode,  speaking
+starts  when  the  PC  is  sent a clause terminator  (period,  comma,
+exclamation point, or question mark followed by a white space).  This
+is the normal mode where text is spoken a phrase, clause, or sentence
+at a time. This mode is the default mode.
+
+Note:  In  [:say letter] mode, the "[" character will be spoken  only
+after the next character is typed since DECtalk needs to know whether
+or not this is the beginning of a new command.
+
+
+FUNCTION:                             RESUME
+COMMAND:                              [:REsume]
+OPTIONS (XX):                         None
+PARAMETERS (DD):                      None
+DEFAULT:                              N/A
+EXAMPLES:                             [:re]
+DESCRIPTION:
+This  command  allows speech to be resumed where [:PAUSE]  left  off.
+Any  pending  but unspoken text is retained, including index  markers
+that may have been sent by the PC.  This command is asynchronous
+
+
+FUNCTION:                             SYNCHRONIZATION
+COMMAND:                              [:SYnc]
+OPTIONS (XX):                         None
+PARAMETERS (DD):                      None
+DEFAULT:                              N/A
+EXAMPLES:                             [:sy :pause 500]
+DESCRIPTION:
+The application program can send data to DECtalk faster than  DECtalk
+can  speak  it.  If  the  user must carry on  a  dialogue  with   the
+application  program,  the  application program should  know  whether
+DECtalk has finished speaking the text sent to it. SYNC provides this
+coordination between the application program and DECtalk speech. When
+the PC sends SYNC, DECtalk finishes speaking  any pending text before
+processing  the  next command.. Therefore, the user hears  a  message
+before  any  other action starts.  Note that SYNC acts  as  a  clause
+boundary, the same as a comma, period, exclamation point, or question
+mark  and  a  white  space. SYNC does not reply  when  processing  is
+complete.  However, you can arrange to get a reply by  following  the
+SYNC  command with an INDEX QUERY command? [:synch] can also be  used
+to synch otherwise asynch commands. For example, the PAUSE command is
+asynchronous  but  if  it was desired to have a  pause  occur  for  a
+specified  amount of time at a given place in the spoken  text,  then
+the  following  syntax could be used, [:Pause 500  :SYNCH]Pause  here
+before you pseak this text.
+
+
+FUNCTION:                             TIMEOUT
+COMMAND:                              [:TImeout DD]
+OPTIONS (XX):                         None
+PARAMETERS (DD):                      Timeout in seconds
+DEFAULT:                              5 Seconds
+EXAMPLES:                             [:timeout 4]
+DESCRIPTION:
+This  command  sets  the buffer flush timeout value.   DECtalk  is  a
+clause  based sythnesizer and therefore looks for a clause terminator
+before  starting  to speak. This function allows the  setting   of  a
+timer which will cause text in the buffer without a clause terminator
+to be spoken  after the specified timeout.
+
+
+FUNCTION:                             TONE
+COMMAND:                              [:TOne DD, dd]
+OPTIONS (XX):                         None
+PARAMETERS (DD):
+       DD:     Tone Frequency in Hertz
+       dd:     Tone Duration in milliseconds
+EXAMPLES:                             [:tone 500,500]
+DESCRIPTION:
+This command generates sounds of different frequencies and lengths
+depending upon the parameters you set. This command allows you to
+make a wide variety of sounds for notification, warning, and margin
+bell, for example. This may be useful when someone wishes to work in
+a quiet environment without using the PC's speaker.
+
+
+FUNCTION:                             TYPING  TABLE
+COMMAND:                              [:TYpe DD (:) PHONE]
+OPTIONS (XX):                         None
+PARAMETERS (DD):
+       DD      Keyboard Character codes
+       :       Apply pitch shift
+       PHONE   1-char phonemic alphabet (See Appendix B)
+DEFAULT:
+EXAMPLE:                              [:TY  32  :hxl'o]
+DESCRIPTION:
+Provides  the  capability to modify the built-in  typing  table  with
+letters  or  words  for  specific  keyboard  codes.  The  1-character
+phonemic alphabet is listed in Appendix B. The function also provides
+the  capability  to specify if the default (35Hz)  or  defined  pitch
+shift  should be applied  to the entry.  The [:Pitch DD]  command  is
+used to define the pitch  delta.
+
+
+FUNCTION:                             VOICE SELECTION
+COMMAND:                              [:Name X]
+                                      [:NX]
+OPTIONS (X):                          Paul, Betty, Harry, Frank, Dennis,
+                                      Kit, Ursula, Rita, Wendy, Val.
+PARAMETERS:                           None
+DEFAULT:                              Paul voice
+                                      Val = Paul
+EXAMPLES:                             [:name harry]
+                                      [:nh]
+DESCRIPTION:
+[:name  X] allows voices to be changed to one of 9 hard-coded  voices
+or  to  a special definable voice. X represents the mnemonic for  one
+of the voices: P = Paul, H = Harry, F = Frank, D = Dennis, B = Betty,
+U  =  Ursula, R = Rita, W = Wendy, K = Kit. and V = Val.  The default
+voice is Paul. The parameters of any one voice may be changed by  the
+define voice [:dv] command.
+
+
+FUNCTION:                             VOLUME
+COMMANDS:                             [:VOlume XX DD]
+OPTIONS (XX):
+       Set:    Set the volume to the desired level
+       Up:     Increase the volume by the desired amount
+       Down:   Decrease the volume by the desired amount
+PARAMETERS (DD):                      Volume or delta volume
+DEFAULT:                              5
+EXAMPLES                              [:volume up 3]
+                                      [:vo 20]
+DESCRIPTION:
+Volume in DECtalk can be controlled by a manual volume control on the
+speaker  or by a software-controlled volume setting on the PC  board.
+The  volume command controls the setting on the PC board. It sets the
+speaker  volume in increments from 0 to 99. Increments or  decrements
+of  10 to 20 cause perceptible increase or descrease in volume.   The
+default  volume  level  is 5. [:volume set] is an  absolute  command;
+[volume  up] and [volume down] are relative commands which  increment
+or  decrement the original value respectively. The volume command  is
+asynchronous.
+
+Note:  It  is recommended that the normal operation be set below  95.
+Volume  above 95 would be excessively loud and an overload  condition
+could  result.  No  damage will occur, but the  unit  could  go  into
+overload  protection mode. The audio output contains  self-protection
+circuitry which guards against shorts or overloads. This will  result
+in  reduction or cessation of output and may take several seconds  to
+recover  after  the  short  or  excessive  overload  is  encountered.
+Thisdelayed recovery is normal.
+
+Note:  The  command [:lo] used in earlier versions of DECtalk  is  no
+longer  used  and  has  been replaced by the G5 parameter  used  with
+[:define voice]. To adjust the volume on DECtalk other than using the
+volume  control knob on the speaker, it is recommended that  you  use
+the [:volume] command.
+
+
+DECTALK TSR Commands
+        A  seperate description page is provided for each DECtalk TSR
+command.  The format is as follows: COMMAND: The command name,  CODE:
+The  command  function  code, FUNCTION: a brief  description  of  the
+commands  function; TYPE: The type of command e.g.  Status,  Control,
+etc.;  Description:  A  more  detailed description  of  the  commands
+function  and  use; Example: An example using  the  command;  Related
+Commands: Any commands with related or reciprocal functionality.
+
+COMMAND	       Code    FUNCTION
+BUFF_FREE      0x1d    Bytes remaining in the input buffer
+TYPE: Status
+Description
+Provides the number of bytes remaining in the DECtalk input buffer.
+Example
+Related Commands
+
+COMMAND		Code    FUNCTION
+BUFF_USED      0x1f    Input buffer bytes used
+TYPE: Status
+Description
+Provides   the  number  of bytes  being used  in  the  DECtalk  input
+buffer.
+Example
+Related Commands
+
+COMMAND		Code    FUNCTION
+DECTALK_EXIT   0x01    Remove the TSR
+TYPE: Control
+Description
+       Remove the DECtalk TSR, DT_DRIV, from the PC memory and
+restore things to their original state.
+Example
+Related Commands
+
+COMMAND		Code    FUNCTION
+DECTALK_ID     0x01    ID for INT2F multithreaded interrupt
+TYPE:	Status
+Description
+ID to pass in the .ah to the multi-threaded interrupt (INT2F)
+Example
+       RB.ah = DECTALK_ID
+Related Commands
+COMMANDCode    FUNCTION
+DECTALK_RESET  0x27    Reset DECtalk
+TYPE
+Control
+Description
+Resets the DECtalk PC module.
+Example
+Related Commands
+
+COMMAND		Code    FUNCTION
+DECTALK_TEST   0x02    Test for DECTalk TSR
+TYPE
+Description
+Returns a TSR_SUCESS if a DECtalk TSR is installed.
+Example
+Related Commands
+
+COMMAND        		Code    FUNCTION
+DIGITIZED_DATA         0x1a    Send Digitized Data
+TYPE: Control
+Description
+Same as a SEND_BUFF but with digitized data instead of text data.
+Example
+         digitize (buffer, size of (buffer))
+         ,
+         ,
+         ,
+         digitize (unsigned char_far *
+Related Commands
+
+COMMAND        Code    FUNCTION
+DIGITIZED_MODE 0x18    Digitized Mode
+TYPE: Mode
+Description
+Put   DECtalk  into  digitized  speech  mode.  Once  DECtalk  is   in
+DIGITIZED_MODE,  there are only two tasks that can  be  accomplished,
+Digitized data can be sent to the DECtalk to be played or the DECtalk
+can be switched back to TEXT_MODE.
+Example
+First, the DECtalk has to be in the DIGITIZED_MODE mode.  This is
+done by having the al register set to the DIGITIZED mode and the bx
+register set to 0.
+        unsigned int dtpc_cmd(DIGITIZED_MODE)
+        unsigned char DIGITIZED_MODE;
+        {
+               union   _REGS   tsr_regs;
+               do {
+                       tsr_regs.h.ah = DECTALK_ID;
+                       tsr_regs.h.al = DIGITIZED_MODE    /* 0x18 */
+                       tsr_regs.x.bx = 0;
+                       tsr_regs.x.si = voc_module;
+                       _int86(0x2f, &tsr_regs, &tsr_regs);
+                       } while (tsr_regs.x.ax == TSR_BUSY);
+                return(tsr_regs.x.ax);
+        }
+
+The DIGITIZED file then has to be played by the DECtalk.  In dtdemo,
+this is accomplished by the play_sb() function.  This function checks to
+see if it is a playable DIGITIZED file by checking the header of the
+file.
+
+After being played, the DECtalk needs to be put back into text mode
+before it can start speaking again.  This is done by the al register being
+set to the TEXT_MODE mode and the bx register being set to 0.
+
+        unsigned int dtpc_cmd(TEXT_MODE)
+        unsigned char TEXT_MODE;
+        {
+               union   _REGS   tsr_regs;
+               do {
+                       tsr_regs.h.ah = DECTALK_ID;
+                       tsr_regs.h.al = TEXT_MODE    /* 0x19 */
+                       tsr_regs.x.bx = 0;
+                       tsr_regs.x.si = voc_module;
+                       _int86(0x2f, &tsr_regs, &tsr_regs);
+                       } while (tsr_regs.x.ax == TSR_BUSY);
+                return(tsr_regs.x.ax);
+        }
+
+Related Commands
+TEXT_MODE
+DIGITIZED_DATA
+
+COMMAND		Code    FUNCTION
+FLUSH_CHAR     0x2a    Flush pending and speak character
+TYPE: Control
+Description
+        Flushes  any  speech  pending in the  DECtalk  and  says  the
+character.  This provides a rapid flush-and-speak-key function.  This
+function  uses a built-in translation table to convert characters  to
+the   sound  equivalence,  and  sends  the  result  directly  to  the
+synthesizer itself, bypassing significant pieces of the DECtalk code.
+In addition, a means of assigning pitch to a character (such as an
+upper-case character) has been provided.
+The  typing  table  itself  may  be modified  so  that  keys  can  be
+redefined. A global delta pitch command is also provided to  set  the
+change in pitch. Its default is a 35 hertz increment. The syntax  for
+changing the typing table is:
+               [:type (character in decimal) (1-character phonemics]
+For  example, to change the space-bar character from default  to  say
+"hello"  with elevated pitch enter the following command.  The  colon
+character  specifies elevated pitch (normal pitch plus 35Hz  for  the
+default and the apostrophe before the vowel indicates stress.)
+               [:type 32 :hxl'o]
+The  phonemics  are  represented by a  special  1-character  phonemic
+alphabet described in Appendix C.
+Example:
+           case 't':   /* Typing demo.  uses the flush_char function */
+             printf("%s\n",typing);
+            if (spoken) sendb(typing,sizeof(typing));
+            sendb(rate,sizeof(rate));       /* change speaking rate */
+                do{
+                   inchar = (char)_getch();     /* get character from
+keyboard until an '*' */
+                   flush_char(inchar) /* used in typing mode to speak faster
+*/
+
+flush_char(unsigned char fchar)
+{
+
+     RB.ah = DECTALK_ID;
+     RB.al = 0x2A;
+     RB.bl = fchar;
+     RW.si = 0;
+     _int86(0x2f, &regs, &regs);
+     return(1);
+}
+
+Related Commands
+
+
+COMMAND        		Code    FUNCTION
+FLUSH_SPEECH           0x1b
+TYPE: Control
+Description
+        Flush  speech but process all commands until an [:enable]  is
+seen.  Then  start speaking again. This command is  slower  than  the
+flush_text command.
+
+COMMAND		Code    FUNCTION
+FLUSH_TEXT     0x17    Flush pending text
+TYPE: Control
+Description
+        Flushes  all pending text in the DECtalk buffer. This  is  an
+asynchronous  flush and cannot guarantee to flush every character  in
+process, if  sending buffers. This will always work, however,  if  a
+flush  is also then inserted in the text stream. The stream flush  is
+recommended when it can be used. This function is provided so that if
+the  DECtalk is I/O bound with large text buffers, it can be  flushed
+quickly,  asynchronously to the text stream.  (See [:flush  all]   in
+the Speech Control Commands table).
+Example
+   case 'f':                          /* Stop speaking and FLUSH */
+              sendb (testb,sizeof(testb));
+              flush();                        /* asynchronously flush
+the dectalk */
+              break;
+
+
+flush()
+{
+     do{
+     RB.ah = DECTALK_ID;
+     RB.al = FLUSH_TEXT;
+     RW.si = 0;
+      _int86(0x2f, &regs, &regs);
+     }while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY );
+     return(1);
+}
+
+Related Commands
+[:flush all]
+
+
+COMMAND		Code    FUNCTION
+GET_BUFF       0x0b    Get a character buffer
+TYPE: Control
+Description
+        Gets  a  buffer  of information from the DECtalk.  Assumes  a
+fixed  buffer size of 256. The segment address is in the .dx and  the
+offset  address is in the .bx. The segment and offset passed  in  the
+.dx   and   .bx  registers  is  a  pointer  to  a  structure   called
+DECTALK_CHAR_BUFF found in the DTTSR.H file. It contains a count  and
+a pointer to the actual buffer (256 bytes  maximum).
+Example
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+GET_CHAR       0x09    Get a character.
+TYPE
+
+Description
+        Gets  a  character  from DECtalk. Get a character  may  cause
+unpredictable results if the TSR does not have a character.
+Example
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+GET_STATUS     0x03    Get current status
+TYPE: Status
+Description
+Obtain  the  comm status information  from the dx registers  and  the
+DECtalk version number from the bx register.
+Example
+In dtdemo.exe;
+
+status();
+
+status()
+{
+       do{
+            RB.ah = DECTALK_ID;
+            RB.al = GET_STATUS;
+             RW.al = 0;
+             _int86(0x2f, &regs, &regs);
+       }while(regs.x.ax == TSR_BUSY || regs.x.ax == TR_RETRY);
+       printf("The DECtalk version number is %d \n",RW.cl);
+}
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+IMMD_COMMA     0x23    Immediate comma pause
+TYPE: Control
+Description
+       Change the comma pause at the next clause boundary.
+Example
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+IMMD_PERIOD    0x22    Immediate Period Pause
+TYPE: Control
+Description
+       Change the period pause value at next clause boundary.
+Example
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+IMMD_RATE      0x21    Immediate Speaking  Rate
+TYPE
+
+Description
+       Change the speaking rate at next clause boundary.
+Example
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+IMMD_VOICE     0x20    Immediate Voice Selection
+TYPE: Control
+Description
+Change the voice at next clause boundary.
+Example
+Related Commands
+
+
+COMMAND        		Code    FUNCTION
+IMMD_RATE_DELTA       0x29
+TYPE
+
+Description
+Change the speaking rate by a delta  at the next clause boundary.
+Example
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+INSTALL_CHECK  0x00    TSR Installation Check
+TYPE: Status
+Description
+Checks to see if the DECtalk TSR is installed. Returns  INSTALLED  in
+the .si if true.
+Example  /*
+ *...check to see if the tsr is already installed, if so then just
+print
+ *  the switches and exit ...
+ */
+       parse_switch(argc,argv);
+               RB.ah = DECTALK_ID;
+               RB.al = INSTALL_CHECK;
+               RW.si = INSTALL_CHECK;
+               _int86(0x2f, &tsr_regs, &tsr_regs);
+               if (RB.al == INSTALLED)
+                       {
+                       printf("\nDECtalk tsr already installed");
+               usage();
+                       }
+Related Commands
+INSTALLED
+
+
+COMMAND		Code    FUNCTION
+INSTALLED      0xFF    Board Installation Status
+TYPE: Status
+Description
+       Returned in the .al
+Example
+See INSTALL_CHECK.
+Related Commands
+INSTALL_CHECK
+
+
+COMMAND		Code    FUNCTION
+IO_PRIORITY    0x26    Set I/O Priority
+TYPE: Control
+Description
+        Set  the  comm  task inside DECtalk to the highest  priority.
+This  results  in much faster indexing which should be the  preferred
+setting in most cases. The  .cx must be set to 1.
+Example
+io_prior()
+{
+     do{
+     RB.ah = DECTALK_ID;
+     RB.al = IO_PRIORITY;
+     RW.cx=1;
+     RW.si = 0;
+      _int86(0x2f, &regs, &regs);
+     }while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY );
+     return(1);
+}
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+LAST_INDEX     0x25
+TYPE: Control
+Description
+        Return the last seen index as an int in the .c  register. It
+returns  a  TSR_RETRY if it has not processed any indexes  since  the
+last request.
+Example
+          case 'i':             /* see last indexed processed */
+        count=get_index();              /* get index */
+         if (count == -1 )
+             {
+                 printf("%s",nonew);
+             if (spoken) sendb(nonew,sizeof(nonew));
+             }
+             else
+            {
+            num[0]=(char)count;
+            num[1]='\0';
+                printf("%s%d",indexnum,count); */
+         if (spoken) sendb(indexnum,sizeof(indexnum));   /* print and
+say index */
+          if (spoken) sendb(num,sizeof(num));
+            }
+                break;
+
+get_index()
+{
+     do{
+     RB.ah = DECTALK_ID;
+     RB.al = LAST_INDEX;
+     RW.si = 0;
+   _int86(0x2f, &regs, &regs);
+     }while(regs.x.ax == TSR_BUSY );
+     if ( regs.x.ax == TSR_RETRY )
+          {
+          return(-1);
+          }
+     if ( regs.x.ax == TSR_FAILURE )
+          printf("tsr get_index failed");
+     return(regs.x.cx);
+}
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+PAUSE_OUTPUT   0x15    Pause speech output.
+TYPE: Control
+Description
+Pauses  the output of the DECtalk. Speech can be resumed  by  issuing
+the RESUME_OUTPUT command.
+Example
+stopit()
+{
+     do{
+     RB.ah = DECTALK_ID;
+     RB.al = PAUSE_OUTPUT;
+     RW.si = 0;
+      _int86(0x2f, &regs, &regs);
+     }while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+     return(RW.ax);
+}
+
+Related Commands
+RESUME_OUTPUT
+
+
+COMMAND        		       Code    FUNCTION
+Reserved                       0x07   /* allocate memory */
+Reserved                       0x0c
+Reserved                       0x0d
+Reserved                       0x0e
+Reserved                       0x0f
+Reserved                       0x10
+Reserved                       0x11
+Reserved                       0x12
+Reserved                       0x13
+Reserved                       0x14
+
+TYPE: Reserved
+Description
+Reserved commands
+Example
+Related Commands
+
+
+COMMAND        Code    FUNCTION
+RESUME_OUTPUT  0x16    Resume Speaking
+TYPE: Control
+Description
+Resume speaking after a pause.
+Example
+    case 'c':          /* Resume speaking after a stop.*/
+              resume();
+              break;
+
+
+resume()
+{
+
+
+     do{
+     RB.ah = DECTALK_ID;
+     RB.al = RESUME_OUTPUT;
+     RW.si = 0;
+     _int86(0x2f, &regs, &regs);
+     }while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+     return(RW.ax);
+
+}
+Related Commands
+PAUSE_OUTPUT
+
+
+COMMAND		Code    FUNCTION
+SEND_BUFF      0x0a    Send buffer
+TYPE: Control
+Description
+        Send a character buffer.  Assumes a fixed buffer size of 256.
+The  segment address is in the .dx and the offset address  is in  the
+.bx. The segment and offset passed in the .dx and .bx registers is  a
+pointer  to a structure called DECTALK_CHAR_BUFF found in the DTTSR.H
+file.  It  contains a count and a pointer to the actual  buffer  (256
+words  maximum). On return, the count is set to the number  of  bytes
+actually tranferred.
+Example
+ case 'l':     /* Send a file to the DECtalk to read*/
+               printf("%s\n",name);                /* Prompt */
+               if (spoken) sendb(name,sizeof(name));
+               sendb(sayl,sizeof(sayl)-1);
+
+sendb(unsigned char __far *thebuf,int count)
+{
+     struct  dectalk_char_buff   cb;
+     struct  dectalk_char_buff   _far *cbp;
+     cb.buff=thebuf;
+     cb.count=count;
+     cbp = &cb;
+
+     do{
+     RW.bx = FP_OFF(cbp);  /* put offset to char buff struct in bx */
+     RW.dx = FP_SEG(cbp);  /*put segment in dx */
+     RB.ah = DECTALK_ID;
+     RB.al = SEND_BUFF;
+     RW.si = 0;
+      _int86(0x2f, &regs, &regs);
+     }while (regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+     return(RW.ax);
+
+}
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+SEND_CHAR      0x08    Send a character.
+TYPE: Control
+Description
+       Send the character in the .bl to the DECtalk.
+Example
+send_char(unsigned char schar)
+{
+
+     do {
+     RB.ah = DECTALK_ID;
+     RB.al = SEND_CHAR;
+     RB.bl = schar;
+     RW.si = 0;
+      _int86(0x2f, &regs, &regs);
+     }while( regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+     return(RW.ax);
+}
+
+Related Commands
+
+
+COMMAND		Code    FUNCTION
+TEXT_MODE      0x19    Text Mode
+TYPE: Mode
+Description
+Puts  the DECtalk into text-to-speech mode. This is the default mode.
+It  also  has to be issued if the DECtalk had previously been  placed
+into the digitized mode.
+Example
+Related Commands
+DIGITIZED_MODE
+
+
+COMMAND        		Code    FUNCTION
+VOLUME_DOWN            0x05    Decrease volume.
+TYPE: Control
+
+Description
+         Decrease  the volume by the amount specified in .bl.
+Example
+See VOLUME_UP
+Related Commands
+VOLUME_UP
+
+
+COMMANDCode    FUNCTION
+VOLUME_UP      0x04    Increase volume
+TYPE: Control
+Description
+        Increase  the volume by the amount specified in .bl  Values??
+range??**
+Example
+up_vol()
+{
+     do {
+     RB.ah = DECTALK_ID;
+     RB.al = VOLUME_UP;
+     RB.bl=1;
+     RB.dl=0;
+     RW.si = 0;
+      _int86(0x2f, &regs, &regs);
+     }while(regs.x.ax == TSR_BUSY || regs.x.ax == TSR_RETRY);
+     return(RW.ax);
+}
+
+Related Commands
+VOLUME_DOWN
+
+
+COMMAND		Code    FUNCTION
+VOLUME_SET     0x06    Set volume.
+TYPE: Control
+Description
+        Set  the volume to amount specified in  the bl . The range is
+0-100 and the default value is 5.
+Example
+      case 'v':         /* Set the volume to a specific level */
+                printf("%s",invol);                       /* Prompt */
+                if (spoken) sendb(invol,sizeof(invol));
+                i=0;
+                while ((chbuf[i] =  (char)_getch()) !='\r')
+               {                                     /*Get input */
+                   if (spoken) flush();      /*Flush speech if spoken.
+*/
+                   putchar(chbuf[i]);                    /* Echo input
+*/
+                   if (spoken) send_char(chbuf[i]);    /* Audible echo
+*/
+                   send_char('\013');
+                   i++;
+                   }
+                chbuf[i]='\0';
+                _cputs("\r\n");
+                vol=atoi(chbuf);                /* Convert to a number
+*/
+                if ((vol > 100) || vol<0)
+               {                                 /* Is input in range
+*/
+                   printf ("%s,%d\n",volset,vol);
+                   if (spoken) sendb(volset,sizeof(volset));
+                   break;
+                   }
+                set_vol(vol);                     /* Go set the volume
+*/
+                break;
+
+Related Commands
+
+
+End of Chapter 3.
+ 

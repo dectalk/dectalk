@@ -1,0 +1,1829 @@
+	TITLE	D:\work\product\dapi\src\Ph\phlog.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+$$SYMBOLS	SEGMENT BYTE USE32 'DEBSYM'
+$$SYMBOLS	ENDS
+$$TYPES	SEGMENT BYTE USE32 'DEBTYP'
+$$TYPES	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_logspnames
+_DATA	SEGMENT
+_logspnames DD	FLAT:$SG70723
+	DD	FLAT:$SG70724
+	DD	FLAT:$SG70725
+	DD	FLAT:$SG70726
+	DD	FLAT:$SG70727
+	DD	FLAT:$SG70728
+	DD	FLAT:$SG70729
+	DD	FLAT:$SG70730
+	DD	FLAT:$SG70731
+	DD	FLAT:$SG70732
+	DD	FLAT:$SG70733
+	DD	FLAT:$SG70734
+	DD	FLAT:$SG70735
+	DD	FLAT:$SG70736
+	DD	FLAT:$SG70737
+	DD	FLAT:$SG70738
+	DD	FLAT:$SG70739
+	DD	FLAT:$SG70740
+	DD	FLAT:$SG70741
+	DD	FLAT:$SG70742
+	DD	FLAT:$SG70743
+	DD	FLAT:$SG70744
+	DD	FLAT:$SG70745
+	DD	FLAT:$SG70746
+	DD	FLAT:$SG70747
+	DD	FLAT:$SG70748
+	DD	FLAT:$SG70749
+	DD	FLAT:$SG70750
+	DD	FLAT:$SG70751
+	DD	FLAT:$SG70752
+	DD	FLAT:$SG70753
+$SG70723 DB	'sex', 00H
+$SG70724 DB	'sm', 00H
+	ORG $+1
+$SG70725 DB	'as', 00H
+	ORG $+1
+$SG70726 DB	'ap', 00H
+	ORG $+1
+$SG70727 DB	'pr', 00H
+	ORG $+1
+$SG70728 DB	'br', 00H
+	ORG $+1
+$SG70729 DB	'ri', 00H
+	ORG $+1
+$SG70730 DB	'nf', 00H
+	ORG $+1
+$SG70731 DB	'la', 00H
+	ORG $+1
+$SG70732 DB	'hs', 00H
+	ORG $+1
+$SG70733 DB	'f4', 00H
+	ORG $+1
+$SG70734 DB	'b4', 00H
+	ORG $+1
+$SG70735 DB	'f5', 00H
+	ORG $+1
+$SG70736 DB	'b5', 00H
+	ORG $+1
+$SG70737 DB	'p4', 00H
+	ORG $+1
+$SG70738 DB	'p5', 00H
+	ORG $+1
+$SG70739 DB	'gf', 00H
+	ORG $+1
+$SG70740 DB	'gh', 00H
+	ORG $+1
+$SG70741 DB	'gv', 00H
+	ORG $+1
+$SG70742 DB	'gn', 00H
+	ORG $+1
+$SG70743 DB	'g1', 00H
+	ORG $+1
+$SG70744 DB	'g2', 00H
+	ORG $+1
+$SG70745 DB	'g3', 00H
+	ORG $+1
+$SG70746 DB	'g4', 00H
+	ORG $+1
+$SG70747 DB	'lo', 00H
+	ORG $+1
+$SG70748 DB	'ft', 00H
+	ORG $+1
+$SG70749 DB	'bf', 00H
+	ORG $+1
+$SG70750 DB	'lx', 00H
+	ORG $+1
+$SG70751 DB	'qu', 00H
+	ORG $+1
+$SG70752 DB	'hr', 00H
+	ORG $+1
+$SG70753 DB	'sr', 00H
+_DATA	ENDS
+PUBLIC	_dologphoneme
+PUBLIC	_logclaus
+EXTRN	__imp__EnterCriticalSection@4:NEAR
+EXTRN	__imp__LeaveCriticalSection@4:NEAR
+EXTRN	__imp__fprintf:NEAR
+EXTRN	_TextToSpeechErrorHandler:NEAR
+_DATA	SEGMENT
+	ORG $+1
+$SG70787 DB	'[:i %d]', 00H
+$SG70792 DB	0aH, 00H
+	ORG $+2
+$SG70795 DB	0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_sym$ = 12
+_nsym$ = 16
+_ud$ = 20
+_uf0$ = 24
+_i$ = -4
+_pKsd_t$ = 8
+_logclaus PROC NEAR
+
+; 163  : {
+
+  00000	51		 push	 ecx
+  00001	55		 push	 ebp
+  00002	57		 push	 edi
+
+; 164  : 	register int            i,cnt;
+; 165  : 	struct spc_packet _far *spc_pkt;
+; 166  : 	PKSD_T                  pKsd_t;
+; 167  : 
+; 168  : #ifdef MSDOS
+; 169  : 	pKsd_t = kernel_share;
+; 170  : #else
+; 171  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00003	8b 7c 24 10	 mov	 edi, DWORD PTR _phTTS$[esp+8]
+
+; 172  : #endif
+; 173  : 
+; 174  : #ifndef MSDOS
+; 175  : /* 
+; 176  :  * LPTTS_HANDLE_T phTTS;
+; 177  :  * 
+; 178  :  * phTTS = TextToSpeechGetHandle(); */
+; 179  : #endif
+; 180  : 
+; 181  : #ifdef MSDOS
+; 182  : 	WAIT_PRINT;
+; 183  : #endif
+; 184  : 	cnt=0;
+
+  00007	33 ed		 xor	 ebp, ebp
+
+; 185  : 
+; 186  : 	for (i = 1; i < nsym; ++i)
+
+  00009	c7 44 24 08 01
+	00 00 00	 mov	 DWORD PTR _i$[esp+12], 1
+  00011	8b 47 08	 mov	 eax, DWORD PTR [edi+8]
+  00014	89 44 24 10	 mov	 DWORD PTR _pKsd_t$[esp+8], eax
+  00018	0f bf 44 24 18	 movsx	 eax, WORD PTR _nsym$[esp+8]
+  0001d	83 f8 01	 cmp	 eax, 1
+  00020	0f 8e 17 01 00
+	00		 jle	 $L70775
+  00026	8b 44 24 1c	 mov	 eax, DWORD PTR _ud$[esp+8]
+  0002a	8b 4c 24 20	 mov	 ecx, DWORD PTR _uf0$[esp+8]
+  0002e	2b c8		 sub	 ecx, eax
+  00030	53		 push	 ebx
+  00031	89 4c 24 24	 mov	 DWORD PTR 24+[esp+12], ecx
+  00035	8b 4c 24 18	 mov	 ecx, DWORD PTR _sym$[esp+12]
+  00039	8d 58 02	 lea	 ebx, DWORD PTR [eax+2]
+  0003c	2b c8		 sub	 ecx, eax
+  0003e	56		 push	 esi
+  0003f	89 5c 24 24	 mov	 DWORD PTR 20+[esp+16], ebx
+  00043	89 4c 24 1c	 mov	 DWORD PTR 12+[esp+16], ecx
+$L70773:
+
+; 187  : 	{
+; 188  : 		cnt++;
+; 189  : #ifdef WIN32
+; 190  : 		EnterCriticalSection (phTTS->pcsLogFile);
+
+  00047	8b 8f c4 00 00
+	00		 mov	 ecx, DWORD PTR [edi+196]
+  0004d	45		 inc	 ebp
+  0004e	51		 push	 ecx
+  0004f	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 191  : #endif
+; 192  : #if defined (__osf__) || defined (__linux__)
+; 193  : 		/* GL 04/21/1997  change this as the latest OSF code */
+; 194  : 		/* ToggleLogfileMutex (MUTEX_RESERVE);*/
+; 195  : 		OP_LockMutex( phTTS->pcsLogFile );
+; 196  : #endif
+; 197  : 
+; 198  : #ifdef MSDOS
+; 199  : 		if ((spc_pkt = (struct spc_packet _far *) pKsd_t->index_pending.head) != NULL_SPC_PACKET)
+; 200  : #else
+; 201  : 		if ((spc_pkt = (struct spc_packet _far *) pKsd_t->spc_pkt_save) != NULL_SPC_PACKET)
+
+  00055	8b 54 24 18	 mov	 edx, DWORD PTR _pKsd_t$[esp+16]
+  00059	8b b2 7c 01 00
+	00		 mov	 esi, DWORD PTR [edx+380]
+  0005f	85 f6		 test	 esi, esi
+  00061	74 55		 je	 SHORT $L70782
+
+; 205  : 			{
+; 206  : 				cnt += 6;
+; 207  : 				if ((*spc_pkt).data[0] == (U16) i)
+
+  00063	8b 5c 24 10	 mov	 ebx, DWORD PTR _i$[esp+20]
+  00067	81 e3 ff ff 00
+	00		 and	 ebx, 65535		; 0000ffffH
+$L70781:
+  0006d	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+  00070	83 c5 06	 add	 ebp, 6
+  00073	3b c3		 cmp	 eax, ebx
+  00075	75 37		 jne	 SHORT $L70786
+
+; 208  : 				{
+; 209  : #ifdef MSDOS
+; 210  : 					printf ("[:i %d]", (*spc_pkt).data[2]);
+; 211  : #else
+; 212  : #ifdef PRINTDEBUG
+; 213  : 					printf ("[:i %d]", (*spc_pkt).data[2]);
+; 214  : #endif
+; 215  : 					if (pKsd_t->logflag & LOG_PHONEMES)
+
+  00077	8b 44 24 18	 mov	 eax, DWORD PTR _pKsd_t$[esp+16]
+  0007b	f6 80 04 02 00
+	00 02		 test	 BYTE PTR [eax+516], 2
+  00082	74 2a		 je	 SHORT $L70786
+
+; 216  : 					{
+; 217  : 					   	if (fprintf(phTTS->pLogFile, "[:i %d]", (*spc_pkt).data[2]) < 0)
+
+  00084	8b 4e 1c	 mov	 ecx, DWORD PTR [esi+28]
+  00087	8b 97 98 00 00
+	00		 mov	 edx, DWORD PTR [edi+152]
+  0008d	51		 push	 ecx
+  0008e	68 00 00 00 00	 push	 OFFSET FLAT:$SG70787
+  00093	52		 push	 edx
+  00094	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  0009a	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0009d	85 c0		 test	 eax, eax
+  0009f	7d 0d		 jge	 SHORT $L70786
+
+; 218  : 					   	{
+; 219  : 					     	TextToSpeechErrorHandler (phTTS,
+; 220  : 												  ERROR_WRITING_FILE,
+; 221  : 												  0L);
+
+  000a1	6a 00		 push	 0
+  000a3	6a 05		 push	 5
+  000a5	57		 push	 edi
+  000a6	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  000ab	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70786:
+
+; 222  : 						}
+; 223  : 					}
+; 224  : #endif
+; 225  : 				}
+; 226  : 				spc_pkt = (struct spc_packet _far *) (*spc_pkt).link;
+
+  000ae	8b 36		 mov	 esi, DWORD PTR [esi]
+  000b0	85 f6		 test	 esi, esi
+  000b2	75 b9		 jne	 SHORT $L70781
+
+; 202  : #endif
+; 203  : 		{
+; 204  : 			while (spc_pkt != NULL_SPC_PACKET)
+
+  000b4	8b 5c 24 24	 mov	 ebx, DWORD PTR 20+[esp+16]
+$L70782:
+
+; 227  : 			}
+; 228  : 		}
+; 229  : 
+; 230  : #ifdef WIN32
+; 231  : 		LeaveCriticalSection (phTTS->pcsLogFile);
+
+  000b8	8b 87 c4 00 00
+	00		 mov	 eax, DWORD PTR [edi+196]
+  000be	50		 push	 eax
+  000bf	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+
+; 232  : #endif
+; 233  : #if defined (__osf__) || defined (__linux__)
+; 234  : 		/* GL 04/21/1997  change this as the latest OSF code */
+; 235  : 		/* ToggleLogfileMutex (MUTEX_RESERVE);*/
+; 236  : 		OP_UnlockMutex( phTTS->pcsLogFile );
+; 237  : #endif
+; 238  : 
+; 239  : #ifdef MSDOS
+; 240  : 		dologphoneme (sym[i], ud[i], uf0[i]);
+; 241  : #else
+; 242  : 		dologphoneme (phTTS, sym[i], ud[i], uf0[i]);
+
+  000c5	8b 4c 24 28	 mov	 ecx, DWORD PTR 24+[esp+16]
+  000c9	66 8b 03	 mov	 ax, WORD PTR [ebx]
+  000cc	66 8b 14 19	 mov	 dx, WORD PTR [ecx+ebx]
+  000d0	8b 4c 24 1c	 mov	 ecx, DWORD PTR 12+[esp+16]
+  000d4	52		 push	 edx
+  000d5	50		 push	 eax
+  000d6	66 8b 14 19	 mov	 dx, WORD PTR [ecx+ebx]
+  000da	52		 push	 edx
+  000db	57		 push	 edi
+  000dc	e8 00 00 00 00	 call	 _dologphoneme
+  000e1	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 243  : #endif
+; 244  : 		/* GL 11/06/1997 BATS#486 change display to 72 character from 35 */
+; 245  : 		if (cnt >= 72)
+
+  000e4	83 fd 48	 cmp	 ebp, 72			; 00000048H
+  000e7	7c 35		 jl	 SHORT $L70774
+
+; 246  : 		{
+; 247  : #ifdef MSDOS
+; 248  : 			printf("\n");
+; 249  : #else
+; 250  : #ifdef PRINTFDEBUG
+; 251  : 			printf ("\n");
+; 252  : #endif
+; 253  : 			if (pKsd_t->logflag & LOG_PHONEMES)
+
+  000e9	8b 44 24 18	 mov	 eax, DWORD PTR _pKsd_t$[esp+16]
+  000ed	f6 80 04 02 00
+	00 02		 test	 BYTE PTR [eax+516], 2
+  000f4	74 26		 je	 SHORT $L70791
+
+; 254  : 			{
+; 255  : 				if (fprintf (phTTS->pLogFile, "\n") < 0)
+
+  000f6	8b 8f 98 00 00
+	00		 mov	 ecx, DWORD PTR [edi+152]
+  000fc	68 00 00 00 00	 push	 OFFSET FLAT:$SG70792
+  00101	51		 push	 ecx
+  00102	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  00108	83 c4 08	 add	 esp, 8
+  0010b	85 c0		 test	 eax, eax
+  0010d	7d 0d		 jge	 SHORT $L70791
+
+; 256  : 				{
+; 257  : 					TextToSpeechErrorHandler (phTTS,
+; 258  : 											  ERROR_WRITING_FILE,
+; 259  : 											  0L);
+
+  0010f	6a 00		 push	 0
+  00111	6a 05		 push	 5
+  00113	57		 push	 edi
+  00114	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  00119	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70791:
+
+; 260  : 				}
+; 261  : 			}
+; 262  : #endif
+; 263  : 			cnt=0;
+
+  0011c	33 ed		 xor	 ebp, ebp
+$L70774:
+
+; 185  : 
+; 186  : 	for (i = 1; i < nsym; ++i)
+
+  0011e	8b 44 24 10	 mov	 eax, DWORD PTR _i$[esp+20]
+  00122	83 c3 02	 add	 ebx, 2
+  00125	0f bf 4c 24 20	 movsx	 ecx, WORD PTR _nsym$[esp+16]
+  0012a	40		 inc	 eax
+  0012b	89 5c 24 24	 mov	 DWORD PTR 20+[esp+16], ebx
+  0012f	3b c1		 cmp	 eax, ecx
+  00131	89 44 24 10	 mov	 DWORD PTR _i$[esp+20], eax
+  00135	0f 8c 0c ff ff
+	ff		 jl	 $L70773
+  0013b	5e		 pop	 esi
+  0013c	5b		 pop	 ebx
+$L70775:
+
+; 264  : 		}
+; 265  : 	}
+; 266  : 
+; 267  : #ifdef MSDOS
+; 268  : 	printf("\n");
+; 269  : 	SIGNAL_PRINT;
+; 270  : #else
+; 271  : #ifdef PRINTFDEBUG
+; 272  : 	printf ("\n");
+; 273  : #endif
+; 274  : 	if (pKsd_t->logflag & LOG_PHONEMES)
+
+  0013d	8b 54 24 10	 mov	 edx, DWORD PTR _pKsd_t$[esp+8]
+  00141	f6 82 04 02 00
+	00 02		 test	 BYTE PTR [edx+516], 2
+  00148	74 26		 je	 SHORT $L70794
+
+; 275  : 	{
+; 276  : 		if (fprintf (phTTS->pLogFile, "\n") < 0)
+
+  0014a	8b 87 98 00 00
+	00		 mov	 eax, DWORD PTR [edi+152]
+  00150	68 00 00 00 00	 push	 OFFSET FLAT:$SG70795
+  00155	50		 push	 eax
+  00156	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  0015c	83 c4 08	 add	 esp, 8
+  0015f	85 c0		 test	 eax, eax
+  00161	7d 0d		 jge	 SHORT $L70794
+
+; 277  : 		{
+; 278  : 			TextToSpeechErrorHandler (phTTS,
+; 279  : 									  ERROR_WRITING_FILE,
+; 280  : 									  0L);
+
+  00163	6a 00		 push	 0
+  00165	6a 05		 push	 5
+  00167	57		 push	 edi
+  00168	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  0016d	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70794:
+  00170	5f		 pop	 edi
+  00171	5d		 pop	 ebp
+
+; 281  : 		}
+; 282  : 	}
+; 283  : #endif
+; 284  : 
+; 285  : 	return;
+; 286  : 	
+; 287  : }
+
+  00172	59		 pop	 ecx
+  00173	c3		 ret	 0
+_logclaus ENDP
+_TEXT	ENDS
+PUBLIC	_logitem
+_DATA	SEGMENT
+	ORG $+2
+$SG70811 DB	':ra %d', 0aH, 00H
+$SG70814 DB	':ra %d', 0aH, 00H
+$SG70817 DB	':cp %d', 0aH, 00H
+$SG70820 DB	':cp %d', 0aH, 00H
+$SG70823 DB	':pp %d', 0aH, 00H
+$SG70826 DB	':pp %d', 0aH, 00H
+$SG70828 DB	'pbhfdkurwv', 00H
+	ORG $+1
+$SG70830 DB	':n%c', 0aH, 00H
+	ORG $+2
+$SG70833 DB	':n%c', 0aH, 00H
+	ORG $+2
+$SG70836 DB	' sp ', 00H
+	ORG $+3
+$SG70839 DB	' sp ', 00H
+	ORG $+3
+$SG70842 DB	':dv %s %d', 0aH, 00H
+	ORG $+1
+$SG70845 DB	':dv %s %d', 0aH, 00H
+	ORG $+1
+$SG70848 DB	':dv save', 0aH, 00H
+	ORG $+2
+$SG70851 DB	':dv save', 0aH, 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_buf$ = 12
+_logitem PROC NEAR
+
+; 304  : {
+
+  00180	53		 push	 ebx
+  00181	55		 push	 ebp
+
+; 305  : 	register char          *cp;
+; 306  : 	char                    oc;
+; 307  : #ifndef MSDOS
+; 308  : 	PKSD_T                  pKsd_t;
+; 309  : 
+; 310  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00182	8b 6c 24 0c	 mov	 ebp, DWORD PTR _phTTS$[esp+4]
+  00186	56		 push	 esi
+  00187	57		 push	 edi
+
+; 311  : /* 
+; 312  :  * LPTTS_HANDLE_T phTTS; phTTS = TextToSpeechGetHandle(); */
+; 313  : #endif
+; 314  : 
+; 315  : 
+; 316  : /* GL 04/21/1997  change this for OSF build */
+; 317  : #if defined (MSDOS) || defined (__osf__) || defined (__linux__)
+; 318  : 	WAIT_PRINT;
+; 319  : #endif
+; 320  : 
+; 321  : #ifdef WIN32
+; 322  : 	EnterCriticalSection (phTTS->pcsLogFile);
+
+  00188	8b 85 c4 00 00
+	00		 mov	 eax, DWORD PTR [ebp+196]
+  0018e	8b 7d 08	 mov	 edi, DWORD PTR [ebp+8]
+  00191	50		 push	 eax
+  00192	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 323  : #endif
+; 324  : 
+; 325  : #if defined (__osf__) || defined (__linux__)
+; 326  : 	/* GL 04/21/1997  change this as the latest OSF code */
+; 327  : 	/* ToggleLogfileMutex (MUTEX_RESERVE);*/
+; 328  : 	OP_LockMutex( phTTS->pcsLogFile );
+; 329  : #endif
+; 330  : 
+; 331  : 
+; 332  : 	switch (buf[0])
+; 333  : 	{
+
+  00198	8b 74 24 18	 mov	 esi, DWORD PTR _buf$[esp+12]
+  0019c	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  0019f	3d 02 1f 00 00	 cmp	 eax, 7938		; 00001f02H
+  001a4	0f 8f 53 01 00
+	00		 jg	 $L70937
+  001aa	0f 84 fd 00 00
+	00		 je	 $L70821
+  001b0	83 e8 78	 sub	 eax, 120		; 00000078H
+  001b3	0f 84 ae 00 00
+	00		 je	 $L70834
+  001b9	2d 88 1e 00 00	 sub	 eax, 7816		; 00001e88H
+  001be	74 57		 je	 SHORT $L70809
+  001c0	48		 dec	 eax
+  001c1	0f 85 3d 02 00
+	00		 jne	 $L70832
+
+; 359  : 
+; 360  : 	case CPAUSE:
+; 361  : 
+; 362  : 
+; 363  : #ifdef MSDOS
+; 364  : 		printf (":cp %d\n", buf[1]);
+; 365  : #else
+; 366  : #ifdef PRINTFDEBUG
+; 367  : 		printf (":cp %d\n", buf[1]);
+; 368  : #endif
+; 369  : 
+; 370  : #ifndef MSDOS
+; 371  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  001c7	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  001cd	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  001d3	85 c0		 test	 eax, eax
+  001d5	74 10		 je	 SHORT $L70816
+
+; 372  : 			fprintf(pKsd_t->dbglog,":cp %d\n", buf[1]);
+
+  001d7	0f bf 4e 02	 movsx	 ecx, WORD PTR [esi+2]
+  001db	51		 push	 ecx
+  001dc	68 00 00 00 00	 push	 OFFSET FLAT:$SG70817
+  001e1	50		 push	 eax
+  001e2	ff d3		 call	 ebx
+  001e4	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70816:
+
+; 373  : #endif
+; 374  : 
+; 375  : 		if (pKsd_t->logflag & LOG_PHONEMES)
+
+  001e7	f6 87 04 02 00
+	00 02		 test	 BYTE PTR [edi+516], 2
+  001ee	0f 84 10 02 00
+	00		 je	 $L70832
+
+; 376  : 		{
+; 377  : 			if (fprintf (phTTS->pLogFile, ":cp %d\n", buf[1]) < 0)
+
+  001f4	0f bf 56 02	 movsx	 edx, WORD PTR [esi+2]
+  001f8	8b 85 98 00 00
+	00		 mov	 eax, DWORD PTR [ebp+152]
+  001fe	52		 push	 edx
+  001ff	68 00 00 00 00	 push	 OFFSET FLAT:$SG70820
+  00204	50		 push	 eax
+  00205	ff d3		 call	 ebx
+  00207	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0020a	85 c0		 test	 eax, eax
+  0020c	0f 8d f2 01 00
+	00		 jge	 $L70832
+
+; 378  : 			{
+; 379  : 				TextToSpeechErrorHandler (phTTS,
+; 380  : 										  ERROR_WRITING_FILE,
+; 381  : 										  0L);
+; 382  : 			}
+; 383  : 		}
+; 384  : #endif
+; 385  : 		break;
+
+  00212	e9 e0 01 00 00	 jmp	 $L70938
+$L70809:
+
+; 334  : 	case RATE:
+; 335  : 
+; 336  : #ifdef MSDOS
+; 337  : 		printf (":ra %d\n", buf[1]);
+; 338  : #else
+; 339  : #ifdef PRINTFDEBUG
+; 340  : 		printf (":ra %d\n", buf[1]);
+; 341  : #endif
+; 342  : 
+; 343  : #ifndef MSDOS
+; 344  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  00217	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  0021d	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  00223	85 c0		 test	 eax, eax
+  00225	74 10		 je	 SHORT $L70810
+
+; 345  : 			fprintf(pKsd_t->dbglog,":ra %d\n", buf[1]);
+
+  00227	0f bf 4e 02	 movsx	 ecx, WORD PTR [esi+2]
+  0022b	51		 push	 ecx
+  0022c	68 00 00 00 00	 push	 OFFSET FLAT:$SG70811
+  00231	50		 push	 eax
+  00232	ff d3		 call	 ebx
+  00234	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70810:
+
+; 346  : #endif
+; 347  : 		
+; 348  : 		if (pKsd_t->logflag & LOG_PHONEMES)
+
+  00237	f6 87 04 02 00
+	00 02		 test	 BYTE PTR [edi+516], 2
+  0023e	0f 84 c0 01 00
+	00		 je	 $L70832
+
+; 349  : 		{
+; 350  : 			if (fprintf (phTTS->pLogFile, ":ra %d\n", buf[1]) < 0)
+
+  00244	0f bf 56 02	 movsx	 edx, WORD PTR [esi+2]
+  00248	8b 85 98 00 00
+	00		 mov	 eax, DWORD PTR [ebp+152]
+  0024e	52		 push	 edx
+  0024f	68 00 00 00 00	 push	 OFFSET FLAT:$SG70814
+  00254	50		 push	 eax
+  00255	ff d3		 call	 ebx
+  00257	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0025a	85 c0		 test	 eax, eax
+  0025c	0f 8d a2 01 00
+	00		 jge	 $L70832
+
+; 351  : 			{
+; 352  : 				TextToSpeechErrorHandler (phTTS,
+; 353  : 										  ERROR_WRITING_FILE,
+; 354  : 										  0L);
+; 355  : 			}
+; 356  : 		}
+; 357  : #endif
+; 358  : 		break;
+
+  00262	e9 90 01 00 00	 jmp	 $L70938
+$L70834:
+
+; 433  : 			}
+; 434  : 		}
+; 435  : #endif
+; 436  : 		break;
+; 437  : 
+; 438  : 	case SPECIALWORD:
+; 439  : 
+; 440  : #ifdef MSDOS
+; 441  : 		printf (" sp ");
+; 442  : #else
+; 443  : #ifdef PRINTFDEBUG
+; 444  : 		printf (" sp ");
+; 445  : #endif
+; 446  : #ifndef MSDOS
+; 447  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  00267	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  0026d	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fprintf
+  00273	85 c0		 test	 eax, eax
+  00275	74 0b		 je	 SHORT $L70835
+
+; 448  : 			fprintf(pKsd_t->dbglog," sp ");
+
+  00277	68 00 00 00 00	 push	 OFFSET FLAT:$SG70836
+  0027c	50		 push	 eax
+  0027d	ff d6		 call	 esi
+  0027f	83 c4 08	 add	 esp, 8
+$L70835:
+
+; 449  : #endif
+; 450  : 		if (pKsd_t->logflag & LOG_PHONEMES)
+
+  00282	f6 87 04 02 00
+	00 02		 test	 BYTE PTR [edi+516], 2
+  00289	0f 84 75 01 00
+	00		 je	 $L70832
+
+; 451  : 		{
+; 452  : 			if (fprintf (phTTS->pLogFile, " sp ") < 0)
+
+  0028f	8b 8d 98 00 00
+	00		 mov	 ecx, DWORD PTR [ebp+152]
+  00295	68 00 00 00 00	 push	 OFFSET FLAT:$SG70839
+  0029a	51		 push	 ecx
+  0029b	ff d6		 call	 esi
+  0029d	83 c4 08	 add	 esp, 8
+  002a0	85 c0		 test	 eax, eax
+  002a2	0f 8d 5c 01 00
+	00		 jge	 $L70832
+
+; 453  : 			{
+; 454  : 				TextToSpeechErrorHandler (phTTS,
+; 455  : 										  ERROR_WRITING_FILE,
+; 456  : 										  0L);
+; 457  : 			}
+; 458  : 		}
+; 459  : #endif
+; 460  : 		break;
+
+  002a8	e9 4a 01 00 00	 jmp	 $L70938
+$L70821:
+
+; 386  : 
+; 387  : 	case PPAUSE:
+; 388  : 
+; 389  : 
+; 390  : #ifdef MSDOS
+; 391  : 		printf (":pp %d\n", buf[1]);
+; 392  : #else
+; 393  : #ifdef PRINTFDEBUG
+; 394  : 		printf (":pp %d\n", buf[1]);
+; 395  : #endif
+; 396  : #ifndef MSDOS
+; 397  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  002ad	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  002b3	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  002b9	85 c0		 test	 eax, eax
+  002bb	74 10		 je	 SHORT $L70822
+
+; 398  : 			fprintf(pKsd_t->dbglog,":pp %d\n", buf[1]);
+
+  002bd	0f bf 56 02	 movsx	 edx, WORD PTR [esi+2]
+  002c1	52		 push	 edx
+  002c2	68 00 00 00 00	 push	 OFFSET FLAT:$SG70823
+  002c7	50		 push	 eax
+  002c8	ff d3		 call	 ebx
+  002ca	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70822:
+
+; 399  : #endif
+; 400  : 		if (pKsd_t->logflag & LOG_PHONEMES)
+
+  002cd	f6 87 04 02 00
+	00 02		 test	 BYTE PTR [edi+516], 2
+  002d4	0f 84 2a 01 00
+	00		 je	 $L70832
+
+; 401  : 		{
+; 402  : 			if (fprintf (phTTS->pLogFile, ":pp %d\n", buf[1]) < 0)
+
+  002da	0f bf 46 02	 movsx	 eax, WORD PTR [esi+2]
+  002de	8b 8d 98 00 00
+	00		 mov	 ecx, DWORD PTR [ebp+152]
+  002e4	50		 push	 eax
+  002e5	68 00 00 00 00	 push	 OFFSET FLAT:$SG70826
+  002ea	51		 push	 ecx
+  002eb	ff d3		 call	 ebx
+  002ed	83 c4 0c	 add	 esp, 12			; 0000000cH
+  002f0	85 c0		 test	 eax, eax
+  002f2	0f 8d 0c 01 00
+	00		 jge	 $L70832
+
+; 403  : 			{
+; 404  : 				TextToSpeechErrorHandler (phTTS,
+; 405  : 										  ERROR_WRITING_FILE,
+; 406  : 										  0L);
+; 407  : 			}
+; 408  : 		}
+; 409  : #endif
+; 410  : 		break;
+
+  002f8	e9 fa 00 00 00	 jmp	 $L70938
+$L70937:
+
+; 323  : #endif
+; 324  : 
+; 325  : #if defined (__osf__) || defined (__linux__)
+; 326  : 	/* GL 04/21/1997  change this as the latest OSF code */
+; 327  : 	/* ToggleLogfileMutex (MUTEX_RESERVE);*/
+; 328  : 	OP_LockMutex( phTTS->pcsLogFile );
+; 329  : #endif
+; 330  : 
+; 331  : 
+; 332  : 	switch (buf[0])
+; 333  : 	{
+
+  002fd	2d 05 1f 00 00	 sub	 eax, 7941		; 00001f05H
+  00302	0f 84 a4 00 00
+	00		 je	 $L70827
+  00308	48		 dec	 eax
+  00309	74 4d		 je	 SHORT $L70840
+  0030b	48		 dec	 eax
+  0030c	0f 85 f2 00 00
+	00		 jne	 $L70832
+
+; 489  : 
+; 490  : 	case SAVE:
+; 491  : 
+; 492  : 
+; 493  : #ifdef MSDOS
+; 494  : 		printf (":dv save\n");
+; 495  : #else
+; 496  : #ifdef PRINTFDEBUG
+; 497  : 		printf (":dv save\n");
+; 498  : #endif
+; 499  : 		
+; 500  : #ifndef MSDOS
+; 501  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  00312	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  00318	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fprintf
+  0031e	85 c0		 test	 eax, eax
+  00320	74 0b		 je	 SHORT $L70847
+
+; 502  : 			fprintf(pKsd_t->dbglog,":dv save\n");
+
+  00322	68 00 00 00 00	 push	 OFFSET FLAT:$SG70848
+  00327	50		 push	 eax
+  00328	ff d6		 call	 esi
+  0032a	83 c4 08	 add	 esp, 8
+$L70847:
+
+; 503  : #endif
+; 504  : 
+; 505  : 		if (pKsd_t->logflag & LOG_PHONEMES)
+
+  0032d	f6 87 04 02 00
+	00 02		 test	 BYTE PTR [edi+516], 2
+  00334	0f 84 ca 00 00
+	00		 je	 $L70832
+
+; 506  : 		{
+; 507  : 			if (fprintf (phTTS->pLogFile, ":dv save\n") < 0)
+
+  0033a	8b 95 98 00 00
+	00		 mov	 edx, DWORD PTR [ebp+152]
+  00340	68 00 00 00 00	 push	 OFFSET FLAT:$SG70851
+  00345	52		 push	 edx
+  00346	ff d6		 call	 esi
+  00348	83 c4 08	 add	 esp, 8
+  0034b	85 c0		 test	 eax, eax
+  0034d	0f 8d b1 00 00
+	00		 jge	 $L70832
+
+; 508  : 			{
+; 509  : 				TextToSpeechErrorHandler (phTTS,
+; 510  : 										  ERROR_WRITING_FILE,
+; 511  : 										  0L);
+; 512  : 			}
+; 513  : 		}
+; 514  : #endif
+; 515  : 		break;
+
+  00353	e9 9f 00 00 00	 jmp	 $L70938
+$L70840:
+
+; 461  : 
+; 462  : 	case NEW_PARAM:
+; 463  : 
+; 464  : 		cp = logspnames[buf[1]];
+
+  00358	0f bf 46 02	 movsx	 eax, WORD PTR [esi+2]
+  0035c	8b 1c 85 00 00
+	00 00		 mov	 ebx, DWORD PTR _logspnames[eax*4]
+
+; 465  : 
+; 466  : #ifdef MSDOS
+; 467  : 		printf (":dv %s %d\n", cp, buf[2]);
+; 468  : #else
+; 469  : #ifdef PRINTFDEBG
+; 470  : 		printf (":dv %s %d\n", cp, buf[2]);
+; 471  : #endif
+; 472  : 
+; 473  : #ifndef MSDOS
+; 474  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  00363	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  00369	85 c0		 test	 eax, eax
+  0036b	74 15		 je	 SHORT $L70841
+
+; 475  : 			fprintf(pKsd_t->dbglog,":dv %s %d\n", cp, buf[2]);
+
+  0036d	0f bf 4e 04	 movsx	 ecx, WORD PTR [esi+4]
+  00371	51		 push	 ecx
+  00372	53		 push	 ebx
+  00373	68 00 00 00 00	 push	 OFFSET FLAT:$SG70842
+  00378	50		 push	 eax
+  00379	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  0037f	83 c4 10	 add	 esp, 16			; 00000010H
+$L70841:
+
+; 476  : #endif
+; 477  : 
+; 478  : 		if (pKsd_t->logflag & LOG_PHONEMES)
+
+  00382	f6 87 04 02 00
+	00 02		 test	 BYTE PTR [edi+516], 2
+  00389	74 79		 je	 SHORT $L70832
+
+; 479  : 		{
+; 480  : 			if (fprintf (phTTS->pLogFile, ":dv %s %d\n", cp, buf[2]) < 0)
+
+  0038b	0f bf 56 04	 movsx	 edx, WORD PTR [esi+4]
+  0038f	8b 85 98 00 00
+	00		 mov	 eax, DWORD PTR [ebp+152]
+  00395	52		 push	 edx
+  00396	53		 push	 ebx
+  00397	68 00 00 00 00	 push	 OFFSET FLAT:$SG70845
+  0039c	50		 push	 eax
+  0039d	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__fprintf
+  003a3	83 c4 10	 add	 esp, 16			; 00000010H
+  003a6	85 c0		 test	 eax, eax
+  003a8	7d 5a		 jge	 SHORT $L70832
+
+; 481  : 			{
+; 482  : 				TextToSpeechErrorHandler (phTTS,
+; 483  : 										  ERROR_WRITING_FILE,
+; 484  : 										  0L);
+; 485  : 			}
+; 486  : 		}
+; 487  : #endif
+; 488  : 		break;
+
+  003aa	eb 4b		 jmp	 SHORT $L70938
+$L70827:
+
+; 411  : 
+; 412  : 	case NEW_SPEAKER:
+; 413  : 
+; 414  : 		oc = "pbhfdkurwv"[buf[1]];
+
+  003ac	0f bf 4e 02	 movsx	 ecx, WORD PTR [esi+2]
+
+; 415  : 
+; 416  : #ifdef MSDOS
+; 417  : 		printf (":n%c\n", oc);
+; 418  : #else
+; 419  : #ifdef PRINTFDEBUG
+; 420  : 		printf (":n%c\n", oc);
+; 421  : #endif
+; 422  : #ifndef MSDOS
+; 423  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  003b0	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  003b6	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fprintf
+  003bc	8a 99 00 00 00
+	00		 mov	 bl, BYTE PTR $SG70828[ecx]
+  003c2	85 c0		 test	 eax, eax
+  003c4	74 0f		 je	 SHORT $L70829
+
+; 424  : 			fprintf(pKsd_t->dbglog,":n%c\n", oc);
+
+  003c6	0f be d3	 movsx	 edx, bl
+  003c9	52		 push	 edx
+  003ca	68 00 00 00 00	 push	 OFFSET FLAT:$SG70830
+  003cf	50		 push	 eax
+  003d0	ff d6		 call	 esi
+  003d2	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70829:
+
+; 425  : #endif
+; 426  : 		if (pKsd_t->logflag & LOG_PHONEMES)
+
+  003d5	f6 87 04 02 00
+	00 02		 test	 BYTE PTR [edi+516], 2
+  003dc	74 26		 je	 SHORT $L70832
+
+; 427  : 		{
+; 428  : 			if (fprintf (phTTS->pLogFile, ":n%c\n", oc) < 0)
+
+  003de	8b 8d 98 00 00
+	00		 mov	 ecx, DWORD PTR [ebp+152]
+  003e4	0f be c3	 movsx	 eax, bl
+  003e7	50		 push	 eax
+  003e8	68 00 00 00 00	 push	 OFFSET FLAT:$SG70833
+  003ed	51		 push	 ecx
+  003ee	ff d6		 call	 esi
+  003f0	83 c4 0c	 add	 esp, 12			; 0000000cH
+  003f3	85 c0		 test	 eax, eax
+  003f5	7d 0d		 jge	 SHORT $L70832
+$L70938:
+
+; 429  : 			{
+; 430  : 				TextToSpeechErrorHandler (phTTS,
+; 431  : 										  ERROR_WRITING_FILE,
+; 432  : 										  0L);
+
+  003f7	6a 00		 push	 0
+  003f9	6a 05		 push	 5
+  003fb	55		 push	 ebp
+  003fc	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  00401	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70832:
+
+; 516  : 	}
+; 517  : 
+; 518  : #ifdef WIN32
+; 519  : 	LeaveCriticalSection (phTTS->pcsLogFile);
+
+  00404	8b 95 c4 00 00
+	00		 mov	 edx, DWORD PTR [ebp+196]
+  0040a	52		 push	 edx
+  0040b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  00411	5f		 pop	 edi
+  00412	5e		 pop	 esi
+  00413	5d		 pop	 ebp
+  00414	5b		 pop	 ebx
+
+; 520  : #endif
+; 521  : #if defined (__osf__) || defined (__linux__)
+; 522  : 		/* GL 04/21/1997  change this as the latest OSF code */
+; 523  : 		/* ToggleLogfileMutex (MUTEX_RESERVE);*/
+; 524  : 		OP_UnlockMutex( phTTS->pcsLogFile );
+; 525  : #endif
+; 526  : 
+; 527  : 
+; 528  : #ifdef MSDOS
+; 529  : 	SIGNAL_PRINT;
+; 530  : #endif
+; 531  : }
+
+  00415	c3		 ret	 0
+_logitem ENDP
+_TEXT	ENDS
+_DATA	SEGMENT
+	ORG $+2
+$SG70872 DB	'%c<0,0>', 0aH, 00H
+	ORG $+3
+$SG70874 DB	'%c<%d,%d>', 0aH, 00H
+	ORG $+1
+$SG70878 DB	'%c<%d,%d>', 00H
+	ORG $+2
+$SG70881 DB	'%c', 00H
+	ORG $+1
+$SG70885 DB	'%c', 00H
+	ORG $+1
+$SG70892 DB	'%c<0,0>', 0aH, 00H
+	ORG $+3
+$SG70894 DB	'%c<%d,%d>', 0aH, 00H
+	ORG $+1
+$SG70898 DB	'%c<%d,%d>', 00H
+	ORG $+2
+$SG70901 DB	'%c ', 00H
+$SG70905 DB	'%c ', 00H
+$SG70910 DB	'%c%c<%d,%d>', 0aH, 00H
+	ORG $+3
+$SG70914 DB	'%c%c<%d,%d>', 00H
+$SG70917 DB	'%c%c', 00H
+	ORG $+3
+$SG70921 DB	'%c%c', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_phone$ = 12
+_dur$ = 16
+_f0$ = 20
+_dologphoneme PROC NEAR
+
+; 541  : 	unsigned char _far     *arpa;
+; 542  : 	unsigned char _far     *ascky;
+; 543  : 	PKSD_T                  pKsd_t;
+; 544  : 
+; 545  : #ifdef MSDOS
+; 546  : 	pKsd_t = kernel_share;
+; 547  : #else
+; 548  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00420	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00424	53		 push	 ebx
+  00425	55		 push	 ebp
+  00426	56		 push	 esi
+  00427	57		 push	 edi
+  00428	8b 78 08	 mov	 edi, DWORD PTR [eax+8]
+
+; 549  : #endif
+; 550  : 
+; 551  : #ifndef MSDOS
+; 552  : 	/* 
+; 553  : 	 * LPTTS_HANDLE_T phTTS; phTTS = TextToSpeechGetHandle(); */
+; 554  : #endif
+; 555  : 
+; 556  : #ifdef WIN32
+; 557  : 	EnterCriticalSection (phTTS->pcsLogFile);
+
+  0042b	8b 80 c4 00 00
+	00		 mov	 eax, DWORD PTR [eax+196]
+  00431	50		 push	 eax
+  00432	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__EnterCriticalSection@4
+
+; 558  : #endif
+; 559  : 
+; 560  : #if defined (__osf__) || defined (__linux__)
+; 561  : 	/* GL 04/21/1997  change this as the latest OSF code */
+; 562  : 	/* ToggleLogfileMutex (MUTEX_RESERVE);*/
+; 563  : 	OP_LockMutex( phTTS->pcsLogFile );
+; 564  : #endif
+; 565  : 	ascky = (char _far *) pKsd_t->ascky;
+; 566  : 	arpa = (unsigned char _far *) pKsd_t->arpabet;
+; 567  : 
+; 568  : /* GL 10/03/1996 */ /*mfg_debug*/
+; 569  : /* make sure the logging for LATIN mode is correct. change E_TH(17) to E_S(15) */
+; 570  : 		if ((pKsd_t->lang_curr == LANG_latin_american)  && (pKsd_t->modeflag & MODE_LATIN) && (phone == 17))
+
+  00438	8b 87 f8 00 00
+	00		 mov	 eax, DWORD PTR [edi+248]
+  0043e	8b af 58 04 00
+	00		 mov	 ebp, DWORD PTR [edi+1112]
+  00444	8b b7 64 04 00
+	00		 mov	 esi, DWORD PTR [edi+1124]
+  0044a	83 f8 06	 cmp	 eax, 6
+  0044d	75 1c		 jne	 SHORT $L70940
+  0044f	8b 87 00 02 00
+	00		 mov	 eax, DWORD PTR [edi+512]
+  00455	f6 c4 02	 test	 ah, 2
+  00458	74 11		 je	 SHORT $L70940
+  0045a	8b 5c 24 18	 mov	 ebx, DWORD PTR _phone$[esp+12]
+  0045e	66 83 fb 11	 cmp	 bx, 17			; 00000011H
+  00462	75 0b		 jne	 SHORT $L70866
+
+; 571  : 		{
+; 572  : 			phone = 15;
+
+  00464	bb 0f 00 00 00	 mov	 ebx, 15			; 0000000fH
+  00469	eb 04		 jmp	 SHORT $L70866
+$L70940:
+  0046b	8b 5c 24 18	 mov	 ebx, DWORD PTR _phone$[esp+12]
+$L70866:
+
+; 573  : 		}
+; 574  : 
+; 575  : 
+; 576  : #ifdef MSDOS
+; 577  : 	if (pKsd_t->phoneme_mode & PHONEME_ASCKY)
+; 578  : 	{
+; 579  : 		if (dur != 0 || f0 != 0)
+; 580  : 		{
+; 581  : 			if (ascky[phone] == '_')
+; 582  : 			{
+; 583  : #ifndef MSDOS
+; 584  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 585  : 				fprintf(pKsd_t->dbglog,"%c<0,0>\n", ascky[phone]);
+; 586  : #endif
+; 587  : 			printf ("%c<0,0>", ascky[phone]);
+; 588  : 			}
+; 589  : 			else
+; 590  : 			{
+; 591  : #ifndef MSDOS
+; 592  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 593  : 				fprintf(pKsd_t->dbglog,"%c<%d,%d>\n", ascky[phone], dur, f0);
+; 594  : #endif
+; 595  : 
+; 596  : 			printf ("%c<%d,%d>", ascky[phone], dur, f0);
+; 597  : 			}
+; 598  : 		}
+; 599  : 		else
+; 600  : 		{
+; 601  : #ifndef MSDOS
+; 602  : 		if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 603  : 			fprintf(pKsd_t->dbglog,"%c ", ascky[phone]);
+; 604  : #endif
+; 605  : 		printf ("%c ", ascky[phone]);
+; 606  : 		}
+; 607  : 	}
+; 608  : 	else
+; 609  : 	{
+; 610  : 		if (arpa[phone * 2 + 1] == ' ')
+; 611  : 		{
+; 612  : 			if (dur != 0 || f0 != 0)
+; 613  : 			{
+; 614  : 			    if (arpa[phone * 2] == '_')
+; 615  : 				{
+; 616  : #ifndef MSDOS
+; 617  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 618  : 					fprintf(pKsd_t->dbglog,"%c<0,0>\n", arpa[phone * 2]);
+; 619  : #endif
+; 620  : 				printf ("%c<0,0>", arpa[phone * 2]);
+; 621  : 				}
+; 622  : 				else
+; 623  : 				{
+; 624  : #ifndef MSDOS
+; 625  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 626  : 					fprintf(pKsd_t->dbglog,"%c<%d,%d>\n", arpa[phone * 2], dur, f0);
+; 627  : #endif
+; 628  : 				printf ("%c<%d,%d>", arpa[phone * 2], dur, f0);
+; 629  : 				}
+; 630  : 			}
+; 631  : 			else
+; 632  : 			{
+; 633  : #ifndef MSDOS
+; 634  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 635  : 					fprintf(pKsd_t->dbglog,"%c ", arpa[phone * 2]);
+; 636  : #endif
+; 637  : 				printf ("%c ", arpa[phone * 2]);
+; 638  : 			}
+; 639  : 		}
+; 640  : 		else
+; 641  : 		{
+; 642  : 			if (dur != 0 || f0 != 0)
+; 643  : 			{
+; 644  : #ifndef MSDOS
+; 645  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 646  : 					fprintf(pKsd_t->dbglog,"%c%c<%d,%d>\n", arpa[phone * 2], arpa[phone * 2 + 1], dur, f0);
+; 647  : #endif
+; 648  : 				printf ("%c%c<%d,%d>", arpa[phone * 2], arpa[phone * 2 + 1], dur, f0);
+; 649  : 			}
+; 650  : 			else
+; 651  : 			{
+; 652  : #ifndef MSDOS
+; 653  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+; 654  : 					fprintf(pKsd_t->dbglog,"%c%c", arpa[phone * 2], arpa[phone * 2 + 1]);
+; 655  : #endif
+; 656  : 				printf ("%c%c", arpa[phone * 2], arpa[phone * 2 + 1]);
+; 657  : 			}
+; 658  : 		}
+; 659  : 	}
+; 660  : #else
+; 661  : 	if (pKsd_t->phoneme_mode & PHONEME_ASCKY)
+
+  0046f	f6 87 10 02 00
+	00 02		 test	 BYTE PTR [edi+528], 2
+  00476	0f 84 f0 00 00
+	00		 je	 $L70867
+
+; 662  : 	{
+; 663  : 		if (dur != 0 || f0 != 0)
+
+  0047c	66 83 7c 24 1c
+	00		 cmp	 WORD PTR _dur$[esp+12], 0
+  00482	75 69		 jne	 SHORT $L70869
+  00484	66 83 7c 24 20
+	00		 cmp	 WORD PTR _f0$[esp+12], 0
+  0048a	75 61		 jne	 SHORT $L70869
+
+; 688  : 				{
+; 689  : 					TextToSpeechErrorHandler (phTTS,
+; 690  : 											  ERROR_WRITING_FILE,
+; 691  : 											  0L);
+; 692  : 				}
+; 693  : 			}
+; 694  : 		}
+; 695  : 		else
+; 696  : 		{
+; 697  : 		/* GL 03/24/1997 for BATS#313  should not send out the space for ASCKY logging */
+; 698  : #ifdef PRINTFDEBUG
+; 699  : 			printf ("%c", ascky[phone]);
+; 700  : #endif
+; 701  : #ifndef MSDOS
+; 702  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  0048c	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  00492	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fprintf
+  00498	85 c0		 test	 eax, eax
+  0049a	74 14		 je	 SHORT $L70880
+
+; 703  : 					fprintf(pKsd_t->dbglog,"%c", ascky[phone]);
+
+  0049c	0f bf cb	 movsx	 ecx, bx
+  0049f	33 d2		 xor	 edx, edx
+  004a1	8a 14 29	 mov	 dl, BYTE PTR [ecx+ebp]
+  004a4	52		 push	 edx
+  004a5	68 00 00 00 00	 push	 OFFSET FLAT:$SG70881
+  004aa	50		 push	 eax
+  004ab	ff d6		 call	 esi
+  004ad	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70880:
+
+; 704  : #endif
+; 705  : 			if ((pKsd_t->logflag & LOG_OUTPHON) || (pKsd_t->logflag & LOG_PHONEMES))
+
+  004b0	f6 87 04 02 00
+	00 22		 test	 BYTE PTR [edi+516], 34	; 00000022H
+  004b7	0f 84 8c 02 00
+	00		 je	 $L70913
+
+; 706  : 			{
+; 707  : 				if (fprintf (phTTS->pLogFile, "%c", ascky[phone]) < 0)
+
+  004bd	8b 7c 24 14	 mov	 edi, DWORD PTR _phTTS$[esp+12]
+  004c1	33 c9		 xor	 ecx, ecx
+  004c3	0f bf c3	 movsx	 eax, bx
+  004c6	8b 97 98 00 00
+	00		 mov	 edx, DWORD PTR [edi+152]
+  004cc	8a 0c 28	 mov	 cl, BYTE PTR [eax+ebp]
+  004cf	51		 push	 ecx
+  004d0	68 00 00 00 00	 push	 OFFSET FLAT:$SG70885
+  004d5	52		 push	 edx
+  004d6	ff d6		 call	 esi
+  004d8	83 c4 0c	 add	 esp, 12			; 0000000cH
+  004db	85 c0		 test	 eax, eax
+  004dd	0f 8d 66 02 00
+	00		 jge	 $L70913
+
+; 708  : 				{
+; 709  : 					TextToSpeechErrorHandler (phTTS,
+; 710  : 											  ERROR_WRITING_FILE,
+; 711  : 											  0L);
+
+  004e3	6a 00		 push	 0
+  004e5	6a 05		 push	 5
+  004e7	57		 push	 edi
+  004e8	e9 54 02 00 00	 jmp	 $L70946
+$L70869:
+
+; 664  : 		{
+; 665  : #ifdef PRINTFDEBUG
+; 666  : 			if (ascky[phone] == '_')
+; 667  : 			printf ("%c<0,0>", ascky[phone]);			
+; 668  : 			else
+; 669  : 			printf ("%c<%d,%d>", ascky[phone], dur, f0);
+; 670  : #endif
+; 671  : 
+; 672  : 
+; 673  : #ifndef MSDOS
+; 674  : 			if (pKsd_t->dbglog)	/* mfg added for dbglog.txt logging support*/
+
+  004ed	8b 8f 7c 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1148]
+  004f3	8b 35 00 00 00
+	00		 mov	 esi, DWORD PTR __imp__fprintf
+  004f9	85 c9		 test	 ecx, ecx
+  004fb	74 36		 je	 SHORT $L70873
+
+; 675  : 			{
+; 676  : 				if (ascky[phone] == '_')
+
+  004fd	0f bf c3	 movsx	 eax, bx
+  00500	8a 04 28	 mov	 al, BYTE PTR [eax+ebp]
+  00503	3c 5f		 cmp	 al, 95			; 0000005fH
+  00505	75 0f		 jne	 SHORT $L70871
+
+; 677  : 					fprintf(pKsd_t->dbglog,"%c<0,0>\n", ascky[phone]);
+
+  00507	6a 5f		 push	 95			; 0000005fH
+  00509	68 00 00 00 00	 push	 OFFSET FLAT:$SG70872
+  0050e	51		 push	 ecx
+  0050f	ff d6		 call	 esi
+  00511	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 678  : 				else
+
+  00514	eb 1d		 jmp	 SHORT $L70873
+$L70871:
+
+; 679  : 					fprintf(pKsd_t->dbglog,"%c<%d,%d>\n", ascky[phone], dur, f0);
+
+  00516	0f bf 54 24 20	 movsx	 edx, WORD PTR _f0$[esp+12]
+  0051b	52		 push	 edx
+  0051c	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00521	0f bf 54 24 20	 movsx	 edx, WORD PTR _dur$[esp+16]
+  00526	52		 push	 edx
+  00527	50		 push	 eax
+  00528	68 00 00 00 00	 push	 OFFSET FLAT:$SG70874
+  0052d	51		 push	 ecx
+  0052e	ff d6		 call	 esi
+  00530	83 c4 14	 add	 esp, 20			; 00000014H
+$L70873:
+
+; 680  : 			}
+; 681  : #endif
+; 682  : 
+; 683  : 			if ((pKsd_t->logflag & LOG_OUTPHON) || (pKsd_t->logflag & LOG_PHONEMES))
+
+  00533	f6 87 04 02 00
+	00 22		 test	 BYTE PTR [edi+516], 34	; 00000022H
+  0053a	0f 84 09 02 00
+	00		 je	 $L70913
+
+; 684  : 			{
+; 685  : 
+; 686  : 				if (fprintf (phTTS->pLogFile,
+; 687  : 							 "%c<%d,%d>", ascky[phone], dur, f0) < 0)
+
+  00540	0f bf 44 24 20	 movsx	 eax, WORD PTR _f0$[esp+12]
+  00545	0f bf 4c 24 1c	 movsx	 ecx, WORD PTR _dur$[esp+12]
+  0054a	0f bf d3	 movsx	 edx, bx
+  0054d	50		 push	 eax
+  0054e	51		 push	 ecx
+  0054f	8b 4c 24 1c	 mov	 ecx, DWORD PTR _phTTS$[esp+20]
+  00553	33 c0		 xor	 eax, eax
+  00555	8a 04 2a	 mov	 al, BYTE PTR [edx+ebp]
+  00558	8b 91 98 00 00
+	00		 mov	 edx, DWORD PTR [ecx+152]
+  0055e	50		 push	 eax
+  0055f	68 00 00 00 00	 push	 OFFSET FLAT:$SG70878
+  00564	52		 push	 edx
+  00565	ff d6		 call	 esi
+  00567	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 712  : 				}
+; 713  : 			}
+; 714  : 		}
+; 715  : 
+; 716  : 	}
+; 717  : 	else
+
+  0056a	eb 6a		 jmp	 SHORT $L70948
+$L70867:
+
+; 718  : 	{
+; 719  : 		if (arpa[phone * 2 + 1] == ' ')
+
+  0056c	0f bf cb	 movsx	 ecx, bx
+  0056f	8a 44 4e 01	 mov	 al, BYTE PTR [esi+ecx*2+1]
+
+; 720  : 		{
+; 721  : 			if (dur != 0 || f0 != 0)
+
+  00573	66 8b 6c 24 1c	 mov	 bp, WORD PTR _dur$[esp+12]
+  00578	8d 34 4e	 lea	 esi, DWORD PTR [esi+ecx*2]
+  0057b	3c 20		 cmp	 al, 32			; 00000020H
+  0057d	0f 85 dc 00 00
+	00		 jne	 $L70887
+  00583	66 85 ed	 test	 bp, bp
+  00586	75 64		 jne	 SHORT $L70889
+  00588	66 39 6c 24 20	 cmp	 WORD PTR _f0$[esp+12], bp
+  0058d	75 5d		 jne	 SHORT $L70889
+
+; 743  : 					{
+; 744  : 						TextToSpeechErrorHandler (phTTS,
+; 745  : 												  ERROR_WRITING_FILE,
+; 746  : 												  0L);
+; 747  : 					}
+; 748  : 				}
+; 749  : 			}
+; 750  : 			else
+; 751  : 			{
+; 752  : 
+; 753  : 
+; 754  : #ifdef PRINTFDEBUG
+; 755  : 				printf ("%c ", arpa[phone * 2]);
+; 756  : #endif
+; 757  : 
+; 758  : #ifndef MSDOS
+; 759  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  0058f	8b 87 7c 04 00
+	00		 mov	 eax, DWORD PTR [edi+1148]
+  00595	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  0059b	85 c0		 test	 eax, eax
+  0059d	74 10		 je	 SHORT $L70900
+
+; 760  : 					fprintf(pKsd_t->dbglog,"%c ", arpa[phone * 2]);
+
+  0059f	33 d2		 xor	 edx, edx
+  005a1	8a 16		 mov	 dl, BYTE PTR [esi]
+  005a3	52		 push	 edx
+  005a4	68 00 00 00 00	 push	 OFFSET FLAT:$SG70901
+  005a9	50		 push	 eax
+  005aa	ff d3		 call	 ebx
+  005ac	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70900:
+
+; 761  : #endif
+; 762  : 
+; 763  : 				if ((pKsd_t->logflag & LOG_OUTPHON) || (pKsd_t->logflag & LOG_PHONEMES))
+
+  005af	f6 87 04 02 00
+	00 22		 test	 BYTE PTR [edi+516], 34	; 00000022H
+  005b6	0f 84 8d 01 00
+	00		 je	 $L70913
+
+; 764  : 				{
+; 765  : 					/* GL 03/21/1997 for BATS#305 need to send "%c " intead of "%c" only */
+; 766  : 					if (fprintf (phTTS->pLogFile, "%c ", arpa[phone * 2]) < 0)
+
+  005bc	8b 4c 24 14	 mov	 ecx, DWORD PTR _phTTS$[esp+12]
+  005c0	33 c0		 xor	 eax, eax
+  005c2	8a 06		 mov	 al, BYTE PTR [esi]
+  005c4	8b 91 98 00 00
+	00		 mov	 edx, DWORD PTR [ecx+152]
+  005ca	50		 push	 eax
+  005cb	68 00 00 00 00	 push	 OFFSET FLAT:$SG70905
+  005d0	52		 push	 edx
+  005d1	ff d3		 call	 ebx
+  005d3	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70948:
+  005d6	85 c0		 test	 eax, eax
+  005d8	0f 8d 6b 01 00
+	00		 jge	 $L70913
+
+; 767  : 					{
+; 768  : 						TextToSpeechErrorHandler (phTTS,
+; 769  : 												  ERROR_WRITING_FILE,
+; 770  : 												  0L);
+
+  005de	8b 44 24 14	 mov	 eax, DWORD PTR _phTTS$[esp+12]
+  005e2	6a 00		 push	 0
+  005e4	6a 05		 push	 5
+  005e6	50		 push	 eax
+  005e7	e9 55 01 00 00	 jmp	 $L70946
+$L70889:
+
+; 722  : 			{
+; 723  : #ifdef PRINTFDEBUG
+; 724  : 			    if (arpa[phone * 2] == '_')
+; 725  : 			    printf ("%c<0,0>", arpa[phone * 2]);
+; 726  : 			    else
+; 727  : 				printf ("%c<%d,%d>", arpa[phone * 2], dur, f0);
+; 728  : #endif
+; 729  : 								
+; 730  : #ifndef MSDOS
+; 731  : 			if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  005ec	8b 8f 7c 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1148]
+  005f2	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  005f8	85 c9		 test	 ecx, ecx
+  005fa	74 30		 je	 SHORT $L70893
+
+; 732  : 			{
+; 733  : 			    if (arpa[phone * 2] == '_')
+
+  005fc	8a 06		 mov	 al, BYTE PTR [esi]
+  005fe	3c 5f		 cmp	 al, 95			; 0000005fH
+  00600	75 0f		 jne	 SHORT $L70891
+
+; 734  : 			    fprintf (pKsd_t->dbglog,"%c<0,0>\n", arpa[phone * 2]);
+
+  00602	6a 5f		 push	 95			; 0000005fH
+  00604	68 00 00 00 00	 push	 OFFSET FLAT:$SG70892
+  00609	51		 push	 ecx
+  0060a	ff d3		 call	 ebx
+  0060c	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 735  : 			    else
+
+  0060f	eb 1b		 jmp	 SHORT $L70893
+$L70891:
+
+; 736  : 				fprintf (pKsd_t->dbglog,"%c<%d,%d>\n", arpa[phone * 2], dur, f0);
+
+  00611	0f bf 54 24 20	 movsx	 edx, WORD PTR _f0$[esp+12]
+  00616	52		 push	 edx
+  00617	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  0061c	0f bf d5	 movsx	 edx, bp
+  0061f	52		 push	 edx
+  00620	50		 push	 eax
+  00621	68 00 00 00 00	 push	 OFFSET FLAT:$SG70894
+  00626	51		 push	 ecx
+  00627	ff d3		 call	 ebx
+  00629	83 c4 14	 add	 esp, 20			; 00000014H
+$L70893:
+
+; 737  : 			}
+; 738  : #endif
+; 739  : 
+; 740  : 				if ((pKsd_t->logflag & LOG_OUTPHON) || (pKsd_t->logflag & LOG_PHONEMES))
+
+  0062c	f6 87 04 02 00
+	00 22		 test	 BYTE PTR [edi+516], 34	; 00000022H
+  00633	0f 84 10 01 00
+	00		 je	 $L70913
+
+; 741  : 				{
+; 742  : 					if (fprintf (phTTS->pLogFile, "%c<%d,%d>", arpa[phone * 2], dur, f0) < 0)
+
+  00639	0f bf 44 24 20	 movsx	 eax, WORD PTR _f0$[esp+12]
+  0063e	0f bf cd	 movsx	 ecx, bp
+  00641	50		 push	 eax
+  00642	8b 44 24 18	 mov	 eax, DWORD PTR _phTTS$[esp+16]
+  00646	33 d2		 xor	 edx, edx
+  00648	51		 push	 ecx
+  00649	8a 16		 mov	 dl, BYTE PTR [esi]
+  0064b	8b 88 98 00 00
+	00		 mov	 ecx, DWORD PTR [eax+152]
+  00651	52		 push	 edx
+  00652	68 00 00 00 00	 push	 OFFSET FLAT:$SG70898
+  00657	51		 push	 ecx
+  00658	ff d3		 call	 ebx
+  0065a	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 771  : 					}
+; 772  : 				}
+; 773  : 			}
+; 774  : 		}
+; 775  : 		else
+
+  0065d	eb 5f		 jmp	 SHORT $L70947
+$L70887:
+
+; 776  : 		{
+; 777  : 			if (dur != 0 || f0 != 0)
+
+  0065f	66 85 ed	 test	 bp, bp
+  00662	75 6d		 jne	 SHORT $L70908
+  00664	66 39 6c 24 20	 cmp	 WORD PTR _f0$[esp+12], bp
+  00669	75 66		 jne	 SHORT $L70908
+
+; 794  : 					}
+; 795  : 				}
+; 796  : 			}
+; 797  : 			else
+; 798  : 			{
+; 799  : 
+; 800  : 
+; 801  : #ifdef PRINTFDEBUG
+; 802  : 				printf ("%c%c", arpa[phone * 2], arpa[phone * 2 + 1]);
+; 803  : #endif
+; 804  : 
+; 805  : #ifndef MSDOS
+; 806  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  0066b	8b 8f 7c 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1148]
+  00671	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  00677	85 c9		 test	 ecx, ecx
+  00679	74 16		 je	 SHORT $L70916
+
+; 807  : 					fprintf(pKsd_t->dbglog,"%c%c", arpa[phone * 2], arpa[phone * 2 + 1]);
+
+  0067b	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00680	50		 push	 eax
+  00681	33 c0		 xor	 eax, eax
+  00683	8a 06		 mov	 al, BYTE PTR [esi]
+  00685	50		 push	 eax
+  00686	68 00 00 00 00	 push	 OFFSET FLAT:$SG70917
+  0068b	51		 push	 ecx
+  0068c	ff d3		 call	 ebx
+  0068e	83 c4 10	 add	 esp, 16			; 00000010H
+$L70916:
+
+; 808  : #endif
+; 809  : 				
+; 810  : 				if ((pKsd_t->logflag & LOG_OUTPHON) || (pKsd_t->logflag & LOG_PHONEMES))
+
+  00691	f6 87 04 02 00
+	00 22		 test	 BYTE PTR [edi+516], 34	; 00000022H
+  00698	0f 84 ab 00 00
+	00		 je	 $L70913
+
+; 811  : 				{
+; 812  : 					if (fprintf (phTTS->pLogFile, "%c%c", arpa[phone * 2], arpa[phone * 2 + 1]) < 0)
+
+  0069e	8b 44 24 14	 mov	 eax, DWORD PTR _phTTS$[esp+12]
+  006a2	33 c9		 xor	 ecx, ecx
+  006a4	8a 4e 01	 mov	 cl, BYTE PTR [esi+1]
+  006a7	33 d2		 xor	 edx, edx
+  006a9	8a 16		 mov	 dl, BYTE PTR [esi]
+  006ab	51		 push	 ecx
+  006ac	8b 88 98 00 00
+	00		 mov	 ecx, DWORD PTR [eax+152]
+  006b2	52		 push	 edx
+  006b3	68 00 00 00 00	 push	 OFFSET FLAT:$SG70921
+  006b8	51		 push	 ecx
+  006b9	ff d3		 call	 ebx
+  006bb	83 c4 10	 add	 esp, 16			; 00000010H
+$L70947:
+  006be	85 c0		 test	 eax, eax
+  006c0	0f 8d 83 00 00
+	00		 jge	 $L70913
+
+; 813  : 					{
+; 814  : 						TextToSpeechErrorHandler (phTTS,
+; 815  : 												  ERROR_WRITING_FILE,
+; 816  : 												  0L);
+
+  006c6	8b 54 24 14	 mov	 edx, DWORD PTR _phTTS$[esp+12]
+  006ca	6a 00		 push	 0
+  006cc	6a 05		 push	 5
+  006ce	52		 push	 edx
+  006cf	eb 70		 jmp	 SHORT $L70946
+$L70908:
+
+; 778  : 			{
+; 779  : #ifdef PRINTFDEBUG
+; 780  : 				printf ("%c%c<%d,%d>", arpa[phone * 2], arpa[phone * 2 + 1], dur, f0);
+; 781  : #endif
+; 782  : #ifndef MSDOS
+; 783  : 				if (pKsd_t->dbglog)		/* mfg added for dbglog.txt logging support*/
+
+  006d1	8b 8f 7c 04 00
+	00		 mov	 ecx, DWORD PTR [edi+1148]
+  006d7	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__fprintf
+  006dd	85 c9		 test	 ecx, ecx
+  006df	74 20		 je	 SHORT $L70909
+
+; 784  : 					fprintf(pKsd_t->dbglog,"%c%c<%d,%d>\n", arpa[phone * 2], arpa[phone * 2 + 1], dur, f0);
+
+  006e1	0f bf 54 24 20	 movsx	 edx, WORD PTR _f0$[esp+12]
+  006e6	52		 push	 edx
+  006e7	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  006ec	0f bf d5	 movsx	 edx, bp
+  006ef	52		 push	 edx
+  006f0	50		 push	 eax
+  006f1	33 c0		 xor	 eax, eax
+  006f3	8a 06		 mov	 al, BYTE PTR [esi]
+  006f5	50		 push	 eax
+  006f6	68 00 00 00 00	 push	 OFFSET FLAT:$SG70910
+  006fb	51		 push	 ecx
+  006fc	ff d3		 call	 ebx
+  006fe	83 c4 18	 add	 esp, 24			; 00000018H
+$L70909:
+
+; 785  : #endif
+; 786  : 				
+; 787  : 				if ((pKsd_t->logflag & LOG_OUTPHON) || (pKsd_t->logflag & LOG_PHONEMES))
+
+  00701	f6 87 04 02 00
+	00 22		 test	 BYTE PTR [edi+516], 34	; 00000022H
+  00708	74 3f		 je	 SHORT $L70913
+
+; 788  : 				{
+; 789  : 					if (fprintf (phTTS->pLogFile, "%c%c<%d,%d>", arpa[phone * 2], arpa[phone * 2 + 1], dur, f0) < 0)
+
+  0070a	0f bf 4c 24 20	 movsx	 ecx, WORD PTR _f0$[esp+12]
+  0070f	0f bf d5	 movsx	 edx, bp
+  00712	51		 push	 ecx
+  00713	33 c0		 xor	 eax, eax
+  00715	8a 46 01	 mov	 al, BYTE PTR [esi+1]
+  00718	52		 push	 edx
+  00719	8b 54 24 1c	 mov	 edx, DWORD PTR _phTTS$[esp+20]
+  0071d	33 c9		 xor	 ecx, ecx
+  0071f	8a 0e		 mov	 cl, BYTE PTR [esi]
+  00721	50		 push	 eax
+  00722	8b 82 98 00 00
+	00		 mov	 eax, DWORD PTR [edx+152]
+  00728	51		 push	 ecx
+  00729	68 00 00 00 00	 push	 OFFSET FLAT:$SG70914
+  0072e	50		 push	 eax
+  0072f	ff d3		 call	 ebx
+  00731	83 c4 18	 add	 esp, 24			; 00000018H
+  00734	85 c0		 test	 eax, eax
+  00736	7d 11		 jge	 SHORT $L70913
+
+; 790  : 					{
+; 791  : 						TextToSpeechErrorHandler (phTTS,
+; 792  : 												  ERROR_WRITING_FILE,
+; 793  : 												  0L);
+
+  00738	8b 4c 24 14	 mov	 ecx, DWORD PTR _phTTS$[esp+12]
+  0073c	6a 00		 push	 0
+  0073e	6a 05		 push	 5
+  00740	51		 push	 ecx
+$L70946:
+  00741	e8 00 00 00 00	 call	 _TextToSpeechErrorHandler
+  00746	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L70913:
+
+; 817  : 					}
+; 818  : 				}
+; 819  : 			}
+; 820  : 		}
+; 821  : 	}
+; 822  : #endif
+; 823  : 
+; 824  : #ifdef WIN32
+; 825  : 	LeaveCriticalSection (phTTS->pcsLogFile);
+
+  00749	8b 54 24 14	 mov	 edx, DWORD PTR _phTTS$[esp+12]
+  0074d	8b 82 c4 00 00
+	00		 mov	 eax, DWORD PTR [edx+196]
+  00753	50		 push	 eax
+  00754	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__LeaveCriticalSection@4
+  0075a	5f		 pop	 edi
+  0075b	5e		 pop	 esi
+  0075c	5d		 pop	 ebp
+  0075d	5b		 pop	 ebx
+
+; 826  : #endif
+; 827  : #if defined (__osf__) || defined (__linux__)
+; 828  : 	/* GL 04/21/1997  change this as the latest OSF code */
+; 829  : 	/* ToggleLogfileMutex (MUTEX_RESERVE);*/
+; 830  : 	OP_UnlockMutex( phTTS->pcsLogFile );
+; 831  : #endif
+; 832  : }
+
+  0075e	c3		 ret	 0
+_dologphoneme ENDP
+_TEXT	ENDS
+END

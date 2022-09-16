@@ -1,0 +1,389 @@
+dnl
+dnl Configure template for DECtalk
+dnl this is a comment.  Weird huh?
+dnl *********************************************************************
+dnl *   File Name:      configure.in
+dnl *   Author:		Eric Thompson
+dnl *   Creation Date:	10/22/1998
+dnl *
+dnl *   Functionality:
+dnl *  	Process this file with autoconf to produce a configure script. 
+dnl *	The configure script produces various Makefile from various Makefile.in
+dnl *
+dnl *********************************************************************
+dnl *    Revision History:
+dnl *
+dnl *  Rev  Who		Date		Description
+dnl *  ---  ------	-----------	----------------------------------
+dnl *  000  ETT		10/22/1998	produces Makefiles for x86 linux (elf)
+dnl *  001  ETT		11/04/1998	produces Makefiles for alpha linux
+dnl *  002  ETT		11/17/1998	arm linux for the itsy (aout)
+dnl *  003  ETT     11/23/1998	Digital Unix 4.0[d,e]
+dnl *  004  ETT		11/24/1998	fix linux again
+dnl *  005  ETT		12/04/1998	added stuff for speak, etc.
+dnl *  006	ETT		12/07/1998  added yet another variable for osf
+dnl *							SO_LOCATIONS, I tell ya...
+dnl *  007  NAL         04/10/2000      Added stuff for gspeakdemos
+dnl *********************************************************************
+dnl * see: http://www.sdsu.edu/doc/texi/autoconf_toc.html 
+dnl * for help and documentation.
+
+dnl AC_REVISION([configure.in 0.01])   
+
+dnl AC_INIT always has to be first. except AC_REVISION
+dnl the filename specified here is just so that autoconf
+dnl is sure that this is _actually_ the src dir
+AC_INIT(dectalkf.h)
+
+dnl Determine the system type and set output variables to the names 
+dnl of the canonical system types.
+dnl build, host, target 
+dnl      the canonical system names; 
+dnl build_alias, host_alias, target_alias 
+dnl      the names user specified, or canonical names from config.guess 
+dnl build_cpu, build_vendor, build_os 
+dnl host_cpu, host_vendor, host_os 
+dnl target_cpu, target_vendor, target_os 
+dnl      the individual parts of the canonical names (for convenience). 
+AC_CANONICAL_SYSTEM
+dnl AC_CANONICAL_SYSTEM requires config.guess and config.sub shell scripts
+
+dnl Determine a C compiler to use. If CC is not already set in the environment,
+dnl check for gcc, and use cc if that's not found. Set output variable CC 
+dnl to the name of the compiler found.  
+AC_PROG_CC
+case "$target" in
+	arm-*-linux-*) CC="/usr/local/bin/arm-unknown-linuxelf-gcc" ;;
+dnl use the itsy cross compiler.
+esac
+
+dnl If the C compiler does not accept the `-c' and `-o' options 
+dnl simultaneously, define NO_MINUS_C_MINUS_O. 
+AC_PROG_CC_C_O
+
+dnl Set output variable CPP to a command that runs the C preprocessor. 
+dnl If `$CC -E' doesn't work, it uses `/lib/cpp'. It is only portable 
+dnl to run CPP on files with a `.c' extension.
+dnl AC_PROG_CPP
+
+dnl If `ln -s' works on the current filesystem, set output variable LN_S 
+dnl to `ln -s', otherwise set it to `ln'.
+AC_PROG_LN_S 
+
+dnl Set output variable RANLIB to `ranlib' if ranlib is found, 
+dnl otherwise to `:' (do nothing). 
+AC_PROG_RANLIB 
+
+dnl these are single backquotes!
+dnl OS_VERSION=`uname -srm`
+OS_VERSION=`uname -r`
+AC_SUBST(OS_VERSION)dnl
+
+dnl don't put a slash on the end of this dir.  
+dnl it shouldn't matter but why chance it?
+BUILD_DIR=`pwd`"/dapi/build"
+case "$target" in
+	arm-itsy-linux-*) BUILD_DIR=`pwd`"/dapi/build" ;;
+esac
+AC_SUBST(BUILD_DIR)dnl
+
+DEFINES=" -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE)" 
+case "$target" in
+	arm-*-linux-*) DEFINES=" -D_REENTRANT -D_GNU_SOURCE -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE)" ;;
+	*-*-linux-*) DEFINES=" -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE)" ;;
+esac
+AC_SUBST(DEFINES)dnl
+
+LICENSE_DEFINES=""
+case "$target" in
+	*-*-linux-*) LICENSE_DEFINES="";;
+esac
+AC_SUBST(LICENSE_DEFINES)dnl
+
+LICENSE_ALL="\$(OUTPUT_DIR)/licenin1 \$(OUTPUT_DIR)/licenin3 \
+            \$(OUTPUT_DIR)/licenin7"
+case "$target" in
+	alpha-dec-osf*) LICENSE_ALL="";;
+esac
+AC_SUBST(LICENSE_ALL)dnl
+	
+DEBUG_FLAGS=" -G3 -migrate"
+case "$target" in
+	arm-*-linux-*) DEBUG_FLAGS=" -g -fPIC";;
+	*-*-linux-*) DEBUG_FLAGS=" -g" ;;
+esac
+AC_SUBST(DEBUG_FLAGS)dnl
+
+OPTO_FLAGS=" -O2"
+AC_SUBST(OPTO_FLAGS)dnl
+
+WARN_FLAGS=" -threads -w1"
+case "$target" in
+	*-*-linux-*) WARN_FLAGS=" -Wall" ;;
+esac
+AC_SUBST(WARN_FLAGS)dnl
+
+PH_VTM_OPTO_FLAGS=" -O2"
+case "$target" in
+	arm-*-linux-*) PH_VTM_OPTO_FLAGS="" ;;
+dnl for some reason the itsy ph and vtm files can't be optimized too far.
+esac
+AC_SUBST(PH_VTM_OPTO_FLAGS)dnl
+
+dnl the dictionary compiler must be built for host not target
+DIC_CC="gcc"
+case "$target" in
+	alpha-dec-osf*) DIC_CC="cc" ;;
+esac
+AC_SUBST(DIC_CC)dnl
+
+case "$target" in
+	arm-*-linux-*) RANLIB="/usr/local/bin/arm-unknown-linuxelf-ranlib" ;;
+dnl use the itsy ranlib.
+esac
+
+LD="ld"
+case "$target" in
+	arm-*-linux-*) LD="/usr/local/bin/arm-unknown-linuxelf-ld" ;;
+dnl use the itsy dynamic linker.
+esac
+AC_SUBST(LD)dnl
+
+AR="ar cqls"
+case "$target" in
+	arm-*-linux-*) AR="/usr/local/bin/arm-unknown-linuxelf-ar cqls" ;;
+dnl use the itsy archiver.
+esac
+AC_SUBST(AR)dnl
+
+STD_INCLUDE="/usr/include/"
+case "$target" in
+	arm-*-linux-*) STD_INCLUDE="" ;;
+dnl the itsy cross compiler knows where to get the std includes.
+esac
+AC_SUBST(STD_INCLUDE)dnl
+
+MME_DIR=""
+case "$target" in
+	alpha-dec-osf*) MME_DIR="/usr/include/mme" ;;
+esac
+AC_SUBST(MME_DIR)dnl
+
+LINUX_AUDIO=""
+case "$target" in
+	*-*-linux-*) LINUX_AUDIO="\$(OUTPUT_DIR)/linux_audio.o"
+esac
+AC_SUBST(LINUX_AUDIO)dnl
+
+LINK_LINUX_AUDIO=""
+case "$target" in
+	alpha-*-linux-*) LINK_LINUX_AUDIO="" ;;
+	*-*-linux-*) LINK_LINUX_AUDIO="\$(OUTPUT_DIR_2)/linux_audio.o" ;;
+esac
+AC_SUBST(LINK_LINUX_AUDIO)dnl
+
+API_OBJ_IN="\$(OUTPUT_DIR)/ttsapi.o \$(OUTPUT_DIR)/ttsapi_mme.o\
+          \$(OUTPUT_DIR)/decstd97.o \$(OUTPUT_DIR)/init.o \
+          \$(OUTPUT_DIR)/crypt2.o"
+case "$target" in
+	*-*-linux-*)API_OBJ_IN="\$(OUTPUT_DIR)/ttsapi_mme.o \
+			\$(OUTPUT_DIR)/decstd97.o \$(OUTPUT_DIR)/ttsapi_demo.o\
+			\$(OUTPUT_DIR)/init.o \$(OUTPUT_DIR)/crypt2.o" ;;
+esac
+AC_SUBST(API_OBJ_IN)dnl
+
+ALL_LIB_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \$(API_TTS_OBJ) \$(CMD_OBJ) \
+	      \$(LTS_OBJ) \$(PH_OBJ) \$(KERNEL_OBJ) \$(NT_OBJ) \
+              \$(NT_MME_OBJ) \$(OSF_OBJ) \$(OSF_TTS_OBJ) \$(VTM_OBJ)"
+case "$target" in
+	*-*-linux-*)ALL_LIB_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \$(CMD_OBJ) \
+	      \$(LTS_OBJ) \$(PH_OBJ) \$(KERNEL_OBJ) \$(NT_OBJ) \
+              \$(NT_MME_OBJ) \$(OSF_OBJ) \$(OSF_TTS_OBJ) \$(VTM_OBJ)" ;;
+esac
+AC_SUBST(ALL_LIB_OBJS)dnl
+
+
+MME_COMPILE_FLAGS=""
+case "$target" in
+	alpha-dec-osf*) MME_COMPILE_FLAGS=" -DMME_SERVER -DUSE_MME_SERVER" ;;
+	*-*-linux-*) MME_COMPILE_FLAGS="" ;;
+esac
+AC_SUBST(MME_COMPILE_FLAGS)dnl
+
+dnl linux only builds mme libraries.
+DAPI_SRC_ALL="/usr/lib/libtts_\$(LANG_CODE).a \
+	/usr/lib/libttsmme_\$(LANG_CODE).a /usr/shlib/libtts_\$(LANG_CODE).so \
+	/usr/shlib/libttsmme_\$(LANG_CODE).so"
+case "$target" in
+	*-*-linux-*) DAPI_SRC_ALL="\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a \
+	\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).so /usr/lib/libtts_\$(LANG_CODE).a\
+	\$(SHLIB)/libtts_\$(LANG_CODE).so /usr/lib/libtts_demo_\$(LANG_CODE).a" ;;
+esac
+AC_SUBST(DAPI_SRC_ALL)dnl
+
+dnl linux only links mme libs but they have to be called libtts_$(lang).*
+DECTALK_TTS_OBJS="\$(API_ALL_OBJ) \$(API_TTS_OBJ) \$(CMD_OBJ) \$(LTS_OBJ) \
+	\$(LTS_NORM_OBJS) \$(PH_OBJ) \$(KERNEL_OBJ) \$(NT_OBJ) \$(OSF_OBJ) \
+	\$(OSF_TTS_OBJ) \$(VTM_OBJ)"
+
+DECTALK_MME_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \$(CMD_OBJ) \$(LTS_OBJ) \
+	\$(LTS_NORM_OBJS) \$(PH_OBJ) \$(KERNEL_OBJ) \$(NT_OBJ) \
+	\$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)"
+dnl so build the libtts_*.? but give the linker the MME objects.
+case "$target" in
+	*-*-linux-*) DECTALK_TTS_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \
+	\$(CMD_OBJ) \$(LTS_OBJ) \$(LTS_NORM_OBJS) \$(PH_OBJ) \$(KERNEL_OBJ) \
+	\$(NT_OBJ) \$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)" ;;
+esac
+AC_SUBST(DECTALK_TTS_OBJS)dnl
+AC_SUBST(DECTALK_MME_OBJS)dnl
+
+DECTALK_DEMO_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \
+	\$(CMD_OBJ) \$(LTS_OBJ) \$(LTS_DEMO_OBJS) \$(PH_OBJ) \$(KERNEL_OBJ) \
+	\$(NT_OBJ) \$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)"
+case "$target" in
+	*-*-linux-*) DECTALK_DEMO_OBJS="\$(API_ALL_OBJ) \$(API_DEMO_OBJ) \
+	\$(CMD_OBJ) \$(LTS_OBJ) \$(LTS_DEMO_OBJS) \$(PH_OBJ) \$(KERNEL_OBJ) \
+	\$(NT_OBJ) \$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)" ;;
+esac
+AC_SUBST(DECTALK_DEMO_OBJS)dnl
+
+
+dnl always use the "-lpthread" NOT "-lpthreads" in linux
+MMELIBS=" -lmme"
+case "$target" in
+	arm-*-linux-*) MMELIBS=" -lpthread " ;;
+	*-*-linux-*) MMELIBS=" -lpthread" ;;
+esac
+AC_SUBST(MMELIBS)dnl
+
+LIBS=" -llmf -lpthreads -lmach -lexc -lc -lrt -lots"
+case "$target" in 
+	arm-*-linux-*) LIBS=" -L- -L/usr/local/arm-unknown-linuxelf/lib -lpthread " ;;
+	*-*-linux-*) LIBS=" -lpthread" ;;
+esac
+AC_SUBST(LIBS)dnl
+
+SHLIB="/usr/shlib"
+case "$target" in
+	*-*-linux-*) SHLIB="/lib" ;;
+esac
+AC_SUBST(SHLIB)dnl
+
+SO_LOCATIONS=" \$(CP) /usr/shlib/so_locations ."
+case "$target" in
+	*-*-linux-*) SO_LOCATIONS="" ;;
+esac
+AC_SUBST(SO_LOCATIONS)dnl
+
+DAPI_LD_SHARED="\$(LD) -shared -update_registry \
+	./so_locations -hidden \
+	-soname libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)"
+case "$target" in
+	*-*-linux-*) DAPI_LD_SHARED="\$(LD) -shared -soname \
+		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
+esac
+AC_SUBST(DAPI_LD_SHARED)dnl
+
+dnl *  ML crap-a-roni goes below here.  what a nightmare!
+
+ML_ALL="/usr/lib/libtts.a /usr/lib/libttsmme.a \$(SHLIB)/libtts.so \$(SHLIB)/libttsmme.so"
+case "$target" in
+	*-*-linux-*) ML_ALL="/usr/lib/libtts.a \$(SHLIB)/libtts.so" ;;
+esac
+AC_SUBST(ML_ALL)dnl
+
+dnl: see how simple this is for linux?
+ML_TTS_SO="\$(LD) -shared -soname libtts.so \
+	-o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
+	../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
+	../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a  -ldl -lpthread"
+case "$target" in
+	alpha-dec-osf4.0) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
+		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a -lc -lots -lpthread" ;;
+	alpha-dec-osf3.2) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
+		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/libtts.a -lc -lots -lpthreads" ;;
+esac
+AC_SUBST(ML_TTS_SO)dnl
+
+ML_TTS_MME_SO=""
+case "$target" in
+	alpha-dec-osf4.0) ML_TTS_MME_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
+		-soname libttsmme.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml_mme.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/libttsmme.a -lc -lots -lpthread" ;; 
+	alpha-dec-osf3.2) ML_TTS_MME_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
+		-soname libttsmme.so -o \$@ ../build/\$(OS_VERSION)/\$(ML_OUT)/link/dtalk_ml_mme.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/link/init.o \
+		../build/\$(OS_VERSION)/\$(ML_OUT)/libttsmme.a -lc -lots -lpthreads" ;;
+esac
+
+AC_SUBST(ML_TTS_MME_SO)dnl
+
+DTALK_ML="\$(CC) -c \$(CFLAGS) -o \$@ \$?"
+case "$target" in
+	alpha-dec-osf4.0) DTALK_ML="\$(CC) -c \$(CFLAGS) -pthread -DBLD_ML_DLL -o \$@ \$?" ;;
+	alpha-dec-osf3.2) DTALK_ML="\$(CC) -c \$(CFLAGS) -o \$@ \$?" ;;
+esac
+AC_SUBST(DTALK_ML)dnl
+
+DTALK_ML_MME=""
+case "$target" in
+	alpha-dec-osf4.0) DTALK_ML_MME="\$(CC) -c \$(CFLAGS) -pthread -DMME_SERVER\
+		-DBLD_ML_DLL -o \$@ \$?" ;;
+	alpha-dec-osf3.2) DTALK_ML_MME="\$(CC) -c \$(CFLAGS) -DMME_SERVER  -o \$@ \$?" ;;
+esac
+AC_SUBST(DTALK_ML_MME)dnl
+
+INIT_ML="\$(CC) -c \$(CFLAGS) \$(DEFINES) -o \$@ \$?"
+case "$target" in
+	alpha-dec-osf4.0) INIT_ML="\$(CC) -c \$(CFLAGS) \$(DEFINES) -DOSF_VERSION_V4.0 -DDEC\
+		-DBLD_ML_DLL -G3 -pthread -w1 -DMME_SERVER -DUSE_MME_SERVER -o \$@ \$?" ;;
+	alpha-dec-osf3.2) INIT_ML="\$(CC) -c \$(CFLAGS) \$(DEFINES) -DOSF_VERSION_V3.2 -DDEC\
+		-G3 -threads -w1 -DMME_SERVER -DUSE_MME_SERVER -o \$@ \$?" ;;
+esac
+AC_SUBST(INIT_ML)dnl
+
+dnl * sample targets go here:
+
+SPEAK_ALL="\$(OUTPUT_DIR)/speak \$(OUTPUT_DIR)/speak.uid"
+case "$target" in
+	alpha-dec-osf*) SPEAK_ALL="\$(OUTPUT_DIR)/speak \$(OUTPUT_DIR)/speak.uid" ;;
+	*-*-linux-*) SPEAK_ALL="\$(OUTPUT_DIR)/gspeak \$(OUTPUT_DIR_2)/gspeak_\$(LANG_CODE) \
+		\$(OUTPUT_DIR_2)/gspeakdem_\$(LANG_CODE)" ;;
+esac
+AC_SUBST(SPEAK_ALL)dnl
+
+WINDICT_ALL="\$(OUTPUT_DIR)/windict \$(OUTPUT_DIR)/windict.uid"
+case "$target" in
+	alpha-dec-osf*) WINDICT_ALL="\$(OUTPUT_DIR)/windict \$(OUTPUT_DIR)/windict.uid" ;;
+	*-*-linux-*) WINDICT_ALL="" ;;
+esac
+AC_SUBST(WINDICT_ALL)dnl
+
+DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \$(OUTPUT_DIR)/aclock \$(OUTPUT_DIR)/xmsay \$(OUTPUT_DIR)/xmsay.uid"
+case "$target" in
+	*-*-linux-*) DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \
+	\$(OUTPUT_DIR)/aclock" ;;
+esac
+AC_SUBST(DTSAMPLE_ALL)dnl
+
+SAMPLE_LINKFLAGS=" -G3"
+case "$target" in
+	*-*-linux-*) SAMPLE_LINKFLAGS=" -ldl -Bdynamic" ;;
+esac
+AC_SUBST(SAMPLE_LINKFLAGS)dnl
+
+SAMPLE_DTLIB=" -lttsmme"
+case "$target" in
+	arm-*-linux-*) SAMPLE_DTLIB=" -ltts_\$(LANG_CODE)" ;;
+	*-*-linux-*) SAMPLE_DTLIB=" -ltts" ;;
+esac
+AC_SUBST(SAMPLE_DTLIB)dnl
+
+AC_OUTPUT(Makefile Makefile.sub dapi/src/Makefile dapi/src/Makefile.sub dapi/src/api/Makefile dapi/src/cmd/Makefile dapi/src/dic/Makefile dapi/src/kernel/Makefile dapi/src/lts/Makefile dapi/src/nt/Makefile dapi/src/osf/Makefile dapi/src/ph/Makefile dapi/src/vtm/Makefile dtalkml/src/Makefile samplosf/src/speak/Makefile samplosf/src/windict/Makefile samplosf/src/dtsamples/Makefile licunix/src/Makefile udicunix/src/Makefile)
+dnl AC_OUTPUT always has to be last

@@ -1,0 +1,2753 @@
+	TITLE	D:\work\product\dapi\src\Lts\lsa_rule.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+$$SYMBOLS	SEGMENT BYTE USE32 'DEBSYM'
+$$SYMBOLS	ENDS
+$$TYPES	SEGMENT BYTE USE32 'DEBTYP'
+$$TYPES	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_ls_rule_show_phone
+PUBLIC	_ls_rule_lts
+PUBLIC	_ls_rule_add_graph
+PUBLIC	_ls_rule_rule_match
+PUBLIC	_ls_rule_add_phone
+PUBLIC	_ls_rule_delete_geminate_pairs
+EXTRN	_feats:BYTE
+EXTRN	_acna_lsbtab:BYTE
+EXTRN	_ls_fold:BYTE
+EXTRN	_ls_adju_sylables:NEAR
+EXTRN	_ls_adju_stress:NEAR
+EXTRN	_ls_adju_allo1:NEAR
+EXTRN	_ls_adju_allo2:NEAR
+_DATA	SEGMENT
+$SG71763 DB	'lts', 00H
+$SG71770 DB	'allo1', 00H
+	ORG $+2
+$SG71771 DB	'sylables', 00H
+	ORG $+3
+$SG71778 DB	'stress', 00H
+	ORG $+1
+$SG71779 DB	'allo2', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_def_lang$ = 20
+_sel_lang$ = 24
+_ssflag$ = 12
+_ls_rule_lts PROC NEAR
+
+; 78   : 	 GRAPH  *gp1;
+; 79   : 	 GRAPH  *gp2;
+; 80   : 	 S16	lch;
+; 81   : 	 int	g;
+; 82   : 	 PHONE	*pp1;
+; 83   : 	 PHONE	*pp2;
+; 84   : 	 PHONE	*pp3;
+; 85   : 	 int	ssflag;
+; 86   : 	 int	rsflag;
+; 87   : 	 int	pstype; 
+; 88   : 	 PLTS_T pLts_t;
+; 89   : 	 pLts_t=phTTS->pLTSThreadData;
+
+  00000	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00004	53		 push	 ebx
+
+; 90   : 
+; 91   : 	gp1 = &(pLts_t->graph[0]);
+; 92   : 
+; 93   : 
+; 94   : 	while (llp < rlp) 
+
+  00005	8b 5c 24 10	 mov	 ebx, DWORD PTR _rlp$[esp]
+  00009	55		 push	 ebp
+  0000a	56		 push	 esi
+  0000b	8b 74 24 14	 mov	 esi, DWORD PTR _llp$[esp+8]
+  0000f	57		 push	 edi
+  00010	8b 78 10	 mov	 edi, DWORD PTR [eax+16]
+  00013	3b f3		 cmp	 esi, ebx
+  00015	8d 6f 04	 lea	 ebp, DWORD PTR [edi+4]
+  00018	73 4e		 jae	 SHORT $L71710
+$L71709:
+
+; 95   : 	{
+; 96   : 		/* GL 11/01/96, use ls_fold[] to handle multi-national character */
+; 97   : 		/* lch = llp->l_ch;*/		/* Convert to G-code	*/
+; 98   : 		lch = ls_fold[llp->l_ch];		/* Convert to G-code	*/
+
+  0001a	0f bf 0e	 movsx	 ecx, WORD PTR [esi]
+  0001d	66 0f b6 81 00
+	00 00 00	 movzx	 ax, BYTE PTR _ls_fold[ecx]
+
+; 99   : 
+; 100  : 		gp2 = gp1;
+; 101  : 		if (lch>='a' && lch<='z')
+
+  00025	66 3d 61 00	 cmp	 ax, 97			; 00000061H
+  00029	7c 1d		 jl	 SHORT $L71711
+  0002b	66 3d 7a 00	 cmp	 ax, 122			; 0000007aH
+  0002f	7f 17		 jg	 SHORT $L71711
+
+; 102  : 		 {
+; 103  : 			if (ls_rule_add_graph(pLts_t,gp1, lch-'a'+GA) != FALSE)
+
+  00031	0f bf d0	 movsx	 edx, ax
+  00034	83 ea 60	 sub	 edx, 96			; 00000060H
+  00037	52		 push	 edx
+  00038	55		 push	 ebp
+  00039	57		 push	 edi
+  0003a	e8 00 00 00 00	 call	 _ls_rule_add_graph
+  0003f	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00042	85 c0		 test	 eax, eax
+  00044	74 1b		 je	 SHORT $L71715
+
+; 104  : 				++gp1;
+; 105  : 		} 
+; 106  : 		else 
+
+  00046	eb 16		 jmp	 SHORT $L72063
+$L71711:
+
+; 107  : 		{
+; 108  : 			if (lch == '\'') 
+
+  00048	66 3d 27 00	 cmp	 ax, 39			; 00000027H
+  0004c	75 13		 jne	 SHORT $L71715
+
+; 109  : 			{
+; 110  : 				if (ls_rule_add_graph(pLts_t,gp1, GQUOTE) != FALSE)
+
+  0004e	6a 1d		 push	 29			; 0000001dH
+  00050	55		 push	 ebp
+  00051	57		 push	 edi
+  00052	e8 00 00 00 00	 call	 _ls_rule_add_graph
+  00057	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0005a	85 c0		 test	 eax, eax
+  0005c	74 03		 je	 SHORT $L71715
+$L72063:
+
+; 111  : 					++gp1;
+
+  0005e	83 c5 08	 add	 ebp, 8
+$L71715:
+
+; 112  : 			}
+; 113  : 		}
+; 114  : /*		tgp1 = &graph[0]; */	/* unused */
+; 115  : 
+; 116  : /* GL 10/23/1996, remove unused index handling code */
+; 117  : #if 0
+; 118  : 		pp1 = llp->l_ip;		/* Append index list	*/
+; 119  : 		if (pp1 != NULL) 
+; 120  : 		{
+; 121  : 			pp2 = gp2->g_ip;
+; 122  : 			if (pp2 == NULL)
+; 123  : 				gp2->g_ip = pp1;
+; 124  : 			else 
+; 125  : 			{
+; 126  : 				while (pp2->p_ip != NULL)
+; 127  : 					pp2 = pp2->p_ip;
+; 128  : 				pp2->p_ip = pp1;
+; 129  : 			}
+; 130  : 		}
+; 131  : #endif
+; 132  : 		++llp;
+
+  00061	83 c6 08	 add	 esi, 8
+  00064	3b f3		 cmp	 esi, ebx
+  00066	72 b2		 jb	 SHORT $L71709
+$L71710:
+
+; 133  : 	}
+; 134  : 
+; 135  : 	gp1->g_graph = GEOS;					/* End mark		*/
+
+  00068	33 c0		 xor	 eax, eax
+
+; 136  : 	gp1->g_feats = feats[GEOS];
+; 137  : 	gp1->g_ip    = NULL;
+; 138  : 	pLts_t->phead.p_fp = &(pLts_t->phead);	/* Empty list		*/
+
+  0006a	8d 9f c8 08 00
+	00		 lea	 ebx, DWORD PTR [edi+2248]
+  00070	66 89 45 00	 mov	 WORD PTR [ebp], ax
+  00074	66 8b 0d 00 00
+	00 00		 mov	 cx, WORD PTR _feats
+  0007b	66 89 4d 02	 mov	 WORD PTR [ebp+2], cx
+  0007f	89 45 04	 mov	 DWORD PTR [ebp+4], eax
+
+; 139  : 	pLts_t->phead.p_bp = &(pLts_t->phead);
+; 140  : 	pLts_t->phead.p_ip = NULL;				/* No index chain	*/
+
+  00082	89 87 d0 08 00
+	00		 mov	 DWORD PTR [edi+2256], eax
+
+; 141  : 	ssflag = FALSE;
+
+  00088	89 44 24 18	 mov	 DWORD PTR _ssflag$[esp+12], eax
+
+; 142  : 	while (gp1 != &(pLts_t->graph[0]))
+
+  0008c	8d 47 04	 lea	 eax, DWORD PTR [edi+4]
+  0008f	89 1b		 mov	 DWORD PTR [ebx], ebx
+  00091	3b e8		 cmp	 ebp, eax
+  00093	89 9f cc 08 00
+	00		 mov	 DWORD PTR [edi+2252], ebx
+  00099	0f 84 c5 01 00
+	00		 je	 $L71720
+$L71719:
+
+; 143  : 	{
+; 144  : 		gp2 = ls_rule_rule_match(phTTS,gp1, def_lang, sel_lang);
+
+  0009f	8b 54 24 24	 mov	 edx, DWORD PTR _sel_lang$[esp+12]
+  000a3	8b 44 24 20	 mov	 eax, DWORD PTR _def_lang$[esp+12]
+  000a7	8b 4c 24 14	 mov	 ecx, DWORD PTR _phTTS$[esp+12]
+  000ab	52		 push	 edx
+  000ac	50		 push	 eax
+  000ad	55		 push	 ebp
+  000ae	51		 push	 ecx
+  000af	e8 00 00 00 00	 call	 _ls_rule_rule_match
+  000b4	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 145  : 
+; 146  : 
+; 147  : 		/*
+; 148  : 		 * Collect up all index marks in the
+; 149  : 		 * graphemes consumed by the rule that just
+; 150  : 		 * matched, and put them in a big left-to-right
+; 151  : 		 * list, for future use.
+; 152  : 		 */
+; 153  : 
+; 154  : 		pp1 = NULL;
+; 155  : 		while (gp1 != gp2) 
+
+  000b7	3b e8		 cmp	 ebp, eax
+  000b9	74 07		 je	 SHORT $L71724
+$L71723:
+
+; 156  : 		{
+; 157  : 			--gp1;
+
+  000bb	83 ed 08	 sub	 ebp, 8
+  000be	3b e8		 cmp	 ebp, eax
+  000c0	75 f9		 jne	 SHORT $L71723
+$L71724:
+
+; 158  : /* GL 10/23/1996, remove unused index handling code */
+; 159  : #if 0
+; 160  : 			if ((pp2=gp1->g_ip) != NULL) 
+; 161  : 			{
+; 162  : 				pp3 = pp2;
+; 163  : 				while (pp3->p_ip != NULL)
+; 164  : 					pp3 = pp3->p_ip;
+; 165  : 				pp3->p_ip = pp1;
+; 166  : 				pp1 = pp2;
+; 167  : 			}
+; 168  : #endif
+; 169  : 		}
+; 170  : 		if (pLts_t->rpart != 0) 
+
+  000c2	66 8b 17	 mov	 dx, WORD PTR [edi]
+  000c5	66 85 d2	 test	 dx, dx
+  000c8	0f 84 8b 01 00
+	00		 je	 $L71761
+
+; 171  : 		{
+; 172  : 			if (btabb(pLts_t->rpart) != GEOS) 
+
+  000ce	8b c2		 mov	 eax, edx
+  000d0	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  000d5	66 0f be 80 00
+	00 00 00	 movsx	 ax, BYTE PTR _acna_lsbtab[eax]
+  000dd	84 c0		 test	 al, al
+  000df	74 64		 je	 SHORT $L71727
+
+; 173  : 			{
+; 174  : 				while ((g=btabb(pLts_t->rpart++)) != GEOS) 
+
+  000e1	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  000e6	8d 52 01	 lea	 edx, DWORD PTR [edx+1]
+  000e9	8b c8		 mov	 ecx, eax
+  000eb	66 89 17	 mov	 WORD PTR [edi], dx
+  000ee	74 3b		 je	 SHORT $L71731
+
+; 175  : 				{
+; 176  : 					if (gp1 < &(pLts_t->graph[NGWORD-1])
+; 177  : 					&& ls_rule_add_graph(pLts_t,gp1, g) != FALSE)
+
+  000f0	8d b7 fc 03 00
+	00		 lea	 esi, DWORD PTR [edi+1020]
+$L71730:
+  000f6	3b ee		 cmp	 ebp, esi
+  000f8	73 12		 jae	 SHORT $L71732
+  000fa	51		 push	 ecx
+  000fb	55		 push	 ebp
+  000fc	57		 push	 edi
+  000fd	e8 00 00 00 00	 call	 _ls_rule_add_graph
+  00102	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00105	85 c0		 test	 eax, eax
+  00107	74 03		 je	 SHORT $L71732
+
+; 178  : 						++gp1;
+
+  00109	83 c5 08	 add	 ebp, 8
+$L71732:
+
+; 173  : 			{
+; 174  : 				while ((g=btabb(pLts_t->rpart++)) != GEOS) 
+
+  0010c	66 8b 07	 mov	 ax, WORD PTR [edi]
+  0010f	8b c8		 mov	 ecx, eax
+  00111	81 e1 ff ff 00
+	00		 and	 ecx, 65535		; 0000ffffH
+  00117	8d 40 01	 lea	 eax, DWORD PTR [eax+1]
+  0011a	8a 89 00 00 00
+	00		 mov	 cl, BYTE PTR _acna_lsbtab[ecx]
+  00120	66 89 07	 mov	 WORD PTR [edi], ax
+  00123	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00129	75 cb		 jne	 SHORT $L71730
+$L71731:
+
+; 179  : 				}
+; 180  : 				gp1->g_graph = GEOS;
+
+  0012b	66 c7 45 00 00
+	00		 mov	 WORD PTR [ebp], 0
+
+; 181  : 				gp1->g_feats = feats[GEOS];
+
+  00131	66 8b 15 00 00
+	00 00		 mov	 dx, WORD PTR _feats
+  00138	66 89 55 02	 mov	 WORD PTR [ebp+2], dx
+
+; 182  : 				gp1->g_ip    = NULL;
+
+  0013c	c7 45 04 00 00
+	00 00		 mov	 DWORD PTR [ebp+4], 0
+
+; 183  : 			} 
+; 184  : 			else
+
+  00143	eb 04		 jmp	 SHORT $L71734
+$L71727:
+
+; 185  : 			{
+; 186  : 				++pLts_t->rpart;
+
+  00145	42		 inc	 edx
+  00146	66 89 17	 mov	 WORD PTR [edi], dx
+$L71734:
+
+; 187  : 			}
+; 188  : 			rsflag = FALSE;		/* Rep. sets stress.	*/
+; 189  : 			while ((g=btabb(pLts_t->rpart++)) != SIL) 
+
+  00149	66 8b 0f	 mov	 cx, WORD PTR [edi]
+  0014c	33 f6		 xor	 esi, esi
+  0014e	8b c1		 mov	 eax, ecx
+  00150	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00155	8d 49 01	 lea	 ecx, DWORD PTR [ecx+1]
+  00158	8a 80 00 00 00
+	00		 mov	 al, BYTE PTR _acna_lsbtab[eax]
+  0015e	66 89 0f	 mov	 WORD PTR [edi], cx
+  00161	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00166	0f 84 ed 00 00
+	00		 je	 $L71761
+$L71737:
+
+; 190  : 			{
+; 191  : 				/*
+; 192  : 				 * [-], [*], [#] clear out
+; 193  : 				 * the "don't screw with the stress
+; 194  : 				 * flags". The [+] and [=] do not.
+; 195  : 				 */
+; 196  : 				switch (g)
+; 197  : 				{
+
+  0016c	8d 50 94	 lea	 edx, DWORD PTR [eax-108]
+  0016f	83 fa 08	 cmp	 edx, 8
+  00172	77 63		 ja	 SHORT $L71753
+  00174	ff 24 95 00 00
+	00 00		 jmp	 DWORD PTR $L72065[edx*4]
+$L71743:
+
+; 198  : 					case DASH:
+; 199  : 				 		if ((pp2=pLts_t->phead.p_fp) != &(pLts_t->phead))
+
+  0017b	8b 03		 mov	 eax, DWORD PTR [ebx]
+  0017d	3b c3		 cmp	 eax, ebx
+  0017f	74 04		 je	 SHORT $L71744
+
+; 200  : 							pp2->p_flag |= PFDASH;
+
+  00181	83 48 0c 01	 or	 DWORD PTR [eax+12], 1
+$L71744:
+
+; 201  : 						ssflag = FALSE;
+
+  00185	33 f6		 xor	 esi, esi
+  00187	89 74 24 18	 mov	 DWORD PTR _ssflag$[esp+12], esi
+
+; 202  : 						rsflag = FALSE;										
+; 203  : 						break;
+
+  0018b	e9 9c 00 00 00	 jmp	 $L71760
+$L71745:
+
+; 204  : 					case STAR:
+; 205  : 						if ((pp2=pLts_t->phead.p_fp) != &(pLts_t->phead))
+
+  00190	8b 03		 mov	 eax, DWORD PTR [ebx]
+  00192	3b c3		 cmp	 eax, ebx
+  00194	74 04		 je	 SHORT $L71746
+
+; 206  : 							pp2->p_flag |= PFSTAR;
+
+  00196	83 48 0c 02	 or	 DWORD PTR [eax+12], 2
+$L71746:
+
+; 207  : 						ssflag = FALSE;
+
+  0019a	33 f6		 xor	 esi, esi
+  0019c	89 74 24 18	 mov	 DWORD PTR _ssflag$[esp+12], esi
+
+; 208  : 						rsflag = FALSE;
+; 209  : 						break;
+
+  001a0	e9 87 00 00 00	 jmp	 $L71760
+$L71747:
+
+; 210  : 					case HASH:
+; 211  : 						if ((pp2=pLts_t->phead.p_fp) != &pLts_t->phead)
+
+  001a5	8b 03		 mov	 eax, DWORD PTR [ebx]
+  001a7	3b c3		 cmp	 eax, ebx
+  001a9	74 04		 je	 SHORT $L71748
+
+; 212  : 							pp2->p_flag |= PFHASH;
+
+  001ab	83 48 0c 04	 or	 DWORD PTR [eax+12], 4
+$L71748:
+
+; 213  : 						ssflag = FALSE;
+
+  001af	33 f6		 xor	 esi, esi
+  001b1	89 74 24 18	 mov	 DWORD PTR _ssflag$[esp+12], esi
+
+; 214  : 						rsflag = FALSE;
+; 215  : 						break;
+
+  001b5	eb 75		 jmp	 SHORT $L71760
+$L71749:
+
+; 216  : 					case PLUS:
+; 217  : 						if ((pp2=pLts_t->phead.p_fp) != &pLts_t->phead)
+
+  001b7	8b 03		 mov	 eax, DWORD PTR [ebx]
+  001b9	3b c3		 cmp	 eax, ebx
+  001bb	74 6f		 je	 SHORT $L71760
+
+; 218  : 							pp2->p_flag |= PFPLUS;
+
+  001bd	83 48 0c 08	 or	 DWORD PTR [eax+12], 8
+
+; 219  : 						break;
+
+  001c1	eb 69		 jmp	 SHORT $L71760
+$L71751:
+
+; 220  : 					case EQUAL:
+; 221  : 						if (ssflag == FALSE
+; 222  : 						&& (pp2=pLts_t->phead.p_fp) != &pLts_t->phead)
+
+  001c3	8b 44 24 18	 mov	 eax, DWORD PTR _ssflag$[esp+12]
+  001c7	85 c0		 test	 eax, eax
+  001c9	75 61		 jne	 SHORT $L71760
+  001cb	8b 03		 mov	 eax, DWORD PTR [ebx]
+  001cd	3b c3		 cmp	 eax, ebx
+  001cf	74 5b		 je	 SHORT $L71760
+
+; 223  : 						{
+; 224  : 							pp2->p_flag |= PFSYLAB;
+
+  001d1	83 48 0c 10	 or	 DWORD PTR [eax+12], 16	; 00000010H
+
+; 225  : 						}
+; 226  : 						break;
+
+  001d5	eb 55		 jmp	 SHORT $L71760
+$L71753:
+
+; 227  : 					default:
+; 228  : 						if (g>=SNONE && g<=S2LEFT) 
+
+  001d7	83 f8 79	 cmp	 eax, 121		; 00000079H
+  001da	7c 22		 jl	 SHORT $L71754
+  001dc	83 f8 7e	 cmp	 eax, 126		; 0000007eH
+  001df	7f 1d		 jg	 SHORT $L71754
+
+; 229  : 						{
+; 230  : 							if (g != SUN)
+
+  001e1	83 f8 7a	 cmp	 eax, 122		; 0000007aH
+  001e4	74 05		 je	 SHORT $L71755
+
+; 231  : 								rsflag = TRUE;
+
+  001e6	be 01 00 00 00	 mov	 esi, 1
+$L71755:
+
+; 232  : 							if (ssflag == FALSE
+; 233  : 							&& (pp2=pLts_t->phead.p_fp) != &pLts_t->phead)
+
+  001eb	8b 4c 24 18	 mov	 ecx, DWORD PTR _ssflag$[esp+12]
+  001ef	85 c9		 test	 ecx, ecx
+  001f1	75 39		 jne	 SHORT $L71760
+  001f3	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  001f5	3b cb		 cmp	 ecx, ebx
+  001f7	74 33		 je	 SHORT $L71760
+
+; 234  : 								pp2->p_stress = g;
+
+  001f9	89 41 10	 mov	 DWORD PTR [ecx+16], eax
+
+; 235  : 		
+; 236  : 						} 
+; 237  : 						else
+
+  001fc	eb 2e		 jmp	 SHORT $L71760
+$L71754:
+
+; 238  : 						{ 
+; 239  : 							if ((g&TWOPH) != 0)
+
+  001fe	a8 80		 test	 al, -128		; ffffff80H
+  00200	74 1e		 je	 SHORT $L71758
+
+; 240  : 							{
+; 241  : 								ls_rule_add_phone(pLts_t,g&MSKPH, btabb(pLts_t->rpart++));
+
+  00202	8b d1		 mov	 edx, ecx
+  00204	81 e2 ff ff 00
+	00		 and	 edx, 65535		; 0000ffffH
+  0020a	8a 92 00 00 00
+	00		 mov	 dl, BYTE PTR _acna_lsbtab[edx]
+  00210	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  00216	41		 inc	 ecx
+  00217	66 89 0f	 mov	 WORD PTR [edi], cx
+  0021a	52		 push	 edx
+  0021b	83 e0 7f	 and	 eax, 127		; 0000007fH
+
+; 242  : 							}
+; 243  : 							else
+
+  0021e	eb 02		 jmp	 SHORT $L72064
+$L71758:
+
+; 244  : 							{
+; 245  : 								ls_rule_add_phone(pLts_t,g, SIL);
+
+  00220	6a 00		 push	 0
+$L72064:
+  00222	50		 push	 eax
+  00223	57		 push	 edi
+  00224	e8 00 00 00 00	 call	 _ls_rule_add_phone
+  00229	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71760:
+  0022c	66 8b 0f	 mov	 cx, WORD PTR [edi]
+  0022f	8b c1		 mov	 eax, ecx
+  00231	25 ff ff 00 00	 and	 eax, 65535		; 0000ffffH
+  00236	8d 49 01	 lea	 ecx, DWORD PTR [ecx+1]
+  00239	8a 80 00 00 00
+	00		 mov	 al, BYTE PTR _acna_lsbtab[eax]
+  0023f	66 89 0f	 mov	 WORD PTR [edi], cx
+  00242	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00247	0f 85 1f ff ff
+	ff		 jne	 $L71737
+
+; 246  : 							}
+; 247  : 						}
+; 248  : 						break;
+; 249  : 				} /* switch (g) */
+; 250  : 					
+; 251  : /* GL 10/23/1996, remove unused index handling code */
+; 252  : #if 0
+; 253  : 				if (pp1 != NULL) 
+; 254  : 				{
+; 255  : 					pLts_t->phead.p_fp->p_ip = pp1;
+; 256  : 					pp1 = NULL;
+; 257  : 				}
+; 258  : #endif
+; 259  : 			}	/*	while ((g=btabb(pLts_t->rpart++)) != SIL)  */
+; 260  : 
+; 261  : 			if (rsflag != FALSE)
+
+  0024d	85 f6		 test	 esi, esi
+  0024f	74 08		 je	 SHORT $L71761
+
+; 262  : 				ssflag = TRUE;
+
+  00251	c7 44 24 18 01
+	00 00 00	 mov	 DWORD PTR _ssflag$[esp+12], 1
+$L71761:
+
+; 142  : 	while (gp1 != &(pLts_t->graph[0]))
+
+  00259	8d 47 04	 lea	 eax, DWORD PTR [edi+4]
+  0025c	3b e8		 cmp	 ebp, eax
+  0025e	0f 85 3b fe ff
+	ff		 jne	 $L71719
+$L71720:
+
+; 263  : #if defined (VMS) || defined (LDS_BUILD)
+; 264  : 			if (tflag != FALSE) 
+; 265  : 			{
+; 266  : 				gp2 = &pLts_t->graph[0];
+; 267  : 				printf("%5d ",rline);
+; 268  : 				while (gp2 != gp1) 
+; 269  : 				{
+; 270  : 					putchar(gname[gp2->g_graph]);
+; 271  : 					++gp2;
+; 272  : 				}
+; 273  : 				putchar('_');
+; 274  : 				while (gp2->g_graph != GEOS) 
+; 275  : 				{
+; 276  : 					putchar(gname[gp2->g_graph]);
+; 277  : 					++gp2;
+; 278  : 				}
+; 279  : 				if (xflag == TRUE)
+; 280  : 					printf("%s",get_rule_data(rline));
+; 281  : 				else
+; 282  : 				    putchar('\n');
+; 283  : 			}
+; 284  : #endif
+; 285  : 		}	/*	if (pLts_t->rpart != 0)  */
+; 286  : 
+; 287  : 
+; 288  : 		/*
+; 289  : 		 * This code handles the unusual case
+; 290  : 		 * of index marks on graphemes that have no
+; 291  : 		 * corresponding phonemes (like the silent
+; 292  : 		 * "e" on the end of a word).
+; 293  : 		 */
+; 294  : 
+; 295  : /* GL 10/23/1996, remove unused index handling code */
+; 296  : #if 0
+; 297  : 		if (pp1 != NULL) 
+; 298  : 		{
+; 299  : 			pp2 = pLts_t->phead.p_fp;
+; 300  : 			pp3 = pp2->p_ip;
+; 301  : 			pp2->p_ip = pp1;
+; 302  : 			while (pp1->p_ip != NULL)
+; 303  : 				pp1 = pp1->p_ip;
+; 304  : 			pp1->p_ip = pp3;
+; 305  : 		}
+; 306  : #endif
+; 307  : 	}	/*	while (gp1 != &pLts_t->graph[0]) */
+; 308  : 	ls_rule_show_phone(pLts_t->phead.p_fp, &pLts_t->phead, "lts");
+
+  00264	8b 0b		 mov	 ecx, DWORD PTR [ebx]
+  00266	68 00 00 00 00	 push	 OFFSET FLAT:$SG71763
+  0026b	53		 push	 ebx
+  0026c	51		 push	 ecx
+  0026d	e8 00 00 00 00	 call	 _ls_rule_show_phone
+
+; 309  : 
+; 310  :     /*
+; 311  :     ** change 7/13/95 by GL. To make it same as acna code
+; 312  :     ** changes:
+; 313  :     ** 1). break ls_adju_stress() to a separate loop.
+; 314  :     ** 2). add ls_rule_delete_geminate_pairs ()
+; 315  :     **     between ls_adju_allo1()/sylable() and ls_adju_stress() loop.
+; 316  :     **     The orignal ls_rule_delete_geminate_pairs code in
+; 317  :     **     ls_adju_allo2() has been removed
+; 318  :     */
+; 319  :     pp1 = pLts_t->phead.p_fp;
+
+  00272	8b 2b		 mov	 ebp, DWORD PTR [ebx]
+  00274	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 320  :     while (pp1 != &pLts_t->phead) 
+
+  00277	3b eb		 cmp	 ebp, ebx
+  00279	74 43		 je	 SHORT $L71766
+$L71765:
+
+; 321  :     {
+; 322  :         pp2 = pp1;
+; 323  :         pp3 = pp2->p_fp;
+
+  0027b	8b 75 00	 mov	 esi, DWORD PTR [ebp]
+
+; 324  :         while (pp3!=&pLts_t->phead && (pp3->p_flag&PFBOUND)==0)
+
+  0027e	3b f3		 cmp	 esi, ebx
+  00280	74 0c		 je	 SHORT $L71769
+$L71768:
+  00282	f6 46 0c 07	 test	 BYTE PTR [esi+12], 7
+  00286	75 06		 jne	 SHORT $L71769
+
+; 325  : 	        pp3 = pp3->p_fp;
+
+  00288	8b 36		 mov	 esi, DWORD PTR [esi]
+  0028a	3b f3		 cmp	 esi, ebx
+  0028c	75 f4		 jne	 SHORT $L71768
+$L71769:
+
+; 326  :         ls_adju_allo1(pLts_t,pp2, pp3);
+
+  0028e	56		 push	 esi
+  0028f	55		 push	 ebp
+  00290	57		 push	 edi
+  00291	e8 00 00 00 00	 call	 _ls_adju_allo1
+
+; 327  :         ls_rule_show_phone(pp2, pp3, "allo1");
+
+  00296	68 00 00 00 00	 push	 OFFSET FLAT:$SG71770
+  0029b	56		 push	 esi
+  0029c	55		 push	 ebp
+  0029d	e8 00 00 00 00	 call	 _ls_rule_show_phone
+
+; 328  :         ls_adju_sylables(pp2, pp3);
+
+  002a2	56		 push	 esi
+  002a3	55		 push	 ebp
+  002a4	e8 00 00 00 00	 call	 _ls_adju_sylables
+
+; 329  :         ls_rule_show_phone(pp2, pp3, "sylables");
+
+  002a9	68 00 00 00 00	 push	 OFFSET FLAT:$SG71771
+  002ae	56		 push	 esi
+  002af	55		 push	 ebp
+  002b0	e8 00 00 00 00	 call	 _ls_rule_show_phone
+  002b5	83 c4 2c	 add	 esp, 44			; 0000002cH
+  002b8	3b f3		 cmp	 esi, ebx
+
+; 330  : 
+; 331  :         pp1 = pp3;
+
+  002ba	8b ee		 mov	 ebp, esi
+  002bc	75 bd		 jne	 SHORT $L71765
+$L71766:
+
+; 332  : 	}
+; 333  : 
+; 334  :     ls_rule_delete_geminate_pairs(pLts_t);
+
+  002be	57		 push	 edi
+  002bf	e8 00 00 00 00	 call	 _ls_rule_delete_geminate_pairs
+
+; 335  :     pstype = SPRI;                          /* Use primary stress.  */
+; 336  :     pp1 = pLts_t->phead.p_fp;
+
+  002c4	8b 2b		 mov	 ebp, DWORD PTR [ebx]
+  002c6	83 c4 04	 add	 esp, 4
+
+; 337  :     while (pp1 != &pLts_t->phead) 
+
+  002c9	3b eb		 cmp	 ebp, ebx
+  002cb	b8 7c 00 00 00	 mov	 eax, 124		; 0000007cH
+  002d0	74 3c		 je	 SHORT $L71774
+$L71773:
+
+; 338  :     {
+; 339  :     	pp2 = pp1;                      	/* Find end of chunk.   */
+; 340  :         pp3 = pp2->p_fp;
+
+  002d2	8b 75 00	 mov	 esi, DWORD PTR [ebp]
+
+; 341  :         while (pp3!=&pLts_t->phead && (pp3->p_flag&PFBOUND)==0)
+
+  002d5	3b f3		 cmp	 esi, ebx
+  002d7	74 0c		 je	 SHORT $L71777
+$L71776:
+  002d9	f6 46 0c 07	 test	 BYTE PTR [esi+12], 7
+  002dd	75 06		 jne	 SHORT $L71777
+
+; 342  :         	pp3 = pp3->p_fp;
+
+  002df	8b 36		 mov	 esi, DWORD PTR [esi]
+  002e1	3b f3		 cmp	 esi, ebx
+  002e3	75 f4		 jne	 SHORT $L71776
+$L71777:
+
+; 343  : 
+; 344  :         ls_adju_stress(phTTS,pp2, pp3, pstype,0);        /* Mark stress. */
+
+  002e5	8b 54 24 14	 mov	 edx, DWORD PTR _phTTS$[esp+12]
+  002e9	6a 00		 push	 0
+  002eb	50		 push	 eax
+  002ec	56		 push	 esi
+  002ed	55		 push	 ebp
+  002ee	52		 push	 edx
+  002ef	e8 00 00 00 00	 call	 _ls_adju_stress
+
+; 345  :         ls_rule_show_phone(pp2, pp3, "stress");
+
+  002f4	68 00 00 00 00	 push	 OFFSET FLAT:$SG71778
+  002f9	56		 push	 esi
+  002fa	55		 push	 ebp
+  002fb	e8 00 00 00 00	 call	 _ls_rule_show_phone
+  00300	83 c4 20	 add	 esp, 32			; 00000020H
+  00303	3b f3		 cmp	 esi, ebx
+
+; 346  : 
+; 347  :         pstype = SSEC;
+
+  00305	b8 7b 00 00 00	 mov	 eax, 123		; 0000007bH
+
+; 348  :         pp1 = pp3;
+
+  0030a	8b ee		 mov	 ebp, esi
+  0030c	75 c4		 jne	 SHORT $L71773
+$L71774:
+
+; 349  :     }
+; 350  :     ls_adju_allo2(pLts_t);                                /* Allophonics, part 2  */
+
+  0030e	57		 push	 edi
+  0030f	e8 00 00 00 00	 call	 _ls_adju_allo2
+
+; 351  :     ls_rule_show_phone(pLts_t->phead.p_fp, &pLts_t->phead, "allo2");
+
+  00314	8b 03		 mov	 eax, DWORD PTR [ebx]
+  00316	68 00 00 00 00	 push	 OFFSET FLAT:$SG71779
+  0031b	53		 push	 ebx
+  0031c	50		 push	 eax
+  0031d	e8 00 00 00 00	 call	 _ls_rule_show_phone
+  00322	83 c4 10	 add	 esp, 16			; 00000010H
+  00325	5f		 pop	 edi
+  00326	5e		 pop	 esi
+  00327	5d		 pop	 ebp
+  00328	5b		 pop	 ebx
+
+; 352  : 
+; 353  : }
+
+  00329	c3		 ret	 0
+  0032a	8b ff		 npad	 2
+$L72065:
+  0032c	00 00 00 00	 DD	 $L71743
+  00330	00 00 00 00	 DD	 $L71745
+  00334	00 00 00 00	 DD	 $L71747
+  00338	00 00 00 00	 DD	 $L71753
+  0033c	00 00 00 00	 DD	 $L71753
+  00340	00 00 00 00	 DD	 $L71753
+  00344	00 00 00 00	 DD	 $L71753
+  00348	00 00 00 00	 DD	 $L71751
+  0034c	00 00 00 00	 DD	 $L71749
+_ls_rule_lts ENDP
+_TEXT	ENDS
+PUBLIC	_ls_rule_lts_out
+PUBLIC	_ls_rule_phone_free
+EXTRN	_ls_adju_is_cons:NEAR
+EXTRN	_ls_util_send_phone:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pLts_t$ = 8
+_ls_rule_lts_out PROC NEAR
+
+; 380  : {
+
+  00350	53		 push	 ebx
+  00351	55		 push	 ebp
+  00352	56		 push	 esi
+  00353	57		 push	 edi
+
+; 381  : #ifndef	LDS_BUILD
+; 382  : 	PHONE	*pp1;
+; 383  : 	PHONE	*pp2;
+; 384  : 	PHONE	*pp3;
+; 385  : 	int	s=0;
+; 386  : 	short		buf[3];
+; 387  : 	PLTS_T pLts_t;
+; 388  : 	PKSD_T pKsd_t;
+; 389  : 	
+; 390  : 	pKsd_t = phTTS->pKernelShareData;
+; 391  : 	pLts_t = phTTS->pLTSThreadData;
+
+  00354	8b 7c 24 14	 mov	 edi, DWORD PTR _phTTS$[esp+12]
+  00358	33 ed		 xor	 ebp, ebp
+  0035a	8b 5f 10	 mov	 ebx, DWORD PTR [edi+16]
+  0035d	89 5c 24 14	 mov	 DWORD PTR _pLts_t$[esp+12], ebx
+
+; 392  : 
+; 393  : 	pp1 = pLts_t->phead.p_fp;
+
+  00361	81 c3 c8 08 00
+	00		 add	 ebx, 2248		; 000008c8H
+  00367	8b 33		 mov	 esi, DWORD PTR [ebx]
+
+; 394  : 	while (pp1 != &pLts_t->phead) 
+
+  00369	3b f3		 cmp	 esi, ebx
+  0036b	74 7f		 je	 SHORT $L71792
+$L71791:
+
+; 395  : 	{
+; 396  : 		if ((pp1->p_flag&PFDASH) != 0)	/* [+] is just a mark	*/
+
+  0036d	f6 46 0c 01	 test	 BYTE PTR [esi+12], 1
+  00371	74 0b		 je	 SHORT $L71793
+
+; 397  : 			ls_util_send_phone(phTTS,SBOUND);	/* for internal use.	*/
+
+  00373	6a 6c		 push	 108			; 0000006cH
+  00375	57		 push	 edi
+  00376	e8 00 00 00 00	 call	 _ls_util_send_phone
+  0037b	83 c4 08	 add	 esp, 8
+$L71793:
+
+; 398  : 		if ((pp1->p_flag&PFSTAR) != 0)	/* Unlike other kinds	*/
+
+  0037e	f6 46 0c 02	 test	 BYTE PTR [esi+12], 2
+  00382	74 0b		 je	 SHORT $L71794
+
+; 399  : 			ls_util_send_phone(phTTS,MBOUND);	/* of boundry symbols,	*/
+
+  00384	6a 6d		 push	 109			; 0000006dH
+  00386	57		 push	 edi
+  00387	e8 00 00 00 00	 call	 _ls_util_send_phone
+  0038c	83 c4 08	 add	 esp, 8
+$L71794:
+
+; 400  : 		if ((pp1->p_flag&PFHASH) != 0)	/* it does not get	*/
+
+  0038f	f6 46 0c 04	 test	 BYTE PTR [esi+12], 4
+  00393	74 0b		 je	 SHORT $L71795
+
+; 401  : 			ls_util_send_phone(phTTS,HYPHEN);	/* written out.		*/
+
+  00395	6a 6e		 push	 110			; 0000006eH
+  00397	57		 push	 edi
+  00398	e8 00 00 00 00	 call	 _ls_util_send_phone
+  0039d	83 c4 08	 add	 esp, 8
+$L71795:
+
+; 402  : 		if ((pp1->p_flag&PFSYLAB) != 0)
+
+  003a0	f6 46 0c 10	 test	 BYTE PTR [esi+12], 16	; 00000010H
+  003a4	74 03		 je	 SHORT $L71796
+
+; 403  : 		{
+; 404  : 			s = pp1->p_stress;
+
+  003a6	8b 6e 10	 mov	 ebp, DWORD PTR [esi+16]
+$L71796:
+
+; 405  : 		}
+; 406  : 		if (s!=SUN && ls_adju_is_cons(pp1)==FALSE) 
+
+  003a9	83 fd 7a	 cmp	 ebp, 122		; 0000007aH
+  003ac	74 2b		 je	 SHORT $L71797
+  003ae	56		 push	 esi
+  003af	e8 00 00 00 00	 call	 _ls_adju_is_cons
+  003b4	83 c4 04	 add	 esp, 4
+  003b7	85 c0		 test	 eax, eax
+  003b9	75 1e		 jne	 SHORT $L71797
+
+; 407  : 		{
+; 408  : 			if (s == SPRI)
+
+  003bb	83 fd 7c	 cmp	 ebp, 124		; 0000007cH
+  003be	75 04		 jne	 SHORT $L71798
+
+; 409  : 			{
+; 410  : 				ls_util_send_phone(phTTS,S1);
+
+  003c0	6a 67		 push	 103			; 00000067H
+
+; 411  : 			}
+; 412  : 			else if (s == SSEC)
+
+  003c2	eb 07		 jmp	 SHORT $L72072
+$L71798:
+  003c4	83 fd 7b	 cmp	 ebp, 123		; 0000007bH
+  003c7	75 0b		 jne	 SHORT $L71800
+
+; 413  : 				ls_util_send_phone(phTTS,S2);
+
+  003c9	6a 66		 push	 102			; 00000066H
+$L72072:
+  003cb	57		 push	 edi
+  003cc	e8 00 00 00 00	 call	 _ls_util_send_phone
+  003d1	83 c4 08	 add	 esp, 8
+$L71800:
+
+; 414  : 			s = SUN;
+
+  003d4	bd 7a 00 00 00	 mov	 ebp, 122		; 0000007aH
+$L71797:
+
+; 415  : 		}
+; 416  : 		ls_util_send_phone(phTTS,pp1->p_sphone);
+
+  003d9	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+  003dc	50		 push	 eax
+  003dd	57		 push	 edi
+  003de	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 417  : /* GL 10/23/1996, remove unused index handling code */
+; 418  : #if 0
+; 419  : 		pp2 = pp1->p_ip;
+; 420  : 		while (pp2 != NULL) 
+; 421  : 		{
+; 422  : 			buf[0] = (2<<PSNEXTRA) + pp2->p_itype;
+; 423  : 			buf[1] = pp2->p_value;
+; 424  : 			buf[2] = pp2->p_iret;
+; 425  : 			ls_util_write_pipe(pKsd_t,&buf[0], 3);
+; 426  : 			pp3 = pp2->p_ip;
+; 427  : 			ls_rule_phone_free(pLts_t,pp2);
+; 428  : 			pp2 = pp3;
+; 429  : 		}
+; 430  : #endif
+; 431  : 		pp1 = pp1->p_fp;
+
+  003e3	8b 36		 mov	 esi, DWORD PTR [esi]
+  003e5	83 c4 08	 add	 esp, 8
+  003e8	3b f3		 cmp	 esi, ebx
+  003ea	75 81		 jne	 SHORT $L71791
+$L71792:
+
+; 432  : 	}
+; 433  : 
+; 434  : /* GL 10/23/1996, remove unused index handling code */
+; 435  : #if 0
+; 436  : 	pp1 = pLts_t->phead.p_ip;
+; 437  : 	while (pp1 != NULL) 
+; 438  : 	{
+; 439  : 		buf[0] = (2<<PSNEXTRA) + pp1->p_itype;
+; 440  : 		buf[1] = pp1->p_value;
+; 441  : 		buf[2] = pp1->p_iret;
+; 442  : 		ls_util_write_pipe(pKsd_t,&buf[0], 3);
+; 443  : 		pp2 = pp1->p_ip;
+; 444  : 		ls_rule_phone_free(pLts_t,pp1);
+; 445  : 		pp1 = pp2;
+; 446  : 	}
+; 447  : #endif
+; 448  : 	pp1 = pLts_t->phead.p_fp;
+
+  003ec	8b 03		 mov	 eax, DWORD PTR [ebx]
+
+; 449  : 	while (pp1 != &pLts_t->phead) 
+
+  003ee	3b c3		 cmp	 eax, ebx
+  003f0	74 16		 je	 SHORT $L71803
+$L71802:
+
+; 450  : 	{
+; 451  : 		pp2 = pp1->p_fp;
+; 452  : 		ls_rule_phone_free(pLts_t,pp1);
+
+  003f2	8b 4c 24 14	 mov	 ecx, DWORD PTR _pLts_t$[esp+12]
+  003f6	8b 30		 mov	 esi, DWORD PTR [eax]
+  003f8	50		 push	 eax
+  003f9	51		 push	 ecx
+  003fa	e8 00 00 00 00	 call	 _ls_rule_phone_free
+  003ff	83 c4 08	 add	 esp, 8
+  00402	3b f3		 cmp	 esi, ebx
+
+; 453  : 		pp1 = pp2;
+
+  00404	8b c6		 mov	 eax, esi
+  00406	75 ea		 jne	 SHORT $L71802
+$L71803:
+  00408	5f		 pop	 edi
+  00409	5e		 pop	 esi
+  0040a	5d		 pop	 ebp
+  0040b	5b		 pop	 ebx
+
+; 454  : 	}
+; 455  : #endif /* ifndef LDS_BUILD */
+; 456  : }
+
+  0040c	c3		 ret	 0
+_ls_rule_lts_out ENDP
+_TEXT	ENDS
+EXTRN	_ls_adju_delgemphone:NEAR
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_ls_rule_delete_geminate_pairs PROC NEAR
+
+; 488  : {
+
+  00410	55		 push	 ebp
+  00411	56		 push	 esi
+  00412	57		 push	 edi
+
+; 489  : 	register PHONE	*pp1;
+; 490  : 	register int	ph1;
+; 491  : 	register int	ph2;
+; 492  : 
+; 493  : 	pp1 = pLts_t->phead.p_fp;
+
+  00413	8b 7c 24 10	 mov	 edi, DWORD PTR _pLts_t$[esp+8]
+  00417	8b b7 c8 08 00
+	00		 mov	 esi, DWORD PTR [edi+2248]
+  0041d	8d af c8 08 00
+	00		 lea	 ebp, DWORD PTR [edi+2248]
+
+; 494  : 	while (pp1 != &pLts_t->phead) 
+
+  00423	3b f5		 cmp	 esi, ebp
+  00425	74 4b		 je	 SHORT $L71812
+$L71811:
+
+; 495  : 	{
+; 496  : 		ph1 = pp1->p_sphone;
+
+  00427	8b 46 14	 mov	 eax, DWORD PTR [esi+20]
+
+; 497  : 		ph2 = pp1->p_bp->p_sphone;
+
+  0042a	8b 4e 04	 mov	 ecx, DWORD PTR [esi+4]
+
+; 498  : 		/* Delete [l][L] and [L][l], preserving the [L].	*/
+; 499  : 		if ((ph1==LL && ph2==EL) || (ph1==EL && ph1==LL)) 
+
+  0042d	83 f8 1b	 cmp	 eax, 27			; 0000001bH
+  00430	8b 49 14	 mov	 ecx, DWORD PTR [ecx+20]
+  00433	75 08		 jne	 SHORT $L71813
+  00435	83 f9 22	 cmp	 ecx, 34			; 00000022H
+  00438	75 03		 jne	 SHORT $L71813
+
+; 500  : 		{
+; 501  : 			ls_adju_delgemphone(pLts_t,pp1, EL);
+
+  0043a	51		 push	 ecx
+
+; 502  : 			pp1 = pp1->p_fp;
+; 503  : 			continue;
+
+  0043b	eb 25		 jmp	 SHORT $L72076
+$L71813:
+
+; 504  : 		}
+; 505  : 		/* Block these rules if cross morpheme mark.		*/
+; 506  : 		if ((pp1->p_flag&PFMORPH) == 0) {
+
+  0043d	f6 46 0c 0f	 test	 BYTE PTR [esi+12], 15	; 0000000fH
+  00441	75 29		 jne	 SHORT $L71823
+
+; 507  : 			/* Delete [t][T] and [T][t], preserve the [T]	*/
+; 508  : 			if ((ph1==T && ph2==TH) || (ph1==TH && ph2==T)) 
+
+  00443	83 f8 2f	 cmp	 eax, 47			; 0000002fH
+  00446	75 2e		 jne	 SHORT $L71819
+  00448	83 f9 27	 cmp	 ecx, 39			; 00000027H
+  0044b	74 33		 je	 SHORT $L71818
+$L71820:
+
+; 520  : 			}
+; 521  : 			/* Delete plain old pairs of [+Cons] things.	*/
+; 522  : 			if (ph1==ph2 && ls_adju_is_cons(pp1)!=FALSE) 
+
+  0044d	3b c1		 cmp	 eax, ecx
+  0044f	75 1b		 jne	 SHORT $L71823
+  00451	56		 push	 esi
+  00452	e8 00 00 00 00	 call	 _ls_adju_is_cons
+  00457	83 c4 04	 add	 esp, 4
+  0045a	85 c0		 test	 eax, eax
+  0045c	74 0e		 je	 SHORT $L71823
+
+; 523  : 			{
+; 524  : 				ls_adju_delgemphone(pLts_t,pp1, pp1->p_sphone);
+
+  0045e	8b 56 14	 mov	 edx, DWORD PTR [esi+20]
+  00461	52		 push	 edx
+$L72076:
+  00462	56		 push	 esi
+  00463	57		 push	 edi
+  00464	e8 00 00 00 00	 call	 _ls_adju_delgemphone
+  00469	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71823:
+
+; 525  : 				pp1 = pp1->p_fp;
+; 526  : 				continue;
+; 527  : 			}
+; 528  : 		}
+; 529  : 		/* No deletion, just move forward one phoneme		*/
+; 530  : 		pp1 = pp1->p_fp;
+
+  0046c	8b 36		 mov	 esi, DWORD PTR [esi]
+  0046e	3b f5		 cmp	 esi, ebp
+  00470	75 b5		 jne	 SHORT $L71811
+$L71812:
+  00472	5f		 pop	 edi
+  00473	5e		 pop	 esi
+  00474	5d		 pop	 ebp
+
+; 531  : 	}
+; 532  : }
+
+  00475	c3		 ret	 0
+$L71819:
+
+; 507  : 			/* Delete [t][T] and [T][t], preserve the [T]	*/
+; 508  : 			if ((ph1==T && ph2==TH) || (ph1==TH && ph2==T)) 
+
+  00476	83 f8 27	 cmp	 eax, 39			; 00000027H
+  00479	75 09		 jne	 SHORT $L71817
+  0047b	83 f9 2f	 cmp	 ecx, 47			; 0000002fH
+  0047e	75 cd		 jne	 SHORT $L71820
+$L71818:
+
+; 509  : 			{
+; 510  : 				ls_adju_delgemphone(pLts_t,pp1, TH);
+
+  00480	6a 27		 push	 39			; 00000027H
+
+; 511  : 				pp1 = pp1->p_fp;
+; 512  : 				continue;
+
+  00482	eb de		 jmp	 SHORT $L72076
+$L71817:
+
+; 513  : 			}
+; 514  : 			/* Delete [s][S] and [S][s], preserve the [S]	*/
+; 515  : 			if ((ph1==S && ph2==SH) || (ph1==SH && ph2==S)) 
+
+  00484	83 f8 29	 cmp	 eax, 41			; 00000029H
+  00487	75 07		 jne	 SHORT $L71822
+  00489	83 f9 2b	 cmp	 ecx, 43			; 0000002bH
+  0048c	74 0c		 je	 SHORT $L71821
+  0048e	eb bd		 jmp	 SHORT $L71820
+$L71822:
+  00490	83 f8 2b	 cmp	 eax, 43			; 0000002bH
+  00493	75 b8		 jne	 SHORT $L71820
+  00495	83 f9 29	 cmp	 ecx, 41			; 00000029H
+  00498	75 b3		 jne	 SHORT $L71820
+$L71821:
+
+; 516  : 			{
+; 517  : 				ls_adju_delgemphone(pLts_t,pp1, SH);
+
+  0049a	6a 2b		 push	 43			; 0000002bH
+
+; 518  : 				pp1 = pp1->p_fp;
+; 519  : 				continue;
+
+  0049c	eb c4		 jmp	 SHORT $L72076
+_ls_rule_delete_geminate_pairs ENDP
+_TEXT	ENDS
+EXTRN	_ls_util_is_vowel:NEAR
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_gp$ = 12
+_g$ = 16
+_ls_rule_add_graph PROC NEAR
+
+; 568  : {
+
+  004a0	56		 push	 esi
+
+; 569  : 	int	g1;
+; 570  : 	PHONE	far *pp;
+; 571  : 	int	value;
+; 572  : 
+; 573  : 	if (ls_util_is_vowel(g) != FALSE	/* If a vowel			*/
+; 574  : 	&& gp > &pLts_t->graph[1]			/* and 2 graphs to left	*/
+; 575  : 	&&  (gp-1)->g_graph == GU			/* and first is "U"		*/
+; 576  : 	&& ((gp-2)->g_graph == GG			/* and it's "GU"		*/
+; 577  : 	||  (gp-2)->g_graph == GQ)) 		/* or "QU"				*/
+
+  004a1	8b 74 24 10	 mov	 esi, DWORD PTR _g$[esp]
+  004a5	57		 push	 edi
+  004a6	56		 push	 esi
+  004a7	e8 00 00 00 00	 call	 _ls_util_is_vowel
+  004ac	8b 4c 24 14	 mov	 ecx, DWORD PTR _gp$[esp+8]
+  004b0	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+8]
+  004b4	83 c4 04	 add	 esp, 4
+  004b7	85 c0		 test	 eax, eax
+  004b9	74 36		 je	 SHORT $L71834
+  004bb	8d 42 0c	 lea	 eax, DWORD PTR [edx+12]
+  004be	3b c8		 cmp	 ecx, eax
+  004c0	76 2f		 jbe	 SHORT $L71834
+  004c2	66 83 79 f8 15	 cmp	 WORD PTR [ecx-8], 21	; 00000015H
+  004c7	75 28		 jne	 SHORT $L71834
+  004c9	66 8b 41 f0	 mov	 ax, WORD PTR [ecx-16]
+  004cd	66 3d 07 00	 cmp	 ax, 7
+  004d1	74 06		 je	 SHORT $L71835
+  004d3	66 3d 11 00	 cmp	 ax, 17			; 00000011H
+  004d7	75 18		 jne	 SHORT $L71834
+$L71835:
+  004d9	83 c1 f8	 add	 ecx, -8			; fffffff8H
+
+; 578  : 	{		
+; 579  : 		--gp;
+; 580  : 		if ((gp-1)->g_graph == GG)
+
+  004dc	33 c0		 xor	 eax, eax
+  004de	66 83 79 f8 07	 cmp	 WORD PTR [ecx-8], 7
+  004e3	0f 95 c0	 setne	 al
+  004e6	83 c0 1b	 add	 eax, 27			; 0000001bH
+  004e9	66 89 41 f8	 mov	 WORD PTR [ecx-8], ax
+
+; 581  : 			(gp-1)->g_graph = GGU;
+; 582  : 		else
+; 583  : 			(gp-1)->g_graph = GQU;
+; 584  : /* GL 10/23/1996, remove unused index handling code */
+; 585  : #if 0
+; 586  : 		if (gp->g_ip != NULL) 
+; 587  : 		{
+; 588  : 			if ((pp=(gp-1)->g_ip) == NULL)
+; 589  : 				(gp-1)->g_ip = gp->g_ip;
+; 590  : 			else 
+; 591  : 			{
+; 592  : 				while (pp->p_ip != NULL)
+; 593  : 					pp = pp->p_ip;
+; 594  : 				pp->p_ip = gp->g_ip;
+; 595  : 			}
+; 596  : 		}
+; 597  : #endif
+; 598  : 		value = FALSE;
+
+  004ed	33 c0		 xor	 eax, eax
+
+; 599  : 	}
+; 600  : 	else
+
+  004ef	eb 05		 jmp	 SHORT $L71838
+$L71834:
+
+; 601  : 	{
+; 602  : 		value = TRUE;
+
+  004f1	b8 01 00 00 00	 mov	 eax, 1
+$L71838:
+
+; 603  : 	}
+; 604  : 	gp->g_graph = g;
+
+  004f6	66 89 31	 mov	 WORD PTR [ecx], si
+
+; 605  : 	gp->g_ip = NULL;
+
+  004f9	c7 41 04 00 00
+	00 00		 mov	 DWORD PTR [ecx+4], 0
+
+; 606  : 	/*
+; 607  : 	 * Gather graphemic features.
+; 608  : 	 * Most come from the feature table.
+; 609  : 	 * "H" is [+SIB] if "SH" or "CH"
+; 610  : 	 * "G" is [+SIB] if "DG"
+; 611  : 	 * "J" is [+SIB] if "DJ"
+; 612  : 	 * Set [+GEM] on 2nd grapheme of pair.
+; 613  : 	 * "Y" is [+CONS] if word initial, else [+VOC].
+; 614  : 	 * [+SYL] sets as soon as a sylable is
+; 615  : 	 * detected; a sylable exists when a vowel
+; 616  : 	 * exits. Special stuff for "Y".
+; 617  : 	 */
+; 618  : 	gp->g_feats = feats[g];			/* Base set		*/
+
+  00500	66 8b 3c 75 00
+	00 00 00	 mov	 di, WORD PTR _feats[esi*2]
+
+; 619  : 	if (g == GY) 
+
+  00508	83 fe 19	 cmp	 esi, 25			; 00000019H
+  0050b	66 89 79 02	 mov	 WORD PTR [ecx+2], di
+  0050f	75 13		 jne	 SHORT $L71842
+
+; 620  : 	{
+; 621  : 		if (gp == &pLts_t->graph[0])		/* "Y" in word initial	*/
+
+  00511	8d 7a 04	 lea	 edi, DWORD PTR [edx+4]
+  00514	3b cf		 cmp	 ecx, edi
+  00516	75 06		 jne	 SHORT $L71841
+
+; 622  : 			gp->g_feats |= FCONS;	/* position is [+CONS]	*/
+
+  00518	80 49 02 04	 or	 BYTE PTR [ecx+2], 4
+
+; 623  : 		else 
+
+  0051c	eb 06		 jmp	 SHORT $L71842
+$L71841:
+
+; 624  : 		{
+; 625  : 			gp->g_feats |= FVOC;	/* Rest are vowels	*/
+; 626  : 			gp->g_feats |= FSYL;	/* and create sylables	*/
+
+  0051e	66 81 49 02 02
+	80		 or	 WORD PTR [ecx+2], -32766 ; ffff8002H
+$L71842:
+
+; 627  : 		}
+; 628  : 	}
+; 629  : 	if (gp != &pLts_t->graph[0]) 
+
+  00524	83 c2 04	 add	 edx, 4
+  00527	3b ca		 cmp	 ecx, edx
+  00529	74 46		 je	 SHORT $L71850
+
+; 630  : 	{			/* If not word initial	*/
+; 631  : 		g1 = (gp-1)->g_graph;		
+
+  0052b	0f bf 79 f8	 movsx	 edi, WORD PTR [ecx-8]
+
+; 632  : 		if ((g1==GS || g1==GC) && g==GH)
+
+  0052f	83 ff 13	 cmp	 edi, 19			; 00000013H
+  00532	74 05		 je	 SHORT $L71845
+  00534	83 ff 03	 cmp	 edi, 3
+  00537	75 05		 jne	 SHORT $L71844
+$L71845:
+  00539	83 fe 08	 cmp	 esi, 8
+
+; 633  : 		{
+; 634  : 			gp->g_feats |= FSIB;
+; 635  : 		}
+; 636  : 		else 
+
+  0053c	74 0f		 je	 SHORT $L71848
+$L71844:
+
+; 637  : 		{
+; 638  : 			if (g1==GD && (g==GG || g==GJ))
+
+  0053e	83 ff 04	 cmp	 edi, 4
+  00541	75 0e		 jne	 SHORT $L71847
+  00543	83 fe 07	 cmp	 esi, 7
+  00546	74 05		 je	 SHORT $L71848
+  00548	83 fe 0a	 cmp	 esi, 10			; 0000000aH
+  0054b	75 04		 jne	 SHORT $L71847
+$L71848:
+
+; 639  : 			{
+; 640  : 				gp->g_feats |= FSIB;
+
+  0054d	80 49 02 40	 or	 BYTE PTR [ecx+2], 64	; 00000040H
+$L71847:
+
+; 641  : 			}
+; 642  : 		}
+; 643  : 		if ((gp->g_feats&FCONS)!=0 && g1==g)
+
+  00551	66 8b 51 02	 mov	 dx, WORD PTR [ecx+2]
+  00555	f6 c2 04	 test	 dl, 4
+  00558	74 0b		 je	 SHORT $L71849
+  0055a	3b fe		 cmp	 edi, esi
+  0055c	75 07		 jne	 SHORT $L71849
+
+; 644  : 		{
+; 645  : 			gp->g_feats |= FGEM;
+
+  0055e	80 ce 02	 or	 dh, 2
+  00561	66 89 51 02	 mov	 WORD PTR [ecx+2], dx
+$L71849:
+
+; 646  : 		}
+; 647  : 		if (((gp-1)->g_feats&FSYL) != 0)
+
+  00565	f6 41 fb 80	 test	 BYTE PTR [ecx-5], -128	; ffffff80H
+  00569	74 06		 je	 SHORT $L71850
+
+; 648  : 		{
+; 649  : 			gp->g_feats |= FSYL;
+
+  0056b	66 81 49 02 00
+	80		 or	 WORD PTR [ecx+2], -32768 ; ffff8000H
+$L71850:
+  00571	5f		 pop	 edi
+  00572	5e		 pop	 esi
+
+; 650  : 		}
+; 651  : 	}
+; 652  : 	return (value);
+; 653  : }
+
+  00573	c3		 ret	 0
+_ls_rule_add_graph ENDP
+_TEXT	ENDS
+PUBLIC	_ls_rule_env_match
+EXTRN	_acna_lswtab:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_gp1$ = 12
+_def_lang$ = 16
+_sel_lang$ = 20
+_rulep$ = -4
+_pLts_t$ = 8
+_ls_rule_rule_match PROC NEAR
+
+; 682  : {
+
+  00580	51		 push	 ecx
+
+; 683  : 	unsigned int	rulep;
+; 684  : 	unsigned int	xrule;
+; 685  : 	GRAPH	*gp2;
+; 686  : 	unsigned int	nrule;
+; 687  : 	unsigned int	g;
+; 688  :   	register int	lang;
+; 689  : 	register int	specific;
+; 690  : 	PLTS_T pLts_t;
+; 691  : 	PKSD_T pKsd_t;
+; 692  : 	pLts_t=phTTS->pLTSThreadData;
+
+  00581	8b 44 24 08	 mov	 eax, DWORD PTR _phTTS$[esp]
+  00585	53		 push	 ebx
+  00586	55		 push	 ebp
+  00587	56		 push	 esi
+
+; 693  : 	pKsd_t=phTTS->pKernelShareData;
+; 694  : 
+; 695  : 
+; 696  : 	g = (--gp1)->g_graph;
+
+  00588	8b 74 24 18	 mov	 esi, DWORD PTR _gp1$[esp+12]
+  0058c	8b 50 10	 mov	 edx, DWORD PTR [eax+16]
+  0058f	83 ee 08	 sub	 esi, 8
+
+; 697  : 	rulep = wtab(2*g + 0);			/* Offset to rule	*/
+; 698  : 	nrule = wtab(2*g + 1);			/* Number of rules	*/
+
+  00592	33 ed		 xor	 ebp, ebp
+  00594	33 c9		 xor	 ecx, ecx
+  00596	57		 push	 edi
+  00597	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  0059a	89 54 24 18	 mov	 DWORD PTR _pLts_t$[esp+16], edx
+  0059e	89 74 24 1c	 mov	 DWORD PTR _gp1$[esp+16], esi
+  005a2	66 8b 2c 85 02
+	00 00 00	 mov	 bp, WORD PTR _acna_lswtab[eax*4+2]
+  005aa	66 8b 0c 85 00
+	00 00 00	 mov	 cx, WORD PTR _acna_lswtab[eax*4]
+
+; 699  : 	pLts_t->rpart = 0;				/* Assume we failed	*/
+; 700  : 	while (nrule--) 
+
+  005b2	8b c5		 mov	 eax, ebp
+  005b4	4d		 dec	 ebp
+  005b5	85 c0		 test	 eax, eax
+  005b7	89 4c 24 10	 mov	 DWORD PTR _rulep$[esp+20], ecx
+  005bb	66 c7 02 00 00	 mov	 WORD PTR [edx], 0
+  005c0	0f 84 fb 00 00
+	00		 je	 $L72086
+  005c6	8b 5c 24 24	 mov	 ebx, DWORD PTR _sel_lang$[esp+16]
+  005ca	8d 3c 4d 02 00
+	00 00		 lea	 edi, DWORD PTR _acna_lswtab[ecx*2+2]
+  005d1	eb 0c		 jmp	 SHORT $L71872
+$L72089:
+
+; 683  : 	unsigned int	rulep;
+; 684  : 	unsigned int	xrule;
+; 685  : 	GRAPH	*gp2;
+; 686  : 	unsigned int	nrule;
+; 687  : 	unsigned int	g;
+; 688  :   	register int	lang;
+; 689  : 	register int	specific;
+; 690  : 	PLTS_T pLts_t;
+; 691  : 	PKSD_T pKsd_t;
+; 692  : 	pLts_t=phTTS->pLTSThreadData;
+
+  005d3	8b 5c 24 24	 mov	 ebx, DWORD PTR _sel_lang$[esp+16]
+  005d7	8b 74 24 1c	 mov	 esi, DWORD PTR _gp1$[esp+16]
+  005db	8b 54 24 18	 mov	 edx, DWORD PTR _pLts_t$[esp+16]
+$L71872:
+
+; 701  : 	{
+; 702  : 		gp2 = gp1;
+; 703  : #ifdef ACNA
+; 704  : 		/*
+; 705  : 		 * PRG	18-NOV-1988
+; 706  : 		 * BEGINNING OF MODIFICATION - check to see if the rule's
+; 707  : 		 * language tag is equal to either the default or selected
+; 708  : 		 * language group.  If so continue the normal process of
+; 709  : 		 * matching.  Otherwise, go on to the next rule.
+; 710  : 		 */
+; 711  : 
+; 712  : 			lang = wtab (rulep+0);
+
+  005df	33 c0		 xor	 eax, eax
+  005e1	66 8b 47 fe	 mov	 ax, WORD PTR [edi-2]
+
+; 713  : 			specific = lang & M_R_SPECIFIC;
+
+  005e5	8b c8		 mov	 ecx, eax
+
+; 714  : 	        	lang &= M_R_LANG;
+
+  005e7	25 ff 7f 00 00	 and	 eax, 32767		; 00007fffH
+  005ec	81 e1 00 80 00
+	00		 and	 ecx, 32768		; 00008000H
+
+; 715  : 			if (specific && lang != sel_lang)
+
+  005f2	85 c9		 test	 ecx, ecx
+  005f4	74 0a		 je	 SHORT $L72085
+  005f6	3b c3		 cmp	 eax, ebx
+  005f8	0f 85 91 00 00
+	00		 jne	 $fail$71876
+
+; 716  : 			{
+; 717  : 		   	goto fail;
+; 718  : 			}
+; 719  : 			else
+; 720  : 			{
+; 721  : 				if (!specific && lang != def_lang && lang != sel_lang)
+
+  005fe	eb 0e		 jmp	 SHORT $L71878
+$L72085:
+  00600	3b 44 24 20	 cmp	 eax, DWORD PTR _def_lang$[esp+16]
+  00604	74 08		 je	 SHORT $L71878
+  00606	3b c3		 cmp	 eax, ebx
+  00608	0f 85 81 00 00
+	00		 jne	 $fail$71876
+$L71878:
+
+; 722  : 				{
+; 723  : 			   		goto fail;
+; 724  : 		   		}
+; 725  : 			}
+; 726  : 	
+; 727  : 		/*
+; 728  : 		 * END OF MODIFICATION.
+; 729  : 		 */ 
+; 730  : 		if ((xrule=wtab(rulep+1)) != 0) 
+
+  0060e	33 c9		 xor	 ecx, ecx
+  00610	66 8b 0f	 mov	 cx, WORD PTR [edi]
+  00613	85 c9		 test	 ecx, ecx
+  00615	74 34		 je	 SHORT $L71884
+
+; 731  : 		{
+; 732  : 			while ((g=btabb(xrule++)) != GEOS) 
+
+  00617	8a 81 00 00 00
+	00		 mov	 al, BYTE PTR _acna_lsbtab[ecx]
+  0061d	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00622	41		 inc	 ecx
+  00623	85 c0		 test	 eax, eax
+  00625	74 24		 je	 SHORT $L71884
+
+; 733  : 			{
+; 734  : 				if (gp2==(&pLts_t->graph[0]) || (--gp2)->g_graph!=g)
+
+  00627	83 c2 04	 add	 edx, 4
+  0062a	8d 89 00 00 00
+	00		 lea	 ecx, DWORD PTR _acna_lsbtab[ecx]
+$L71883:
+  00630	3b f2		 cmp	 esi, edx
+  00632	74 5b		 je	 SHORT $fail$71876
+  00634	0f bf 5e f8	 movsx	 ebx, WORD PTR [esi-8]
+  00638	83 ee 08	 sub	 esi, 8
+  0063b	3b d8		 cmp	 ebx, eax
+  0063d	75 50		 jne	 SHORT $fail$71876
+  0063f	8a 01		 mov	 al, BYTE PTR [ecx]
+  00641	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00646	41		 inc	 ecx
+  00647	85 c0		 test	 eax, eax
+  00649	75 e5		 jne	 SHORT $L71883
+$L71884:
+
+; 735  : 					goto fail;
+; 736  : 			}
+; 737  : 		}
+; 738  : 		if ((xrule=wtab(rulep+4)) != 0	/* Right environment	*/
+; 739  : 		&& ls_rule_env_match(pLts_t,xrule, gp1, FORW) == NULL)
+
+  0064b	33 c0		 xor	 eax, eax
+  0064d	66 8b 47 06	 mov	 ax, WORD PTR [edi+6]
+  00651	85 c0		 test	 eax, eax
+  00653	74 1b		 je	 SHORT $L72090
+  00655	8b 4c 24 1c	 mov	 ecx, DWORD PTR _gp1$[esp+16]
+  00659	8b 5c 24 18	 mov	 ebx, DWORD PTR _pLts_t$[esp+16]
+  0065d	6a 00		 push	 0
+  0065f	51		 push	 ecx
+  00660	50		 push	 eax
+  00661	53		 push	 ebx
+  00662	e8 00 00 00 00	 call	 _ls_rule_env_match
+  00667	83 c4 10	 add	 esp, 16			; 00000010H
+  0066a	85 c0		 test	 eax, eax
+  0066c	74 21		 je	 SHORT $fail$71876
+  0066e	eb 04		 jmp	 SHORT $L71889
+$L72090:
+  00670	8b 5c 24 18	 mov	 ebx, DWORD PTR _pLts_t$[esp+16]
+$L71889:
+
+; 740  : 		{
+; 741  : 			goto fail;
+; 742  : 		}
+; 743  : 		if ((xrule=wtab(rulep+3)) != 0	/* Left environment	*/
+; 744  : 		&& ls_rule_env_match(pLts_t,xrule, gp2, BACK) == NULL)
+
+  00674	33 c0		 xor	 eax, eax
+  00676	66 8b 47 04	 mov	 ax, WORD PTR [edi+4]
+  0067a	85 c0		 test	 eax, eax
+  0067c	74 34		 je	 SHORT $L71892
+  0067e	6a 01		 push	 1
+  00680	56		 push	 esi
+  00681	50		 push	 eax
+  00682	53		 push	 ebx
+  00683	e8 00 00 00 00	 call	 _ls_rule_env_match
+  00688	83 c4 10	 add	 esp, 16			; 00000010H
+  0068b	85 c0		 test	 eax, eax
+  0068d	75 23		 jne	 SHORT $L71892
+$fail$71876:
+
+; 755  : 		break;
+; 756  : #else         /* #ifdef ACNA */
+; 757  : 		if ((xrule=wtab(rulep+0)) != 0) 
+; 758  : 		{
+; 759  : 			while ((g=btabb(xrule++)) != GEOS) 
+; 760  : 			{
+; 761  : 
+; 762  : 				if (gp2==&pLts_t->graph[0] || (--gp2)->g_graph!=(signed int)g)
+; 763  : 					goto fail;
+; 764  : 			}
+; 765  : 		}
+; 766  : 		if ((xrule=wtab(rulep+3)) != 0	/* Right environment	*/		
+; 767  : 		&& ls_rule_env_match(pLts_t,xrule, gp1, FORW) == NULL)
+; 768  : 		{
+; 769  : 			goto fail;
+; 770  : 		}
+; 771  : 		if ((xrule=wtab(rulep+2)) != 0	/* Left environment	*/
+; 772  : 		&& ls_rule_env_match(pLts_t,xrule, gp2, BACK) == NULL)
+; 773  : 		{
+; 774  : 			goto fail;
+; 775  : 		}
+; 776  : #if defined (VMS) || defined (LDS_BUILD)
+; 777  : 		rline = lswtab[rulep+4];		/* Line number of rule.	*/
+; 778  : 		++lswtab[rulep+5];				/* Usage count of rule.	*/
+; 779  : #endif
+; 780  : 		gp1 = gp2;						/* Move over the match	*/
+; 781  : 		pLts_t->rpart = wtab(rulep+1);	/* Replacement		*/
+; 782  : 		break;
+; 783  : #endif /* #ifdef ACNA */
+; 784  : 	fail:
+; 785  : 		rulep += LSBUMP;
+
+  0068f	8b 74 24 10	 mov	 esi, DWORD PTR _rulep$[esp+20]
+  00693	83 c7 0a	 add	 edi, 10			; 0000000aH
+  00696	83 c6 05	 add	 esi, 5
+  00699	8b d5		 mov	 edx, ebp
+  0069b	4d		 dec	 ebp
+  0069c	89 74 24 10	 mov	 DWORD PTR _rulep$[esp+20], esi
+  006a0	85 d2		 test	 edx, edx
+  006a2	0f 85 2b ff ff
+	ff		 jne	 $L72089
+
+; 786  : 	}
+; 787  : 
+; 788  : 	return (gp1);
+
+  006a8	8b 44 24 1c	 mov	 eax, DWORD PTR _gp1$[esp+16]
+  006ac	5f		 pop	 edi
+  006ad	5e		 pop	 esi
+  006ae	5d		 pop	 ebp
+  006af	5b		 pop	 ebx
+
+; 789  : }
+
+  006b0	59		 pop	 ecx
+  006b1	c3		 ret	 0
+$L71892:
+
+; 745  : 		{
+; 746  : 			goto fail;
+; 747  : 		}
+; 748  : 			
+; 749  : #if defined (VMS) || defined (LDS_BUILD)
+; 750  : 		rline = lswtab[rulep+5];	/* Line number of rule.	*/
+; 751  : 		++lswtab[rulep+6];			/* Usage count of rule.	*/
+; 752  : #endif
+; 753  : 		gp1 = gp2;							/* Move over the match	*/
+; 754  : 		pLts_t->rpart = wtab(rulep+2);		/* Replacement		*/
+
+  006b2	8b 44 24 10	 mov	 eax, DWORD PTR _rulep$[esp+20]
+  006b6	66 8b 0c 45 04
+	00 00 00	 mov	 cx, WORD PTR _acna_lswtab[eax*2+4]
+  006be	66 89 0b	 mov	 WORD PTR [ebx], cx
+$L72086:
+
+; 786  : 	}
+; 787  : 
+; 788  : 	return (gp1);
+
+  006c1	8b c6		 mov	 eax, esi
+  006c3	5f		 pop	 edi
+  006c4	5e		 pop	 esi
+  006c5	5d		 pop	 ebp
+  006c6	5b		 pop	 ebx
+
+; 789  : }
+
+  006c7	59		 pop	 ecx
+  006c8	c3		 ret	 0
+_ls_rule_rule_match ENDP
+_pLts_t$ = 8
+_ep1$ = 12
+_gp$ = 16
+_d$ = 20
+_ep2$ = 12
+_hlim$ = 16
+_ls_rule_env_match PROC NEAR
+
+; 816  : {
+
+  006d0	53		 push	 ebx
+  006d1	55		 push	 ebp
+  006d2	56		 push	 esi
+
+; 817  : 	unsigned int	ep2;
+; 818  : 	unsigned int	type;
+; 819  : 	unsigned int	npat;
+; 820  : 	unsigned int	mask;
+; 821  : 	unsigned int	test;
+; 822  : 	unsigned int	llim;
+; 823  : 	unsigned int	hlim;
+; 824  : 	GRAPH  *gp1;
+; 825  : 	unsigned int	ep3;
+; 826  : 
+; 827  : 	npat = btabb(ep1++);
+
+  006d3	8b 74 24 14	 mov	 esi, DWORD PTR _ep1$[esp+8]
+  006d7	57		 push	 edi
+  006d8	8a 86 00 00 00
+	00		 mov	 al, BYTE PTR _acna_lsbtab[esi]
+  006de	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  006e3	46		 inc	 esi
+
+; 828  : 	ep2  = ep1 + npat;
+
+  006e4	03 c6		 add	 eax, esi
+
+; 829  : 	while (ep1 != (signed int)ep2) 
+
+  006e6	3b f0		 cmp	 esi, eax
+  006e8	89 44 24 18	 mov	 DWORD PTR _ep2$[esp+12], eax
+  006ec	0f 84 e0 01 00
+	00		 je	 $L72115
+  006f2	8b 6c 24 20	 mov	 ebp, DWORD PTR _d$[esp+12]
+  006f6	8b 7c 24 1c	 mov	 edi, DWORD PTR _gp$[esp+12]
+$L71915:
+
+; 830  : 	{
+; 831  : 		type = btabb(ep1++);
+
+  006fa	8a 8e 00 00 00
+	00		 mov	 cl, BYTE PTR _acna_lsbtab[esi]
+  00700	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  00706	46		 inc	 esi
+
+; 832  : 		switch (type)
+; 833  : 		{
+
+  00707	8d 41 e2	 lea	 eax, DWORD PTR [ecx-30]
+  0070a	83 f8 04	 cmp	 eax, 4
+  0070d	0f 87 84 01 00
+	00		 ja	 $L71981
+  00713	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L72118[eax*4]
+$L71922:
+
+; 834  : 			case GRANGE:
+; 835  : 										/* Range of matches	*/
+; 836  : 				llim = btabb(ep1++);	/* Low limit		*/
+
+  0071a	8a 9e 00 00 00
+	00		 mov	 bl, BYTE PTR _acna_lsbtab[esi]
+
+; 837  : 				hlim = btabb(ep1++);	/* High limit		*/
+
+  00720	8a 86 01 00 00
+	00		 mov	 al, BYTE PTR _acna_lsbtab[esi+1]
+  00726	81 e3 ff 00 00
+	00		 and	 ebx, 255		; 000000ffH
+  0072c	46		 inc	 esi
+  0072d	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00732	46		 inc	 esi
+
+; 838  : 				while (llim--) 
+
+  00733	8b cb		 mov	 ecx, ebx
+  00735	4b		 dec	 ebx
+  00736	85 c9		 test	 ecx, ecx
+  00738	89 44 24 1c	 mov	 DWORD PTR _hlim$[esp+12], eax
+  0073c	74 21		 je	 SHORT $L72096
+$L71926:
+
+; 839  : 				{					/* Must match part	*/
+; 840  : 					gp1 = ls_rule_env_match(pLts_t,ep1, gp, d);
+
+  0073e	8b 54 24 14	 mov	 edx, DWORD PTR _pLts_t$[esp+12]
+  00742	55		 push	 ebp
+  00743	57		 push	 edi
+  00744	56		 push	 esi
+  00745	52		 push	 edx
+  00746	e8 00 00 00 00	 call	 _ls_rule_env_match
+  0074b	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 841  : 					if (gp1 == NULL)
+
+  0074e	85 c0		 test	 eax, eax
+  00750	0f 84 75 01 00
+	00		 je	 $L72111
+
+; 842  : 						return (NULL);
+; 843  : 					gp = gp1;
+
+  00756	8b f8		 mov	 edi, eax
+  00758	8b c3		 mov	 eax, ebx
+  0075a	4b		 dec	 ebx
+  0075b	85 c0		 test	 eax, eax
+  0075d	75 df		 jne	 SHORT $L71926
+$L72096:
+
+; 844  : 				}
+; 845  : 				while (hlim--) 
+
+  0075f	8b 44 24 1c	 mov	 eax, DWORD PTR _hlim$[esp+12]
+  00763	8b c8		 mov	 ecx, eax
+  00765	48		 dec	 eax
+  00766	85 c9		 test	 ecx, ecx
+  00768	89 44 24 1c	 mov	 DWORD PTR _hlim$[esp+12], eax
+  0076c	74 25		 je	 SHORT $L72099
+$L71932:
+
+; 846  : 				{	/* Optional matches	*/
+; 847  : 					gp1 = ls_rule_env_match(pLts_t,ep1, gp, d);
+
+  0076e	8b 54 24 14	 mov	 edx, DWORD PTR _pLts_t$[esp+12]
+  00772	55		 push	 ebp
+  00773	57		 push	 edi
+  00774	56		 push	 esi
+  00775	52		 push	 edx
+  00776	e8 00 00 00 00	 call	 _ls_rule_env_match
+  0077b	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 848  : 					if (gp1 == NULL)
+
+  0077e	85 c0		 test	 eax, eax
+  00780	74 11		 je	 SHORT $L72099
+
+; 849  : 						break;
+; 850  : 					gp = gp1;
+
+  00782	8b f8		 mov	 edi, eax
+  00784	8b 44 24 1c	 mov	 eax, DWORD PTR _hlim$[esp+12]
+  00788	8b c8		 mov	 ecx, eax
+  0078a	48		 dec	 eax
+  0078b	85 c9		 test	 ecx, ecx
+  0078d	89 44 24 1c	 mov	 DWORD PTR _hlim$[esp+12], eax
+  00791	75 db		 jne	 SHORT $L71932
+$L72099:
+
+; 851  : 				}
+; 852  : 				npat = btabb(ep1++);	/* Skip over pattern	*/
+; 853  : 				ep1 += npat;
+
+  00793	8a 96 00 00 00
+	00		 mov	 dl, BYTE PTR _acna_lsbtab[esi]
+  00799	81 e2 ff 00 00
+	00		 and	 edx, 255		; 000000ffH
+  0079f	8d 74 16 01	 lea	 esi, DWORD PTR [esi+edx+1]
+
+; 854  : 				break;
+
+  007a3	e9 12 01 00 00	 jmp	 $L71989
+$L71937:
+
+; 855  : 			case GDISJ:		
+; 856  : 				npat = btabb(ep1++);	/* Disjunction			*/
+
+  007a8	8a 86 00 00 00
+	00		 mov	 al, BYTE PTR _acna_lsbtab[esi]
+  007ae	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  007b3	46		 inc	 esi
+
+; 857  : 				ep3  = ep1 + npat;		/* End of disjunction	*/
+
+  007b4	8d 1c 30	 lea	 ebx, DWORD PTR [eax+esi]
+$L71940:
+
+; 858  : 				for (;;) 
+; 859  : 				{
+; 860  : 					if (ep1 == (signed int)ep3)
+
+  007b7	3b f3		 cmp	 esi, ebx
+  007b9	0f 84 0c 01 00
+	00		 je	 $L72111
+
+; 861  : 						return (NULL);
+; 862  : 					gp1 = ls_rule_env_match(pLts_t,ep1, gp, d);
+
+  007bf	8b 44 24 14	 mov	 eax, DWORD PTR _pLts_t$[esp+12]
+  007c3	55		 push	 ebp
+  007c4	57		 push	 edi
+  007c5	56		 push	 esi
+  007c6	50		 push	 eax
+  007c7	e8 00 00 00 00	 call	 _ls_rule_env_match
+  007cc	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 863  : 					if (gp1 != NULL)
+
+  007cf	85 c0		 test	 eax, eax
+  007d1	75 12		 jne	 SHORT $L72101
+
+; 864  : 						break;
+; 865  : 					npat = btabb(ep1++);
+; 866  : 					ep1 += npat;
+
+  007d3	8a 8e 00 00 00
+	00		 mov	 cl, BYTE PTR _acna_lsbtab[esi]
+  007d9	81 e1 ff 00 00
+	00		 and	 ecx, 255		; 000000ffH
+  007df	8d 74 0e 01	 lea	 esi, DWORD PTR [esi+ecx+1]
+
+; 867  : 				}
+
+  007e3	eb d2		 jmp	 SHORT $L71940
+$L72101:
+
+; 868  : 				gp  = gp1;			/* Skip graphemes	*/
+
+  007e5	8b f8		 mov	 edi, eax
+
+; 869  : 				ep1 = ep3;			/* Skip to end of rule	*/
+
+  007e7	8b f3		 mov	 esi, ebx
+
+; 870  : 				break;
+
+  007e9	e9 cc 00 00 00	 jmp	 $L71989
+$L71948:
+
+; 871  : 			case GFEAT:
+; 872  : 				mask = btabw(ep1);  /* Feature set test	*/
+
+  007ee	33 c0		 xor	 eax, eax
+
+; 873  : 				ep1 += 2;
+; 874  : 				test = btabw(ep1);
+
+  007f0	33 c9		 xor	 ecx, ecx
+  007f2	8a a6 01 00 00
+	00		 mov	 ah, BYTE PTR _acna_lsbtab[esi+1]
+  007f8	8a ae 03 00 00
+	00		 mov	 ch, BYTE PTR _acna_lsbtab[esi+3]
+  007fe	8a 86 00 00 00
+	00		 mov	 al, BYTE PTR _acna_lsbtab[esi]
+  00804	8a 8e 02 00 00
+	00		 mov	 cl, BYTE PTR _acna_lsbtab[esi+2]
+  0080a	83 c6 02	 add	 esi, 2
+
+; 875  : 				ep1 += 2;
+
+  0080d	83 c6 02	 add	 esi, 2
+
+; 876  : 				if (d == FORW) 
+
+  00810	85 ed		 test	 ebp, ebp
+  00812	75 0e		 jne	 SHORT $L71953
+
+; 877  : 				{
+; 878  : 					if (gp->g_graph == GEOS)
+
+  00814	66 39 2f	 cmp	 WORD PTR [edi], bp
+  00817	0f 84 ae 00 00
+	00		 je	 $L72111
+
+; 879  : 						return (NULL);
+; 880  : 					++gp;
+
+  0081d	83 c7 08	 add	 edi, 8
+
+; 881  : 				} 
+; 882  : 				else 
+
+  00820	eb 12		 jmp	 SHORT $L71956
+$L71953:
+
+; 883  : 				{
+; 884  : 					if (gp == &pLts_t->graph[0])
+
+  00822	8b 54 24 14	 mov	 edx, DWORD PTR _pLts_t$[esp+12]
+  00826	83 c2 04	 add	 edx, 4
+  00829	3b fa		 cmp	 edi, edx
+  0082b	0f 84 9a 00 00
+	00		 je	 $L72111
+
+; 885  : 						return (NULL);
+; 886  : 					--gp;   	
+
+  00831	83 ef 08	 sub	 edi, 8
+$L71956:
+
+; 887  : 				}   	
+; 888  : 				if ((gp->g_feats&mask) != test)
+
+  00834	0f bf 57 02	 movsx	 edx, WORD PTR [edi+2]
+  00838	23 d0		 and	 edx, eax
+  0083a	3b d1		 cmp	 edx, ecx
+  0083c	0f 85 89 00 00
+	00		 jne	 $L72111
+
+; 889  : 					return (NULL);	
+; 890  :                 break;
+
+  00842	eb 76		 jmp	 SHORT $L71989
+$L71961:
+
+; 891  : 			case GMBOUND:
+; 892  : 				if (d == FORW) /* Morpheme mark	*/
+
+  00844	85 ed		 test	 ebp, ebp
+  00846	75 1b		 jne	 SHORT $L71962
+
+; 893  : 				{
+; 894  : 					if (gp->g_graph == GEOS)
+
+  00848	66 39 2f	 cmp	 WORD PTR [edi], bp
+  0084b	74 7e		 je	 SHORT $L72111
+
+; 895  : 					{
+; 896  : 						return (NULL);
+; 897  : 					}
+; 898  : 					if ((gp+1)->g_graph == GMBOUND)
+
+  0084d	66 8b 47 08	 mov	 ax, WORD PTR [edi+8]
+  00851	66 3d 1e 00	 cmp	 ax, 30			; 0000001eH
+  00855	75 05		 jne	 SHORT $L71965
+  00857	83 c7 08	 add	 edi, 8
+
+; 899  : 					{
+; 900  : 						++gp;
+; 901  : 					}
+; 902  : 					else 
+
+  0085a	eb 5e		 jmp	 SHORT $L71989
+$L71965:
+
+; 903  : 					{
+; 904  : 						if ((gp+1)->g_graph != 0)
+
+  0085c	66 85 c0	 test	 ax, ax
+  0085f	75 6a		 jne	 SHORT $L72111
+
+; 905  : 						{
+; 906  : 							return (NULL);
+; 907  : 						}
+; 908  : 					}
+; 909  : 				} 
+; 910  : 				else 
+
+  00861	eb 57		 jmp	 SHORT $L71989
+$L71962:
+
+; 911  : 				{
+; 912  : 					if (gp != &pLts_t->graph[0]) 
+
+  00863	8b 44 24 14	 mov	 eax, DWORD PTR _pLts_t$[esp+12]
+  00867	83 c0 04	 add	 eax, 4
+  0086a	3b f8		 cmp	 edi, eax
+  0086c	74 4c		 je	 SHORT $L71989
+
+; 913  : 					{
+; 914  : 						--gp;
+
+  0086e	83 ef 08	 sub	 edi, 8
+
+; 915  : 						if (gp->g_graph != GMBOUND)
+
+  00871	66 83 3f 1e	 cmp	 WORD PTR [edi], 30	; 0000001eH
+  00875	75 54		 jne	 SHORT $L72111
+
+; 916  : 							return (NULL);
+; 917  : 					}
+; 918  : 				}        
+; 919  : 				break;
+
+  00877	eb 41		 jmp	 SHORT $L71989
+$L71973:
+
+; 920  : 			case GWBOUND:
+; 921  : 				if (d == FORW) /* Word mark		*/
+
+  00879	85 ed		 test	 ebp, ebp
+  0087b	75 0d		 jne	 SHORT $L71974
+
+; 922  : 				{
+; 923  : 					if (gp->g_graph == GEOS
+; 924  : 					|| (gp+1)->g_graph != GEOS)
+
+  0087d	66 39 2f	 cmp	 WORD PTR [edi], bp
+  00880	74 49		 je	 SHORT $L72111
+  00882	66 39 6f 08	 cmp	 WORD PTR [edi+8], bp
+  00886	75 43		 jne	 SHORT $L72111
+
+; 925  : 						return (NULL);
+; 926  : 				} 
+; 927  : 				else 
+
+  00888	eb 30		 jmp	 SHORT $L71989
+$L71974:
+
+; 928  : 				{
+; 929  : 					if (gp != &pLts_t->graph[0])
+
+  0088a	8b 4c 24 14	 mov	 ecx, DWORD PTR _pLts_t$[esp+12]
+  0088e	83 c1 04	 add	 ecx, 4
+  00891	3b f9		 cmp	 edi, ecx
+  00893	75 36		 jne	 SHORT $L72111
+
+; 930  : 						return (NULL);
+; 931  : 				}
+; 932  : 				break;
+
+  00895	eb 23		 jmp	 SHORT $L71989
+$L71981:
+
+; 933  : 			default:
+; 934  : 				if (d == FORW) /* Random grapheme	*/
+
+  00897	85 ed		 test	 ebp, ebp
+  00899	75 0a		 jne	 SHORT $L71982
+
+; 935  : 				{
+; 936  : 					if (gp->g_graph == GEOS)
+
+  0089b	66 39 2f	 cmp	 WORD PTR [edi], bp
+  0089e	74 2b		 je	 SHORT $L72111
+
+; 937  : 						return (NULL);
+; 938  : 					++gp;
+
+  008a0	83 c7 08	 add	 edi, 8
+
+; 939  : 				} 
+; 940  : 				else 
+
+  008a3	eb 0e		 jmp	 SHORT $L71985
+$L71982:
+
+; 941  : 				{
+; 942  : 					if (gp == &pLts_t->graph[0])
+
+  008a5	8b 54 24 14	 mov	 edx, DWORD PTR _pLts_t$[esp+12]
+  008a9	83 c2 04	 add	 edx, 4
+  008ac	3b fa		 cmp	 edi, edx
+  008ae	74 1b		 je	 SHORT $L72111
+
+; 943  : 						return (NULL);
+; 944  : 					--gp;
+
+  008b0	83 ef 08	 sub	 edi, 8
+$L71985:
+
+; 945  : 				}       	
+; 946  : 				if (gp->g_graph != (signed int)type)
+
+  008b3	0f bf 07	 movsx	 eax, WORD PTR [edi]
+  008b6	3b c1		 cmp	 eax, ecx
+  008b8	75 11		 jne	 SHORT $L72111
+$L71989:
+
+; 829  : 	while (ep1 != (signed int)ep2) 
+
+  008ba	3b 74 24 18	 cmp	 esi, DWORD PTR _ep2$[esp+12]
+  008be	0f 85 36 fe ff
+	ff		 jne	 $L71915
+
+; 948  : 				break;
+; 949  : 		}	/* switch (type) */
+; 950  : 	}	/* while (ep1 != (signed int)ep2)  */
+; 951  : 
+; 952  : 	return (gp);
+
+  008c4	8b c7		 mov	 eax, edi
+  008c6	5f		 pop	 edi
+  008c7	5e		 pop	 esi
+  008c8	5d		 pop	 ebp
+  008c9	5b		 pop	 ebx
+
+; 953  : }
+
+  008ca	c3		 ret	 0
+$L72111:
+  008cb	5f		 pop	 edi
+  008cc	5e		 pop	 esi
+  008cd	5d		 pop	 ebp
+
+; 947  : 					return (NULL);
+
+  008ce	33 c0		 xor	 eax, eax
+  008d0	5b		 pop	 ebx
+
+; 953  : }
+
+  008d1	c3		 ret	 0
+$L72115:
+
+; 947  : 					return (NULL);
+
+  008d2	8b 7c 24 1c	 mov	 edi, DWORD PTR _gp$[esp+12]
+
+; 948  : 				break;
+; 949  : 		}	/* switch (type) */
+; 950  : 	}	/* while (ep1 != (signed int)ep2)  */
+; 951  : 
+; 952  : 	return (gp);
+
+  008d6	8b c7		 mov	 eax, edi
+  008d8	5f		 pop	 edi
+  008d9	5e		 pop	 esi
+  008da	5d		 pop	 ebp
+  008db	5b		 pop	 ebx
+
+; 953  : }
+
+  008dc	c3		 ret	 0
+  008dd	8d 49 00	 npad	 3
+$L72118:
+  008e0	00 00 00 00	 DD	 $L71961
+  008e4	00 00 00 00	 DD	 $L71922
+  008e8	00 00 00 00	 DD	 $L71937
+  008ec	00 00 00 00	 DD	 $L71948
+  008f0	00 00 00 00	 DD	 $L71973
+_ls_rule_env_match ENDP
+_TEXT	ENDS
+PUBLIC	_ls_rule_phone_alloc
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_sph$ = 12
+_uph$ = 16
+_ls_rule_add_phone PROC NEAR
+
+; 61   : {
+
+  00900	56		 push	 esi
+
+; 62   : 	PHONE	*fp;
+; 63   : 	PHONE	*pp;
+; 64   : 	if ((pp=(PHONE *)ls_rule_phone_alloc(pLts_t)) != NULL) {
+
+  00901	8b 74 24 08	 mov	 esi, DWORD PTR _pLts_t$[esp]
+  00905	56		 push	 esi
+  00906	e8 00 00 00 00	 call	 _ls_rule_phone_alloc
+  0090b	83 c4 04	 add	 esp, 4
+  0090e	85 c0		 test	 eax, eax
+  00910	74 39		 je	 SHORT $L72003
+
+; 65   : 		fp = pLts_t->phead.p_fp;		/* Link to front of the	*/
+
+  00912	8b 96 c8 08 00
+	00		 mov	 edx, DWORD PTR [esi+2248]
+  00918	8d 8e c8 08 00
+	00		 lea	 ecx, DWORD PTR [esi+2248]
+
+; 66   : 		pLts_t->phead.p_fp = pp;		/* generated PHONE list	*/
+
+  0091e	89 01		 mov	 DWORD PTR [ecx], eax
+
+; 67   : 		pp->p_fp   = fp;
+
+  00920	89 10		 mov	 DWORD PTR [eax], edx
+
+; 68   : 		fp->p_bp   = pp;
+
+  00922	89 42 04	 mov	 DWORD PTR [edx+4], eax
+
+; 69   : 		pp->p_bp   = &pLts_t->phead;
+; 70   : 		pp->p_ip   = NULL;		/* No index chain	*/
+; 71   : 		pp->p_flag = 0;
+; 72   : 		pp->p_sphone = sph;
+; 73   : 		pp->p_uphone = uph;
+
+  00925	8b 54 24 10	 mov	 edx, DWORD PTR _uph$[esp]
+  00929	89 48 04	 mov	 DWORD PTR [eax+4], ecx
+  0092c	8b 4c 24 0c	 mov	 ecx, DWORD PTR _sph$[esp]
+  00930	c7 40 08 00 00
+	00 00		 mov	 DWORD PTR [eax+8], 0
+  00937	c7 40 0c 00 00
+	00 00		 mov	 DWORD PTR [eax+12], 0
+  0093e	89 48 14	 mov	 DWORD PTR [eax+20], ecx
+  00941	89 50 18	 mov	 DWORD PTR [eax+24], edx
+
+; 74   : 		pp->p_stress = SNONE;
+
+  00944	c7 40 10 79 00
+	00 00		 mov	 DWORD PTR [eax+16], 121	; 00000079H
+$L72003:
+  0094b	5e		 pop	 esi
+
+; 75   : 	}
+; 76   : 	/* return (0); */	/* unused return value */
+; 77   : }
+
+  0094c	c3		 ret	 0
+_ls_rule_add_phone ENDP
+_TEXT	ENDS
+PUBLIC	_ls_rule_do_lts
+EXTRN	_lsa_util_print_ntype:NEAR
+EXTRN	_lsa_util_id_name:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_lp2$ = 12
+_lp1$ = 16
+_ls_rule_do_lts PROC NEAR
+
+; 148  : { 
+
+  00950	56		 push	 esi
+  00951	57		 push	 edi
+
+; 149  : 
+; 150  : 	PLTS_T pLts_t;
+; 151  : #ifdef ACNA
+; 152  : 	short	sel_lang;
+; 153  : 	PKSD_T pKsd_t;
+; 154  : #endif
+; 155  : 	pLts_t = phTTS->pLTSThreadData;
+; 156  : 
+; 157  : 
+; 158  : #ifdef ACNA
+; 159  : 	pKsd_t = phTTS->pKernelShareData;
+
+  00952	8b 7c 24 0c	 mov	 edi, DWORD PTR _phTTS$[esp+4]
+  00956	8b 77 08	 mov	 esi, DWORD PTR [edi+8]
+
+; 160  : 
+; 161  : 	if(pKsd_t->pronflag & PRON_ACNA_NAME)
+
+  00959	f6 86 0c 02 00
+	00 04		 test	 BYTE PTR [esi+524], 4
+  00960	74 71		 je	 SHORT $L72015
+  00962	53		 push	 ebx
+
+; 162  : 	{
+; 163  : 		sel_lang = lsa_util_id_name(lp2,lp1);
+
+  00963	8b 5c 24 14	 mov	 ebx, DWORD PTR _lp2$[esp+8]
+  00967	55		 push	 ebp
+  00968	8b 6c 24 1c	 mov	 ebp, DWORD PTR _lp1$[esp+12]
+  0096c	55		 push	 ebp
+  0096d	53		 push	 ebx
+  0096e	e8 00 00 00 00	 call	 _lsa_util_id_name
+  00973	8b f8		 mov	 edi, eax
+
+; 164  : 		/* debug switch */
+; 165  : 		if((pKsd_t->logflag & LOG_NAME_TYPES) || DT_DBG(LTS_DBG,0x080))
+
+  00975	8a 86 04 02 00
+	00		 mov	 al, BYTE PTR [esi+516]
+  0097b	83 c4 08	 add	 esp, 8
+  0097e	a8 04		 test	 al, 4
+  00980	75 10		 jne	 SHORT $L72017
+  00982	66 8b 86 78 04
+	00 00		 mov	 ax, WORD PTR [esi+1144]
+  00989	f6 c4 40	 test	 ah, 64			; 00000040H
+  0098c	74 10		 je	 SHORT $L72016
+  0098e	a8 80		 test	 al, 128			; 00000080H
+  00990	74 0c		 je	 SHORT $L72016
+$L72017:
+
+; 166  : 			lsa_util_print_ntype(sel_lang);
+
+  00992	0f bf c7	 movsx	 eax, di
+  00995	50		 push	 eax
+  00996	e8 00 00 00 00	 call	 _lsa_util_print_ntype
+  0099b	83 c4 04	 add	 esp, 4
+$L72016:
+
+; 167  : 		ls_rule_lts(phTTS,lp2,lp1,NAME_ENGLISH,sel_lang);
+
+  0099e	8b 54 24 14	 mov	 edx, DWORD PTR _phTTS$[esp+12]
+  009a2	0f bf cf	 movsx	 ecx, di
+  009a5	51		 push	 ecx
+  009a6	6a 00		 push	 0
+  009a8	55		 push	 ebp
+  009a9	53		 push	 ebx
+  009aa	52		 push	 edx
+  009ab	e8 00 00 00 00	 call	 _ls_rule_lts
+
+; 168  : 		/* namef=0; */
+; 169  : 		pKsd_t->pronflag &= (~PRON_ACNA_NAME);
+
+  009b0	8b 86 0c 02 00
+	00		 mov	 eax, DWORD PTR [esi+524]
+
+; 170  : 	}	
+; 171  : 	else
+
+  009b6	8b 7c 24 28	 mov	 edi, DWORD PTR _phTTS$[esp+32]
+  009ba	83 c4 14	 add	 esp, 20			; 00000014H
+  009bd	24 fb		 and	 al, -5			; fffffffbH
+  009bf	89 86 0c 02 00
+	00		 mov	 DWORD PTR [esi+524], eax
+  009c5	5d		 pop	 ebp
+  009c6	5b		 pop	 ebx
+
+; 174  : 		/* namef=0; */
+; 175  : 	}
+; 176  : #else
+; 177  : 	ls_rule_lts(phTTS,lp2, lp1,0,0);
+; 178  : #endif
+; 179  : 
+; 180  : 	/* set defaulted form class to noun */
+; 181  :     /*
+; 182  : 	   GL 06/11/1997 BATS#386 only set formclass to NOUN if don't have
+; 183  : 	   the formclass info.
+; 184  : 	*/
+; 185  :     /*
+; 186  : 	   GL 07/08/1998 BATS#705 remove this line of code for PH
+; 187  : 	*/
+; 188  :     /*if (pLts_t->fc_struct[pLts_t->fc_index] == 0)
+; 189  :          pLts_t->fc_struct[pLts_t->fc_index] = 0x400; */
+; 190  :                                    
+; 191  : #if (defined ENGLISH) || (defined GERMAN)
+; 192  : 	ls_rule_lts_out(phTTS);
+
+  009c7	57		 push	 edi
+  009c8	e8 00 00 00 00	 call	 _ls_rule_lts_out
+  009cd	83 c4 04	 add	 esp, 4
+  009d0	5f		 pop	 edi
+  009d1	5e		 pop	 esi
+
+; 193  : #endif
+; 194  : }
+
+  009d2	c3		 ret	 0
+$L72015:
+
+; 172  : 	{
+; 173  : 		ls_rule_lts(phTTS,lp2, lp1,0,0);
+
+  009d3	8b 44 24 14	 mov	 eax, DWORD PTR _lp1$[esp+4]
+  009d7	8b 4c 24 10	 mov	 ecx, DWORD PTR _lp2$[esp+4]
+  009db	6a 00		 push	 0
+  009dd	6a 00		 push	 0
+  009df	50		 push	 eax
+  009e0	51		 push	 ecx
+  009e1	57		 push	 edi
+  009e2	e8 00 00 00 00	 call	 _ls_rule_lts
+  009e7	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 174  : 		/* namef=0; */
+; 175  : 	}
+; 176  : #else
+; 177  : 	ls_rule_lts(phTTS,lp2, lp1,0,0);
+; 178  : #endif
+; 179  : 
+; 180  : 	/* set defaulted form class to noun */
+; 181  :     /*
+; 182  : 	   GL 06/11/1997 BATS#386 only set formclass to NOUN if don't have
+; 183  : 	   the formclass info.
+; 184  : 	*/
+; 185  :     /*
+; 186  : 	   GL 07/08/1998 BATS#705 remove this line of code for PH
+; 187  : 	*/
+; 188  :     /*if (pLts_t->fc_struct[pLts_t->fc_index] == 0)
+; 189  :          pLts_t->fc_struct[pLts_t->fc_index] = 0x400; */
+; 190  :                                    
+; 191  : #if (defined ENGLISH) || (defined GERMAN)
+; 192  : 	ls_rule_lts_out(phTTS);
+
+  009ea	57		 push	 edi
+  009eb	e8 00 00 00 00	 call	 _ls_rule_lts_out
+  009f0	83 c4 04	 add	 esp, 4
+  009f3	5f		 pop	 edi
+  009f4	5e		 pop	 esi
+
+; 193  : #endif
+; 194  : }
+
+  009f5	c3		 ret	 0
+_ls_rule_do_lts ENDP
+_ls_rule_show_phone PROC NEAR
+
+; 223  : #if defined (VMS) || defined (LDS_BUILD)
+; 224  : 	if (dflag == FALSE)			/* Not debugging.	*/
+; 225  : 		return(1);
+; 226  : 	printf("After %s:\n", title);
+; 227  : 	while (pp1 != pp2) {			/* For the whole chain.	*/
+; 228  : 		printf("%08X ", pp1);
+; 229  : 		putchar('"');
+; 230  : 		putchar(pname[pp1->p_sphone]);
+; 231  : 		putchar(pname[pp1->p_uphone]);	/* pnames[SIL] = " "	*/
+; 232  : 		putchar('"');
+; 233  : 		if (pp1->p_flag!=0 || pp1->p_stress!=SNONE) 
+; 234  : 		{
+; 235  : 			putchar(' ');
+; 236  : 			if ((pp1->p_flag&PFDASH) != 0)
+; 237  : 			{
+; 238  : 				putchar('-');
+; 239  : 			}
+; 240  : 			else
+; 241  : 			{
+; 242  : 				putchar(' ');
+; 243  : 			}
+; 244  : 			if ((pp1->p_flag&PFSTAR) != 0)
+; 245  : 			{
+; 246  : 				putchar('*');
+; 247  : 			}
+; 248  : 			else
+; 249  : 			{
+; 250  : 				putchar(' ');
+; 251  : 			}
+; 252  : 			if ((pp1->p_flag&PFHASH) != 0)
+; 253  : 			{
+; 254  : 				putchar('#');
+; 255  : 			}
+; 256  : 			else
+; 257  : 			{
+; 258  : 				putchar(' ');
+; 259  : 			}
+; 260  : 			if ((pp1->p_flag&PFPLUS) != 0)
+; 261  : 			{
+; 262  : 				putchar('+');
+; 263  : 			}
+; 264  : 			else
+; 265  : 			{
+; 266  : 				putchar(' ');
+; 267  : 			}
+; 268  : 			if ((pp1->p_flag&PFSYLAB) != 0)
+; 269  : 			{
+; 270  : 				putchar('S');
+; 271  : 			}
+; 272  : 			else
+; 273  : 			{
+; 274  : 				putchar(' ');
+; 275  : 			}
+; 276  : 			if ((pp1->p_flag&PFRFUSE) != 0)
+; 277  : 			{
+; 278  : 				putchar('R');
+; 279  : 			}
+; 280  : 			else
+; 281  : 			{
+; 282  : 				putchar(' ');
+; 283  : 			}
+; 284  : 			if ((pp1->p_flag&PFLEFTC) != 0)
+; 285  : 			{
+; 286  : 				putchar('L');
+; 287  : 			}
+; 288  : 			else
+; 289  : 			{
+; 290  : 				putchar(' ');
+; 291  : 			}
+; 292  : 			if ((pp1->p_flag&PFBLOCK) != 0)
+; 293  : 			{
+; 294  : 				putchar('B');
+; 295  : 			}
+; 296  : 			else
+; 297  : 			{
+; 298  : 				putchar(' ');
+; 299  : 			}
+; 300  : 			if (pp1->p_stress == SUN)
+; 301  : 			{
+; 302  : 				printf(" SUN");
+; 303  : 			}
+; 304  : 			if (pp1->p_stress == SPRI)
+; 305  : 			{
+; 306  : 				printf(" SPRI");
+; 307  : 			}
+; 308  : 			if (pp1->p_stress == SSEC)
+; 309  : 			{
+; 310  : 				printf(" SSEC");
+; 311  : 			}
+; 312  : 			if (pp1->p_stress == S1LEFT)
+; 313  : 			{
+; 314  : 				printf(" S1LEFT");
+; 315  : 			}
+; 316  : 			if (pp1->p_stress == S2LEFT)
+; 317  : 			{
+; 318  : 				printf(" S2LEFT");
+; 319  : 			}   
+; 320  : 		}	/*	if (pp1->p_flag!=0 || pp1->p_stress!=SNONE) */
+; 321  : 
+; 322  : 		putchar('\n');
+; 323  : 		pp1 = pp1->p_fp;		/* Follow chain along	*/
+; 324  : 	}
+; 325  : 
+; 326  : #endif /* #ifdef VMS */
+; 327  :     return(0);
+
+  00a00	33 c0		 xor	 eax, eax
+
+; 328  : } 
+
+  00a02	c3		 ret	 0
+_ls_rule_show_phone ENDP
+_pLts_t$ = 8
+_ls_rule_phone_alloc PROC NEAR
+
+; 355  : 	 PHONE	*pp;
+; 356  : 
+; 357  : 	if ((pp=pLts_t->pflp) != NULL)
+
+  00a10	8b 4c 24 04	 mov	 ecx, DWORD PTR _pLts_t$[esp-4]
+  00a14	33 d2		 xor	 edx, edx
+  00a16	8b 81 04 04 00
+	00		 mov	 eax, DWORD PTR [ecx+1028]
+  00a1c	3b c2		 cmp	 eax, edx
+  00a1e	74 12		 je	 SHORT $L72031
+  00a20	56		 push	 esi
+
+; 358  : 	{
+; 359  : 		pLts_t->pflp = pp->p_fp;
+
+  00a21	8b 30		 mov	 esi, DWORD PTR [eax]
+  00a23	89 b1 04 04 00
+	00		 mov	 DWORD PTR [ecx+1028], esi
+
+; 360  : 		pp->p_ip = NULL;
+
+  00a29	89 50 08	 mov	 DWORD PTR [eax+8], edx
+
+; 361  :                 pp->p_fp = pp->p_bp = NULL;
+
+  00a2c	89 50 04	 mov	 DWORD PTR [eax+4], edx
+  00a2f	89 10		 mov	 DWORD PTR [eax], edx
+  00a31	5e		 pop	 esi
+$L72031:
+
+; 362  : 	}
+; 363  : 	return (pp);
+; 364  : }
+
+  00a32	c3		 ret	 0
+_ls_rule_phone_alloc ENDP
+_pLts_t$ = 8
+_pp$ = 12
+_ls_rule_phone_free PROC NEAR
+
+; 387  : 	pp->p_fp = pLts_t->pflp;
+
+  00a40	8b 44 24 04	 mov	 eax, DWORD PTR _pLts_t$[esp-4]
+  00a44	8b 4c 24 08	 mov	 ecx, DWORD PTR _pp$[esp-4]
+  00a48	8b 90 04 04 00
+	00		 mov	 edx, DWORD PTR [eax+1028]
+  00a4e	89 11		 mov	 DWORD PTR [ecx], edx
+
+; 388  : 	pLts_t->pflp = pp;
+
+  00a50	89 88 04 04 00
+	00		 mov	 DWORD PTR [eax+1028], ecx
+
+; 389  : }                               
+
+  00a56	c3		 ret	 0
+_ls_rule_phone_free ENDP
+_TEXT	ENDS
+END

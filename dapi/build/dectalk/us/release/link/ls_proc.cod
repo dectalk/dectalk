@@ -1,0 +1,4014 @@
+	TITLE	D:\work\product\dapi\src\Lts\ls_proc.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+$$SYMBOLS	SEGMENT BYTE USE32 'DEBSYM'
+$$SYMBOLS	ENDS
+$$TYPES	SEGMENT BYTE USE32 'DEBTYP'
+$$TYPES	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_ls_proc_do_sign
+EXTRN	_pminus:BYTE
+EXTRN	_pplus:BYTE
+EXTRN	_ls_util_lookup:NEAR
+EXTRN	_ls_util_send_phone_list:NEAR
+EXTRN	_ls_util_send_phone:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_sign$ = 12
+_lbuf$ = -16
+_ls_proc_do_sign PROC NEAR
+
+; 73   : 	LETTER	lbuf[2];
+; 74   : 
+; 75   : 	if (sign == '-')
+
+  00000	8b 44 24 08	 mov	 eax, DWORD PTR _sign$[esp-4]
+  00004	83 ec 10	 sub	 esp, 16			; 00000010H
+  00007	83 f8 2d	 cmp	 eax, 45			; 0000002dH
+  0000a	56		 push	 esi
+  0000b	75 1f		 jne	 SHORT $L71691
+
+; 76   : 	{
+; 77   : 		/* Special case.	*/
+; 78   : 		ls_util_send_phone_list(phTTS,pminus);
+
+  0000d	8b 74 24 18	 mov	 esi, DWORD PTR _phTTS$[esp+16]
+  00011	68 00 00 00 00	 push	 OFFSET FLAT:_pminus
+  00016	56		 push	 esi
+  00017	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 79   : 		ls_util_send_phone(phTTS,WBOUND);
+
+  0001c	6a 6f		 push	 111			; 0000006fH
+  0001e	56		 push	 esi
+  0001f	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00024	83 c4 10	 add	 esp, 16			; 00000010H
+  00027	5e		 pop	 esi
+
+; 101  : 			}
+; 102  : 		}
+; 103  : 	}
+; 104  : }
+
+  00028	83 c4 10	 add	 esp, 16			; 00000010H
+  0002b	c3		 ret	 0
+$L71691:
+
+; 80   : 	}
+; 81   : 	else	
+; 82   : 	{
+; 83   : 	 	if (sign == '+')
+
+  0002c	83 f8 2b	 cmp	 eax, 43			; 0000002bH
+  0002f	75 1f		 jne	 SHORT $L71693
+
+; 84   : 		{			/* Special case.	*/
+; 85   : 			ls_util_send_phone_list(phTTS,pplus);
+
+  00031	8b 74 24 18	 mov	 esi, DWORD PTR _phTTS$[esp+16]
+  00035	68 00 00 00 00	 push	 OFFSET FLAT:_pplus
+  0003a	56		 push	 esi
+  0003b	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 86   : 			ls_util_send_phone(phTTS,WBOUND);
+
+  00040	6a 6f		 push	 111			; 0000006fH
+  00042	56		 push	 esi
+  00043	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00048	83 c4 10	 add	 esp, 16			; 00000010H
+  0004b	5e		 pop	 esi
+
+; 101  : 			}
+; 102  : 		}
+; 103  : 	}
+; 104  : }
+
+  0004c	83 c4 10	 add	 esp, 16			; 00000010H
+  0004f	c3		 ret	 0
+$L71693:
+
+; 87   : 		}
+; 88   : 	 	else 
+; 89   : 	 	{
+; 90   : 	 		if (sign != 0)
+
+  00050	33 c9		 xor	 ecx, ecx
+  00052	3b c1		 cmp	 eax, ecx
+  00054	74 46		 je	 SHORT $L71695
+
+; 91   : 			{		/* Dictionary case.	*/
+; 92   : 				lbuf[0].l_ch = ' ';
+; 93   : 				lbuf[0].l_ip = NULL;
+; 94   : 				lbuf[1].l_ch = sign;
+; 95   : 				lbuf[1].l_ip = NULL;
+; 96   : 
+; 97   :                                 if (ls_util_lookup(phTTS,&lbuf[0], &lbuf[2], FIRST) == MISS)
+
+  00056	8b 74 24 18	 mov	 esi, DWORD PTR _phTTS$[esp+16]
+  0005a	66 89 44 24 0c	 mov	 WORD PTR _lbuf$[esp+28], ax
+  0005f	89 4c 24 08	 mov	 DWORD PTR _lbuf$[esp+24], ecx
+  00063	89 4c 24 10	 mov	 DWORD PTR _lbuf$[esp+32], ecx
+  00067	51		 push	 ecx
+  00068	8d 44 24 18	 lea	 eax, DWORD PTR _lbuf$[esp+40]
+  0006c	8d 4c 24 08	 lea	 ecx, DWORD PTR _lbuf$[esp+24]
+  00070	50		 push	 eax
+  00071	51		 push	 ecx
+  00072	56		 push	 esi
+  00073	66 c7 44 24 14
+	20 00		 mov	 WORD PTR _lbuf$[esp+36], 32 ; 00000020H
+  0007a	e8 00 00 00 00	 call	 _ls_util_lookup
+  0007f	83 c4 10	 add	 esp, 16			; 00000010H
+  00082	85 c0		 test	 eax, eax
+  00084	75 0b		 jne	 SHORT $L71698
+
+; 98   : 					ls_util_send_phone(phTTS,EY);
+
+  00086	6a 03		 push	 3
+  00088	56		 push	 esi
+  00089	e8 00 00 00 00	 call	 _ls_util_send_phone
+  0008e	83 c4 08	 add	 esp, 8
+$L71698:
+
+; 99   : 
+; 100  : 				ls_util_send_phone(phTTS,WBOUND);
+
+  00091	6a 6f		 push	 111			; 0000006fH
+  00093	56		 push	 esi
+  00094	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00099	83 c4 08	 add	 esp, 8
+$L71695:
+  0009c	5e		 pop	 esi
+
+; 101  : 			}
+; 102  : 		}
+; 103  : 	}
+; 104  : }
+
+  0009d	83 c4 10	 add	 esp, 16			; 00000010H
+  000a0	c3		 ret	 0
+_ls_proc_do_sign ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_do_part_number
+PUBLIC	_ls_proc_do_4_digits
+PUBLIC	_ls_proc_do_2_digits
+PUBLIC	_ls_proc_do_3_digits
+PUBLIC	_ls_proc_is_a_part
+EXTRN	_ls_spel_spell:NEAR
+EXTRN	_ls_spel_spell_speed:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_ls_proc_do_part_number PROC NEAR
+
+; 153  : {
+
+  000b0	53		 push	 ebx
+
+; 154  : 	LETTER *blp;
+; 155  : 	int	speed;
+; 156  : 
+; 157  : 	int	nd;
+; 158  : 
+; 159  : 	while (llp != rlp) 
+
+  000b1	8b 5c 24 10	 mov	 ebx, DWORD PTR _rlp$[esp]
+  000b5	55		 push	 ebp
+  000b6	56		 push	 esi
+  000b7	8b 74 24 14	 mov	 esi, DWORD PTR _llp$[esp+8]
+  000bb	57		 push	 edi
+  000bc	3b f3		 cmp	 esi, ebx
+  000be	0f 84 32 01 00
+	00		 je	 $L71711
+  000c4	8b 6c 24 14	 mov	 ebp, DWORD PTR _phTTS$[esp+12]
+$L71710:
+
+; 160  : 	{
+; 161  : 		blp = llp;
+
+  000c8	8b fe		 mov	 edi, esi
+
+; 162  : 		++llp;
+
+  000ca	83 c6 08	 add	 esi, 8
+
+; 163  : 		if (blp->l_ch=='-' || blp->l_ch=='/') 
+
+  000cd	66 8b 07	 mov	 ax, WORD PTR [edi]
+  000d0	66 3d 2d 00	 cmp	 ax, 45			; 0000002dH
+  000d4	0f 84 fa 00 00
+	00		 je	 $L71713
+  000da	66 3d 2f 00	 cmp	 ax, 47			; 0000002fH
+  000de	0f 84 f0 00 00
+	00		 je	 $L71713
+
+; 170  : #endif
+; 171  : 		} 
+; 172  : 		else
+; 173  : 		{ 
+; 174  : 			if (blp->l_ch>='0' && blp->l_ch<='9') 
+
+  000e4	66 3d 30 00	 cmp	 ax, 48			; 00000030H
+  000e8	7c 72		 jl	 SHORT $L72079
+  000ea	66 3d 39 00	 cmp	 ax, 57			; 00000039H
+  000ee	7f 6c		 jg	 SHORT $L72079
+
+; 175  : 			{
+; 176  : 				while (llp!=rlp && llp->l_ch>='0' && llp->l_ch<='9')
+
+  000f0	3b f3		 cmp	 esi, ebx
+  000f2	74 16		 je	 SHORT $L71719
+$L71718:
+  000f4	66 8b 06	 mov	 ax, WORD PTR [esi]
+  000f7	66 3d 30 00	 cmp	 ax, 48			; 00000030H
+  000fb	7c 0d		 jl	 SHORT $L71719
+  000fd	66 3d 39 00	 cmp	 ax, 57			; 00000039H
+  00101	7f 07		 jg	 SHORT $L71719
+
+; 177  : 					++llp;
+
+  00103	83 c6 08	 add	 esi, 8
+  00106	3b f3		 cmp	 esi, ebx
+  00108	75 ea		 jne	 SHORT $L71718
+$L71719:
+
+; 178  : 				if ((nd = llp-blp) == 2)
+
+  0010a	8b c6		 mov	 eax, esi
+  0010c	2b c7		 sub	 eax, edi
+  0010e	c1 f8 03	 sar	 eax, 3
+  00111	83 f8 02	 cmp	 eax, 2
+  00114	75 0c		 jne	 SHORT $L71720
+
+; 179  : 				{
+; 180  : 					ls_proc_do_2_digits(phTTS,blp);
+
+  00116	57		 push	 edi
+  00117	55		 push	 ebp
+  00118	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+  0011d	83 c4 08	 add	 esp, 8
+
+; 181  : 				}
+; 182  : 				else
+
+  00120	eb 2d		 jmp	 SHORT $L71725
+$L71720:
+
+; 183  : 				{ 
+; 184  : 					if (nd == 3)
+
+  00122	83 f8 03	 cmp	 eax, 3
+  00125	75 0c		 jne	 SHORT $L71722
+
+; 185  : 					{
+; 186  : 						ls_proc_do_3_digits(phTTS,blp);
+
+  00127	57		 push	 edi
+  00128	55		 push	 ebp
+  00129	e8 00 00 00 00	 call	 _ls_proc_do_3_digits
+  0012e	83 c4 08	 add	 esp, 8
+
+; 187  : 					}
+; 188  : 					else
+
+  00131	eb 1c		 jmp	 SHORT $L71725
+$L71722:
+
+; 189  : 					{ 
+; 190  : 						if (nd == 4)
+
+  00133	83 f8 04	 cmp	 eax, 4
+  00136	75 0c		 jne	 SHORT $L71724
+
+; 191  : 							ls_proc_do_4_digits(phTTS,blp);
+
+  00138	57		 push	 edi
+  00139	55		 push	 ebp
+  0013a	e8 00 00 00 00	 call	 _ls_proc_do_4_digits
+  0013f	83 c4 08	 add	 esp, 8
+
+; 192  : 						else				
+
+  00142	eb 0b		 jmp	 SHORT $L71725
+$L71724:
+
+; 193  : 							ls_spel_spell(phTTS,blp, llp);
+
+  00144	56		 push	 esi
+  00145	57		 push	 edi
+  00146	55		 push	 ebp
+  00147	e8 00 00 00 00	 call	 _ls_spel_spell
+  0014c	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71725:
+
+; 194  : 					}
+; 195  : 				}
+; 196  : 				if (llp != rlp)
+
+  0014f	3b f3		 cmp	 esi, ebx
+  00151	0f 84 9f 00 00
+	00		 je	 $L71711
+
+; 197  : 				{
+; 198  : 					ls_util_send_phone(phTTS,WBOUND);
+; 199  : 				}
+; 200  : 			} 
+; 201  : 			else 
+
+  00157	e9 87 00 00 00	 jmp	 $L72082
+$L72079:
+
+; 202  : 			{
+; 203  : 				while (llp!=rlp && ls_proc_is_a_part(llp->l_ch)!=FALSE)
+
+  0015c	3b f3		 cmp	 esi, ebx
+  0015e	74 17		 je	 SHORT $L71730
+$L71729:
+  00160	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  00163	50		 push	 eax
+  00164	e8 00 00 00 00	 call	 _ls_proc_is_a_part
+  00169	83 c4 04	 add	 esp, 4
+  0016c	85 c0		 test	 eax, eax
+  0016e	74 07		 je	 SHORT $L71730
+
+; 204  : 					++llp;
+
+  00170	83 c6 08	 add	 esi, 8
+  00173	3b f3		 cmp	 esi, ebx
+  00175	75 e9		 jne	 SHORT $L71729
+$L71730:
+
+; 205  : 				if (llp-blp<3 || ls_util_lookup(phTTS, blp, llp, FALSE)==MISS) 
+
+  00177	8b ce		 mov	 ecx, esi
+  00179	2b cf		 sub	 ecx, edi
+  0017b	83 e1 f8	 and	 ecx, -8			; fffffff8H
+  0017e	83 f9 18	 cmp	 ecx, 24			; 00000018H
+  00181	7c 17		 jl	 SHORT $L71732
+  00183	6a 00		 push	 0
+  00185	56		 push	 esi
+  00186	57		 push	 edi
+  00187	55		 push	 ebp
+  00188	e8 00 00 00 00	 call	 _ls_util_lookup
+  0018d	83 c4 10	 add	 esp, 16			; 00000010H
+  00190	85 c0		 test	 eax, eax
+  00192	74 06		 je	 SHORT $L71732
+
+; 241  : 					if (llp != rlp)
+
+  00194	3b f3		 cmp	 esi, ebx
+  00196	74 5e		 je	 SHORT $L71711
+
+; 242  : 						ls_util_send_phone(phTTS,WBOUND);
+
+  00198	eb 49		 jmp	 SHORT $L72082
+$L71732:
+
+; 206  : 				{
+; 207  : 					/*
+; 208  : 					   GL 02/01/1977  only spell non-alphabet word or alphabet word
+; 209  : 					   without vowel
+; 210  : 					   GL 02/07/1997 rollback this change for further study
+; 211  : 
+; 212  : 					   GL 06/04/1997 BATS#377 add this change for FAA mode
+; 213  : 					   this change will break part number like QA-255KAA-SB
+; 214  : 				    */
+; 215  : #ifdef FAA
+; 216  : 				    if (ls_util_is_aword(blp,llp))
+; 217  : 					{	
+; 218  : 						/* MGS 6/16/97 BATS #387 Added becasue rule engine needs lower case characters */
+; 219  : 						ls_task_remove_case(blp,llp);
+; 220  : 				    	ls_rule_do_lts(phTTS,blp, llp);
+; 221  : 					}
+; 222  : 				    else
+; 223  : 				    {
+; 224  : 						speed = ls_spel_spell_speed(blp, llp);
+; 225  : 						ls_spel_spell(phTTS,blp, llp);
+; 226  : 						if (speed == FAST)
+; 227  : 							ls_util_send_phone(phTTS,WBOUND);
+; 228  : 						else
+; 229  : 							ls_util_send_phone(phTTS,COMMA);
+; 230  : 					}
+; 231  : #else
+; 232  : 					speed = ls_spel_spell_speed(blp, llp);
+
+  0019a	56		 push	 esi
+  0019b	57		 push	 edi
+  0019c	e8 00 00 00 00	 call	 _ls_spel_spell_speed
+
+; 233  : 					ls_spel_spell(phTTS,blp, llp);
+
+  001a1	56		 push	 esi
+  001a2	57		 push	 edi
+  001a3	55		 push	 ebp
+  001a4	8b d8		 mov	 ebx, eax
+  001a6	e8 00 00 00 00	 call	 _ls_spel_spell
+  001ab	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 234  : 					if (speed == FAST)
+
+  001ae	85 db		 test	 ebx, ebx
+  001b0	75 11		 jne	 SHORT $L71733
+
+; 235  : 						ls_util_send_phone(phTTS,WBOUND);
+
+  001b2	6a 6f		 push	 111			; 0000006fH
+  001b4	55		 push	 ebp
+  001b5	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 236  : 					else
+
+  001ba	8b 5c 24 24	 mov	 ebx, DWORD PTR _rlp$[esp+20]
+  001be	83 c4 08	 add	 esp, 8
+  001c1	eb 2b		 jmp	 SHORT $L71714
+$L71733:
+
+; 237  : 						ls_util_send_phone(phTTS,COMMA);
+
+  001c3	6a 73		 push	 115			; 00000073H
+  001c5	55		 push	 ebp
+  001c6	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 238  : #endif
+; 239  : 				} 
+; 240  : 				else 
+
+  001cb	8b 5c 24 24	 mov	 ebx, DWORD PTR _rlp$[esp+20]
+  001cf	83 c4 08	 add	 esp, 8
+  001d2	eb 1a		 jmp	 SHORT $L71714
+$L71713:
+
+; 164  : 		{
+; 165  : /* GL 06/04/1997 BATS#377 add FAA switch */
+; 166  : #ifndef FAA
+; 167  : 			ls_spel_spell(phTTS,blp, llp);
+
+  001d4	56		 push	 esi
+  001d5	57		 push	 edi
+  001d6	55		 push	 ebp
+  001d7	e8 00 00 00 00	 call	 _ls_spel_spell
+  001dc	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 168  : 			if (llp != rlp)
+
+  001df	3b f3		 cmp	 esi, ebx
+  001e1	74 13		 je	 SHORT $L71711
+$L72082:
+
+; 169  : 				ls_util_send_phone(phTTS,WBOUND);
+
+  001e3	6a 6f		 push	 111			; 0000006fH
+  001e5	55		 push	 ebp
+  001e6	e8 00 00 00 00	 call	 _ls_util_send_phone
+  001eb	83 c4 08	 add	 esp, 8
+$L71714:
+
+; 154  : 	LETTER *blp;
+; 155  : 	int	speed;
+; 156  : 
+; 157  : 	int	nd;
+; 158  : 
+; 159  : 	while (llp != rlp) 
+
+  001ee	3b f3		 cmp	 esi, ebx
+  001f0	0f 85 d2 fe ff
+	ff		 jne	 $L71710
+$L71711:
+  001f6	5f		 pop	 edi
+  001f7	5e		 pop	 esi
+  001f8	5d		 pop	 ebp
+  001f9	5b		 pop	 ebx
+
+; 243  : 			}
+; 244  : 		}
+; 245  : 	}
+; 246  : }
+
+  001fa	c3		 ret	 0
+_ls_proc_do_part_number ENDP
+_c$ = 8
+_ls_proc_is_a_part PROC NEAR
+
+; 266  : 	if (c=='-' || c=='/' || (c>='0' && c<='9'))
+
+  00200	8b 44 24 04	 mov	 eax, DWORD PTR _c$[esp-4]
+  00204	83 f8 2d	 cmp	 eax, 45			; 0000002dH
+  00207	74 15		 je	 SHORT $L71741
+  00209	83 f8 2f	 cmp	 eax, 47			; 0000002fH
+  0020c	74 10		 je	 SHORT $L71741
+  0020e	83 f8 30	 cmp	 eax, 48			; 00000030H
+  00211	7c 05		 jl	 SHORT $L71740
+  00213	83 f8 39	 cmp	 eax, 57			; 00000039H
+  00216	7e 06		 jle	 SHORT $L71741
+$L71740:
+
+; 268  : 	return (TRUE);
+
+  00218	b8 01 00 00 00	 mov	 eax, 1
+
+; 269  : }
+
+  0021d	c3		 ret	 0
+$L71741:
+
+; 267  : 		return (FALSE);
+
+  0021e	33 c0		 xor	 eax, eax
+
+; 269  : }
+
+  00220	c3		 ret	 0
+_ls_proc_is_a_part ENDP
+_TEXT	ENDS
+EXTRN	_punits:BYTE
+EXTRN	_pteens:BYTE
+EXTRN	_ptens:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_lp$ = 12
+_ls_proc_do_2_digits PROC NEAR
+
+; 288  : {
+
+  00230	56		 push	 esi
+
+; 289  : 	if (lp->l_ch == '0')
+
+  00231	8b 74 24 0c	 mov	 esi, DWORD PTR _lp$[esp]
+  00235	57		 push	 edi
+  00236	66 8b 06	 mov	 ax, WORD PTR [esi]
+  00239	66 3d 30 00	 cmp	 ax, 48			; 00000030H
+  0023d	75 15		 jne	 SHORT $L71747
+
+; 290  : 		ls_spel_spell(phTTS,lp, lp+2);
+
+  0023f	8b 4c 24 0c	 mov	 ecx, DWORD PTR _phTTS$[esp+4]
+  00243	8d 46 10	 lea	 eax, DWORD PTR [esi+16]
+  00246	50		 push	 eax
+  00247	56		 push	 esi
+  00248	51		 push	 ecx
+  00249	e8 00 00 00 00	 call	 _ls_spel_spell
+  0024e	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00251	5f		 pop	 edi
+  00252	5e		 pop	 esi
+
+; 302  :                         }
+; 303  : 		}
+; 304  : 	}
+; 305  : }
+
+  00253	c3		 ret	 0
+$L71747:
+
+; 291  : 	else 
+; 292  : 	{
+; 293  : 		if (lp->l_ch == '1')
+
+  00254	66 3d 31 00	 cmp	 ax, 49			; 00000031H
+  00258	75 1c		 jne	 SHORT $L71749
+
+; 294  : 			ls_util_send_phone_list(phTTS,pteens[(lp+1)->l_ch-'0']);
+
+  0025a	0f bf 56 08	 movsx	 edx, WORD PTR [esi+8]
+  0025e	8b 4c 24 0c	 mov	 ecx, DWORD PTR _phTTS$[esp+4]
+  00262	8b 04 95 40 ff
+	ff ff		 mov	 eax, DWORD PTR _pteens[edx*4-192]
+  00269	50		 push	 eax
+  0026a	51		 push	 ecx
+  0026b	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00270	83 c4 08	 add	 esp, 8
+  00273	5f		 pop	 edi
+  00274	5e		 pop	 esi
+
+; 302  :                         }
+; 303  : 		}
+; 304  : 	}
+; 305  : }
+
+  00275	c3		 ret	 0
+$L71749:
+
+; 295  : 		else 
+; 296  : 		{
+; 297  : 			ls_util_send_phone_list(phTTS,ptens[lp->l_ch-'0']);
+
+  00276	8b 7c 24 0c	 mov	 edi, DWORD PTR _phTTS$[esp+4]
+  0027a	0f bf d0	 movsx	 edx, ax
+  0027d	8b 04 95 40 ff
+	ff ff		 mov	 eax, DWORD PTR _ptens[edx*4-192]
+  00284	50		 push	 eax
+  00285	57		 push	 edi
+  00286	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  0028b	83 c4 08	 add	 esp, 8
+
+; 298  : 			if ((lp+1)->l_ch != '0') 
+
+  0028e	66 83 7e 08 30	 cmp	 WORD PTR [esi+8], 48	; 00000030H
+  00293	74 1d		 je	 SHORT $L71751
+
+; 299  : 			{
+; 300  : 				ls_util_send_phone(phTTS,WBOUND);
+
+  00295	6a 6f		 push	 111			; 0000006fH
+  00297	57		 push	 edi
+  00298	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 301  : 				ls_util_send_phone_list(phTTS,punits[(lp+1)->l_ch-'0']);
+
+  0029d	0f bf 4e 08	 movsx	 ecx, WORD PTR [esi+8]
+  002a1	8b 14 8d 40 ff
+	ff ff		 mov	 edx, DWORD PTR _punits[ecx*4-192]
+  002a8	52		 push	 edx
+  002a9	57		 push	 edi
+  002aa	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  002af	83 c4 10	 add	 esp, 16			; 00000010H
+$L71751:
+  002b2	5f		 pop	 edi
+  002b3	5e		 pop	 esi
+
+; 302  :                         }
+; 303  : 		}
+; 304  : 	}
+; 305  : }
+
+  002b4	c3		 ret	 0
+_ls_proc_do_2_digits ENDP
+_TEXT	ENDS
+EXTRN	_upunits:BYTE
+EXTRN	_phundred:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_lp$ = 12
+_ls_proc_do_3_digits PROC NEAR
+
+; 326  : {
+
+  002c0	56		 push	 esi
+  002c1	57		 push	 edi
+
+; 327  : 	if (lp->l_ch == '0')
+
+  002c2	8b 7c 24 10	 mov	 edi, DWORD PTR _lp$[esp+4]
+  002c6	66 8b 07	 mov	 ax, WORD PTR [edi]
+  002c9	66 3d 30 00	 cmp	 ax, 48			; 00000030H
+  002cd	75 15		 jne	 SHORT $L71757
+
+; 328  : 		ls_spel_spell(phTTS,lp, lp+3);
+
+  002cf	8b 4c 24 0c	 mov	 ecx, DWORD PTR _phTTS$[esp+4]
+  002d3	8d 47 18	 lea	 eax, DWORD PTR [edi+24]
+  002d6	50		 push	 eax
+  002d7	57		 push	 edi
+  002d8	51		 push	 ecx
+  002d9	e8 00 00 00 00	 call	 _ls_spel_spell
+  002de	83 c4 0c	 add	 esp, 12			; 0000000cH
+  002e1	5f		 pop	 edi
+  002e2	5e		 pop	 esi
+
+; 340  : 	}
+; 341  : }
+
+  002e3	c3		 ret	 0
+$L71757:
+
+; 329  : 	else 
+; 330  : 	{
+; 331  : 		//BATS 863 which corrected the number before 
+; 332  : 		//a quatitiy (hudred thousand ect ) from stressed to unstressed
+; 333  : 		ls_util_send_phone_list(phTTS,upunits[lp->l_ch-'0']);
+
+  002e4	8b 74 24 0c	 mov	 esi, DWORD PTR _phTTS$[esp+4]
+  002e8	0f bf d0	 movsx	 edx, ax
+  002eb	8b 04 95 40 ff
+	ff ff		 mov	 eax, DWORD PTR _upunits[edx*4-192]
+  002f2	50		 push	 eax
+  002f3	56		 push	 esi
+  002f4	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 334  : 		ls_util_send_phone(phTTS,WBOUND);
+
+  002f9	6a 6f		 push	 111			; 0000006fH
+  002fb	56		 push	 esi
+  002fc	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 335  : 		if ((lp+1)->l_ch=='0' && (lp+2)->l_ch=='0') 
+
+  00301	8d 47 08	 lea	 eax, DWORD PTR [edi+8]
+  00304	83 c4 10	 add	 esp, 16			; 00000010H
+  00307	66 83 38 30	 cmp	 WORD PTR [eax], 48	; 00000030H
+  0030b	75 18		 jne	 SHORT $L71759
+  0030d	66 83 7f 10 30	 cmp	 WORD PTR [edi+16], 48	; 00000030H
+  00312	75 11		 jne	 SHORT $L71759
+
+; 336  : 		{
+; 337  : 			ls_util_send_phone_list(phTTS,phundred);
+
+  00314	68 00 00 00 00	 push	 OFFSET FLAT:_phundred
+  00319	56		 push	 esi
+  0031a	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 338  : 		} else
+; 339  : 			ls_proc_do_2_digits(phTTS,lp+1);
+
+  0031f	83 c4 08	 add	 esp, 8
+  00322	5f		 pop	 edi
+  00323	5e		 pop	 esi
+
+; 340  : 	}
+; 341  : }
+
+  00324	c3		 ret	 0
+$L71759:
+
+; 338  : 		} else
+; 339  : 			ls_proc_do_2_digits(phTTS,lp+1);
+
+  00325	50		 push	 eax
+  00326	56		 push	 esi
+  00327	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+  0032c	83 c4 08	 add	 esp, 8
+  0032f	5f		 pop	 edi
+  00330	5e		 pop	 esi
+
+; 340  : 	}
+; 341  : }
+
+  00331	c3		 ret	 0
+_ls_proc_do_3_digits ENDP
+_TEXT	ENDS
+EXTRN	_pthousand:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_lp$ = 12
+_ls_proc_do_4_digits PROC NEAR
+
+; 361  : 	if (lp->l_ch == '0')
+
+  00340	8b 44 24 08	 mov	 eax, DWORD PTR _lp$[esp-4]
+  00344	ba 30 00 00 00	 mov	 edx, 48			; 00000030H
+  00349	56		 push	 esi
+  0034a	57		 push	 edi
+  0034b	66 8b 08	 mov	 cx, WORD PTR [eax]
+  0034e	66 3b ca	 cmp	 cx, dx
+  00351	75 17		 jne	 SHORT $L71766
+
+; 362  : 		ls_spel_spell(phTTS,lp, lp+4);
+
+  00353	8b 54 24 0c	 mov	 edx, DWORD PTR _phTTS$[esp+4]
+  00357	8d 48 20	 lea	 ecx, DWORD PTR [eax+32]
+  0035a	51		 push	 ecx
+  0035b	50		 push	 eax
+  0035c	52		 push	 edx
+  0035d	e8 00 00 00 00	 call	 _ls_spel_spell
+  00362	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 389  : 		}
+; 390  : 	}
+; 391  : 	return 0; /* return value never used, BUT left in to keep 
+
+  00365	33 c0		 xor	 eax, eax
+  00367	5f		 pop	 edi
+  00368	5e		 pop	 esi
+
+; 392  : 	             consistent prototype with Spanish! */
+; 393  : }
+
+  00369	c3		 ret	 0
+$L71766:
+
+; 363  : 	else 
+; 364  : 	{
+; 365  : 		if ((lp+2)->l_ch=='0' && (lp+3)->l_ch=='0') 
+
+  0036a	66 39 50 10	 cmp	 WORD PTR [eax+16], dx
+  0036e	8d 78 10	 lea	 edi, DWORD PTR [eax+16]
+  00371	75 62		 jne	 SHORT $L71768
+  00373	66 39 50 18	 cmp	 WORD PTR [eax+24], dx
+  00377	75 5c		 jne	 SHORT $L71768
+
+; 366  : 		{
+; 367  : 			if ((lp+1)->l_ch == '0') 
+
+  00379	66 39 50 08	 cmp	 WORD PTR [eax+8], dx
+  0037d	75 30		 jne	 SHORT $L71769
+
+; 368  : 			{
+; 369  : 				//BATS 863 which corrected the number before 
+; 370  : 				//a quatitiy (hudred thousand ect ) from stressed to unstressed
+; 371  : 				ls_util_send_phone_list(phTTS,upunits[lp->l_ch-'0']);
+
+  0037f	8b 74 24 0c	 mov	 esi, DWORD PTR _phTTS$[esp+4]
+  00383	0f bf c1	 movsx	 eax, cx
+  00386	8b 0c 85 40 ff
+	ff ff		 mov	 ecx, DWORD PTR _upunits[eax*4-192]
+  0038d	51		 push	 ecx
+  0038e	56		 push	 esi
+  0038f	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 372  : 				ls_util_send_phone(phTTS,WBOUND);
+
+  00394	6a 6f		 push	 111			; 0000006fH
+  00396	56		 push	 esi
+  00397	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 373  : 				ls_util_send_phone_list(phTTS,pthousand);
+
+  0039c	68 00 00 00 00	 push	 OFFSET FLAT:_pthousand
+  003a1	56		 push	 esi
+  003a2	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 388  : 			ls_proc_do_2_digits(phTTS,lp+2); 
+
+  003a7	83 c4 18	 add	 esp, 24			; 00000018H
+
+; 389  : 		}
+; 390  : 	}
+; 391  : 	return 0; /* return value never used, BUT left in to keep 
+
+  003aa	33 c0		 xor	 eax, eax
+  003ac	5f		 pop	 edi
+  003ad	5e		 pop	 esi
+
+; 392  : 	             consistent prototype with Spanish! */
+; 393  : }
+
+  003ae	c3		 ret	 0
+$L71769:
+
+; 374  : 			} 
+; 375  : 			else 
+; 376  : 			{
+; 377  : 
+; 378  : 				ls_proc_do_2_digits(phTTS,lp);
+
+  003af	8b 74 24 0c	 mov	 esi, DWORD PTR _phTTS$[esp+4]
+  003b3	50		 push	 eax
+  003b4	56		 push	 esi
+  003b5	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+
+; 379  : 				ls_util_send_phone(phTTS,WBOUND);
+
+  003ba	6a 6f		 push	 111			; 0000006fH
+  003bc	56		 push	 esi
+  003bd	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 380  : 				ls_util_send_phone_list(phTTS,phundred);
+
+  003c2	68 00 00 00 00	 push	 OFFSET FLAT:_phundred
+  003c7	56		 push	 esi
+  003c8	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 388  : 			ls_proc_do_2_digits(phTTS,lp+2); 
+
+  003cd	83 c4 18	 add	 esp, 24			; 00000018H
+
+; 389  : 		}
+; 390  : 	}
+; 391  : 	return 0; /* return value never used, BUT left in to keep 
+
+  003d0	33 c0		 xor	 eax, eax
+  003d2	5f		 pop	 edi
+  003d3	5e		 pop	 esi
+
+; 392  : 	             consistent prototype with Spanish! */
+; 393  : }
+
+  003d4	c3		 ret	 0
+$L71768:
+
+; 381  : 			}
+; 382  : 		} 
+; 383  : 		else 
+; 384  : 		{
+; 385  : 
+; 386  : 			ls_proc_do_2_digits(phTTS,lp+0);
+
+  003d5	8b 74 24 0c	 mov	 esi, DWORD PTR _phTTS$[esp+4]
+  003d9	50		 push	 eax
+  003da	56		 push	 esi
+  003db	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+
+; 387  : 			ls_util_send_phone(phTTS,WBOUND);
+
+  003e0	6a 6f		 push	 111			; 0000006fH
+  003e2	56		 push	 esi
+  003e3	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 388  : 			ls_proc_do_2_digits(phTTS,lp+2); 
+
+  003e8	57		 push	 edi
+  003e9	56		 push	 esi
+  003ea	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+  003ef	83 c4 18	 add	 esp, 24			; 00000018H
+
+; 389  : 		}
+; 390  : 	}
+; 391  : 	return 0; /* return value never used, BUT left in to keep 
+
+  003f2	33 c0		 xor	 eax, eax
+  003f4	5f		 pop	 edi
+  003f5	5e		 pop	 esi
+
+; 392  : 	             consistent prototype with Spanish! */
+; 393  : }
+
+  003f6	c3		 ret	 0
+_ls_proc_do_4_digits ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_do_digit_group
+EXTRN	_pand:BYTE
+EXTRN	_pordin:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_buf$ = 12
+_oflag$ = 16
+_ls_proc_do_digit_group PROC NEAR
+
+; 418  : {
+
+  00400	56		 push	 esi
+
+; 419  : 	if (buf[0] != '0') 
+
+  00401	8b 74 24 08	 mov	 esi, DWORD PTR _phTTS$[esp]
+  00405	57		 push	 edi
+  00406	8b 7c 24 10	 mov	 edi, DWORD PTR _buf$[esp+4]
+  0040a	8a 07		 mov	 al, BYTE PTR [edi]
+  0040c	3c 30		 cmp	 al, 48			; 00000030H
+  0040e	74 5e		 je	 SHORT $L71779
+
+; 420  : 	{
+; 421  : 		//BATS 863 which corrected the number before 
+; 422  : 		//a quatitiy (hudred thousand ect ) from stressed to unstressed
+; 423  : 		ls_util_send_phone_list(phTTS,upunits[buf[0]-'0']);
+
+  00410	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  00415	8b 04 85 40 ff
+	ff ff		 mov	 eax, DWORD PTR _upunits[eax*4-192]
+  0041c	50		 push	 eax
+  0041d	56		 push	 esi
+  0041e	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 424  : 		ls_util_send_phone(phTTS,WBOUND);
+
+  00423	6a 6f		 push	 111			; 0000006fH
+  00425	56		 push	 esi
+  00426	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 425  : 		ls_util_send_phone_list(phTTS,phundred);
+
+  0042b	68 00 00 00 00	 push	 OFFSET FLAT:_phundred
+  00430	56		 push	 esi
+  00431	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 426  : 		if (buf[1]=='0' && buf[2]=='0') 
+
+  00436	8a 47 01	 mov	 al, BYTE PTR [edi+1]
+  00439	83 c4 18	 add	 esp, 24			; 00000018H
+  0043c	3c 30		 cmp	 al, 48			; 00000030H
+  0043e	75 20		 jne	 SHORT $L71780
+  00440	80 7f 02 30	 cmp	 BYTE PTR [edi+2], 48	; 00000030H
+  00444	75 1a		 jne	 SHORT $L71780
+
+; 427  : 		{
+; 428  : 			if (oflag != FALSE)
+
+  00446	8b 44 24 14	 mov	 eax, DWORD PTR _oflag$[esp+4]
+  0044a	85 c0		 test	 eax, eax
+  0044c	0f 84 d4 00 00
+	00		 je	 $L71788
+
+; 429  : 			{
+; 430  : 				ls_util_send_phone(phTTS,TH);
+
+  00452	6a 27		 push	 39			; 00000027H
+  00454	56		 push	 esi
+  00455	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 465  : 	else
+; 466  : 		ls_util_send_phone_list(phTTS,punits[buf[2]-'0']);
+
+  0045a	83 c4 08	 add	 esp, 8
+  0045d	5f		 pop	 edi
+  0045e	5e		 pop	 esi
+
+; 467  : }
+
+  0045f	c3		 ret	 0
+$L71780:
+
+; 431  : 			}
+; 432  : 			return;
+; 433  : 		}
+; 434  : 		ls_util_send_phone_list(phTTS,pand);
+
+  00460	68 00 00 00 00	 push	 OFFSET FLAT:_pand
+  00465	56		 push	 esi
+  00466	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  0046b	83 c4 08	 add	 esp, 8
+$L71779:
+
+; 435  : 	}
+; 436  : 	if (buf[1] == '1') 
+
+  0046e	8a 47 01	 mov	 al, BYTE PTR [edi+1]
+  00471	3c 31		 cmp	 al, 49			; 00000031H
+  00473	75 30		 jne	 SHORT $L71782
+
+; 437  : 	{
+; 438  : 		ls_util_send_phone_list(phTTS,pteens[buf[2]-'0']);
+
+  00475	33 c9		 xor	 ecx, ecx
+  00477	8a 4f 02	 mov	 cl, BYTE PTR [edi+2]
+  0047a	8b 14 8d 40 ff
+	ff ff		 mov	 edx, DWORD PTR _pteens[ecx*4-192]
+  00481	52		 push	 edx
+  00482	56		 push	 esi
+  00483	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 439  : 
+; 440  : 		if (oflag != FALSE)
+
+  00488	8b 44 24 1c	 mov	 eax, DWORD PTR _oflag$[esp+12]
+  0048c	83 c4 08	 add	 esp, 8
+  0048f	85 c0		 test	 eax, eax
+  00491	0f 84 8f 00 00
+	00		 je	 $L71788
+
+; 441  : 		{
+; 442  : 			ls_util_send_phone(phTTS,TH);
+
+  00497	6a 27		 push	 39			; 00000027H
+  00499	56		 push	 esi
+  0049a	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 465  : 	else
+; 466  : 		ls_util_send_phone_list(phTTS,punits[buf[2]-'0']);
+
+  0049f	83 c4 08	 add	 esp, 8
+  004a2	5f		 pop	 edi
+  004a3	5e		 pop	 esi
+
+; 467  : }
+
+  004a4	c3		 ret	 0
+$L71782:
+
+; 443  : 		}
+; 444  : 		return;
+; 445  : 	}
+; 446  : 	if (buf[1] != '0') 
+
+  004a5	3c 30		 cmp	 al, 48			; 00000030H
+  004a7	74 46		 je	 SHORT $L71784
+
+; 447  : 	{
+; 448  : 
+; 449  : 
+; 450  : 		ls_util_send_phone_list(phTTS,ptens[buf[1]-'0']);
+
+  004a9	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+  004ae	8b 04 85 40 ff
+	ff ff		 mov	 eax, DWORD PTR _ptens[eax*4-192]
+  004b5	50		 push	 eax
+  004b6	56		 push	 esi
+  004b7	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 451  : 		if (buf[2] == '0') 
+
+  004bc	8a 47 02	 mov	 al, BYTE PTR [edi+2]
+  004bf	83 c4 08	 add	 esp, 8
+  004c2	3c 30		 cmp	 al, 48			; 00000030H
+  004c4	75 1e		 jne	 SHORT $L71785
+
+; 452  : 		{
+; 453  : 			if (oflag != FALSE) 
+
+  004c6	8b 44 24 14	 mov	 eax, DWORD PTR _oflag$[esp+4]
+  004ca	85 c0		 test	 eax, eax
+  004cc	74 58		 je	 SHORT $L71788
+
+; 454  : 			{
+; 455  : 				ls_util_send_phone(phTTS,IX);
+
+  004ce	6a 12		 push	 18			; 00000012H
+  004d0	56		 push	 esi
+  004d1	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 456  : 				ls_util_send_phone(phTTS,TH);
+
+  004d6	6a 27		 push	 39			; 00000027H
+  004d8	56		 push	 esi
+  004d9	e8 00 00 00 00	 call	 _ls_util_send_phone
+  004de	83 c4 10	 add	 esp, 16			; 00000010H
+  004e1	5f		 pop	 edi
+  004e2	5e		 pop	 esi
+
+; 467  : }
+
+  004e3	c3		 ret	 0
+$L71785:
+
+; 457  : 			}
+; 458  : 			return;
+; 459  : 		}
+; 460  : 		ls_util_send_phone(phTTS,WBOUND);
+
+  004e4	6a 6f		 push	 111			; 0000006fH
+  004e6	56		 push	 esi
+  004e7	e8 00 00 00 00	 call	 _ls_util_send_phone
+  004ec	83 c4 08	 add	 esp, 8
+$L71784:
+
+; 461  : 	}
+; 462  : 
+; 463  : 	if (oflag != FALSE)
+
+  004ef	8b 44 24 14	 mov	 eax, DWORD PTR _oflag$[esp+4]
+  004f3	85 c0		 test	 eax, eax
+  004f5	74 19		 je	 SHORT $L71787
+
+; 464  : 		ls_util_send_phone_list(phTTS,pordin[buf[2]-'0']);
+
+  004f7	33 c9		 xor	 ecx, ecx
+  004f9	8a 4f 02	 mov	 cl, BYTE PTR [edi+2]
+  004fc	8b 14 8d 40 ff
+	ff ff		 mov	 edx, DWORD PTR _pordin[ecx*4-192]
+  00503	52		 push	 edx
+
+; 465  : 	else
+; 466  : 		ls_util_send_phone_list(phTTS,punits[buf[2]-'0']);
+
+  00504	56		 push	 esi
+  00505	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  0050a	83 c4 08	 add	 esp, 8
+  0050d	5f		 pop	 edi
+  0050e	5e		 pop	 esi
+
+; 467  : }
+
+  0050f	c3		 ret	 0
+$L71787:
+
+; 465  : 	else
+; 466  : 		ls_util_send_phone_list(phTTS,punits[buf[2]-'0']);
+
+  00510	33 c0		 xor	 eax, eax
+  00512	8a 47 02	 mov	 al, BYTE PTR [edi+2]
+  00515	8b 0c 85 40 ff
+	ff ff		 mov	 ecx, DWORD PTR _punits[eax*4-192]
+  0051c	51		 push	 ecx
+  0051d	56		 push	 esi
+  0051e	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00523	83 c4 08	 add	 esp, 8
+$L71788:
+  00526	5f		 pop	 edi
+  00527	5e		 pop	 esi
+
+; 467  : }
+
+  00528	c3		 ret	 0
+_ls_proc_do_digit_group ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_non_zero
+PUBLIC	_ls_proc_do_number
+EXTRN	_pmillion:BYTE
+EXTRN	_ptrillion:BYTE
+EXTRN	_pquadrillion:BYTE
+EXTRN	_pbillion:BYTE
+EXTRN	_ppoint:BYTE
+EXTRN	_ptt2tp:BYTE
+EXTRN	_ls_char_feat:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_oflag$ = 20
+_tlp1$ = -28
+_n$ = 20
+_pflag$ = -24
+_buf$ = -20
+_pLts_t$ = 8
+_ls_proc_do_number PROC NEAR
+
+; 496  : {
+
+  00530	83 ec 1c	 sub	 esp, 28			; 0000001cH
+
+; 497  : 	LETTER *tlp1;
+; 498  : 	LETTER *tlp2;
+; 499  : 	int	c;
+; 500  : 	int	n;
+; 501  : 	int	pflag;
+; 502  : 	int	ndig;
+; 503  : 	int	sflag;
+; 504  : 	/* MGS 07/22/97 BATS #412 changed buf to unsigned */
+; 505  : 	unsigned char		buf[18];
+; 506  : 	PLTS_T pLts_t;
+; 507  : 	pLts_t = phTTS->pLTSThreadData;
+; 508  : #ifdef NWS_US
+; 509  : /* eab 10/97 set off numbers with a glotal stop*/
+; 510  : 	ls_util_send_phone(phTTS,Q);
+; 511  : #endif
+; 512  : 
+; 513  : 
+; 514  : 	tlp1  = llp;
+; 515  : 	/* This handles integer parts like "1/2".			*/
+; 516  : 	if (tlp1!=rlp && (tlp1->l_ch==0xBC || tlp1->l_ch==0xBD)) 
+
+  00533	8b 54 24 28	 mov	 edx, DWORD PTR _rlp$[esp+24]
+  00537	53		 push	 ebx
+  00538	8b 5c 24 28	 mov	 ebx, DWORD PTR _llp$[esp+28]
+  0053c	56		 push	 esi
+  0053d	8b 74 24 28	 mov	 esi, DWORD PTR _phTTS$[esp+32]
+  00541	3b da		 cmp	 ebx, edx
+  00543	89 5c 24 08	 mov	 DWORD PTR _tlp1$[esp+36], ebx
+  00547	8b 46 10	 mov	 eax, DWORD PTR [esi+16]
+  0054a	89 44 24 28	 mov	 DWORD PTR _pLts_t$[esp+32], eax
+  0054e	74 22		 je	 SHORT $L71807
+  00550	66 8b 03	 mov	 ax, WORD PTR [ebx]
+  00553	66 3d bc 00	 cmp	 ax, 188			; 000000bcH
+  00557	74 06		 je	 SHORT $L71808
+  00559	66 3d bd 00	 cmp	 ax, 189			; 000000bdH
+  0055d	75 13		 jne	 SHORT $L71807
+$L71808:
+
+; 517  : 	{
+; 518  : 		ls_spel_spell(phTTS,tlp1, rlp);
+
+  0055f	52		 push	 edx
+  00560	53		 push	 ebx
+  00561	56		 push	 esi
+  00562	e8 00 00 00 00	 call	 _ls_spel_spell
+  00567	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 519  : 		return (FALSE);
+
+  0056a	33 c0		 xor	 eax, eax
+  0056c	5e		 pop	 esi
+  0056d	5b		 pop	 ebx
+
+; 773  : }
+
+  0056e	83 c4 1c	 add	 esp, 28			; 0000001cH
+  00571	c3		 ret	 0
+$L71807:
+  00572	55		 push	 ebp
+  00573	57		 push	 edi
+
+; 520  : 	}
+; 521  : 	pflag = FALSE;				/* Not plural.			*/
+
+  00574	33 ed		 xor	 ebp, ebp
+
+; 522  : 	sflag = FALSE;				/* No user "," seen.	*/
+
+  00576	33 ff		 xor	 edi, edi
+
+; 523  : 	ndig  = 0;
+
+  00578	33 c9		 xor	 ecx, ecx
+
+; 524  : #ifdef LS2DEBUG
+; 525  : 	printf("In ls_proc_do_number\n");
+; 526  : 
+; 527  : #endif
+; 528  : 	while (tlp1!=rlp && (IS_DIGIT(tlp1->l_ch) || tlp1->l_ch==pLts_t->schar) &&
+; 529  : 		/* MGS 07/22/97 BATS #412 */
+; 530  : 		(tlp1->l_ch != 0xBC &&  tlp1->l_ch !=0xBD) ) 
+
+  0057a	3b da		 cmp	 ebx, edx
+  0057c	89 6c 24 14	 mov	 DWORD PTR _pflag$[esp+44], ebp
+  00580	0f 84 5c 06 00
+	00		 je	 $L71893
+  00586	b2 10		 mov	 dl, 16			; 00000010H
+$L71810:
+  00588	66 8b 03	 mov	 ax, WORD PTR [ebx]
+  0058b	0f bf e8	 movsx	 ebp, ax
+  0058e	84 95 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[ebp], dl
+  00594	75 0d		 jne	 SHORT $L71812
+  00596	8b 6c 24 30	 mov	 ebp, DWORD PTR _pLts_t$[esp+40]
+  0059a	66 3b 85 ee 08
+	00 00		 cmp	 ax, WORD PTR [ebp+2286]
+  005a1	75 5a		 jne	 SHORT $L72128
+$L71812:
+  005a3	66 3d bc 00	 cmp	 ax, 188			; 000000bcH
+  005a7	74 54		 je	 SHORT $L72128
+  005a9	66 3d bd 00	 cmp	 ax, 189			; 000000bdH
+  005ad	74 4e		 je	 SHORT $L72128
+
+; 531  : 	{
+; 532  : 		if (tlp1->l_ch == pLts_t->schar)
+
+  005af	8b 6c 24 30	 mov	 ebp, DWORD PTR _pLts_t$[esp+40]
+  005b3	66 3b 85 ee 08
+	00 00		 cmp	 ax, WORD PTR [ebp+2286]
+  005ba	75 07		 jne	 SHORT $L71813
+
+; 533  : 			sflag = TRUE;
+
+  005bc	bf 01 00 00 00	 mov	 edi, 1
+
+; 534  : 		else
+
+  005c1	eb 01		 jmp	 SHORT $L71814
+$L71813:
+
+; 535  : 			++ndig;
+
+  005c3	41		 inc	 ecx
+$L71814:
+
+; 524  : #ifdef LS2DEBUG
+; 525  : 	printf("In ls_proc_do_number\n");
+; 526  : 
+; 527  : #endif
+; 528  : 	while (tlp1!=rlp && (IS_DIGIT(tlp1->l_ch) || tlp1->l_ch==pLts_t->schar) &&
+; 529  : 		/* MGS 07/22/97 BATS #412 */
+; 530  : 		(tlp1->l_ch != 0xBC &&  tlp1->l_ch !=0xBD) ) 
+
+  005c4	8b 44 24 38	 mov	 eax, DWORD PTR _rlp$[esp+40]
+
+; 536  : 		++tlp1;
+
+  005c8	83 c3 08	 add	 ebx, 8
+  005cb	3b d8		 cmp	 ebx, eax
+  005cd	75 b9		 jne	 SHORT $L71810
+  005cf	89 5c 24 10	 mov	 DWORD PTR _tlp1$[esp+44], ebx
+$L71811:
+
+; 537  : 	}
+; 538  : 	if (ndig>18 && sflag!=FALSE) 
+
+  005d3	83 f9 12	 cmp	 ecx, 18			; 00000012H
+  005d6	7e 69		 jle	 SHORT $L72108
+  005d8	85 ff		 test	 edi, edi
+  005da	0f 84 2b 04 00
+	00		 je	 $L71824
+
+; 539  : 	{
+; 540  : 		/* Long, commas.	*/
+; 541  : 		tlp2 = llp;
+
+  005e0	8b 7c 24 34	 mov	 edi, DWORD PTR _llp$[esp+40]
+
+; 542  : 		while (tlp2 != tlp1) 
+
+  005e4	3b fb		 cmp	 edi, ebx
+  005e6	74 4f		 je	 SHORT $L71818
+$L71817:
+
+; 543  : 		{
+; 544  : 			/* Pause where you are	*/
+; 545  : 			c = tlp2->l_ch;		/* told to do so.	*/
+
+  005e8	0f bf 07	 movsx	 eax, WORD PTR [edi]
+
+; 546  : 			++tlp2;
+; 547  : 			if (c == pLts_t->schar)
+
+  005eb	0f bf 8d ee 08
+	00 00		 movsx	 ecx, WORD PTR [ebp+2286]
+  005f2	83 c7 08	 add	 edi, 8
+  005f5	3b c1		 cmp	 eax, ecx
+  005f7	75 0e		 jne	 SHORT $L71819
+
+; 548  : 				ls_util_send_phone(phTTS,COMMA);
+
+  005f9	6a 73		 push	 115			; 00000073H
+
+; 549  : 			else 
+
+  005fb	eb 2d		 jmp	 SHORT $L72142
+$L72128:
+
+; 524  : #ifdef LS2DEBUG
+; 525  : 	printf("In ls_proc_do_number\n");
+; 526  : 
+; 527  : #endif
+; 528  : 	while (tlp1!=rlp && (IS_DIGIT(tlp1->l_ch) || tlp1->l_ch==pLts_t->schar) &&
+; 529  : 		/* MGS 07/22/97 BATS #412 */
+; 530  : 		(tlp1->l_ch != 0xBC &&  tlp1->l_ch !=0xBD) ) 
+
+  005fd	8b 6c 24 30	 mov	 ebp, DWORD PTR _pLts_t$[esp+40]
+
+; 536  : 		++tlp1;
+
+  00601	89 5c 24 10	 mov	 DWORD PTR _tlp1$[esp+44], ebx
+  00605	eb cc		 jmp	 SHORT $L71811
+$L71819:
+
+; 550  : 			{
+; 551  : 				ls_util_send_phone_list(phTTS,punits[c-'0']);
+
+  00607	8b 14 85 40 ff
+	ff ff		 mov	 edx, DWORD PTR _punits[eax*4-192]
+  0060e	52		 push	 edx
+  0060f	56		 push	 esi
+  00610	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00615	83 c4 08	 add	 esp, 8
+
+; 552  : 				if (tlp2!=tlp1 && tlp2->l_ch!=pLts_t->schar)
+
+  00618	3b fb		 cmp	 edi, ebx
+  0061a	74 1b		 je	 SHORT $L71818
+  0061c	66 8b 07	 mov	 ax, WORD PTR [edi]
+  0061f	66 3b 85 ee 08
+	00 00		 cmp	 ax, WORD PTR [ebp+2286]
+  00626	74 0b		 je	 SHORT $L71821
+
+; 553  : 					ls_util_send_phone(phTTS,WBOUND);
+
+  00628	6a 6f		 push	 111			; 0000006fH
+$L72142:
+  0062a	56		 push	 esi
+  0062b	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00630	83 c4 08	 add	 esp, 8
+$L71821:
+
+; 542  : 		while (tlp2 != tlp1) 
+
+  00633	3b fb		 cmp	 edi, ebx
+  00635	75 b1		 jne	 SHORT $L71817
+$L71818:
+
+; 554  : 			}
+; 555  : 		}
+; 556  : 		pflag = TRUE;
+
+  00637	bd 01 00 00 00	 mov	 ebp, 1
+
+; 557  : 	} 
+; 558  : 	else
+
+  0063c	e9 99 04 00 00	 jmp	 $out$71852
+$L72108:
+
+; 559  : 	{ 
+; 560  : 		if (ndig>18 || (ndig>1 && llp->l_ch=='0')) 
+
+  00641	8b 54 24 34	 mov	 edx, DWORD PTR _llp$[esp+40]
+  00645	83 f9 01	 cmp	 ecx, 1
+  00648	7e 0a		 jle	 SHORT $L71823
+  0064a	66 83 3a 30	 cmp	 WORD PTR [edx], 48	; 00000030H
+  0064e	0f 84 b7 03 00
+	00		 je	 $L71824
+$L71823:
+
+; 594  : 		} 
+; 595  : 		else 
+; 596  : 		{
+; 597  : 			if (ndig != 0) 
+
+  00654	85 c9		 test	 ecx, ecx
+  00656	0f 84 7a 04 00
+	00		 je	 $L72133
+
+; 598  : 			{
+; 599  : 				n = 18;				/* Right justify	*/
+; 600  : 
+; 601  : 				tlp2 = tlp1;
+; 602  : 				while (tlp2 != llp)
+
+  0065c	3b da		 cmp	 ebx, edx
+  0065e	bf 12 00 00 00	 mov	 edi, 18			; 00000012H
+  00663	8b c3		 mov	 eax, ebx
+  00665	74 2d		 je	 SHORT $L71845
+  00667	eb 04		 jmp	 SHORT $L71841
+$L72137:
+  00669	8b 6c 24 30	 mov	 ebp, DWORD PTR _pLts_t$[esp+40]
+$L71841:
+
+; 603  : 				{
+; 604  : 					c = (--tlp2)->l_ch;
+
+  0066d	0f bf 48 f8	 movsx	 ecx, WORD PTR [eax-8]
+
+; 605  : 					if (c != pLts_t->schar)
+
+  00671	0f bf ad ee 08
+	00 00		 movsx	 ebp, WORD PTR [ebp+2286]
+  00678	83 e8 08	 sub	 eax, 8
+  0067b	3b cd		 cmp	 ecx, ebp
+  0067d	74 05		 je	 SHORT $L71843
+
+; 606  : 						buf[--n] = c;
+
+  0067f	4f		 dec	 edi
+  00680	88 4c 3c 18	 mov	 BYTE PTR _buf$[esp+edi+44], cl
+$L71843:
+
+; 598  : 			{
+; 599  : 				n = 18;				/* Right justify	*/
+; 600  : 
+; 601  : 				tlp2 = tlp1;
+; 602  : 				while (tlp2 != llp)
+
+  00684	3b c2		 cmp	 eax, edx
+  00686	75 e1		 jne	 SHORT $L72137
+
+; 607  : 				}
+; 608  : 				if (n!=17 || buf[17]!='1')	/* Watch for "1".	*/
+
+  00688	83 ff 11	 cmp	 edi, 17			; 00000011H
+  0068b	75 07		 jne	 SHORT $L71845
+  0068d	80 7c 24 29 31	 cmp	 BYTE PTR _buf$[esp+61], 49 ; 00000031H
+  00692	74 0b		 je	 SHORT $L72132
+$L71845:
+
+; 609  : 					pflag = TRUE;
+; 610  : 				while (n != 0)
+
+  00694	85 ff		 test	 edi, edi
+  00696	bd 01 00 00 00	 mov	 ebp, 1
+  0069b	74 0e		 je	 SHORT $L71848
+  0069d	eb 04		 jmp	 SHORT $L71847
+$L72132:
+  0069f	8b 6c 24 14	 mov	 ebp, DWORD PTR _pflag$[esp+44]
+$L71847:
+
+; 611  : 					buf[--n] = '0';
+
+  006a3	4f		 dec	 edi
+  006a4	c6 44 3c 18 30	 mov	 BYTE PTR _buf$[esp+edi+44], 48 ; 00000030H
+  006a9	75 f8		 jne	 SHORT $L71847
+$L71848:
+
+; 612  : 				if (ls_proc_non_zero(&buf[0], 3) != FALSE) 
+
+  006ab	8d 4c 24 18	 lea	 ecx, DWORD PTR _buf$[esp+44]
+  006af	6a 03		 push	 3
+  006b1	51		 push	 ecx
+  006b2	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  006b7	83 c4 08	 add	 esp, 8
+  006ba	85 c0		 test	 eax, eax
+  006bc	0f 84 91 00 00
+	00		 je	 $L71856
+
+; 613  : 				{	/* Quadrillions		*/
+; 614  : 					ls_proc_do_digit_group(phTTS,&buf[0], FALSE);
+
+  006c2	8d 54 24 18	 lea	 edx, DWORD PTR _buf$[esp+44]
+  006c6	6a 00		 push	 0
+  006c8	52		 push	 edx
+  006c9	56		 push	 esi
+  006ca	e8 00 00 00 00	 call	 _ls_proc_do_digit_group
+
+; 615  : 					ls_util_send_phone(phTTS,WBOUND);
+
+  006cf	6a 6f		 push	 111			; 0000006fH
+  006d1	56		 push	 esi
+  006d2	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 616  : 					ls_util_send_phone_list(phTTS,pquadrillion);
+
+  006d7	68 00 00 00 00	 push	 OFFSET FLAT:_pquadrillion
+  006dc	56		 push	 esi
+  006dd	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 617  : 					if (ls_proc_non_zero(&buf[3], 15) == FALSE) 
+
+  006e2	8d 44 24 37	 lea	 eax, DWORD PTR _buf$[esp+75]
+  006e6	6a 0f		 push	 15			; 0000000fH
+  006e8	50		 push	 eax
+  006e9	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  006ee	83 c4 24	 add	 esp, 36			; 00000024H
+  006f1	85 c0		 test	 eax, eax
+  006f3	75 1c		 jne	 SHORT $L71850
+
+; 618  : 					{
+; 619  : 
+; 620  : 						if (oflag != FALSE)
+
+  006f5	8b 44 24 3c	 mov	 eax, DWORD PTR _oflag$[esp+40]
+  006f9	85 c0		 test	 eax, eax
+  006fb	0f 84 d9 03 00
+	00		 je	 $out$71852
+
+; 621  : 						{
+; 622  : 							ls_util_send_phone(phTTS,TH);
+
+  00701	6a 27		 push	 39			; 00000027H
+  00703	56		 push	 esi
+  00704	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00709	83 c4 08	 add	 esp, 8
+
+; 623  : 						}
+; 624  : 						goto out;
+
+  0070c	e9 c9 03 00 00	 jmp	 $out$71852
+$L71850:
+
+; 625  : 					}
+; 626  : 					if (ls_proc_non_zero(&buf[4], 14) == FALSE)
+
+  00711	8d 4c 24 1c	 lea	 ecx, DWORD PTR _buf$[esp+48]
+  00715	6a 0e		 push	 14			; 0000000eH
+  00717	51		 push	 ecx
+  00718	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  0071d	83 c4 08	 add	 esp, 8
+  00720	85 c0		 test	 eax, eax
+  00722	75 04		 jne	 SHORT $L71853
+
+; 627  : 						ls_util_send_phone(phTTS,VPSTART);
+
+  00724	6a 71		 push	 113			; 00000071H
+
+; 628  : 					else if (ls_proc_non_zero(&buf[3], 1) == FALSE)
+
+  00726	eb 22		 jmp	 SHORT $L72143
+$L71853:
+  00728	8d 54 24 1b	 lea	 edx, DWORD PTR _buf$[esp+47]
+  0072c	6a 01		 push	 1
+  0072e	52		 push	 edx
+  0072f	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  00734	83 c4 08	 add	 esp, 8
+  00737	85 c0		 test	 eax, eax
+  00739	75 0d		 jne	 SHORT $L71855
+
+; 629  : 						ls_util_send_phone_list(phTTS,pand);
+
+  0073b	68 00 00 00 00	 push	 OFFSET FLAT:_pand
+  00740	56		 push	 esi
+  00741	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 630  : 					else
+
+  00746	eb 08		 jmp	 SHORT $L72144
+$L71855:
+
+; 631  : 						ls_util_send_phone(phTTS,COMMA);
+
+  00748	6a 73		 push	 115			; 00000073H
+$L72143:
+  0074a	56		 push	 esi
+  0074b	e8 00 00 00 00	 call	 _ls_util_send_phone
+$L72144:
+  00750	83 c4 08	 add	 esp, 8
+$L71856:
+
+; 632  : 				}
+; 633  : 				if (ls_proc_non_zero(&buf[3], 3) != FALSE) 
+
+  00753	8d 44 24 1b	 lea	 eax, DWORD PTR _buf$[esp+47]
+  00757	6a 03		 push	 3
+  00759	50		 push	 eax
+  0075a	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  0075f	83 c4 08	 add	 esp, 8
+  00762	85 c0		 test	 eax, eax
+  00764	0f 84 91 00 00
+	00		 je	 $L71863
+
+; 634  : 				{	/* Trillions		*/
+; 635  : 					ls_proc_do_digit_group(phTTS,&buf[3], FALSE);
+
+  0076a	8d 4c 24 1b	 lea	 ecx, DWORD PTR _buf$[esp+47]
+  0076e	6a 00		 push	 0
+  00770	51		 push	 ecx
+  00771	56		 push	 esi
+  00772	e8 00 00 00 00	 call	 _ls_proc_do_digit_group
+
+; 636  : 					ls_util_send_phone(phTTS,WBOUND);
+
+  00777	6a 6f		 push	 111			; 0000006fH
+  00779	56		 push	 esi
+  0077a	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 637  : 					ls_util_send_phone_list(phTTS,ptrillion);
+
+  0077f	68 00 00 00 00	 push	 OFFSET FLAT:_ptrillion
+  00784	56		 push	 esi
+  00785	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 638  : 					if (ls_proc_non_zero(&buf[6], 12) == FALSE) 
+
+  0078a	8d 54 24 3a	 lea	 edx, DWORD PTR _buf$[esp+78]
+  0078e	6a 0c		 push	 12			; 0000000cH
+  00790	52		 push	 edx
+  00791	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  00796	83 c4 24	 add	 esp, 36			; 00000024H
+  00799	85 c0		 test	 eax, eax
+  0079b	75 1c		 jne	 SHORT $L71858
+
+; 639  : 					{
+; 640  : 
+; 641  : 						if (oflag != FALSE)
+
+  0079d	8b 44 24 3c	 mov	 eax, DWORD PTR _oflag$[esp+40]
+  007a1	85 c0		 test	 eax, eax
+  007a3	0f 84 31 03 00
+	00		 je	 $out$71852
+
+; 642  : 						{
+; 643  :                                                     ls_util_send_phone(phTTS,TH);
+
+  007a9	6a 27		 push	 39			; 00000027H
+  007ab	56		 push	 esi
+  007ac	e8 00 00 00 00	 call	 _ls_util_send_phone
+  007b1	83 c4 08	 add	 esp, 8
+
+; 644  : 						}
+; 645  : 						goto out;
+
+  007b4	e9 21 03 00 00	 jmp	 $out$71852
+$L71858:
+
+; 646  : 					}
+; 647  : 					if (ls_proc_non_zero(&buf[7], 11) == FALSE)
+
+  007b9	8d 44 24 1f	 lea	 eax, DWORD PTR _buf$[esp+51]
+  007bd	6a 0b		 push	 11			; 0000000bH
+  007bf	50		 push	 eax
+  007c0	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  007c5	83 c4 08	 add	 esp, 8
+  007c8	85 c0		 test	 eax, eax
+  007ca	75 04		 jne	 SHORT $L71860
+
+; 648  : 						ls_util_send_phone(phTTS,VPSTART);
+
+  007cc	6a 71		 push	 113			; 00000071H
+
+; 649  : 					else 
+
+  007ce	eb 22		 jmp	 SHORT $L72145
+$L71860:
+
+; 650  : 					if (ls_proc_non_zero(&buf[6], 1) == FALSE)
+
+  007d0	8d 4c 24 1e	 lea	 ecx, DWORD PTR _buf$[esp+50]
+  007d4	6a 01		 push	 1
+  007d6	51		 push	 ecx
+  007d7	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  007dc	83 c4 08	 add	 esp, 8
+  007df	85 c0		 test	 eax, eax
+  007e1	75 0d		 jne	 SHORT $L71862
+
+; 651  : 						ls_util_send_phone_list(phTTS,pand);
+
+  007e3	68 00 00 00 00	 push	 OFFSET FLAT:_pand
+  007e8	56		 push	 esi
+  007e9	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 652  : 					else
+
+  007ee	eb 08		 jmp	 SHORT $L72146
+$L71862:
+
+; 653  : 						ls_util_send_phone(phTTS,COMMA);
+
+  007f0	6a 73		 push	 115			; 00000073H
+$L72145:
+  007f2	56		 push	 esi
+  007f3	e8 00 00 00 00	 call	 _ls_util_send_phone
+$L72146:
+  007f8	83 c4 08	 add	 esp, 8
+$L71863:
+
+; 654  : 				}
+; 655  : 				if (ls_proc_non_zero(&buf[6], 3) != FALSE) 
+
+  007fb	8d 54 24 1e	 lea	 edx, DWORD PTR _buf$[esp+50]
+  007ff	6a 03		 push	 3
+  00801	52		 push	 edx
+  00802	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  00807	83 c4 08	 add	 esp, 8
+  0080a	85 c0		 test	 eax, eax
+  0080c	0f 84 91 00 00
+	00		 je	 $L71870
+
+; 656  : 				{	/* Billions		*/
+; 657  : 					ls_proc_do_digit_group(phTTS,&buf[6], FALSE);
+
+  00812	8d 44 24 1e	 lea	 eax, DWORD PTR _buf$[esp+50]
+  00816	6a 00		 push	 0
+  00818	50		 push	 eax
+  00819	56		 push	 esi
+  0081a	e8 00 00 00 00	 call	 _ls_proc_do_digit_group
+
+; 658  : 					ls_util_send_phone(phTTS,WBOUND);
+
+  0081f	6a 6f		 push	 111			; 0000006fH
+  00821	56		 push	 esi
+  00822	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 659  : 					ls_util_send_phone_list(phTTS,pbillion);
+
+  00827	68 00 00 00 00	 push	 OFFSET FLAT:_pbillion
+  0082c	56		 push	 esi
+  0082d	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 660  : 					if (ls_proc_non_zero(&buf[9], 9) == FALSE) 
+
+  00832	8d 4c 24 3d	 lea	 ecx, DWORD PTR _buf$[esp+81]
+  00836	6a 09		 push	 9
+  00838	51		 push	 ecx
+  00839	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  0083e	83 c4 24	 add	 esp, 36			; 00000024H
+  00841	85 c0		 test	 eax, eax
+  00843	75 1c		 jne	 SHORT $L71865
+
+; 661  : 					{
+; 662  : 
+; 663  : 						if (oflag != FALSE)
+
+  00845	8b 44 24 3c	 mov	 eax, DWORD PTR _oflag$[esp+40]
+  00849	85 c0		 test	 eax, eax
+  0084b	0f 84 89 02 00
+	00		 je	 $out$71852
+
+; 664  : 						{
+; 665  : 							ls_util_send_phone(phTTS,TH);
+
+  00851	6a 27		 push	 39			; 00000027H
+  00853	56		 push	 esi
+  00854	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00859	83 c4 08	 add	 esp, 8
+
+; 666  : 						}
+; 667  : 						goto out;
+
+  0085c	e9 79 02 00 00	 jmp	 $out$71852
+$L71865:
+
+; 668  : 					}
+; 669  : 					if (ls_proc_non_zero(&buf[10], 8) == FALSE)
+
+  00861	8d 54 24 22	 lea	 edx, DWORD PTR _buf$[esp+54]
+  00865	6a 08		 push	 8
+  00867	52		 push	 edx
+  00868	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  0086d	83 c4 08	 add	 esp, 8
+  00870	85 c0		 test	 eax, eax
+  00872	75 04		 jne	 SHORT $L71867
+
+; 670  : 						ls_util_send_phone(phTTS,VPSTART);
+
+  00874	6a 71		 push	 113			; 00000071H
+
+; 671  : 					else 
+
+  00876	eb 22		 jmp	 SHORT $L72147
+$L71867:
+
+; 672  : 					if (ls_proc_non_zero(&buf[9], 1) == FALSE)
+
+  00878	8d 44 24 21	 lea	 eax, DWORD PTR _buf$[esp+53]
+  0087c	6a 01		 push	 1
+  0087e	50		 push	 eax
+  0087f	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  00884	83 c4 08	 add	 esp, 8
+  00887	85 c0		 test	 eax, eax
+  00889	75 0d		 jne	 SHORT $L71869
+
+; 673  : 						ls_util_send_phone_list(phTTS,pand);
+
+  0088b	68 00 00 00 00	 push	 OFFSET FLAT:_pand
+  00890	56		 push	 esi
+  00891	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 674  : 					else
+
+  00896	eb 08		 jmp	 SHORT $L72148
+$L71869:
+
+; 675  : 						ls_util_send_phone(phTTS,COMMA);
+
+  00898	6a 73		 push	 115			; 00000073H
+$L72147:
+  0089a	56		 push	 esi
+  0089b	e8 00 00 00 00	 call	 _ls_util_send_phone
+$L72148:
+  008a0	83 c4 08	 add	 esp, 8
+$L71870:
+
+; 676  : 				}
+; 677  : 				if (ls_proc_non_zero(&buf[9], 3) != FALSE) 
+
+  008a3	8d 4c 24 21	 lea	 ecx, DWORD PTR _buf$[esp+53]
+  008a7	6a 03		 push	 3
+  008a9	51		 push	 ecx
+  008aa	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  008af	83 c4 08	 add	 esp, 8
+  008b2	85 c0		 test	 eax, eax
+  008b4	0f 84 91 00 00
+	00		 je	 $L71877
+
+; 678  : 				{	/* Millions		*/
+; 679  : 					ls_proc_do_digit_group(phTTS,&buf[9], FALSE);
+
+  008ba	8d 54 24 21	 lea	 edx, DWORD PTR _buf$[esp+53]
+  008be	6a 00		 push	 0
+  008c0	52		 push	 edx
+  008c1	56		 push	 esi
+  008c2	e8 00 00 00 00	 call	 _ls_proc_do_digit_group
+
+; 680  : 					ls_util_send_phone(phTTS,WBOUND);
+
+  008c7	6a 6f		 push	 111			; 0000006fH
+  008c9	56		 push	 esi
+  008ca	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 681  : 					ls_util_send_phone_list(phTTS,pmillion);
+
+  008cf	68 00 00 00 00	 push	 OFFSET FLAT:_pmillion
+  008d4	56		 push	 esi
+  008d5	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 682  : 					if (ls_proc_non_zero(&buf[12], 6) == FALSE) 
+
+  008da	8d 44 24 40	 lea	 eax, DWORD PTR _buf$[esp+84]
+  008de	6a 06		 push	 6
+  008e0	50		 push	 eax
+  008e1	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  008e6	83 c4 24	 add	 esp, 36			; 00000024H
+  008e9	85 c0		 test	 eax, eax
+  008eb	75 1c		 jne	 SHORT $L71872
+
+; 683  : 					{
+; 684  : 
+; 685  : 						if (oflag != FALSE)
+
+  008ed	8b 44 24 3c	 mov	 eax, DWORD PTR _oflag$[esp+40]
+  008f1	85 c0		 test	 eax, eax
+  008f3	0f 84 e1 01 00
+	00		 je	 $out$71852
+
+; 686  : 						{
+; 687  : 							ls_util_send_phone(phTTS,TH);
+
+  008f9	6a 27		 push	 39			; 00000027H
+  008fb	56		 push	 esi
+  008fc	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00901	83 c4 08	 add	 esp, 8
+
+; 688  : 						}
+; 689  : 						goto out;
+
+  00904	e9 d1 01 00 00	 jmp	 $out$71852
+$L71872:
+
+; 690  : 					}
+; 691  : 					if (ls_proc_non_zero(&buf[13], 5) == FALSE)
+
+  00909	8d 4c 24 25	 lea	 ecx, DWORD PTR _buf$[esp+57]
+  0090d	6a 05		 push	 5
+  0090f	51		 push	 ecx
+  00910	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  00915	83 c4 08	 add	 esp, 8
+  00918	85 c0		 test	 eax, eax
+  0091a	75 04		 jne	 SHORT $L71874
+
+; 692  : 						ls_util_send_phone(phTTS,VPSTART);
+
+  0091c	6a 71		 push	 113			; 00000071H
+
+; 693  : 					else 
+
+  0091e	eb 22		 jmp	 SHORT $L72149
+$L71874:
+
+; 694  : 					if (ls_proc_non_zero(&buf[12], 1) == FALSE)
+
+  00920	8d 54 24 24	 lea	 edx, DWORD PTR _buf$[esp+56]
+  00924	6a 01		 push	 1
+  00926	52		 push	 edx
+  00927	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  0092c	83 c4 08	 add	 esp, 8
+  0092f	85 c0		 test	 eax, eax
+  00931	75 0d		 jne	 SHORT $L71876
+
+; 695  : 						ls_util_send_phone_list(phTTS,pand);
+
+  00933	68 00 00 00 00	 push	 OFFSET FLAT:_pand
+  00938	56		 push	 esi
+  00939	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 696  : 					else
+
+  0093e	eb 08		 jmp	 SHORT $L72150
+$L71876:
+
+; 697  : 						ls_util_send_phone(phTTS,COMMA);
+
+  00940	6a 73		 push	 115			; 00000073H
+$L72149:
+  00942	56		 push	 esi
+  00943	e8 00 00 00 00	 call	 _ls_util_send_phone
+$L72150:
+  00948	83 c4 08	 add	 esp, 8
+$L71877:
+
+; 698  : 				}
+; 699  : 
+; 700  : 				if (ls_proc_non_zero(&buf[12], 3) != FALSE) 
+
+  0094b	8d 44 24 24	 lea	 eax, DWORD PTR _buf$[esp+56]
+  0094f	6a 03		 push	 3
+  00951	50		 push	 eax
+  00952	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  00957	83 c4 08	 add	 esp, 8
+  0095a	85 c0		 test	 eax, eax
+  0095c	0f 84 91 00 00
+	00		 je	 $L71884
+
+; 701  : 				{	/* Thousands		*/
+; 702  : 
+; 703  : 					ls_proc_do_digit_group(phTTS,&buf[12], FALSE);
+
+  00962	8d 4c 24 24	 lea	 ecx, DWORD PTR _buf$[esp+56]
+  00966	6a 00		 push	 0
+  00968	51		 push	 ecx
+  00969	56		 push	 esi
+  0096a	e8 00 00 00 00	 call	 _ls_proc_do_digit_group
+
+; 704  : 					ls_util_send_phone(phTTS,WBOUND);
+
+  0096f	6a 6f		 push	 111			; 0000006fH
+  00971	56		 push	 esi
+  00972	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 705  : 					ls_util_send_phone_list(phTTS,pthousand);
+
+  00977	68 00 00 00 00	 push	 OFFSET FLAT:_pthousand
+  0097c	56		 push	 esi
+  0097d	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 706  : 					if (ls_proc_non_zero(&buf[15], 3) == FALSE) 
+
+  00982	8d 54 24 43	 lea	 edx, DWORD PTR _buf$[esp+87]
+  00986	6a 03		 push	 3
+  00988	52		 push	 edx
+  00989	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  0098e	83 c4 24	 add	 esp, 36			; 00000024H
+  00991	85 c0		 test	 eax, eax
+  00993	75 1c		 jne	 SHORT $L71879
+
+; 707  : 					{
+; 708  : 						if (oflag != FALSE)
+
+  00995	8b 44 24 3c	 mov	 eax, DWORD PTR _oflag$[esp+40]
+  00999	85 c0		 test	 eax, eax
+  0099b	0f 84 39 01 00
+	00		 je	 $out$71852
+
+; 709  : 						{
+; 710  : 							ls_util_send_phone(phTTS,TH);
+
+  009a1	6a 27		 push	 39			; 00000027H
+  009a3	56		 push	 esi
+  009a4	e8 00 00 00 00	 call	 _ls_util_send_phone
+  009a9	83 c4 08	 add	 esp, 8
+
+; 711  : 						}
+; 712  : 						goto out;
+
+  009ac	e9 29 01 00 00	 jmp	 $out$71852
+$L71879:
+
+; 713  : 					}
+; 714  : 					if (ls_proc_non_zero(&buf[16], 2) == FALSE)
+
+  009b1	8d 44 24 28	 lea	 eax, DWORD PTR _buf$[esp+60]
+  009b5	6a 02		 push	 2
+  009b7	50		 push	 eax
+  009b8	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  009bd	83 c4 08	 add	 esp, 8
+  009c0	85 c0		 test	 eax, eax
+  009c2	75 04		 jne	 SHORT $L71881
+
+; 715  : 						ls_util_send_phone(phTTS,VPSTART);
+
+  009c4	6a 71		 push	 113			; 00000071H
+
+; 716  : 					else if (ls_proc_non_zero(&buf[15], 1) == FALSE)
+
+  009c6	eb 22		 jmp	 SHORT $L72151
+$L71881:
+  009c8	8d 4c 24 27	 lea	 ecx, DWORD PTR _buf$[esp+59]
+  009cc	6a 01		 push	 1
+  009ce	51		 push	 ecx
+  009cf	e8 00 00 00 00	 call	 _ls_proc_non_zero
+  009d4	83 c4 08	 add	 esp, 8
+  009d7	85 c0		 test	 eax, eax
+  009d9	75 0d		 jne	 SHORT $L71883
+
+; 717  : 						ls_util_send_phone_list(phTTS,pand);
+
+  009db	68 00 00 00 00	 push	 OFFSET FLAT:_pand
+  009e0	56		 push	 esi
+  009e1	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 718  : 					else
+
+  009e6	eb 08		 jmp	 SHORT $L72152
+$L71883:
+
+; 719  : 						ls_util_send_phone(phTTS,COMMA);
+
+  009e8	6a 73		 push	 115			; 00000073H
+$L72151:
+  009ea	56		 push	 esi
+  009eb	e8 00 00 00 00	 call	 _ls_util_send_phone
+$L72152:
+  009f0	83 c4 08	 add	 esp, 8
+$L71884:
+
+; 720  : 				}
+; 721  : 		
+; 722  : 				ls_proc_do_digit_group(phTTS,&buf[15], oflag);	/* Units		*/
+
+  009f3	8b 54 24 3c	 mov	 edx, DWORD PTR _oflag$[esp+40]
+  009f7	8d 44 24 27	 lea	 eax, DWORD PTR _buf$[esp+59]
+  009fb	52		 push	 edx
+  009fc	50		 push	 eax
+  009fd	56		 push	 esi
+  009fe	e8 00 00 00 00	 call	 _ls_proc_do_digit_group
+  00a03	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00a06	e9 cf 00 00 00	 jmp	 $out$71852
+$L71824:
+
+; 561  : 		{
+; 562  : 			tlp2 = llp;
+
+  00a0b	8b 6c 24 34	 mov	 ebp, DWORD PTR _llp$[esp+40]
+
+; 563  : 			while (ndig >= 6) 
+
+  00a0f	83 f9 06	 cmp	 ecx, 6
+  00a12	7c 68		 jl	 SHORT $L71827
+  00a14	83 c1 fd	 add	 ecx, -3			; fffffffdH
+  00a17	b8 ab aa aa aa	 mov	 eax, -1431655765	; aaaaaaabH
+  00a1c	f7 e1		 mul	 ecx
+  00a1e	d1 ea		 shr	 edx, 1
+  00a20	89 54 24 3c	 mov	 DWORD PTR 20+[esp+40], edx
+$L71826:
+
+; 564  : 			{
+; 565  : 				/* At least 1 group.	*/
+; 566  : 				n = 0;
+
+  00a24	33 ff		 xor	 edi, edi
+$L71829:
+
+; 567  : 				while (n < 3) 
+; 568  : 				{
+; 569  : 					if ((c=tlp2->l_ch) != pLts_t->schar) 
+
+  00a26	8b 4c 24 30	 mov	 ecx, DWORD PTR _pLts_t$[esp+40]
+  00a2a	0f bf 5d 00	 movsx	 ebx, WORD PTR [ebp]
+  00a2e	0f bf 91 ee 08
+	00 00		 movsx	 edx, WORD PTR [ecx+2286]
+  00a35	3b da		 cmp	 ebx, edx
+  00a37	74 21		 je	 SHORT $L71831
+
+; 570  : 					{
+; 571  : 						if (n != 0)
+
+  00a39	85 ff		 test	 edi, edi
+  00a3b	74 0b		 je	 SHORT $L71832
+
+; 572  : 							ls_util_send_phone(phTTS,WBOUND);
+
+  00a3d	6a 6f		 push	 111			; 0000006fH
+  00a3f	56		 push	 esi
+  00a40	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00a45	83 c4 08	 add	 esp, 8
+$L71832:
+
+; 573  : 						++n;
+; 574  : 						ls_util_send_phone_list(phTTS,punits[c-'0']);
+
+  00a48	8b 04 9d 40 ff
+	ff ff		 mov	 eax, DWORD PTR _punits[ebx*4-192]
+  00a4f	47		 inc	 edi
+  00a50	50		 push	 eax
+  00a51	56		 push	 esi
+  00a52	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00a57	83 c4 08	 add	 esp, 8
+$L71831:
+
+; 575  : 					}
+; 576  : 					++tlp2;
+
+  00a5a	83 c5 08	 add	 ebp, 8
+  00a5d	83 ff 03	 cmp	 edi, 3
+  00a60	7c c4		 jl	 SHORT $L71829
+
+; 577  : 				}
+; 578  : 				ls_util_send_phone(phTTS,COMMA);
+
+  00a62	6a 73		 push	 115			; 00000073H
+  00a64	56		 push	 esi
+  00a65	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00a6a	8b 44 24 44	 mov	 eax, DWORD PTR 20+[esp+48]
+  00a6e	83 c4 08	 add	 esp, 8
+  00a71	48		 dec	 eax
+  00a72	89 44 24 3c	 mov	 DWORD PTR 20+[esp+40], eax
+  00a76	75 ac		 jne	 SHORT $L71826
+
+; 563  : 			while (ndig >= 6) 
+
+  00a78	8b 5c 24 10	 mov	 ebx, DWORD PTR _tlp1$[esp+44]
+$L71827:
+
+; 579  : 				ndig -= 3;
+; 580  : 			}
+; 581  : 			n = 0;				/* Last group.		*/
+; 582  : 			while (tlp2 != tlp1) 
+
+  00a7c	3b eb		 cmp	 ebp, ebx
+  00a7e	c7 44 24 3c 00
+	00 00 00	 mov	 DWORD PTR _n$[esp+40], 0
+  00a86	74 47		 je	 SHORT $L71835
+$L71834:
+
+; 583  : 			{
+; 584  : 				if ((c=tlp2->l_ch) != pLts_t->schar) 
+
+  00a88	8b 4c 24 30	 mov	 ecx, DWORD PTR _pLts_t$[esp+40]
+  00a8c	0f bf 7d 00	 movsx	 edi, WORD PTR [ebp]
+  00a90	0f bf 91 ee 08
+	00 00		 movsx	 edx, WORD PTR [ecx+2286]
+  00a97	3b fa		 cmp	 edi, edx
+  00a99	74 2d		 je	 SHORT $L71836
+
+; 585  : 				{
+; 586  : 					if (n != 0)
+
+  00a9b	8b 44 24 3c	 mov	 eax, DWORD PTR _n$[esp+40]
+  00a9f	85 c0		 test	 eax, eax
+  00aa1	74 0b		 je	 SHORT $L71837
+
+; 587  : 						ls_util_send_phone(phTTS,WBOUND);
+
+  00aa3	6a 6f		 push	 111			; 0000006fH
+  00aa5	56		 push	 esi
+  00aa6	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00aab	83 c4 08	 add	 esp, 8
+$L71837:
+
+; 588  : 					++n;
+
+  00aae	8b 44 24 3c	 mov	 eax, DWORD PTR _n$[esp+40]
+  00ab2	40		 inc	 eax
+  00ab3	89 44 24 3c	 mov	 DWORD PTR _n$[esp+40], eax
+
+; 589  : 					ls_util_send_phone_list(phTTS,punits[c-'0']);
+
+  00ab7	8b 04 bd 40 ff
+	ff ff		 mov	 eax, DWORD PTR _punits[edi*4-192]
+  00abe	50		 push	 eax
+  00abf	56		 push	 esi
+  00ac0	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00ac5	83 c4 08	 add	 esp, 8
+$L71836:
+
+; 590  : 				}
+; 591  : 				++tlp2;
+
+  00ac8	83 c5 08	 add	 ebp, 8
+  00acb	3b eb		 cmp	 ebp, ebx
+  00acd	75 b9		 jne	 SHORT $L71834
+$L71835:
+
+; 592  : 			}
+; 593  : 			pflag = TRUE;			/* Long => plural.	*/
+
+  00acf	bd 01 00 00 00	 mov	 ebp, 1
+  00ad4	eb 04		 jmp	 SHORT $out$71852
+$L72133:
+  00ad6	8b 6c 24 14	 mov	 ebp, DWORD PTR _pflag$[esp+44]
+$out$71852:
+
+; 723  : 
+; 724  : 			out:	;
+; 725  : 			}
+; 726  : 		}
+; 727  : 	}
+; 728  : 	/* This code handles integer parts like "1 1/2".		*/
+; 729  : 	if (tlp1!=rlp && (tlp1->l_ch==0xBC || tlp1->l_ch==0xBD)) 
+
+  00ada	8b 7c 24 38	 mov	 edi, DWORD PTR _rlp$[esp+40]
+  00ade	3b df		 cmp	 ebx, edi
+  00ae0	0f 84 fc 00 00
+	00		 je	 $L71893
+  00ae6	66 8b 03	 mov	 ax, WORD PTR [ebx]
+  00ae9	66 3d bc 00	 cmp	 ax, 188			; 000000bcH
+  00aed	74 06		 je	 SHORT $L71886
+  00aef	66 3d bd 00	 cmp	 ax, 189			; 000000bdH
+  00af3	75 24		 jne	 SHORT $L71885
+$L71886:
+
+; 730  : 	{
+; 731  : 		ls_util_send_phone_list(phTTS,pand);
+
+  00af5	68 00 00 00 00	 push	 OFFSET FLAT:_pand
+  00afa	56		 push	 esi
+  00afb	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 732  : 		ls_spel_spell(phTTS,tlp1, tlp1+1);
+
+  00b00	8d 7b 08	 lea	 edi, DWORD PTR [ebx+8]
+  00b03	57		 push	 edi
+  00b04	53		 push	 ebx
+  00b05	56		 push	 esi
+  00b06	e8 00 00 00 00	 call	 _ls_spel_spell
+
+; 733  : 		++tlp1;
+
+  00b0b	8b df		 mov	 ebx, edi
+
+; 734  : 		pflag = TRUE;			/* Always plural.	*/
+
+  00b0d	8b 7c 24 4c	 mov	 edi, DWORD PTR _rlp$[esp+60]
+  00b11	83 c4 14	 add	 esp, 20			; 00000014H
+  00b14	bd 01 00 00 00	 mov	 ebp, 1
+$L71885:
+
+; 735  : 	}
+; 736  : 	if (tlp1!=rlp && tlp1->l_ch==pLts_t->fchar) 
+
+  00b19	3b df		 cmp	 ebx, edi
+  00b1b	0f 84 c1 00 00
+	00		 je	 $L71893
+  00b21	8b 54 24 30	 mov	 edx, DWORD PTR _pLts_t$[esp+40]
+  00b25	66 8b 0b	 mov	 cx, WORD PTR [ebx]
+  00b28	66 3b 8a ec 08
+	00 00		 cmp	 cx, WORD PTR [edx+2284]
+  00b2f	75 6c		 jne	 SHORT $L71887
+
+; 737  : 	{	/* Fraction digits.	*/
+; 738  : 		if (llp != tlp1)
+
+  00b31	39 5c 24 34	 cmp	 DWORD PTR _llp$[esp+40], ebx
+  00b35	74 0b		 je	 SHORT $L71888
+
+; 739  : 			ls_util_send_phone(phTTS,WBOUND);
+
+  00b37	6a 6f		 push	 111			; 0000006fH
+  00b39	56		 push	 esi
+  00b3a	e8 00 00 00 00	 call	 _ls_util_send_phone
+  00b3f	83 c4 08	 add	 esp, 8
+$L71888:
+
+; 740  : 		ls_util_send_phone_list(phTTS,ppoint);
+
+  00b42	68 00 00 00 00	 push	 OFFSET FLAT:_ppoint
+  00b47	56		 push	 esi
+  00b48	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 741  : 		tlp2 = tlp1;
+; 742  : 		++tlp1;
+
+  00b4d	83 c3 08	 add	 ebx, 8
+  00b50	83 c4 08	 add	 esp, 8
+
+; 743  : 		while (tlp1!=rlp && tlp1->l_ch!='e') 
+
+  00b53	3b df		 cmp	 ebx, edi
+  00b55	74 41		 je	 SHORT $L71891
+$L71890:
+  00b57	66 8b 03	 mov	 ax, WORD PTR [ebx]
+  00b5a	66 3d 65 00	 cmp	 ax, 101			; 00000065H
+  00b5e	74 38		 je	 SHORT $L71891
+
+; 744  : 		{
+; 745  : 			c = tlp1->l_ch;
+
+  00b60	0f bf f8	 movsx	 edi, ax
+
+; 746  : 			if (c != pLts_t->schar) 
+
+  00b63	8b 44 24 30	 mov	 eax, DWORD PTR _pLts_t$[esp+40]
+  00b67	0f bf 88 ee 08
+	00 00		 movsx	 ecx, WORD PTR [eax+2286]
+  00b6e	3b f9		 cmp	 edi, ecx
+  00b70	74 19		 je	 SHORT $L71892
+
+; 747  : 			{
+; 748  : 				ls_util_send_phone(phTTS,WBOUND);
+
+  00b72	6a 6f		 push	 111			; 0000006fH
+  00b74	56		 push	 esi
+  00b75	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 749  : 				ls_util_send_phone_list(phTTS,punits[c-'0']);
+
+  00b7a	8b 14 bd 40 ff
+	ff ff		 mov	 edx, DWORD PTR _punits[edi*4-192]
+  00b81	52		 push	 edx
+  00b82	56		 push	 esi
+  00b83	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00b88	83 c4 10	 add	 esp, 16			; 00000010H
+$L71892:
+  00b8b	8b 44 24 38	 mov	 eax, DWORD PTR _rlp$[esp+40]
+
+; 750  : 			}
+; 751  : 			++tlp1;
+
+  00b8f	83 c3 08	 add	 ebx, 8
+  00b92	3b d8		 cmp	 ebx, eax
+  00b94	8b f8		 mov	 edi, eax
+  00b96	75 bf		 jne	 SHORT $L71890
+$L71891:
+
+; 752  : 		}
+; 753  : 		pflag = TRUE;								/* 1.01 is plural.	*/
+
+  00b98	bd 01 00 00 00	 mov	 ebp, 1
+$L71887:
+
+; 754  : 	}
+; 755  : 	if (tlp1 != rlp) 
+
+  00b9d	3b df		 cmp	 ebx, edi
+  00b9f	74 41		 je	 SHORT $L71893
+
+; 756  : 	{												/* Must be an "e".	*/
+; 757  : 		ls_util_send_phone_list(phTTS,ptt2tp);		/* " " on end.		*/
+
+  00ba1	68 00 00 00 00	 push	 OFFSET FLAT:_ptt2tp
+  00ba6	56		 push	 esi
+  00ba7	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 758  : 		tlp2 = tlp1;
+; 759  : 		++tlp1;										/* Skip "e"			*/
+
+  00bac	83 c3 08	 add	 ebx, 8
+  00baf	83 c4 08	 add	 esp, 8
+
+; 760  : 		if (tlp1 != rlp) 
+
+  00bb2	3b df		 cmp	 ebx, edi
+  00bb4	74 1a		 je	 SHORT $L71895
+
+; 761  : 		{											/* Handle signs.	*/
+; 762  : 			c = tlp1->l_ch;
+
+  00bb6	0f bf 03	 movsx	 eax, WORD PTR [ebx]
+
+; 763  : 			if (c=='-' || c=='+') 
+
+  00bb9	83 f8 2d	 cmp	 eax, 45			; 0000002dH
+  00bbc	74 05		 je	 SHORT $L71896
+  00bbe	83 f8 2b	 cmp	 eax, 43			; 0000002bH
+  00bc1	75 0d		 jne	 SHORT $L71895
+$L71896:
+
+; 764  : 			{
+; 765  : 				ls_proc_do_sign(phTTS,c);
+
+  00bc3	50		 push	 eax
+  00bc4	56		 push	 esi
+  00bc5	e8 00 00 00 00	 call	 _ls_proc_do_sign
+  00bca	83 c4 08	 add	 esp, 8
+
+; 766  : 				++tlp1;
+
+  00bcd	83 c3 08	 add	 ebx, 8
+$L71895:
+
+; 767  : 			}
+; 768  : 		}
+; 769  : 		ls_proc_do_number(phTTS,tlp1, rlp, FALSE);	/* Cannot recur on "e".	*/
+
+  00bd0	6a 00		 push	 0
+  00bd2	57		 push	 edi
+  00bd3	53		 push	 ebx
+  00bd4	56		 push	 esi
+  00bd5	e8 00 00 00 00	 call	 _ls_proc_do_number
+  00bda	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 770  : 		pflag = TRUE;								/* 1E01 is plural.		*/
+
+  00bdd	bd 01 00 00 00	 mov	 ebp, 1
+$L71893:
+
+; 771  : 	}
+; 772  : 	return (pflag);
+
+  00be2	8b c5		 mov	 eax, ebp
+  00be4	5f		 pop	 edi
+  00be5	5d		 pop	 ebp
+  00be6	5e		 pop	 esi
+  00be7	5b		 pop	 ebx
+
+; 773  : }
+
+  00be8	83 c4 1c	 add	 esp, 28			; 0000001cH
+  00beb	c3		 ret	 0
+_ls_proc_do_number ENDP
+_p$ = 8
+_n$ = 12
+_ls_proc_non_zero PROC NEAR
+
+; 793  : 	while (n--) 
+
+  00bf0	8b 4c 24 08	 mov	 ecx, DWORD PTR _n$[esp-4]
+  00bf4	8b c1		 mov	 eax, ecx
+  00bf6	49		 dec	 ecx
+  00bf7	85 c0		 test	 eax, eax
+  00bf9	74 11		 je	 SHORT $L71904
+  00bfb	8b 44 24 04	 mov	 eax, DWORD PTR _p$[esp-4]
+$L71903:
+
+; 794  : 	{
+; 795  : 		if (*p != '0')
+
+  00bff	80 38 30	 cmp	 BYTE PTR [eax], 48	; 00000030H
+  00c02	75 0b		 jne	 SHORT $L72155
+
+; 797  : 		++p;
+
+  00c04	40		 inc	 eax
+  00c05	8b d1		 mov	 edx, ecx
+  00c07	49		 dec	 ecx
+  00c08	85 d2		 test	 edx, edx
+  00c0a	75 f3		 jne	 SHORT $L71903
+$L71904:
+
+; 798  : 	}
+; 799  : 	return (FALSE);
+
+  00c0c	33 c0		 xor	 eax, eax
+
+; 800  : }
+
+  00c0e	c3		 ret	 0
+$L72155:
+
+; 796  : 			return (TRUE);
+
+  00c0f	b8 01 00 00 00	 mov	 eax, 1
+
+; 800  : }
+
+  00c14	c3		 ret	 0
+_ls_proc_non_zero ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_is_date
+EXTRN	_months:BYTE
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_buf$ = -8
+_ls_proc_is_date PROC NEAR
+
+; 825  : 	char *cp;
+; 826  : 	 int	i;
+; 827  : 	short		buf[3];
+; 828  : 
+; 829  : 	if (!IS_DIGIT(llp->l_ch) || ++llp==rlp)	/* First digit.		*/
+
+  00c20	8b 44 24 04	 mov	 eax, DWORD PTR _llp$[esp-4]
+  00c24	83 ec 08	 sub	 esp, 8
+  00c27	b2 10		 mov	 dl, 16			; 00000010H
+  00c29	0f bf 08	 movsx	 ecx, WORD PTR [eax]
+  00c2c	53		 push	 ebx
+  00c2d	56		 push	 esi
+  00c2e	8a 99 00 00 00
+	00		 mov	 bl, BYTE PTR _ls_char_feat[ecx]
+  00c34	57		 push	 edi
+  00c35	84 da		 test	 bl, dl
+  00c37	0f 84 5d 01 00
+	00		 je	 $L71918
+  00c3d	8b 74 24 1c	 mov	 esi, DWORD PTR _rlp$[esp+16]
+  00c41	83 c0 08	 add	 eax, 8
+  00c44	3b c6		 cmp	 eax, esi
+  00c46	0f 84 4e 01 00
+	00		 je	 $L71918
+
+; 831  : 	if (llp->l_ch != '-') 
+
+  00c4c	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00c4f	66 83 f9 2d	 cmp	 cx, 45			; 0000002dH
+  00c53	74 24		 je	 SHORT $L71919
+
+; 832  : 	{												/* Optional digit.	*/
+; 833  : 		if (!IS_DIGIT(llp->l_ch) || ++llp==rlp)
+
+  00c55	0f bf c9	 movsx	 ecx, cx
+  00c58	84 91 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[ecx], dl
+  00c5e	0f 84 36 01 00
+	00		 je	 $L71918
+  00c64	83 c0 08	 add	 eax, 8
+  00c67	3b c6		 cmp	 eax, esi
+  00c69	0f 84 2b 01 00
+	00		 je	 $L71918
+
+; 834  : 			return (FALSE);
+; 835  : 		if (llp->l_ch != '-')						/* Must be "-" now!	*/
+
+  00c6f	66 83 38 2d	 cmp	 WORD PTR [eax], 45	; 0000002dH
+
+; 836  : 			return (FALSE);
+
+  00c73	0f 85 21 01 00
+	00		 jne	 $L71918
+$L71919:
+
+; 837  : 	}
+; 838  : 	if (++llp==rlp || !IS_ALPHA(llp->l_ch))	/* Three alphas.	*/
+
+  00c79	83 c0 08	 add	 eax, 8
+  00c7c	3b c6		 cmp	 eax, esi
+  00c7e	0f 84 16 01 00
+	00		 je	 $L71918
+  00c84	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00c87	b2 03		 mov	 dl, 3
+  00c89	0f bf f9	 movsx	 edi, cx
+  00c8c	84 97 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edi], dl
+  00c92	0f 84 02 01 00
+	00		 je	 $L71918
+
+; 839  : 		return (FALSE);
+; 840  : 	buf[0] = llp->l_ch;
+; 841  : 	if (++llp==rlp || !IS_ALPHA(llp->l_ch))
+
+  00c98	83 c0 08	 add	 eax, 8
+  00c9b	66 89 4c 24 0c	 mov	 WORD PTR _buf$[esp+20], cx
+  00ca0	3b c6		 cmp	 eax, esi
+  00ca2	0f 84 f2 00 00
+	00		 je	 $L71918
+  00ca8	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00cab	0f bf f9	 movsx	 edi, cx
+  00cae	84 97 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edi], dl
+  00cb4	0f 84 e0 00 00
+	00		 je	 $L71918
+
+; 842  : 		return (FALSE);
+; 843  : 	buf[1] = llp->l_ch;
+; 844  : 	if (++llp==rlp || !IS_ALPHA(llp->l_ch))
+
+  00cba	83 c0 08	 add	 eax, 8
+  00cbd	66 89 4c 24 0e	 mov	 WORD PTR _buf$[esp+22], cx
+  00cc2	3b c6		 cmp	 eax, esi
+  00cc4	0f 84 d0 00 00
+	00		 je	 $L71918
+  00cca	0f bf 08	 movsx	 ecx, WORD PTR [eax]
+  00ccd	84 91 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[ecx], dl
+  00cd3	0f 84 c1 00 00
+	00		 je	 $L71918
+
+; 845  : 		return (FALSE);
+; 846  : 	buf[2] = llp->l_ch;
+; 847  : 	for (i=0; i<12; ++i) 
+
+  00cd9	33 ff		 xor	 edi, edi
+  00cdb	ba 00 00 00 00	 mov	 edx, OFFSET FLAT:_months
+$L71926:
+
+; 848  : 	{			/* Validate.		*/
+; 849  : 		cp = months[i];
+
+  00ce0	8b 0a		 mov	 ecx, DWORD PTR [edx]
+
+; 850  : 		if (buf[0]==cp[0] && buf[1]==cp[1] && buf[2]==cp[2])
+
+  00ce2	66 0f be 19	 movsx	 bx, BYTE PTR [ecx]
+  00ce6	66 39 5c 24 0c	 cmp	 WORD PTR _buf$[esp+20], bx
+  00ceb	75 16		 jne	 SHORT $L71927
+  00ced	66 0f be 59 01	 movsx	 bx, BYTE PTR [ecx+1]
+  00cf2	66 39 5c 24 0e	 cmp	 WORD PTR _buf$[esp+22], bx
+  00cf7	75 0a		 jne	 SHORT $L71927
+  00cf9	66 0f be 49 02	 movsx	 cx, BYTE PTR [ecx+2]
+  00cfe	66 39 08	 cmp	 WORD PTR [eax], cx
+  00d01	74 0c		 je	 SHORT $L72159
+$L71927:
+
+; 845  : 		return (FALSE);
+; 846  : 	buf[2] = llp->l_ch;
+; 847  : 	for (i=0; i<12; ++i) 
+
+  00d03	83 c2 04	 add	 edx, 4
+  00d06	47		 inc	 edi
+  00d07	81 fa 30 00 00
+	00		 cmp	 edx, OFFSET FLAT:_months+48
+  00d0d	7c d1		 jl	 SHORT $L71926
+$L72159:
+
+; 851  : 			break;
+; 852  : 	}
+; 853  : 	if (i == 12)				/* Loss!		*/
+
+  00d0f	83 ff 0c	 cmp	 edi, 12			; 0000000cH
+
+; 854  : 		return (FALSE);
+
+  00d12	0f 84 82 00 00
+	00		 je	 $L71918
+
+; 855  : 	if (++llp == rlp)			/* 23-Aug		*/
+
+  00d18	83 c0 08	 add	 eax, 8
+  00d1b	3b c6		 cmp	 eax, esi
+  00d1d	75 0c		 jne	 SHORT $L71931
+  00d1f	5f		 pop	 edi
+  00d20	5e		 pop	 esi
+
+; 856  : 		return (TRUE);
+
+  00d21	b8 01 00 00 00	 mov	 eax, 1
+  00d26	5b		 pop	 ebx
+
+; 870  : }
+
+  00d27	83 c4 08	 add	 esp, 8
+  00d2a	c3		 ret	 0
+$L71931:
+
+; 857  : 	if (llp->l_ch != '-')		/* Must be a year.	*/
+
+  00d2b	66 83 38 2d	 cmp	 WORD PTR [eax], 45	; 0000002dH
+
+; 858  : 		return (FALSE);
+
+  00d2f	75 69		 jne	 SHORT $L71918
+
+; 859  : 	if (++llp==rlp || !IS_DIGIT(llp->l_ch))
+
+  00d31	83 c0 08	 add	 eax, 8
+  00d34	3b c6		 cmp	 eax, esi
+  00d36	74 62		 je	 SHORT $L71918
+  00d38	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  00d3b	b1 10		 mov	 cl, 16			; 00000010H
+  00d3d	84 8a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], cl
+  00d43	74 55		 je	 SHORT $L71918
+
+; 860  : 		return (FALSE);
+; 861  : 	if (++llp==rlp || !IS_DIGIT(llp->l_ch))
+
+  00d45	83 c0 08	 add	 eax, 8
+  00d48	3b c6		 cmp	 eax, esi
+  00d4a	74 4e		 je	 SHORT $L71918
+  00d4c	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  00d4f	84 8a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], cl
+  00d55	74 43		 je	 SHORT $L71918
+
+; 862  : 		return (FALSE);
+; 863  : 	if (++llp == rlp)			/* 23-Aug-84		*/
+
+  00d57	83 c0 08	 add	 eax, 8
+  00d5a	3b c6		 cmp	 eax, esi
+  00d5c	75 0c		 jne	 SHORT $L71937
+  00d5e	5f		 pop	 edi
+  00d5f	5e		 pop	 esi
+
+; 864  : 		return (TRUE);
+
+  00d60	b8 01 00 00 00	 mov	 eax, 1
+  00d65	5b		 pop	 ebx
+
+; 870  : }
+
+  00d66	83 c4 08	 add	 esp, 8
+  00d69	c3		 ret	 0
+$L71937:
+
+; 865  : 	if (!IS_DIGIT(llp->l_ch) || ++llp==rlp)	/* Need 2 more digits.	*/
+
+  00d6a	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  00d6d	84 8a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], cl
+  00d73	74 25		 je	 SHORT $L71918
+  00d75	83 c0 08	 add	 eax, 8
+  00d78	3b c6		 cmp	 eax, esi
+  00d7a	74 1e		 je	 SHORT $L71918
+
+; 866  : 		return (FALSE);
+; 867  : 	if (!IS_DIGIT(llp->l_ch) || ++llp!=rlp)
+
+  00d7c	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  00d7f	84 8a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], cl
+  00d85	74 13		 je	 SHORT $L71918
+  00d87	83 c0 08	 add	 eax, 8
+  00d8a	3b c6		 cmp	 eax, esi
+  00d8c	75 0c		 jne	 SHORT $L71918
+  00d8e	5f		 pop	 edi
+  00d8f	5e		 pop	 esi
+
+; 868  : 		return (FALSE);
+; 869  : 	return (TRUE);				/* 23-Aug-1984		*/
+
+  00d90	b8 01 00 00 00	 mov	 eax, 1
+  00d95	5b		 pop	 ebx
+
+; 870  : }
+
+  00d96	83 c4 08	 add	 esp, 8
+  00d99	c3		 ret	 0
+$L71918:
+  00d9a	5f		 pop	 edi
+  00d9b	5e		 pop	 esi
+
+; 830  : 		return (FALSE);
+
+  00d9c	33 c0		 xor	 eax, eax
+  00d9e	5b		 pop	 ebx
+
+; 870  : }
+
+  00d9f	83 c4 08	 add	 esp, 8
+  00da2	c3		 ret	 0
+_ls_proc_is_date ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_do_date
+EXTRN	_pOH:BYTE
+EXTRN	_pmonths:BYTE
+EXTRN	_pthe:BYTE
+EXTRN	_pof:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_i$ = 8
+_ls_proc_do_date PROC NEAR
+
+; 890  : {
+
+  00db0	53		 push	 ebx
+
+; 891  : 	LETTER	*lp1;
+; 892  : 	 int	i;
+; 893  : 	char *cp;
+; 894  : 
+; 895  : 	PKSD_T  pKsd_t;
+; 896  : 	pKsd_t = phTTS->pKernelShareData;
+; 897  : 
+; 898  : 
+; 899  : 	lp1 = llp;				/* Find end of day.	*/
+
+  00db1	8b 5c 24 0c	 mov	 ebx, DWORD PTR _llp$[esp]
+  00db5	56		 push	 esi
+  00db6	57		 push	 edi
+
+; 900  : 	while (lp1->l_ch != '-')
+
+  00db7	66 83 3b 2d	 cmp	 WORD PTR [ebx], 45	; 0000002dH
+  00dbb	8b 7c 24 10	 mov	 edi, DWORD PTR _phTTS$[esp+8]
+  00dbf	8b f3		 mov	 esi, ebx
+  00dc1	74 09		 je	 SHORT $L71955
+$L71954:
+
+; 901  : 		++lp1;
+
+  00dc3	83 c6 08	 add	 esi, 8
+  00dc6	66 83 3e 2d	 cmp	 WORD PTR [esi], 45	; 0000002dH
+  00dca	75 f7		 jne	 SHORT $L71954
+$L71955:
+
+; 903  : 	{						/* Get month.		*/
+; 904  : 		cp = months[i];
+; 905  : 		if ((lp1+1)->l_ch == cp[0]
+; 906  : 		&&  (lp1+2)->l_ch == cp[1]
+; 907  : 		&&  (lp1+3)->l_ch == cp[2])
+
+  00dcc	66 8b 56 08	 mov	 dx, WORD PTR [esi+8]
+  00dd0	55		 push	 ebp
+  00dd1	c7 44 24 14 00
+	00 00 00	 mov	 DWORD PTR _i$[esp+12], 0
+  00dd9	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_months
+$L71956:
+  00dde	8b 08		 mov	 ecx, DWORD PTR [eax]
+  00de0	66 0f be 29	 movsx	 bp, BYTE PTR [ecx]
+  00de4	66 3b d5	 cmp	 dx, bp
+  00de7	75 16		 jne	 SHORT $L71957
+  00de9	66 0f be 69 01	 movsx	 bp, BYTE PTR [ecx+1]
+  00dee	66 39 6e 10	 cmp	 WORD PTR [esi+16], bp
+  00df2	75 0b		 jne	 SHORT $L71957
+  00df4	66 0f be 49 02	 movsx	 cx, BYTE PTR [ecx+2]
+  00df9	66 39 4e 18	 cmp	 WORD PTR [esi+24], cx
+  00dfd	74 13		 je	 SHORT $L72167
+$L71957:
+
+; 902  : 	for (i=0; i<12; ++i) 
+
+  00dff	8b 4c 24 14	 mov	 ecx, DWORD PTR _i$[esp+12]
+  00e03	83 c0 04	 add	 eax, 4
+  00e06	41		 inc	 ecx
+  00e07	3d 30 00 00 00	 cmp	 eax, OFFSET FLAT:_months+48
+  00e0c	89 4c 24 14	 mov	 DWORD PTR _i$[esp+12], ecx
+  00e10	7c cc		 jl	 SHORT $L71956
+$L72167:
+
+; 908  : 			break;
+; 909  : 	}
+; 910  : 
+; 911  : 	/* GL 10/21/98, BATS#770 support europe date reading */
+; 912  :     if ((pKsd_t->modeflag&MODE_EUROPE) != 0)
+
+  00e12	8b 47 08	 mov	 eax, DWORD PTR [edi+8]
+  00e15	5d		 pop	 ebp
+  00e16	f6 80 00 02 00
+	00 08		 test	 BYTE PTR [eax+512], 8
+  00e1d	74 68		 je	 SHORT $L71960
+
+; 913  : 	{
+; 914  : 		ls_util_send_phone_list(phTTS,pthe);	/* 19XX					*/
+
+  00e1f	68 00 00 00 00	 push	 OFFSET FLAT:_pthe
+  00e24	57		 push	 edi
+  00e25	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 915  : 		ls_util_send_phone(phTTS,WBOUND);
+
+  00e2a	6a 6f		 push	 111			; 0000006fH
+  00e2c	57		 push	 edi
+  00e2d	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 916  : 		if (lp1!=llp+1 && llp->l_ch=='0')					/* Get "01-Jan-84" ok.	*/
+
+  00e32	8d 43 08	 lea	 eax, DWORD PTR [ebx+8]
+  00e35	83 c4 10	 add	 esp, 16			; 00000010H
+  00e38	3b f0		 cmp	 esi, eax
+  00e3a	74 0c		 je	 SHORT $L71961
+  00e3c	66 83 3b 30	 cmp	 WORD PTR [ebx], 48	; 00000030H
+  00e40	75 06		 jne	 SHORT $L71961
+
+; 917  : 			ls_proc_do_number(phTTS,llp+1, lp1, TRUE);
+
+  00e42	6a 01		 push	 1
+  00e44	56		 push	 esi
+  00e45	50		 push	 eax
+
+; 918  : 		else
+
+  00e46	eb 04		 jmp	 SHORT $L72171
+$L71961:
+
+; 919  : 			ls_proc_do_number(phTTS,llp, lp1, TRUE);
+
+  00e48	6a 01		 push	 1
+  00e4a	56		 push	 esi
+  00e4b	53		 push	 ebx
+$L72171:
+  00e4c	57		 push	 edi
+  00e4d	e8 00 00 00 00	 call	 _ls_proc_do_number
+  00e52	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 920  : 		ls_util_send_phone(phTTS,WBOUND);
+
+  00e55	6a 6f		 push	 111			; 0000006fH
+  00e57	57		 push	 edi
+  00e58	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 921  : 		ls_util_send_phone_list(phTTS,pof);
+
+  00e5d	68 00 00 00 00	 push	 OFFSET FLAT:_pof
+  00e62	57		 push	 edi
+  00e63	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 922  : 		ls_util_send_phone(phTTS,WBOUND);
+
+  00e68	6a 6f		 push	 111			; 0000006fH
+  00e6a	57		 push	 edi
+  00e6b	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 923  : 		ls_util_send_phone_list(phTTS,pmonths[i]);			/* Speak the month		*/
+
+  00e70	8b 54 24 28	 mov	 edx, DWORD PTR _i$[esp+32]
+  00e74	8b 04 95 00 00
+	00 00		 mov	 eax, DWORD PTR _pmonths[edx*4]
+  00e7b	50		 push	 eax
+  00e7c	57		 push	 edi
+  00e7d	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00e82	83 c4 20	 add	 esp, 32			; 00000020H
+
+; 924  : 	}
+; 925  : 	else
+
+  00e85	eb 3d		 jmp	 SHORT $L71965
+$L71960:
+
+; 926  : 	{
+; 927  : 		ls_util_send_phone_list(phTTS,pmonths[i]);			/* Speak the month		*/
+
+  00e87	8b 4c 24 10	 mov	 ecx, DWORD PTR _i$[esp+8]
+  00e8b	8b 14 8d 00 00
+	00 00		 mov	 edx, DWORD PTR _pmonths[ecx*4]
+  00e92	52		 push	 edx
+  00e93	57		 push	 edi
+  00e94	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 928  : 		ls_util_send_phone(phTTS,WBOUND);
+
+  00e99	6a 6f		 push	 111			; 0000006fH
+  00e9b	57		 push	 edi
+  00e9c	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 929  : 		if (lp1!=llp+1 && llp->l_ch=='0')					/* Get "01-Jan-84" ok.	*/
+
+  00ea1	8d 43 08	 lea	 eax, DWORD PTR [ebx+8]
+  00ea4	83 c4 10	 add	 esp, 16			; 00000010H
+  00ea7	3b f0		 cmp	 esi, eax
+  00ea9	74 0c		 je	 SHORT $L71964
+  00eab	66 83 3b 30	 cmp	 WORD PTR [ebx], 48	; 00000030H
+  00eaf	75 06		 jne	 SHORT $L71964
+
+; 930  : 			ls_proc_do_number(phTTS,llp+1, lp1, TRUE);
+
+  00eb1	6a 01		 push	 1
+  00eb3	56		 push	 esi
+  00eb4	50		 push	 eax
+
+; 931  : 		else
+
+  00eb5	eb 04		 jmp	 SHORT $L72172
+$L71964:
+
+; 932  : 			ls_proc_do_number(phTTS,llp, lp1, TRUE);
+
+  00eb7	6a 01		 push	 1
+  00eb9	56		 push	 esi
+  00eba	53		 push	 ebx
+$L72172:
+  00ebb	57		 push	 edi
+  00ebc	e8 00 00 00 00	 call	 _ls_proc_do_number
+  00ec1	83 c4 10	 add	 esp, 16			; 00000010H
+$L71965:
+
+; 933  : 	}
+; 934  : 	lp1 += 4;
+; 935  : 	if (lp1 != rlp) {
+
+  00ec4	8b 5c 24 18	 mov	 ebx, DWORD PTR _rlp$[esp+8]
+  00ec8	83 c6 20	 add	 esi, 32			; 00000020H
+  00ecb	3b f3		 cmp	 esi, ebx
+  00ecd	74 7e		 je	 SHORT $L71970
+
+; 936  : 		ls_util_send_phone(phTTS,COMMA);
+
+  00ecf	6a 73		 push	 115			; 00000073H
+  00ed1	57		 push	 edi
+  00ed2	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 937  : 
+; 938  : 		if (lp1+3 == rlp) 
+
+  00ed7	8d 4e 18	 lea	 ecx, DWORD PTR [esi+24]
+  00eda	83 c4 08	 add	 esp, 8
+  00edd	3b cb		 cmp	 ecx, ebx
+  00edf	75 11		 jne	 SHORT $L71967
+
+; 939  : 		{
+; 940  : #ifdef LIKE_BUGS /* BATS 266 let not guess the year eab*/
+; 941  : 			ls_util_send_phone_list(phTTS,pteens[9]);	/* 19XX					*/
+; 942  : 			ls_util_send_phone(phTTS,WBOUND);
+; 943  : #endif
+; 944  : 			ls_proc_do_2_digits(phTTS,lp1+1);
+
+  00ee1	83 c6 08	 add	 esi, 8
+  00ee4	56		 push	 esi
+  00ee5	57		 push	 edi
+  00ee6	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+
+; 956  : 
+; 957  : 				//ls_proc_do_4_digits(phTTS,lp1+1);			/* YYXX					*/		
+; 958  : 				/* this is a 200X date */
+; 959  : 			}
+; 960  : 			else
+; 961  : 			{
+; 962  : 				ls_proc_do_4_digits(phTTS,lp1+1);			/* YYXX					*/		
+
+  00eeb	83 c4 08	 add	 esp, 8
+  00eee	5f		 pop	 edi
+  00eef	5e		 pop	 esi
+  00ef0	5b		 pop	 ebx
+
+; 963  : 			}
+; 964  : 		}
+; 965  : 	}
+; 966  : }
+
+  00ef1	c3		 ret	 0
+$L71967:
+
+; 945  : 		} 
+; 946  : 		else
+; 947  : 		{
+; 948  : 			/* 012 MGS 11/23/1998 BATS #329 fixed 02-apr-2001 */
+; 949  : 			if ((lp1+1)->l_ch!='0' && (lp1+2)->l_ch=='0' && (lp1+3)->l_ch=='0' && (lp1+4)->l_ch!='0')
+
+  00ef2	66 83 7e 08 30	 cmp	 WORD PTR [esi+8], 48	; 00000030H
+  00ef7	8d 46 08	 lea	 eax, DWORD PTR [esi+8]
+  00efa	74 47		 je	 SHORT $L71969
+  00efc	66 83 7e 10 30	 cmp	 WORD PTR [esi+16], 48	; 00000030H
+  00f01	75 40		 jne	 SHORT $L71969
+  00f03	66 83 39 30	 cmp	 WORD PTR [ecx], 48	; 00000030H
+  00f07	75 3a		 jne	 SHORT $L71969
+  00f09	66 83 7e 20 30	 cmp	 WORD PTR [esi+32], 48	; 00000030H
+  00f0e	74 33		 je	 SHORT $L71969
+
+; 950  : 			{
+; 951  : 
+; 952  : 				ls_proc_do_2_digits(phTTS,lp1+1);
+
+  00f10	50		 push	 eax
+  00f11	57		 push	 edi
+  00f12	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+
+; 953  : 				ls_util_send_phone(phTTS,WBOUND);
+
+  00f17	6a 6f		 push	 111			; 0000006fH
+  00f19	57		 push	 edi
+  00f1a	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 954  : 				ls_util_send_phone_list(phTTS,pOH);
+
+  00f1f	68 00 00 00 00	 push	 OFFSET FLAT:_pOH
+  00f24	57		 push	 edi
+  00f25	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 955  : 				ls_util_send_phone_list(phTTS,punits[(lp1+4)->l_ch-'0']);
+
+  00f2a	0f bf 46 20	 movsx	 eax, WORD PTR [esi+32]
+  00f2e	8b 0c 85 40 ff
+	ff ff		 mov	 ecx, DWORD PTR _punits[eax*4-192]
+  00f35	51		 push	 ecx
+  00f36	57		 push	 edi
+  00f37	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  00f3c	83 c4 20	 add	 esp, 32			; 00000020H
+  00f3f	5f		 pop	 edi
+  00f40	5e		 pop	 esi
+  00f41	5b		 pop	 ebx
+
+; 963  : 			}
+; 964  : 		}
+; 965  : 	}
+; 966  : }
+
+  00f42	c3		 ret	 0
+$L71969:
+
+; 956  : 
+; 957  : 				//ls_proc_do_4_digits(phTTS,lp1+1);			/* YYXX					*/		
+; 958  : 				/* this is a 200X date */
+; 959  : 			}
+; 960  : 			else
+; 961  : 			{
+; 962  : 				ls_proc_do_4_digits(phTTS,lp1+1);			/* YYXX					*/		
+
+  00f43	50		 push	 eax
+  00f44	57		 push	 edi
+  00f45	e8 00 00 00 00	 call	 _ls_proc_do_4_digits
+  00f4a	83 c4 08	 add	 esp, 8
+$L71970:
+  00f4d	5f		 pop	 edi
+  00f4e	5e		 pop	 esi
+  00f4f	5b		 pop	 ebx
+
+; 963  : 			}
+; 964  : 		}
+; 965  : 	}
+; 966  : }
+
+  00f50	c3		 ret	 0
+_ls_proc_do_date ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_is_frac
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_ls_proc_is_frac PROC NEAR
+
+; 988  : 	int	n;
+; 989  : 
+; 990  : 	if (!IS_DIGIT(llp->l_ch) || llp->l_ch=='0' || ++llp==rlp)
+
+  00f60	8b 44 24 04	 mov	 eax, DWORD PTR _llp$[esp-4]
+  00f64	53		 push	 ebx
+  00f65	b3 10		 mov	 bl, 16			; 00000010H
+  00f67	55		 push	 ebp
+  00f68	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00f6b	56		 push	 esi
+  00f6c	0f bf d1	 movsx	 edx, cx
+  00f6f	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  00f75	0f 84 9d 00 00
+	00		 je	 $L71981
+  00f7b	66 83 f9 30	 cmp	 cx, 48			; 00000030H
+  00f7f	0f 84 93 00 00
+	00		 je	 $L71981
+  00f85	8b 74 24 14	 mov	 esi, DWORD PTR _rlp$[esp+8]
+  00f89	83 c0 08	 add	 eax, 8
+  00f8c	3b c6		 cmp	 eax, esi
+  00f8e	0f 84 84 00 00
+	00		 je	 $L71981
+
+; 992  : 	if (llp->l_ch != '/') 
+
+  00f94	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00f97	66 83 f9 2f	 cmp	 cx, 47			; 0000002fH
+  00f9b	74 18		 je	 SHORT $L71982
+
+; 993  : 	{								/* Optional digit.		*/
+; 994  : 		if (!IS_DIGIT(llp->l_ch) || ++llp==rlp)
+
+  00f9d	0f bf c9	 movsx	 ecx, cx
+  00fa0	84 99 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[ecx], bl
+  00fa6	74 70		 je	 SHORT $L71981
+  00fa8	83 c0 08	 add	 eax, 8
+  00fab	3b c6		 cmp	 eax, esi
+  00fad	74 69		 je	 SHORT $L71981
+
+; 995  : 			return (FALSE);
+; 996  : 		if (llp->l_ch != '/')
+
+  00faf	66 83 38 2f	 cmp	 WORD PTR [eax], 47	; 0000002fH
+
+; 997  : 			return (FALSE);
+
+  00fb3	75 63		 jne	 SHORT $L71981
+$L71982:
+
+; 998  : 	}
+; 999  : 	n = 0;							/* Count digits.		*/
+; 1000 : 	while (++llp!=rlp && IS_DIGIT(llp->l_ch)) 
+
+  00fb5	83 c0 08	 add	 eax, 8
+  00fb8	33 c9		 xor	 ecx, ecx
+  00fba	3b c6		 cmp	 eax, esi
+  00fbc	74 5a		 je	 SHORT $L71981
+$L71984:
+  00fbe	66 8b 10	 mov	 dx, WORD PTR [eax]
+  00fc1	0f bf ea	 movsx	 ebp, dx
+  00fc4	84 9d 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[ebp], bl
+  00fca	74 12		 je	 SHORT $L71985
+
+; 1001 : 	{
+; 1002 : 		if (n==0 && llp->l_ch=='0')	/* Leading "0" is bad.	*/
+
+  00fcc	85 c9		 test	 ecx, ecx
+  00fce	75 06		 jne	 SHORT $L71986
+  00fd0	66 83 fa 30	 cmp	 dx, 48			; 00000030H
+  00fd4	74 42		 je	 SHORT $L71981
+$L71986:
+
+; 998  : 	}
+; 999  : 	n = 0;							/* Count digits.		*/
+; 1000 : 	while (++llp!=rlp && IS_DIGIT(llp->l_ch)) 
+
+  00fd6	83 c0 08	 add	 eax, 8
+
+; 1003 : 			return (FALSE);
+; 1004 : 		++n;
+
+  00fd9	41		 inc	 ecx
+  00fda	3b c6		 cmp	 eax, esi
+  00fdc	75 e0		 jne	 SHORT $L71984
+$L71985:
+
+; 1005 : 	}
+; 1006 : 	if (n==0 || n>3)				/* 1 to 3 digits.		*/
+
+  00fde	85 c9		 test	 ecx, ecx
+  00fe0	74 36		 je	 SHORT $L71981
+  00fe2	83 f9 03	 cmp	 ecx, 3
+  00fe5	7f 31		 jg	 SHORT $L71981
+
+; 1007 : 		return (FALSE);
+; 1008 : 	if (n == 3) 
+
+  00fe7	75 15		 jne	 SHORT $L71990
+
+; 1009 : 	{								/* Limit is 100.		*/
+; 1010 : 		if ((llp-1)->l_ch != '0'
+; 1011 : 		||  (llp-2)->l_ch != '0'
+; 1012 : 		||  (llp-3)->l_ch != '1')
+
+  00fe9	66 83 78 f8 30	 cmp	 WORD PTR [eax-8], 48	; 00000030H
+  00fee	75 28		 jne	 SHORT $L71981
+  00ff0	66 83 78 f0 30	 cmp	 WORD PTR [eax-16], 48	; 00000030H
+  00ff5	75 21		 jne	 SHORT $L71981
+  00ff7	66 83 78 e8 31	 cmp	 WORD PTR [eax-24], 49	; 00000031H
+
+; 1013 : 			return (FALSE);
+
+  00ffc	75 1a		 jne	 SHORT $L71981
+$L71990:
+
+; 1014 : 	}
+; 1015 : 	if (llp != rlp) 
+
+  00ffe	3b c6		 cmp	 eax, esi
+  01000	74 0d		 je	 SHORT $L71993
+
+; 1016 : 	{								/* Allow "%".			*/
+; 1017 : 		if (llp->l_ch!='%' || llp+1!=rlp)
+
+  01002	66 83 38 25	 cmp	 WORD PTR [eax], 37	; 00000025H
+  01006	75 10		 jne	 SHORT $L71981
+  01008	83 c0 08	 add	 eax, 8
+  0100b	3b c6		 cmp	 eax, esi
+
+; 1018 : 			return (FALSE);
+
+  0100d	75 09		 jne	 SHORT $L71981
+$L71993:
+  0100f	5e		 pop	 esi
+  01010	5d		 pop	 ebp
+
+; 1019 : 	}
+; 1020 : 	return (TRUE);
+
+  01011	b8 01 00 00 00	 mov	 eax, 1
+  01016	5b		 pop	 ebx
+
+; 1021 : }
+
+  01017	c3		 ret	 0
+$L71981:
+  01018	5e		 pop	 esi
+  01019	5d		 pop	 ebp
+
+; 991  : 		return (FALSE);				/* Non digit or "0".	*/
+
+  0101a	33 c0		 xor	 eax, eax
+  0101c	5b		 pop	 ebx
+
+; 1021 : }
+
+  0101d	c3		 ret	 0
+_ls_proc_is_frac ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_do_frac
+EXTRN	_ppercent:BYTE
+EXTRN	_phalf:BYTE
+EXTRN	_phalves:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_pflag$ = 12
+_ls_proc_do_frac PROC NEAR
+
+; 1042 : 	 LETTER *tlp1;
+; 1043 : 	 LETTER *tlp2;
+; 1044 : 	 int	pflag;
+; 1045 : 	 int	ud;
+; 1046 : 
+; 1047 : 	tlp1 = llp;											/* Scan to "/".			*/
+
+  01020	8b 44 24 08	 mov	 eax, DWORD PTR _llp$[esp-4]
+  01024	53		 push	 ebx
+  01025	56		 push	 esi
+  01026	57		 push	 edi
+
+; 1048 : 	while (tlp1->l_ch != '/')
+
+  01027	66 83 38 2f	 cmp	 WORD PTR [eax], 47	; 0000002fH
+  0102b	8b f0		 mov	 esi, eax
+  0102d	74 09		 je	 SHORT $L72008
+$L72007:
+
+; 1049 : 		++tlp1;
+
+  0102f	83 c6 08	 add	 esi, 8
+  01032	66 83 3e 2f	 cmp	 WORD PTR [esi], 47	; 0000002fH
+  01036	75 f7		 jne	 SHORT $L72007
+$L72008:
+
+; 1050 : 	pflag = ls_proc_do_number(phTTS,llp, tlp1, FALSE);	/* Numerator.			*/
+
+  01038	8b 5c 24 10	 mov	 ebx, DWORD PTR _phTTS$[esp+8]
+  0103c	6a 00		 push	 0
+  0103e	56		 push	 esi
+  0103f	50		 push	 eax
+  01040	53		 push	 ebx
+  01041	e8 00 00 00 00	 call	 _ls_proc_do_number
+
+; 1051 : 	ls_util_send_phone(phTTS,WBOUND);					/* Gap.					*/
+
+  01046	6a 6f		 push	 111			; 0000006fH
+  01048	53		 push	 ebx
+  01049	89 44 24 2c	 mov	 DWORD PTR _pflag$[esp+32], eax
+  0104d	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 1052 : 	++tlp1;												/* Skip "/".			*/
+; 1053 : 	tlp2 = tlp1;										/* Scan to end or "%".	*/
+; 1054 : 	while (tlp2!=rlp && tlp2->l_ch!='%')
+
+  01052	8b 44 24 30	 mov	 eax, DWORD PTR _rlp$[esp+32]
+  01056	83 c6 08	 add	 esi, 8
+  01059	83 c4 18	 add	 esp, 24			; 00000018H
+  0105c	3b f0		 cmp	 esi, eax
+  0105e	8b fe		 mov	 edi, esi
+  01060	74 0d		 je	 SHORT $L72011
+$L72010:
+  01062	66 83 3f 25	 cmp	 WORD PTR [edi], 37	; 00000025H
+  01066	74 07		 je	 SHORT $L72011
+
+; 1055 : 		++tlp2;
+
+  01068	83 c7 08	 add	 edi, 8
+  0106b	3b f8		 cmp	 edi, eax
+  0106d	75 f3		 jne	 SHORT $L72010
+$L72011:
+  0106f	55		 push	 ebp
+
+; 1056 : 	if (tlp1+1==tlp2 && tlp1->l_ch=='2') 
+
+  01070	8d 6e 08	 lea	 ebp, DWORD PTR [esi+8]
+  01073	3b ef		 cmp	 ebp, edi
+  01075	75 21		 jne	 SHORT $L72012
+  01077	66 83 3e 32	 cmp	 WORD PTR [esi], 50	; 00000032H
+  0107b	75 1b		 jne	 SHORT $L72012
+
+; 1057 : 	{
+; 1058 : 		ls_util_send_phone_list(phTTS,pflag!=FALSE ? phalves : phalf);
+
+  0107d	8b 44 24 18	 mov	 eax, DWORD PTR _pflag$[esp+12]
+  01081	85 c0		 test	 eax, eax
+  01083	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_phalves
+  01088	75 05		 jne	 SHORT $L72181
+  0108a	b8 00 00 00 00	 mov	 eax, OFFSET FLAT:_phalf
+$L72181:
+  0108f	50		 push	 eax
+  01090	53		 push	 ebx
+  01091	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 1059 : 	} 
+; 1060 : 	else 
+
+  01096	eb 41		 jmp	 SHORT $L72190
+$L72012:
+
+; 1061 : 	{
+; 1062 : 		ls_proc_do_number(phTTS,tlp1, tlp2, TRUE);		/* As an ordinal.		*/
+
+  01098	6a 01		 push	 1
+  0109a	57		 push	 edi
+  0109b	56		 push	 esi
+  0109c	53		 push	 ebx
+  0109d	e8 00 00 00 00	 call	 _ls_proc_do_number
+
+; 1063 : 		if (pflag != FALSE) 
+
+  010a2	8b 44 24 28	 mov	 eax, DWORD PTR _pflag$[esp+28]
+  010a6	83 c4 10	 add	 esp, 16			; 00000010H
+  010a9	85 c0		 test	 eax, eax
+  010ab	74 2f		 je	 SHORT $L72014
+
+; 1064 : 		{												/* Make plural.			*/
+; 1065 : 			ud = (tlp2-1)->l_ch;
+
+  010ad	0f bf 47 f8	 movsx	 eax, WORD PTR [edi-8]
+
+; 1066 : 			if (tlp2>tlp1+1 && (tlp2-2)->l_ch=='1')
+
+  010b1	3b fd		 cmp	 edi, ebp
+  010b3	76 07		 jbe	 SHORT $L72015
+  010b5	66 83 7f f0 31	 cmp	 WORD PTR [edi-16], 49	; 00000031H
+
+; 1067 : 				ud = '0';
+; 1068 : 			ls_util_send_phone(phTTS,ud=='2'||ud=='3' ? Z : S);
+
+  010ba	74 0a		 je	 SHORT $L72189
+$L72015:
+  010bc	83 f8 32	 cmp	 eax, 50			; 00000032H
+  010bf	74 0c		 je	 SHORT $L72182
+  010c1	83 f8 33	 cmp	 eax, 51			; 00000033H
+  010c4	74 07		 je	 SHORT $L72182
+$L72189:
+  010c6	b8 29 00 00 00	 mov	 eax, 41			; 00000029H
+  010cb	eb 05		 jmp	 SHORT $L72183
+$L72182:
+  010cd	b8 2a 00 00 00	 mov	 eax, 42			; 0000002aH
+$L72183:
+  010d2	50		 push	 eax
+  010d3	53		 push	 ebx
+  010d4	e8 00 00 00 00	 call	 _ls_util_send_phone
+$L72190:
+  010d9	83 c4 08	 add	 esp, 8
+$L72014:
+
+; 1069 : 		}
+; 1070 : 	}
+; 1071 : 	if (tlp2 != rlp) 
+
+  010dc	8b 44 24 1c	 mov	 eax, DWORD PTR _rlp$[esp+12]
+  010e0	5d		 pop	 ebp
+  010e1	3b f8		 cmp	 edi, eax
+  010e3	74 0e		 je	 SHORT $L72016
+
+; 1072 : 	{													/* Must be "%".			*/
+; 1073 : 		ls_util_send_phone_list(phTTS,ppercent);
+
+  010e5	68 00 00 00 00	 push	 OFFSET FLAT:_ppercent
+  010ea	53		 push	 ebx
+  010eb	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  010f0	83 c4 08	 add	 esp, 8
+$L72016:
+  010f3	5f		 pop	 edi
+  010f4	5e		 pop	 esi
+  010f5	5b		 pop	 ebx
+
+; 1074 : 	}          
+; 1075 : }
+
+  010f6	c3		 ret	 0
+_ls_proc_do_frac ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_is_time
+_TEXT	SEGMENT
+_pLts_t$ = 8
+_llp$ = 12
+_rlp$ = 16
+_ls_proc_is_time PROC NEAR
+
+; 1097 : 	if (!IS_DIGIT(llp->l_ch) || ++llp==rlp)	/* First digit.		*/
+
+  01100	8b 44 24 08	 mov	 eax, DWORD PTR _llp$[esp-4]
+  01104	53		 push	 ebx
+  01105	b3 10		 mov	 bl, 16			; 00000010H
+  01107	0f bf 08	 movsx	 ecx, WORD PTR [eax]
+  0110a	84 99 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[ecx], bl
+  01110	0f 84 f3 00 00
+	00		 je	 $L72028
+  01116	8b 4c 24 10	 mov	 ecx, DWORD PTR _rlp$[esp]
+  0111a	83 c0 08	 add	 eax, 8
+  0111d	3b c1		 cmp	 eax, ecx
+  0111f	0f 84 e4 00 00
+	00		 je	 $L72028
+
+; 1099 : 
+; 1100 : 
+; 1101 : 	if (llp->l_ch != ':') 							/* Optional digit.	*/
+
+  01125	66 8b 10	 mov	 dx, WORD PTR [eax]
+  01128	66 83 fa 3a	 cmp	 dx, 58			; 0000003aH
+  0112c	74 24		 je	 SHORT $L72029
+
+; 1102 : 	{
+; 1103 : 		if (!IS_DIGIT(llp->l_ch) || ++llp==rlp)
+
+  0112e	0f bf d2	 movsx	 edx, dx
+  01131	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  01137	0f 84 cc 00 00
+	00		 je	 $L72028
+  0113d	83 c0 08	 add	 eax, 8
+  01140	3b c1		 cmp	 eax, ecx
+  01142	0f 84 c1 00 00
+	00		 je	 $L72028
+
+; 1104 : 			return (FALSE);
+; 1105 : 		if (llp->l_ch != ':')						/* Must be ":" now!	*/
+
+  01148	66 83 38 3a	 cmp	 WORD PTR [eax], 58	; 0000003aH
+
+; 1106 : 			return (FALSE);
+
+  0114c	0f 85 b7 00 00
+	00		 jne	 $L72028
+$L72029:
+
+; 1107 : 	}
+; 1108 : 	
+; 1109 : 	if (++llp==rlp || !IS_DIGIT(llp->l_ch))	/* Two digits.		*/
+
+  01152	83 c0 08	 add	 eax, 8
+  01155	3b c1		 cmp	 eax, ecx
+  01157	0f 84 ac 00 00
+	00		 je	 $L72028
+  0115d	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  01160	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  01166	0f 84 9d 00 00
+	00		 je	 $L72028
+
+; 1110 : 		return (FALSE);
+; 1111 : 	if (++llp==rlp || !IS_DIGIT(llp->l_ch))
+
+  0116c	83 c0 08	 add	 eax, 8
+  0116f	3b c1		 cmp	 eax, ecx
+  01171	0f 84 92 00 00
+	00		 je	 $L72028
+  01177	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  0117a	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  01180	0f 84 83 00 00
+	00		 je	 $L72028
+
+; 1112 : 		return (FALSE);
+; 1113 : 	if (++llp == rlp)								/* 00:00			*/
+
+  01186	83 c0 08	 add	 eax, 8
+  01189	3b c1		 cmp	 eax, ecx
+  0118b	75 07		 jne	 SHORT $L72034
+
+; 1114 : 	{
+; 1115 : 		return (TRUE);
+
+  0118d	b8 01 00 00 00	 mov	 eax, 1
+  01192	5b		 pop	 ebx
+
+; 1134 : }
+
+  01193	c3		 ret	 0
+$L72034:
+
+; 1116 : 	}
+; 1117 : 
+; 1118 : 	if (llp->l_ch == ':')
+
+  01194	66 83 38 3a	 cmp	 WORD PTR [eax], 58	; 0000003aH
+  01198	75 27		 jne	 SHORT $L72035
+
+; 1119 : 	{												/* 00:00:00			*/
+; 1120 : 		if (++llp==rlp || !IS_DIGIT(llp->l_ch))
+
+  0119a	83 c0 08	 add	 eax, 8
+  0119d	3b c1		 cmp	 eax, ecx
+  0119f	74 68		 je	 SHORT $L72028
+  011a1	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  011a4	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  011aa	74 5d		 je	 SHORT $L72028
+
+; 1121 : 			return (FALSE);
+; 1122 : 		if (++llp==rlp || !IS_DIGIT(llp->l_ch))
+
+  011ac	83 c0 08	 add	 eax, 8
+  011af	3b c1		 cmp	 eax, ecx
+  011b1	74 56		 je	 SHORT $L72028
+  011b3	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  011b6	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  011bc	74 4b		 je	 SHORT $L72028
+
+; 1123 : 			return (FALSE);
+; 1124 : 		++llp;
+
+  011be	83 c0 08	 add	 eax, 8
+$L72035:
+
+; 1125 : 	}
+; 1126 : 	if (llp!=rlp && llp->l_ch==pLts_t->fchar)
+
+  011c1	3b c1		 cmp	 eax, ecx
+  011c3	74 3d		 je	 SHORT $L72045
+  011c5	66 8b 10	 mov	 dx, WORD PTR [eax]
+  011c8	56		 push	 esi
+  011c9	8b 74 24 0c	 mov	 esi, DWORD PTR _pLts_t$[esp+4]
+  011cd	66 3b 96 ec 08
+	00 00		 cmp	 dx, WORD PTR [esi+2284]
+  011d4	5e		 pop	 esi
+  011d5	75 2b		 jne	 SHORT $L72045
+
+; 1127 : 	{	/* Fractional digits.	*/
+; 1128 : 		if (++llp==rlp || !IS_DIGIT(llp->l_ch))
+
+  011d7	83 c0 08	 add	 eax, 8
+  011da	3b c1		 cmp	 eax, ecx
+  011dc	74 2b		 je	 SHORT $L72028
+  011de	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  011e1	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  011e7	74 20		 je	 SHORT $L72028
+
+; 1129 : 			return (FALSE);
+; 1130 : 		while (++llp!=rlp && IS_DIGIT(llp->l_ch));
+
+  011e9	83 c0 08	 add	 eax, 8
+  011ec	3b c1		 cmp	 eax, ecx
+  011ee	74 12		 je	 SHORT $L72045
+$L72044:
+  011f0	0f bf 10	 movsx	 edx, WORD PTR [eax]
+  011f3	84 9a 00 00 00
+	00		 test	 BYTE PTR _ls_char_feat[edx], bl
+  011f9	74 07		 je	 SHORT $L72045
+  011fb	83 c0 08	 add	 eax, 8
+  011fe	3b c1		 cmp	 eax, ecx
+  01200	75 ee		 jne	 SHORT $L72044
+$L72045:
+
+; 1131 : 	}
+; 1132 : 
+; 1133 : 	return (TRUE);				/* Looks good!		*/
+
+  01202	b8 01 00 00 00	 mov	 eax, 1
+  01207	5b		 pop	 ebx
+
+; 1134 : }
+
+  01208	c3		 ret	 0
+$L72028:
+
+; 1098 : 		return (FALSE);
+
+  01209	33 c0		 xor	 eax, eax
+  0120b	5b		 pop	 ebx
+
+; 1134 : }
+
+  0120c	c3		 ret	 0
+_ls_proc_is_time ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_is_am_pm
+_TEXT	SEGMENT
+_llp$ = 8
+_rlp$ = 12
+_ls_proc_is_am_pm PROC NEAR
+
+; 1157 : 	if (llp->l_ch!='a' && llp->l_ch!='A'
+; 1158 : 	&&  llp->l_ch!='p' && llp->l_ch!='P')
+
+  01210	8b 4c 24 04	 mov	 ecx, DWORD PTR _llp$[esp-4]
+  01214	66 8b 01	 mov	 ax, WORD PTR [ecx]
+  01217	66 3d 61 00	 cmp	 ax, 97			; 00000061H
+  0121b	74 15		 je	 SHORT $L72051
+  0121d	66 3d 41 00	 cmp	 ax, 65			; 00000041H
+  01221	74 0f		 je	 SHORT $L72051
+  01223	66 3d 70 00	 cmp	 ax, 112			; 00000070H
+  01227	74 09		 je	 SHORT $L72051
+  01229	66 3d 50 00	 cmp	 ax, 80			; 00000050H
+  0122d	74 03		 je	 SHORT $L72051
+
+; 1159 : 		return (FALSE);
+
+  0122f	33 c0		 xor	 eax, eax
+
+; 1165 : 		return (FALSE);
+; 1166 : 	return (TRUE);
+; 1167 : }
+
+  01231	c3		 ret	 0
+$L72051:
+
+; 1160 : 	++llp;
+; 1161 : 	if (llp->l_ch!='m' && llp->l_ch!='M')
+
+  01232	66 8b 41 08	 mov	 ax, WORD PTR [ecx+8]
+  01236	83 c1 08	 add	 ecx, 8
+  01239	66 3d 6d 00	 cmp	 ax, 109			; 0000006dH
+  0123d	74 09		 je	 SHORT $L72052
+  0123f	66 3d 4d 00	 cmp	 ax, 77			; 0000004dH
+  01243	74 03		 je	 SHORT $L72052
+
+; 1162 : 		return (FALSE);
+
+  01245	33 c0		 xor	 eax, eax
+
+; 1165 : 		return (FALSE);
+; 1166 : 	return (TRUE);
+; 1167 : }
+
+  01247	c3		 ret	 0
+$L72052:
+
+; 1163 : 	++llp;
+; 1164 : 	if (llp != rlp)
+
+  01248	8b 54 24 08	 mov	 edx, DWORD PTR _rlp$[esp-4]
+  0124c	83 c1 08	 add	 ecx, 8
+  0124f	33 c0		 xor	 eax, eax
+  01251	3b ca		 cmp	 ecx, edx
+  01253	0f 94 c0	 sete	 al
+
+; 1165 : 		return (FALSE);
+; 1166 : 	return (TRUE);
+; 1167 : }
+
+  01256	c3		 ret	 0
+_ls_proc_is_am_pm ENDP
+_TEXT	ENDS
+PUBLIC	_ls_proc_do_time
+_TEXT	SEGMENT
+_phTTS$ = 8
+_llp$ = 12
+_rlp$ = 16
+_ls_proc_do_time PROC NEAR
+
+; 1191 : {
+
+  01260	53		 push	 ebx
+  01261	56		 push	 esi
+
+; 1192 : 	int flag= 0;
+; 1193 : #ifdef NWS_US
+; 1194 : 	/* eab 10/97 set off numbers with a glotal stop*/
+; 1195 : 	ls_util_send_phone(phTTS,Q);
+; 1196 : #endif
+; 1197 : 	
+; 1198 : 	if ((llp+1)->l_ch == ':')
+
+  01262	8b 74 24 10	 mov	 esi, DWORD PTR _llp$[esp+4]
+  01266	57		 push	 edi
+  01267	66 83 7e 08 3a	 cmp	 WORD PTR [esi+8], 58	; 0000003aH
+  0126c	75 1d		 jne	 SHORT $L72062
+
+; 1199 : 	{		/* Initial 1 digit.	*/
+; 1200 : 
+; 1201 : 		ls_util_send_phone_list(phTTS,punits[llp->l_ch-'0']);
+
+  0126e	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  01271	8b 7c 24 10	 mov	 edi, DWORD PTR _phTTS$[esp+8]
+  01275	8b 0c 85 40 ff
+	ff ff		 mov	 ecx, DWORD PTR _punits[eax*4-192]
+  0127c	51		 push	 ecx
+  0127d	57		 push	 edi
+  0127e	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  01283	83 c4 08	 add	 esp, 8
+
+; 1202 : 		llp += 2;
+
+  01286	83 c6 10	 add	 esi, 16			; 00000010H
+
+; 1203 : 	}
+; 1204 : 	else
+
+  01289	eb 11		 jmp	 SHORT $L72063
+$L72062:
+
+; 1205 : 	{				/* Initial 2 digit.	*/
+; 1206 : 		ls_proc_do_2_digits(phTTS,llp);
+
+  0128b	8b 7c 24 10	 mov	 edi, DWORD PTR _phTTS$[esp+8]
+  0128f	56		 push	 esi
+  01290	57		 push	 edi
+  01291	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+  01296	83 c4 08	 add	 esp, 8
+
+; 1207 : 		llp += 3;
+
+  01299	83 c6 18	 add	 esi, 24			; 00000018H
+$L72063:
+
+; 1208 : 	}
+; 1209 : #ifdef NWS_US
+; 1210 : /* eab 10/97 set off numbers with a glotal stop*/
+; 1211 : 	ls_util_send_phone(phTTS,Q);
+; 1212 : #endif	
+; 1213 : 	ls_util_send_phone(phTTS,VPSTART);			/* Middle.		*/
+
+  0129c	6a 71		 push	 113			; 00000071H
+  0129e	57		 push	 edi
+  0129f	e8 00 00 00 00	 call	 _ls_util_send_phone
+  012a4	83 c4 08	 add	 esp, 8
+
+; 1214 : 	if ( !( llp->l_ch == '0' && (llp+1)->l_ch == '0'))
+
+  012a7	66 83 3e 30	 cmp	 WORD PTR [esi], 48	; 00000030H
+  012ab	75 07		 jne	 SHORT $L72065
+  012ad	66 83 7e 08 30	 cmp	 WORD PTR [esi+8], 48	; 00000030H
+  012b2	74 0a		 je	 SHORT $L72064
+$L72065:
+
+; 1215 : 		ls_proc_do_2_digits(phTTS,llp);
+
+  012b4	56		 push	 esi
+  012b5	57		 push	 edi
+  012b6	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+  012bb	83 c4 08	 add	 esp, 8
+$L72064:
+
+; 1216 : 	llp += 2;
+; 1217 : 
+; 1218 : 	if (llp!=rlp && llp->l_ch==':')
+
+  012be	8b 5c 24 18	 mov	 ebx, DWORD PTR _rlp$[esp+8]
+  012c2	83 c6 10	 add	 esi, 16			; 00000010H
+  012c5	3b f3		 cmp	 esi, ebx
+  012c7	74 77		 je	 SHORT $L72072
+  012c9	66 83 3e 3a	 cmp	 WORD PTR [esi], 58	; 0000003aH
+  012cd	75 18		 jne	 SHORT $L72066
+
+; 1219 : 	{	/* End.			*/
+; 1220 : 		ls_util_send_phone(phTTS,VPSTART);
+
+  012cf	6a 71		 push	 113			; 00000071H
+  012d1	57		 push	 edi
+  012d2	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 1221 : 		ls_proc_do_2_digits(phTTS,llp+1);
+
+  012d7	8d 56 08	 lea	 edx, DWORD PTR [esi+8]
+  012da	52		 push	 edx
+  012db	57		 push	 edi
+  012dc	e8 00 00 00 00	 call	 _ls_proc_do_2_digits
+  012e1	83 c4 10	 add	 esp, 16			; 00000010H
+
+; 1222 : 		llp += 3;
+
+  012e4	83 c6 18	 add	 esi, 24			; 00000018H
+$L72066:
+
+; 1223 : 	}
+; 1224 :     
+; 1225 : 	if (llp != rlp)
+
+  012e7	3b f3		 cmp	 esi, ebx
+  012e9	74 55		 je	 SHORT $L72072
+
+; 1226 : 	{			/* Final fractions.	*/
+; 1227 : 		if(llp->l_ch  == '.')
+
+  012eb	66 83 3e 2e	 cmp	 WORD PTR [esi], 46	; 0000002eH
+  012ef	75 44		 jne	 SHORT $L72068
+
+; 1228 : 		{
+; 1229 : 			ls_util_send_phone(phTTS,WBOUND);
+
+  012f1	6a 6f		 push	 111			; 0000006fH
+  012f3	57		 push	 edi
+  012f4	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 1230 : 			ls_util_send_phone_list(phTTS,ppoint);
+
+  012f9	68 00 00 00 00	 push	 OFFSET FLAT:_ppoint
+  012fe	57		 push	 edi
+  012ff	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+
+; 1231 : 			while (++llp != rlp)
+
+  01304	83 c6 08	 add	 esi, 8
+  01307	83 c4 10	 add	 esp, 16			; 00000010H
+  0130a	3b f3		 cmp	 esi, ebx
+  0130c	74 32		 je	 SHORT $L72072
+$L72070:
+
+; 1232 : 			{
+; 1233 : 				ls_util_send_phone(phTTS,WBOUND);
+
+  0130e	6a 6f		 push	 111			; 0000006fH
+  01310	57		 push	 edi
+  01311	e8 00 00 00 00	 call	 _ls_util_send_phone
+
+; 1234 : 				ls_util_send_phone_list(phTTS,punits[llp->l_ch-'0']);
+
+  01316	0f bf 06	 movsx	 eax, WORD PTR [esi]
+  01319	8b 0c 85 40 ff
+	ff ff		 mov	 ecx, DWORD PTR _punits[eax*4-192]
+  01320	51		 push	 ecx
+  01321	57		 push	 edi
+  01322	e8 00 00 00 00	 call	 _ls_util_send_phone_list
+  01327	83 c6 08	 add	 esi, 8
+  0132a	83 c4 10	 add	 esp, 16			; 00000010H
+  0132d	3b f3		 cmp	 esi, ebx
+  0132f	75 dd		 jne	 SHORT $L72070
+  01331	5f		 pop	 edi
+  01332	5e		 pop	 esi
+  01333	5b		 pop	 ebx
+
+; 1240 : 		}
+; 1241 : 	}
+; 1242 : 	
+; 1243 : 
+; 1244 : }
+
+  01334	c3		 ret	 0
+$L72068:
+
+; 1235 : 			}
+; 1236 : 		}
+; 1237 : 		else
+; 1238 : 		{
+; 1239 : 			ls_spel_spell(phTTS,llp,rlp);
+
+  01335	53		 push	 ebx
+  01336	56		 push	 esi
+  01337	57		 push	 edi
+  01338	e8 00 00 00 00	 call	 _ls_spel_spell
+  0133d	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L72072:
+  01340	5f		 pop	 edi
+  01341	5e		 pop	 esi
+  01342	5b		 pop	 ebx
+
+; 1240 : 		}
+; 1241 : 	}
+; 1242 : 	
+; 1243 : 
+; 1244 : }
+
+  01343	c3		 ret	 0
+_ls_proc_do_time ENDP
+_TEXT	ENDS
+END
