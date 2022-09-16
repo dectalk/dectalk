@@ -1,0 +1,524 @@
+	TITLE	D:\work\product\dapi\src\Ph\ph_main.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_FreePHInstanceData
+PUBLIC	_ph_main@4
+EXTRN	_paul_8:BYTE
+EXTRN	_betty_8:BYTE
+EXTRN	_harry_8:BYTE
+EXTRN	_frank_8:BYTE
+EXTRN	_kit_8:BYTE
+EXTRN	_ursula_8:BYTE
+EXTRN	_rita_8:BYTE
+EXTRN	_wendy_8:BYTE
+EXTRN	_dennis_8:BYTE
+EXTRN	_paul:BYTE
+EXTRN	_betty:BYTE
+EXTRN	_harry:BYTE
+EXTRN	_frank:BYTE
+EXTRN	_kit:BYTE
+EXTRN	_ursula:BYTE
+EXTRN	_rita:BYTE
+EXTRN	_wendy:BYTE
+EXTRN	_dennis:BYTE
+EXTRN	__imp__calloc:NEAR
+EXTRN	_default_lang:NEAR
+EXTRN	__imp__SetEvent@4:NEAR
+EXTRN	_kltask:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_ph_main@4 PROC NEAR
+
+; 229  : {
+
+  00000	53		 push	 ebx
+
+; 230  : 	/* Added a variable to get the handle of Current instance krenel_share_data */
+; 231  : 	PKSD_T                  pKsd_t;
+; 232  : 	PDPH_T                  pDph_t = NULL;
+; 233  : 	PDPHSETTAR_ST           pDphsettar_st = NULL;	/* Pointer to PHSETTAR.C file STATIC structure */
+; 234  : 
+; 235  : #ifdef WITHOUT_CALLOC
+; 236  : 	int                     i;		   /* MVP : 03/18/96 */
+; 237  : #endif
+; 238  : 
+; 239  : #ifdef MSDOS
+; 240  : 	phTTS = &hTTS;
+; 241  : 	phTTS->pKernelShareData = kernel_share;		/* set a pointer to the KS structure */
+; 242  : 	pKsd_t = phTTS->pKernelShareData;
+; 243  : 	phTTS->pPHThreadData = &Dph_t;
+; 244  : 	pDph_t = phTTS->pPHThreadData;
+; 245  : 	pDph_t->pSTphsettar = &STphsettar;
+; 246  : 	pDphsettar_st = pDph_t->pSTphsettar;
+; 247  : #else
+; 248  : 	pKsd_t = phTTS->pKernelShareData;
+; 249  : 
+; 250  : #if defined (__osf__) || defined (__linux__)
+; 251  :     /* GL 04/21/1997  add this as the latest OSF code */
+; 252  :     /* Initialize thread error field to no error */
+; 253  :     phTTS->uiThreadError = MMSYSERR_NOERROR;
+; 254  : #endif
+; 255  : 
+; 256  : #ifdef SEPARATE_PROCESSES
+; 257  : 	kernel_share = (struct share_data *) malloc (sizeof (struct share_data));
+; 258  : 
+; 259  : #endif
+; 260  : 
+; 261  : 
+; 262  : 	/* MVP MI kinp is not used in this function  kinp = pKsd_t->lang_ph[LANG_english]; */
+; 263  : 	if ((pDph_t = (PDPH_T) calloc (1, sizeof (DPH_T))) == NULL)
+
+  00001	8b 1d 00 00 00
+	00		 mov	 ebx, DWORD PTR __imp__calloc
+  00007	55		 push	 ebp
+  00008	56		 push	 esi
+  00009	57		 push	 edi
+  0000a	8b 7c 24 14	 mov	 edi, DWORD PTR _phTTS$[esp+12]
+  0000e	68 4c 28 00 00	 push	 10316			; 0000284cH
+  00013	6a 01		 push	 1
+  00015	8b 6f 08	 mov	 ebp, DWORD PTR [edi+8]
+  00018	ff d3		 call	 ebx
+  0001a	8b f0		 mov	 esi, eax
+  0001c	83 c4 08	 add	 esp, 8
+  0001f	85 f6		 test	 esi, esi
+  00021	75 0c		 jne	 SHORT $L71186
+  00023	5f		 pop	 edi
+  00024	5e		 pop	 esi
+  00025	5d		 pop	 ebp
+
+; 264  : #ifdef WIN32
+; 265  : 		return (MMSYSERR_NOMEM);
+
+  00026	b8 07 00 00 00	 mov	 eax, 7
+  0002b	5b		 pop	 ebx
+
+; 474  : #endif
+; 475  : #if defined (__osf__) || defined (__linux__)
+; 476  : 		OP_ExitThread(MMSYSERR_NOERROR);
+; 477  : 		OP_THREAD_RETURN;
+; 478  : #endif
+; 479  : }
+
+  0002c	c2 04 00	 ret	 4
+$L71186:
+
+; 266  : #endif
+; 267  : #if defined (__osf__) || defined (__linux__)
+; 268  : 		phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 269  :         else
+; 270  :         {
+; 271  : #endif
+; 272  : 		/* Associate this PH thread instance specific structure with current speech object */
+; 273  : 		phTTS->pPHThreadData = pDph_t;
+; 274  : #ifndef MSDOS
+; 275  : 		/* MGS BATS 470 Fixed crashing due to reset */
+; 276  : 		pDph_t->phTTS=phTTS;
+; 277  : #endif
+; 278  : 		/* MVP : Initialize all structure pointers in DPH_T to NULL. */
+; 279  : 		pDph_t->pSTphsettar = NULL;
+; 280  : 
+; 281  : 	/****************************************************************************/
+; 282  : 	/* MVP : Allocation of structures specific to STATIC varaibles in each file */
+; 283  : 	/****************************************************************************/
+; 284  : 
+; 285  : 		/* Structure for PHSETTAR.C file specific static variables */
+; 286  : 		/* MVP: 03/19/96 Use calloc() to initialize all elements to zero. */
+; 287  : 		if ((pDphsettar_st = (PDPHSETTAR_ST) calloc (1, sizeof (DPHSETTAR_ST))) == NULL)
+
+  0002f	68 c4 00 00 00	 push	 196			; 000000c4H
+  00034	89 77 18	 mov	 DWORD PTR [edi+24], esi
+  00037	6a 01		 push	 1
+  00039	89 be a8 11 00
+	00		 mov	 DWORD PTR [esi+4520], edi
+  0003f	c7 86 48 28 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+10312], 0
+  00049	ff d3		 call	 ebx
+  0004b	8b d8		 mov	 ebx, eax
+  0004d	83 c4 08	 add	 esp, 8
+  00050	85 db		 test	 ebx, ebx
+  00052	75 18		 jne	 SHORT $L71191
+
+; 288  : 		{
+; 289  : 			FreePHInstanceData (pDph_t);
+
+  00054	56		 push	 esi
+  00055	e8 00 00 00 00	 call	 _FreePHInstanceData
+  0005a	83 c4 04	 add	 esp, 4
+
+; 290  : 			phTTS->pPHThreadData = NULL;
+
+  0005d	89 5f 18	 mov	 DWORD PTR [edi+24], ebx
+
+; 291  : #ifdef WIN32
+; 292  : 			return (MMSYSERR_NOMEM);
+
+  00060	b8 07 00 00 00	 mov	 eax, 7
+  00065	5f		 pop	 edi
+  00066	5e		 pop	 esi
+  00067	5d		 pop	 ebp
+  00068	5b		 pop	 ebx
+
+; 474  : #endif
+; 475  : #if defined (__osf__) || defined (__linux__)
+; 476  : 		OP_ExitThread(MMSYSERR_NOERROR);
+; 477  : 		OP_THREAD_RETURN;
+; 478  : #endif
+; 479  : }
+
+  00069	c2 04 00	 ret	 4
+$L71191:
+
+; 293  : 		}
+; 294  : #endif
+; 295  : #if defined (__osf__) || defined (__linux__)
+; 296  : 			phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 297  : 		}
+; 298  : 		}
+; 299  : #endif
+; 300  : 
+; 301  : #ifdef WIN32
+; 302  : 	SetEvent (phTTS->hMallocSuccessEvent);	/* Malloc s are success,set the event */
+
+  0006c	8b 47 1c	 mov	 eax, DWORD PTR [edi+28]
+  0006f	50		 push	 eax
+  00070	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 303  : #endif
+; 304  : #if defined (__osf__) || defined (__linux__)
+; 305  :         /* CP: Set the event, even if malloc eerror occurred. User
+; 306  :          * will look at uiThreadError for actual error code.
+; 307  :          */
+; 308  : 		OP_SetEvent(phTTS->hMallocSuccessEvent);
+; 309  :         if (phTTS->uiThreadError != MMSYSERR_NOERROR)
+; 310  : 		{
+; 311  : 			OP_ExitThread(phTTS->uiThreadError);
+; 312  : 			OP_THREAD_RETURN;
+; 313  : 		}
+; 314  : #endif
+; 315  : #endif
+; 316  : 
+; 317  : 	/* Associate this structure handle with current PH thread data structure */
+; 318  : 	pDph_t->pSTphsettar = pDphsettar_st;
+; 319  : 	/* MVP :Do required initialization of certain elements of DPHSETTAR_ST structure */
+; 320  : #ifdef WITHOUT_CALLOC
+; 321  : 	pDphsettar_st->drawinitsw = 0;
+; 322  : 	pDphsettar_st->breathyah = 0;
+; 323  : 	pDphsettar_st->breathytilt = 0;
+; 324  : 	pDphsettar_st->nrises_sofar = 0;
+; 325  : 	pDphsettar_st->hatsize = 0;    
+; 326  : #ifdef MWS_US
+; 327  : 	pDphsettar_st->lastbound = 0; 
+; 328  : #endif
+; 329  : 	pDphsettar_st->tarbas=0;
+; 330  : 	pDphsettar_st->hat_loc_re_baseline = 0;
+; 331  : 	pDphsettar_st->initsw = 0;		   	/* MVP :03/19/96 */
+; 332  : 
+; 333  : 	pDphsettar_st->sprlast = 0;		   	/* MVP :03/19/96 */
+; 334  : 
+; 335  : 	pDphsettar_st->strucstressprev = 0;	/* MVP :03/19/96 */      
+; 336  : 
+; 337  : 	pDphsettar_st->phonex_drawt0 = 0;  	/* MVP :03/19/96 */
+; 338  : 
+; 339  : 	pDphsettar_st->tarseg = 0;		   	/* MVP :03/19/96 */
+; 340  : 
+; 341  : 	pDphsettar_st->tarseg1 = 0;		   	/* MVP :03/19/96 */
+; 342  : 
+; 343  : 	pDphsettar_st->nimp = 0;		   	/* MVP :03/19/96 */
+; 344  : 
+; 345  : 	pDphsettar_st->timecos10 = 0;	   	/* MVP :03/19/96 */
+; 346  : 
+; 347  : 	pDphsettar_st->timecos15 = 0;	   	/* MVP :03/19/96 */
+; 348  : 
+; 349  : 	pDphsettar_st->timecosvib = 0;	/* MVP :03/19/96 */
+; 350  : 	/* MVP : 03/15/96 Do required initialization of certain elements of  DPH_T structure    */
+; 351  : 	pDph_t->initpardelay = 0;
+; 352  : 	/* MVP: 03/18/96 */
+; 353  : 	for (i = 0; i < VOICE_PARS; i++)
+; 354  : 		pDph_t->parstochip[i] = 0;
+; 355  : 	pDph_t->shrink=0;
+; 356  : 	pDph_t->shrib=0;
+; 357  : 	pDph_t->shrif=0;
+; 358  : 
+; 359  : #ifdef PH_SWAPDATA
+; 360  : 	pDph_t->PHSwapCnt=0; //Foe evan balaban
+; 361  : #endif
+; 362  : 
+; 363  : #ifdef SPANISH
+; 364  : 		pDph_t->th_to_s=0;			/* From p_sp_st1.c 						*/
+; 365  : 	    pDph_t->istrill=0;	  		/* TRUE if curr. phoneme is /rr/  		*/
+; 366  : 	    pDph_t->trillcount=0;	   	/* Modulation index for /rr/ trill      */
+; 367  : 	    pDph_t->trillend=0;	   		/* Stop trill 25 msec. before durphon   */
+; 368  : 		pDph_t->trillclosed = 0;	/* The trill is gone                    */
+; 369  : 		// from sphdrwt0.c
+; 370  : 		pDph_t->special_phrase = 0;
+; 371  : 		pDph_t->delta_special = 0;
+; 372  : 		pDph_t->lastf0 = 0;
+; 373  : 		pDph_t->evryoth = 0;
+; 374  : 		pDph_t->emphasisflag = 0;
+; 375  : 		pDph_t->pbvalue = NULL;	    /* Pointer into boundary value table  	*/
+; 376  : 		pDph_t->p_bvalue = NULL;    /* Pointer into boundary value table  	*/
+; 377  : 	    pDph_t->specdur=0;
+; 378  : #endif
+; 379  : #ifdef GERMAN
+; 380  : 		pDph_t->curr_insph=0;
+; 381  : 		pDph_t->modulcount=0;	 	/* for uvular /R/ modulation 			*/
+; 382  : 		pDph_t->new_sentence=0;  	/* for german sentence intonation 		*/
+; 383  : 		pDph_t->old_delay=0;	   	/* for intonation 						*/	
+; 384  : 		pDph_t->nstep=0;
+; 385  : 		pDph_t->gain=0;
+; 386  : 		pDph_t->tarold=0;
+; 387  : 		pDph_t->dur1=0;
+; 388  : 		pDph_t->slope=0;
+; 389  : 		pDph_t->oldval=0;
+; 390  : 		pDph_t->tcount=0;
+; 391  : 		pDph_t->dirchange=0;
+; 392  : 		pDph_t->osil=0;
+; 393  : 		memset(pDph_t->pars,0,sizeof(SENT_PARS)*MAXSPA);
+; 394  : 		pDph_t->hat_seen=0;
+; 395  : 		pDph_t->wordcount=0;
+; 396  : 		memset(pDph_t->Intonation,0,sizeof(SENTENCE_INTONATION));
+; 397  : 		pDph_t->old_delay=0;
+; 398  : #endif
+; 399  : #endif
+; 400  : 
+; 401  : 	/* MVP : Initialize the speaker param arrays voidef,voidef_8 here */
+; 402  : 	pDph_t->voidef_8[0] = paul_8;
+; 403  : 	pDph_t->voidef_8[1] = betty_8;
+; 404  : 	pDph_t->voidef_8[2] = harry_8;
+; 405  : 	pDph_t->voidef_8[3] = frank_8;
+; 406  : 	pDph_t->voidef_8[4] = dennis_8;
+; 407  : 	pDph_t->voidef_8[5] = kit_8;
+; 408  : 	pDph_t->voidef_8[6] = ursula_8;
+; 409  : 	pDph_t->voidef_8[7] = rita_8;
+; 410  : 	pDph_t->voidef_8[8] = wendy_8;
+; 411  : 	pDph_t->voidef_8[9] = pDph_t->var_val;
+; 412  : 
+; 413  : 	pDph_t->voidef[0] = paul;
+; 414  : 	pDph_t->voidef[1] = betty;
+; 415  : 	pDph_t->voidef[2] = harry;
+; 416  : 	pDph_t->voidef[3] = frank;
+; 417  : 	pDph_t->voidef[4] = dennis;
+; 418  : 	pDph_t->voidef[5] = kit;
+; 419  : 	pDph_t->voidef[6] = ursula;
+; 420  : 	pDph_t->voidef[7] = rita;
+; 421  : 	pDph_t->voidef[8] = wendy;
+; 422  : 	pDph_t->voidef[9] = pDph_t->var_val;
+; 423  : 
+; 424  : #ifdef MSDOS
+; 425  : 	pKsd_t->lang_curr = LANG_none;	/* KM added for initilizing lang tables */
+; 426  : #endif
+; 427  : 
+; 428  : #ifdef MSDOS
+; 429  : #ifdef ENGLISH_US
+; 430  : 		default_lang (LANG_english, LANG_ph_ready);
+; 431  : #endif
+; 432  : #ifdef ENGLISH_UK
+; 433  : 		default_lang (LANG_british, LANG_ph_ready);
+; 434  : #endif
+; 435  : #ifdef SPANISH_SP
+; 436  : 		default_lang (LANG_spanish, LANG_ph_ready);
+; 437  : #endif
+; 438  : #ifdef SPANISH_LA
+; 439  : 		default_lang (LANG_latin_american, LANG_ph_ready);
+; 440  : #endif
+; 441  : #ifdef GERMAN                        
+; 442  : 		default_lang (LANG_german, LANG_ph_ready);
+; 443  : #endif
+; 444  : 
+; 445  : 	create_process (kltask, 4, data_seg, stack_start, 0);
+; 446  : 
+; 447  : #else
+; 448  : #ifdef ENGLISH_US
+; 449  : 		default_lang (pKsd_t, LANG_english, LANG_ph_ready);
+
+  00076	6a 02		 push	 2
+  00078	8d 86 dc 14 00
+	00		 lea	 eax, DWORD PTR [esi+5340]
+  0007e	6a 00		 push	 0
+  00080	55		 push	 ebp
+  00081	89 9e 48 28 00
+	00		 mov	 DWORD PTR [esi+10312], ebx
+  00087	c7 86 b4 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5300], OFFSET FLAT:_paul_8
+  00091	c7 86 b8 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5304], OFFSET FLAT:_betty_8
+  0009b	c7 86 bc 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5308], OFFSET FLAT:_harry_8
+  000a5	c7 86 c0 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5312], OFFSET FLAT:_frank_8
+  000af	c7 86 c4 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5316], OFFSET FLAT:_dennis_8
+  000b9	c7 86 c8 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5320], OFFSET FLAT:_kit_8
+  000c3	c7 86 cc 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5324], OFFSET FLAT:_ursula_8
+  000cd	c7 86 d0 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5328], OFFSET FLAT:_rita_8
+  000d7	c7 86 d4 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5332], OFFSET FLAT:_wendy_8
+  000e1	89 86 d8 14 00
+	00		 mov	 DWORD PTR [esi+5336], eax
+  000e7	c7 86 8c 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5260], OFFSET FLAT:_paul
+  000f1	c7 86 90 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5264], OFFSET FLAT:_betty
+  000fb	c7 86 94 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5268], OFFSET FLAT:_harry
+  00105	c7 86 98 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5272], OFFSET FLAT:_frank
+  0010f	c7 86 9c 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5276], OFFSET FLAT:_dennis
+  00119	c7 86 a0 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5280], OFFSET FLAT:_kit
+  00123	c7 86 a4 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5284], OFFSET FLAT:_ursula
+  0012d	c7 86 a8 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5288], OFFSET FLAT:_rita
+  00137	c7 86 ac 14 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+5292], OFFSET FLAT:_wendy
+  00141	89 86 b0 14 00
+	00		 mov	 DWORD PTR [esi+5296], eax
+  00147	e8 00 00 00 00	 call	 _default_lang
+
+; 450  : #endif
+; 451  : #ifdef ENGLISH_UK
+; 452  : 		default_lang (pKsd_t, LANG_british, LANG_ph_ready);
+; 453  : #endif
+; 454  : #ifdef SPANISH_SP
+; 455  : 		default_lang (pKsd_t, LANG_spanish, LANG_ph_ready);
+; 456  : #endif
+; 457  : #ifdef SPANISH_LA
+; 458  : 		default_lang (pKsd_t, LANG_latin_american, LANG_ph_ready);
+; 459  : #endif
+; 460  : #ifdef GERMAN
+; 461  : 		default_lang (pKsd_t, LANG_german, LANG_ph_ready);
+; 462  : #endif
+; 463  : #ifdef FRENCH
+; 464  : 		default_lang (pKsd_t, LANG_french, LANG_ph_ready);
+; 465  : #endif
+; 466  : 
+; 467  : 	kltask (phTTS);
+
+  0014c	57		 push	 edi
+  0014d	e8 00 00 00 00	 call	 _kltask
+
+; 468  : 	/* Free the allocated instance specific structure,before the thread returns */
+; 469  : 	FreePHInstanceData (pDph_t);
+
+  00152	56		 push	 esi
+  00153	e8 00 00 00 00	 call	 _FreePHInstanceData
+  00158	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 470  : 	phTTS->pPHThreadData = pDph_t = NULL;
+
+  0015b	c7 47 18 00 00
+	00 00		 mov	 DWORD PTR [edi+24], 0
+
+; 471  : #endif
+; 472  : #if defined (MSDOS) || defined (WIN32)
+; 473  : 	return 0;						/* No error MVP */
+
+  00162	33 c0		 xor	 eax, eax
+  00164	5f		 pop	 edi
+  00165	5e		 pop	 esi
+  00166	5d		 pop	 ebp
+  00167	5b		 pop	 ebx
+
+; 474  : #endif
+; 475  : #if defined (__osf__) || defined (__linux__)
+; 476  : 		OP_ExitThread(MMSYSERR_NOERROR);
+; 477  : 		OP_THREAD_RETURN;
+; 478  : #endif
+; 479  : }
+
+  00168	c2 04 00	 ret	 4
+_ph_main@4 ENDP
+_TEXT	ENDS
+EXTRN	__imp__free:NEAR
+EXTRN	_spcfree:NEAR
+_TEXT	SEGMENT
+_pDph_t$ = 8
+_FreePHInstanceData PROC NEAR
+
+; 483  : {
+
+  00170	56		 push	 esi
+
+; 484  : if (pDph_t->pSTphsettar)
+
+  00171	8b 74 24 08	 mov	 esi, DWORD PTR _pDph_t$[esp]
+  00175	57		 push	 edi
+  00176	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__free
+  0017c	8b 86 48 28 00
+	00		 mov	 eax, DWORD PTR [esi+10312]
+  00182	85 c0		 test	 eax, eax
+  00184	74 06		 je	 SHORT $L71197
+
+; 485  :      free (pDph_t->pSTphsettar);
+
+  00186	50		 push	 eax
+  00187	ff d7		 call	 edi
+  00189	83 c4 04	 add	 esp, 4
+$L71197:
+
+; 486  :      pDph_t->pSTphsettar = NULL;
+; 487  :      
+; 488  :      // tek 13aug96 have to free the last delaypars
+; 489  :      if(pDph_t->delaypars)
+
+  0018c	8b 86 2c 28 00
+	00		 mov	 eax, DWORD PTR [esi+10284]
+  00192	c7 86 48 28 00
+	00 00 00 00 00	 mov	 DWORD PTR [esi+10312], 0
+  0019c	85 c0		 test	 eax, eax
+  0019e	74 09		 je	 SHORT $L71199
+
+; 490  :      spcfree(pDph_t->delaypars);
+
+  001a0	50		 push	 eax
+  001a1	e8 00 00 00 00	 call	 _spcfree
+  001a6	83 c4 04	 add	 esp, 4
+$L71199:
+
+; 491  :      
+; 492  :      if (pDph_t)
+
+  001a9	85 f6		 test	 esi, esi
+  001ab	74 06		 je	 SHORT $L71201
+
+; 493  :      free (pDph_t);
+
+  001ad	56		 push	 esi
+  001ae	ff d7		 call	 edi
+  001b0	83 c4 04	 add	 esp, 4
+$L71201:
+  001b3	5f		 pop	 edi
+  001b4	5e		 pop	 esi
+
+; 494  :      
+; 495  : pDph_t = NULL;
+; 496  :      
+; 497  :      }
+
+  001b5	c3		 ret	 0
+_FreePHInstanceData ENDP
+_TEXT	ENDS
+END

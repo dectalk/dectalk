@@ -1,0 +1,304 @@
+	TITLE	D:\work\product\dapi\src\Cmd\cm_main.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_cmd_main@4
+EXTRN	__imp__malloc:NEAR
+EXTRN	_total_commands:DWORD
+EXTRN	__imp__SetEvent@4:NEAR
+EXTRN	_cm_util_initialize:NEAR
+EXTRN	_cm_pars_loop:NEAR
+EXTRN	_FreeCMDThreadMemory:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_cmd_main@4 PROC NEAR
+
+; 82   : {
+
+  00000	56		 push	 esi
+  00001	57		 push	 edi
+
+; 83   : 	PCMD_T pCmd_t = 0;
+; 84   : 	PKSD_T pKsd_t;
+; 85   : 
+; 86   : #ifdef MSDOS
+; 87   : 	phTTS = &hTTS;
+; 88   : 	pCmd_t = &Cmd_t; 
+; 89   : 	pCmd_t->cm = cm;
+; 90   :         pCmd_t->esc_seq = &esc_seq;
+; 91   : 	phTTS->pKernelShareData = kernel_share;
+; 92   : 	phTTS->pCMDThreadData = pCmd_t;
+; 93   : #endif
+; 94   : 	pKsd_t = phTTS->pKernelShareData;    
+; 95   : 
+; 96   : /* GL 04/21/1997  add this for OSF build */
+; 97   : #if defined (__osf__) || defined (__linux__)
+; 98   :     /* Initialize thread error field to no error */
+; 99   :     phTTS->uiThreadError = MMSYSERR_NOERROR;
+; 100  : #endif
+; 101  : 
+; 102  : #ifdef SEPARATE_PROCESSES
+; 103  : 	kernel_share = (struct share_data *)malloc(sizeof(struct share_data));
+; 104  : #endif
+; 105  : 	
+; 106  : 	/* Allocate a Thread specific instance data structure */
+; 107  : #ifdef WIN32 
+; 108  : 	if((pCmd_t= (PCMD_T) malloc(sizeof(CMD_T))) == NULL)
+
+  00002	8b 3d 00 00 00
+	00		 mov	 edi, DWORD PTR __imp__malloc
+  00008	68 a0 33 00 00	 push	 13216			; 000033a0H
+  0000d	ff d7		 call	 edi
+  0000f	8b f0		 mov	 esi, eax
+  00011	83 c4 04	 add	 esp, 4
+  00014	85 f6		 test	 esi, esi
+  00016	75 0a		 jne	 SHORT $L71174
+  00018	5f		 pop	 edi
+
+; 109  : 	{
+; 110  : 			return(MMSYSERR_NOMEM);
+
+  00019	b8 07 00 00 00	 mov	 eax, 7
+  0001e	5e		 pop	 esi
+
+; 207  : #endif
+; 208  : #ifdef __osf__
+; 209  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 210  : 	OP_THREAD_RETURN;
+; 211  : #endif
+; 212  : 
+; 213  : #ifdef __linux__
+; 214  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 215  : 	OP_THREAD_RETURN;
+; 216  : #endif
+; 217  : 
+; 218  : #endif
+; 219  : }
+
+  0001f	c2 04 00	 ret	 4
+$L71174:
+
+; 111  : 	}        
+; 112  : 	/***************Thread specific structure initialization MVP ***************/
+; 113  : 	if((pCmd_t->cm = (int*)malloc(sizeof(int)*total_commands))== NULL)
+
+  00022	a1 00 00 00 00	 mov	 eax, DWORD PTR _total_commands
+  00027	8d 0c 85 00 00
+	00 00		 lea	 ecx, DWORD PTR [eax*4]
+  0002e	51		 push	 ecx
+  0002f	ff d7		 call	 edi
+  00031	83 c4 04	 add	 esp, 4
+  00034	89 86 e0 02 00
+	00		 mov	 DWORD PTR [esi+736], eax
+  0003a	85 c0		 test	 eax, eax
+  0003c	75 0a		 jne	 SHORT $L71178
+  0003e	5f		 pop	 edi
+
+; 114  : 	{
+; 115  : 			return(MMSYSERR_NOMEM);
+
+  0003f	b8 07 00 00 00	 mov	 eax, 7
+  00044	5e		 pop	 esi
+
+; 207  : #endif
+; 208  : #ifdef __osf__
+; 209  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 210  : 	OP_THREAD_RETURN;
+; 211  : #endif
+; 212  : 
+; 213  : #ifdef __linux__
+; 214  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 215  : 	OP_THREAD_RETURN;
+; 216  : #endif
+; 217  : 
+; 218  : #endif
+; 219  : }
+
+  00045	c2 04 00	 ret	 4
+$L71178:
+
+; 116  :     } 
+; 117  :     if((pCmd_t->esc_seq = (INPUT_SEQ *)malloc(sizeof(INPUT_SEQ)))== NULL)
+
+  00048	6a 5a		 push	 90			; 0000005aH
+  0004a	ff d7		 call	 edi
+  0004c	83 c4 04	 add	 esp, 4
+  0004f	89 86 18 05 00
+	00		 mov	 DWORD PTR [esi+1304], eax
+  00055	85 c0		 test	 eax, eax
+  00057	75 0a		 jne	 SHORT $L71182
+  00059	5f		 pop	 edi
+
+; 118  : 	{
+; 119  : 			return(MMSYSERR_NOMEM);
+
+  0005a	b8 07 00 00 00	 mov	 eax, 7
+  0005f	5e		 pop	 esi
+
+; 207  : #endif
+; 208  : #ifdef __osf__
+; 209  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 210  : 	OP_THREAD_RETURN;
+; 211  : #endif
+; 212  : 
+; 213  : #ifdef __linux__
+; 214  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 215  : 	OP_THREAD_RETURN;
+; 216  : #endif
+; 217  : 
+; 218  : #endif
+; 219  : }
+
+  00060	c2 04 00	 ret	 4
+$L71182:
+
+; 120  :     } 
+; 121  : #endif
+; 122  : /* GL 04/21/1997  add this for OSF build */
+; 123  : #ifdef __osf__
+; 124  : 	if((pCmd_t= (PCMD_T) calloc(1,sizeof(CMD_T))) == NULL)
+; 125  : 	        phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 126  :         else
+; 127  : 		/***************Thread specific structure initialization MVP ***************/
+; 128  : 			if((pCmd_t->cm = (int*)calloc(total_commands,sizeof(int) ))== NULL)
+; 129  : 				phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 130  : 			else
+; 131  : 				if((pCmd_t->esc_seq = (INPUT_SEQ *) calloc(1,sizeof(INPUT_SEQ)))== NULL)
+; 132  : 					phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 133  : 
+; 134  : #endif
+; 135  : 
+; 136  : #ifdef __linux__
+; 137  : 	if((pCmd_t= (PCMD_T) calloc(1,sizeof(CMD_T))) == NULL)
+; 138  : 	        phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 139  :         else
+; 140  : 		/***************Thread specific structure initialization MVP ***************/
+; 141  : 			if((pCmd_t->cm = (int*)calloc(total_commands,sizeof(int) ))== NULL)
+; 142  : 				phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 143  : 			else
+; 144  : 				if((pCmd_t->esc_seq = (INPUT_SEQ *) calloc(1,sizeof(INPUT_SEQ)))== NULL)
+; 145  : 					phTTS->uiThreadError = MMSYSERR_NOMEM;
+; 146  : 
+; 147  : #endif
+; 148  : 
+; 149  : #ifdef WIN32
+; 150  : 	SetEvent(phTTS->hMallocSuccessEvent); /*MVP :Set the malloc success event after the last malloc */
+
+  00063	8b 7c 24 0c	 mov	 edi, DWORD PTR _phTTS$[esp+4]
+  00067	8b 57 1c	 mov	 edx, DWORD PTR [edi+28]
+  0006a	52		 push	 edx
+  0006b	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__SetEvent@4
+
+; 151  : #endif
+; 152  : 	
+; 153  : /* GL 04/21/1997  add this for OSF build */
+; 154  : #ifdef __osf__
+; 155  :     /* 
+; 156  : 	 * CP: Set the event, even if malloc eerror occurred. User
+; 157  :      * will look at uiThreadError for actual error code.
+; 158  :      */
+; 159  : 	OP_SetEvent(phTTS->hMallocSuccessEvent);
+; 160  :         if (phTTS->uiThreadError != MMSYSERR_NOERROR)
+; 161  : 	{
+; 162  : 	    OP_ExitThread(phTTS->uiThreadError);
+; 163  : 	    OP_THREAD_RETURN;
+; 164  : 	}
+; 165  : #endif
+; 166  : 
+; 167  : #ifdef __linux__
+; 168  :     /* 
+; 169  : 	 * CP: Set the event, even if malloc eerror occurred. User
+; 170  :      * will look at uiThreadError for actual error code.
+; 171  :      */
+; 172  : 	OP_SetEvent(phTTS->hMallocSuccessEvent);
+; 173  :         if (phTTS->uiThreadError != MMSYSERR_NOERROR)
+; 174  : 	{
+; 175  : 	    OP_ExitThread(&phTTS->uiThreadError);
+; 176  : 	    OP_THREAD_RETURN;
+; 177  : 	}
+; 178  : #endif
+; 179  : 
+; 180  : 	phTTS->pCMDThreadData = pCmd_t;       /* Associate thread specific instance data with corresponding speech object */
+; 181  : 		
+; 182  : 	cm_util_initialize(phTTS);      /* Initialization routine */
+
+  00071	57		 push	 edi
+  00072	89 77 0c	 mov	 DWORD PTR [edi+12], esi
+  00075	e8 00 00 00 00	 call	 _cm_util_initialize
+
+; 183  : 	
+; 184  : #ifdef MSDOS
+; 185  : 	create_process(cm_pars_loop,2,data_seg,stack_start,0);
+; 186  : 	
+; 187  : 	/* 
+; 188  : 	 *	2/18/94 eab to avoid unwind in a multiple phrase flush
+; 189  : 	 *	problems this needs to be a higher priority than 3 
+; 190  : 	 */
+; 191  : 	 	
+; 192  : 	return(1);
+; 193  : #else
+; 194  : 	cm_pars_loop(phTTS);
+
+  0007a	57		 push	 edi
+  0007b	e8 00 00 00 00	 call	 _cm_pars_loop
+
+; 195  : 
+; 196  : 	/* Free here all allocated memory */
+; 197  : 	FreeCMDThreadMemory(pCmd_t);
+
+  00080	56		 push	 esi
+  00081	e8 00 00 00 00	 call	 _FreeCMDThreadMemory
+  00086	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 198  : 	/* Reset pCMDThreadData element of TTS_HANDLE_T to null */
+; 199  : 	phTTS->pCMDThreadData = NULL;	/* 
+
+  00089	c7 47 0c 00 00
+	00 00		 mov	 DWORD PTR [edi+12], 0
+
+; 200  : 									 * Reset CMD thread specific instance data 
+; 201  : 									 * with corresponding speech object 
+; 202  : 									 */
+; 203  : 
+; 204  : /* GL 04/21/1997  add this for OSF build */
+; 205  : #ifdef WIN32
+; 206  : 	return 0;
+
+  00090	33 c0		 xor	 eax, eax
+  00092	5f		 pop	 edi
+  00093	5e		 pop	 esi
+
+; 207  : #endif
+; 208  : #ifdef __osf__
+; 209  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 210  : 	OP_THREAD_RETURN;
+; 211  : #endif
+; 212  : 
+; 213  : #ifdef __linux__
+; 214  :     OP_ExitThread(MMSYSERR_NOERROR);
+; 215  : 	OP_THREAD_RETURN;
+; 216  : #endif
+; 217  : 
+; 218  : #endif
+; 219  : }
+
+  00094	c2 04 00	 ret	 4
+_cmd_main@4 ENDP
+_TEXT	ENDS
+END

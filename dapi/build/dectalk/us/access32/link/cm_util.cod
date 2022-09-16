@@ -1,0 +1,1065 @@
+	TITLE	D:\work\product\dapi\src\Cmd\cm_util.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_tlikmap
+PUBLIC	_tlitone0
+PUBLIC	_tlitone1
+PUBLIC	_tliproto
+_DATA	SEGMENT
+_tlikmap DB	030H
+	DB	031H
+	DB	032H
+	DB	033H
+	DB	034H
+	DB	035H
+	DB	036H
+	DB	037H
+	DB	038H
+	DB	039H
+	DB	02aH
+	DB	023H
+	DB	041H
+	DB	042H
+	DB	043H
+	DB	044H
+_tlitone0 DW	0538H
+	DW	04b9H
+	DW	0538H
+	DW	05c5H
+	DW	04b9H
+	DW	0538H
+	DW	05c5H
+	DW	04b9H
+	DW	0538H
+	DW	05c5H
+	DW	04b9H
+	DW	05c5H
+	DW	0661H
+	DW	0661H
+	DW	0661H
+	DW	0661H
+_tlitone1 DW	03adH
+	DW	02b9H
+	DW	02b9H
+	DW	02b9H
+	DW	0302H
+	DW	0302H
+	DW	0302H
+	DW	0354H
+	DW	0354H
+	DW	0354H
+	DW	03adH
+	DW	03adH
+	DW	0302H
+	DW	0354H
+	DW	03adH
+	ORG $+2
+_tliproto DW	00H
+	DW	00H
+	DW	01996H
+	DW	0101bH
+	DW	05H
+	DW	0640H
+	DW	01996H
+	DW	0101bH
+	DW	05H
+	DW	0258H
+_DATA	ENDS
+PUBLIC	_cm_util_initialize
+_TEXT	SEGMENT
+_phTTS$ = 8
+_cm_util_initialize PROC NEAR
+
+; 102  : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+
+  00000	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00004	53		 push	 ebx
+  00005	56		 push	 esi
+  00006	57		 push	 edi
+  00007	8b 50 0c	 mov	 edx, DWORD PTR [eax+12]
+
+; 103  : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+
+  0000a	8b 70 08	 mov	 esi, DWORD PTR [eax+8]
+
+; 104  : /*	INPUT_SEQ command_seq; */
+; 105  : 	int i;
+; 106  : 
+; 107  : 	pCmd_t->error_mode = ERROR_speak;
+; 108  : 	pCmd_t->punct_mode = PUNCT_some;
+; 109  : 	pCmd_t->skip_mode = SKIP_none;
+
+  0000d	33 db		 xor	 ebx, ebx
+
+; 110  : 	pCmd_t->last_punct = 0; 
+; 111  : 	pCmd_t->last_char=0;
+; 112  : 	pCmd_t->timeout=0;
+; 113  : 	memset(pCmd_t->esc_seq,0,sizeof(INPUT_SEQ));
+
+  0000f	b9 16 00 00 00	 mov	 ecx, 22			; 00000016H
+  00014	8b ba 18 05 00
+	00		 mov	 edi, DWORD PTR [edx+1304]
+  0001a	33 c0		 xor	 eax, eax
+  0001c	c7 82 fc 04 00
+	00 03 00 00 00	 mov	 DWORD PTR [edx+1276], 3
+  00026	c7 82 00 05 00
+	00 01 00 00 00	 mov	 DWORD PTR [edx+1280], 1
+  00030	89 9a 04 05 00
+	00		 mov	 DWORD PTR [edx+1284], ebx
+  00036	89 9a 08 05 00
+	00		 mov	 DWORD PTR [edx+1288], ebx
+  0003c	89 9a ec 02 00
+	00		 mov	 DWORD PTR [edx+748], ebx
+  00042	66 89 9a 98 33
+	00 00		 mov	 WORD PTR [edx+13208], bx
+  00049	f3 ab		 rep stosd
+  0004b	66 ab		 stosw
+
+; 114  : 	pCmd_t->esc_seq->type = 0;
+
+  0004d	8b 82 18 05 00
+	00		 mov	 eax, DWORD PTR [edx+1304]
+  00053	b9 0a 00 00 00	 mov	 ecx, 10			; 0000000aH
+  00058	66 89 18	 mov	 WORD PTR [eax], bx
+
+; 115  : #ifdef MSDOS
+; 116  : 	pCmd_t->tone_wait = 0;
+; 117  : #endif
+; 118  : 	pKsd_t->phoneme_mode = PHONEME_OFF | PHONEME_SPEAK;
+
+  0005b	c7 86 10 02 00
+	00 05 00 00 00	 mov	 DWORD PTR [esi+528], 5
+
+; 119  : 	pKsd_t->pitch_delta = 35;
+
+  00065	c7 86 50 02 00
+	00 23 00 00 00	 mov	 DWORD PTR [esi+592], 35	; 00000023H
+
+; 120  : 	pCmd_t->insertflag=0;
+
+  0006f	66 89 9a 14 05
+	00 00		 mov	 WORD PTR [edx+1300], bx
+
+; 121  : 	
+; 122  : 	pKsd_t->debug_switch = 0;
+
+  00076	66 89 9e 78 04
+	00 00		 mov	 WORD PTR [esi+1144], bx
+
+; 123  : 	pKsd_t->gender_switch = 0;
+
+  0007d	66 89 9e 7a 04
+	00 00		 mov	 WORD PTR [esi+1146], bx
+
+; 124  : 
+; 125  : 	/* mfg 05/18/1998 initialize dbglog file pointer */
+; 126  : 	pKsd_t->dbglog = 0;
+
+  00084	89 9e 7c 04 00
+	00		 mov	 DWORD PTR [esi+1148], ebx
+  0008a	8d 42 28	 lea	 eax, DWORD PTR [edx+40]
+$L71179:
+
+; 127  :     /* GL 02/28/1997  set MODE_LATIN based on the compiler switch */
+; 128  :     /* only for MSDOS build. DECtalk software switch is in ttsapi.c */
+; 129  : #ifdef MSDOS
+; 130  : #ifdef SPANISH_LA
+; 131  :     pKsd_t->modeflag = MODE_CITATION | MODE_LATIN;
+; 132  : #else
+; 133  :     pKsd_t->modeflag = MODE_CITATION;
+; 134  : #endif
+; 135  : #endif
+; 136  : 	/* Initialize setv[] */
+; 137  : 	for (i=0; i<10;i++)
+; 138  : 	{
+; 139  : 		pCmd_t->setv[i].cmd[0] = '\0'; 
+
+  0008d	88 18		 mov	 BYTE PTR [eax], bl
+  0008f	83 c0 3c	 add	 eax, 60			; 0000003cH
+  00092	49		 dec	 ecx
+  00093	75 f8		 jne	 SHORT $L71179
+
+; 140  : 	}
+; 141  : 	 
+; 142  : 	/* Initialize pCmd_t->param[] */
+; 143  : 	for (i=0; i < NPARAM; i++)
+; 144  : 	{
+; 145  : 		pCmd_t->params[i] = 0;
+
+  00095	b9 0a 00 00 00	 mov	 ecx, 10			; 0000000aH
+  0009a	33 c0		 xor	 eax, eax
+  0009c	8b fa		 mov	 edi, edx
+
+; 146  : 	}
+; 147  : 	
+; 148  : 	pCmd_t->done = 0;
+; 149  :     pCmd_t->roll_text = 0;
+; 150  :     pCmd_t->email_header = 0;
+; 151  :     pCmd_t->index_counter = 0;
+; 152  :     pCmd_t->input_counter = 0;
+; 153  : 
+; 154  : 	memset(pCmd_t->clausebuf,0,PAR_MAX_INPUT_ARRAY);
+
+  0009e	8d b2 30 05 00
+	00		 lea	 esi, DWORD PTR [edx+1328]
+  000a4	f3 ab		 rep stosd
+  000a6	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  000ab	8b fe		 mov	 edi, esi
+  000ad	66 89 9a 76 33
+	00 00		 mov	 WORD PTR [edx+13174], bx
+  000b4	66 89 9a 2c 05
+	00 00		 mov	 WORD PTR [edx+1324], bx
+  000bb	66 89 9a 2e 05
+	00 00		 mov	 WORD PTR [edx+1326], bx
+  000c2	66 89 9a 2a 05
+	00 00		 mov	 WORD PTR [edx+1322], bx
+  000c9	66 89 9a 28 05
+	00 00		 mov	 WORD PTR [edx+1320], bx
+  000d0	f3 ab		 rep stosd
+
+; 155  : 	memset(pCmd_t->wordbuf,0,50);
+
+  000d2	b9 0c 00 00 00	 mov	 ecx, 12			; 0000000cH
+  000d7	8d ba 24 07 00
+	00		 lea	 edi, DWORD PTR [edx+1828]
+  000dd	f3 ab		 rep stosd
+  000df	66 ab		 stosw
+
+; 156  : 	memset(pCmd_t->new_input,0,PAR_MAX_INPUT_ARRAY);
+
+  000e1	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  000e6	33 c0		 xor	 eax, eax
+  000e8	8d ba 0c 0b 00
+	00		 lea	 edi, DWORD PTR [edx+2828]
+  000ee	f3 ab		 rep stosd
+
+; 157  : 	memset(pCmd_t->output_buf,0,PAR_MAX_OUTPUT_ARRAY);
+
+  000f0	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  000f5	8d ba 18 09 00
+	00		 lea	 edi, DWORD PTR [edx+2328]
+  000fb	f3 ab		 rep stosd
+
+; 158  : 	memset(pCmd_t->dict_hit_buf,0,PAR_MAX_INPUT_ARRAY);
+
+  000fd	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  00102	8d ba 00 0d 00
+	00		 lea	 edi, DWORD PTR [edx+3328]
+  00108	f3 ab		 rep stosd
+
+; 159  : 
+; 160  : #ifdef NEW_INDEXING
+; 161  : 	memset(pCmd_t->input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  0010a	b9 ee 02 00 00	 mov	 ecx, 750		; 000002eeH
+  0010f	8d ba f4 0e 00
+	00		 lea	 edi, DWORD PTR [edx+3828]
+  00115	f3 ab		 rep stosd
+
+; 162  : 	memset(pCmd_t->new_input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  00117	b9 ee 02 00 00	 mov	 ecx, 750		; 000002eeH
+  0011c	8d ba ac 1a 00
+	00		 lea	 edi, DWORD PTR [edx+6828]
+  00122	f3 ab		 rep stosd
+
+; 163  : 	memset(pCmd_t->output_indexes,0,PAR_MAX_OUTPUT_ARRAY*sizeof(index_data_t));
+
+  00124	b9 ee 02 00 00	 mov	 ecx, 750		; 000002eeH
+  00129	8d ba 64 26 00
+	00		 lea	 edi, DWORD PTR [edx+9828]
+  0012f	f3 ab		 rep stosd
+
+; 164  : #endif
+; 165  : 	pCmd_t->prevword=&(pCmd_t->clausebuf[1]);
+
+  00131	8d 8a 31 05 00
+	00		 lea	 ecx, DWORD PTR [edx+1329]
+
+; 166  :     pCmd_t->prev_word_index=0;
+; 167  : 	pCmd_t->clausebuf[0]=' ';
+
+  00137	c6 06 20	 mov	 BYTE PTR [esi], 32	; 00000020H
+
+; 168  : 	memset(&(pCmd_t->ret_value),0,sizeof(return_value_t));
+
+  0013a	8d b2 78 33 00
+	00		 lea	 esi, DWORD PTR [edx+13176]
+  00140	89 8a 70 33 00
+	00		 mov	 DWORD PTR [edx+13168], ecx
+  00146	b9 08 00 00 00	 mov	 ecx, 8
+  0014b	8b fe		 mov	 edi, esi
+  0014d	66 89 9a 74 33
+	00 00		 mov	 WORD PTR [edx+13172], bx
+  00154	f3 ab		 rep stosd
+
+; 169  : 	pCmd_t->ret_value.input_pos = 0;
+
+  00156	89 1e		 mov	 DWORD PTR [esi], ebx
+  00158	5f		 pop	 edi
+
+; 170  : /* 024	MGS		11/19/1998		BATS #812 fixed say-letter mode extra spaces */
+; 171  : 	pCmd_t->letter_mode_flag=0;
+
+  00159	66 89 9a 9c 33
+	00 00		 mov	 WORD PTR [edx+13212], bx
+  00160	5e		 pop	 esi
+  00161	5b		 pop	 ebx
+
+; 172  : }
+
+  00162	c3		 ret	 0
+_cm_util_initialize ENDP
+_TEXT	ENDS
+PUBLIC	_cm_util_flush_init
+_TEXT	SEGMENT
+_phTTS$ = 8
+_cm_util_flush_init PROC NEAR
+
+; 188  : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+
+  00170	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00174	53		 push	 ebx
+  00175	56		 push	 esi
+  00176	57		 push	 edi
+  00177	8b 50 0c	 mov	 edx, DWORD PTR [eax+12]
+
+; 189  : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 190  : /*	INPUT_SEQ command_seq; */
+; 191  : 	int i;
+; 192  : 
+; 193  : 	pCmd_t->last_char=0;
+
+  0017a	33 f6		 xor	 esi, esi
+
+; 194  : 
+; 195  : #if 0
+; 196  : 	/* Initialize setv[] */
+; 197  : 	for (i=0; i<10;i++)
+; 198  : 	{
+; 199  : 		pCmd_t->setv[i].cmd[0] = '\0'; 
+; 200  : 	}
+; 201  : 	 
+; 202  : 	/* Initialize pCmd_t->param[] */
+; 203  : 	for (i=0; i < NPARAM; i++)
+; 204  : 	{
+; 205  : 		pCmd_t->params[i] = 0;
+; 206  : 	}
+; 207  : #endif
+; 208  : 
+; 209  : 	pCmd_t->done = 0;
+; 210  :     pCmd_t->roll_text = 0;
+; 211  :     pCmd_t->email_header = 0;
+; 212  :     pCmd_t->index_counter = 0;
+; 213  :     pCmd_t->input_counter = 0;
+; 214  : 
+; 215  : 	memset(pCmd_t->clausebuf,0,PAR_MAX_INPUT_ARRAY);
+
+  0017c	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  00181	33 c0		 xor	 eax, eax
+  00183	8d 9a 30 05 00
+	00		 lea	 ebx, DWORD PTR [edx+1328]
+  00189	89 b2 ec 02 00
+	00		 mov	 DWORD PTR [edx+748], esi
+  0018f	8b fb		 mov	 edi, ebx
+  00191	66 89 b2 76 33
+	00 00		 mov	 WORD PTR [edx+13174], si
+  00198	66 89 b2 2c 05
+	00 00		 mov	 WORD PTR [edx+1324], si
+  0019f	66 89 b2 2e 05
+	00 00		 mov	 WORD PTR [edx+1326], si
+  001a6	66 89 b2 2a 05
+	00 00		 mov	 WORD PTR [edx+1322], si
+  001ad	66 89 b2 28 05
+	00 00		 mov	 WORD PTR [edx+1320], si
+  001b4	f3 ab		 rep stosd
+
+; 216  : 	memset(pCmd_t->wordbuf,0,50);
+
+  001b6	b9 0c 00 00 00	 mov	 ecx, 12			; 0000000cH
+  001bb	8d ba 24 07 00
+	00		 lea	 edi, DWORD PTR [edx+1828]
+  001c1	f3 ab		 rep stosd
+  001c3	66 ab		 stosw
+
+; 217  : 	memset(pCmd_t->new_input,0,PAR_MAX_INPUT_ARRAY);
+
+  001c5	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  001ca	33 c0		 xor	 eax, eax
+  001cc	8d ba 0c 0b 00
+	00		 lea	 edi, DWORD PTR [edx+2828]
+  001d2	f3 ab		 rep stosd
+
+; 218  : 	memset(pCmd_t->output_buf,0,PAR_MAX_OUTPUT_ARRAY);
+
+  001d4	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  001d9	8d ba 18 09 00
+	00		 lea	 edi, DWORD PTR [edx+2328]
+  001df	f3 ab		 rep stosd
+
+; 219  : 	memset(pCmd_t->dict_hit_buf,0,PAR_MAX_INPUT_ARRAY);
+
+  001e1	b9 7d 00 00 00	 mov	 ecx, 125		; 0000007dH
+  001e6	8d ba 00 0d 00
+	00		 lea	 edi, DWORD PTR [edx+3328]
+  001ec	f3 ab		 rep stosd
+
+; 220  : 
+; 221  : #ifdef NEW_INDEXING
+; 222  : 	memset(pCmd_t->input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  001ee	b9 ee 02 00 00	 mov	 ecx, 750		; 000002eeH
+  001f3	8d ba f4 0e 00
+	00		 lea	 edi, DWORD PTR [edx+3828]
+  001f9	f3 ab		 rep stosd
+
+; 223  : 	memset(pCmd_t->new_input_indexes,0,PAR_MAX_INPUT_ARRAY*sizeof(index_data_t));
+
+  001fb	b9 ee 02 00 00	 mov	 ecx, 750		; 000002eeH
+  00200	8d ba ac 1a 00
+	00		 lea	 edi, DWORD PTR [edx+6828]
+  00206	f3 ab		 rep stosd
+
+; 224  : 	memset(pCmd_t->output_indexes,0,PAR_MAX_OUTPUT_ARRAY*sizeof(index_data_t));
+
+  00208	b9 ee 02 00 00	 mov	 ecx, 750		; 000002eeH
+  0020d	8d ba 64 26 00
+	00		 lea	 edi, DWORD PTR [edx+9828]
+  00213	f3 ab		 rep stosd
+
+; 225  : #endif
+; 226  : 	pCmd_t->prevword=&(pCmd_t->clausebuf[1]);
+
+  00215	8d 8a 31 05 00
+	00		 lea	 ecx, DWORD PTR [edx+1329]
+
+; 227  :     pCmd_t->prev_word_index=0;
+
+  0021b	66 89 b2 74 33
+	00 00		 mov	 WORD PTR [edx+13172], si
+  00222	89 8a 70 33 00
+	00		 mov	 DWORD PTR [edx+13168], ecx
+
+; 228  : 	pCmd_t->clausebuf[0]=' ';
+; 229  : 	memset(&(pCmd_t->ret_value),0,sizeof(return_value_t));
+
+  00228	81 c2 78 33 00
+	00		 add	 edx, 13176		; 00003378H
+  0022e	b9 08 00 00 00	 mov	 ecx, 8
+  00233	8b fa		 mov	 edi, edx
+  00235	c6 03 20	 mov	 BYTE PTR [ebx], 32	; 00000020H
+  00238	f3 ab		 rep stosd
+
+; 230  : 	pCmd_t->ret_value.input_pos = 0;
+
+  0023a	89 32		 mov	 DWORD PTR [edx], esi
+  0023c	5f		 pop	 edi
+  0023d	5e		 pop	 esi
+  0023e	5b		 pop	 ebx
+
+; 231  : 
+; 232  : }
+
+  0023f	c3		 ret	 0
+_cm_util_flush_init ENDP
+_TEXT	ENDS
+PUBLIC	_cm_util_init_type
+EXTRN	_usa_init:NEAR
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_cm_util_init_type PROC NEAR
+
+; 249  :    /*
+; 250  : 	* This will be changed when we have an architecture
+; 251  : 	* to implement multi-language support
+; 252  : 	*                          KM 4/29/94
+; 253  : 	*/
+; 254  : 
+; 255  : #ifdef CMDDEBUG
+; 256  : f_fprintf("cmdtype: In init type\n");
+; 257  : #endif
+; 258  : 
+; 259  : 
+; 260  : #ifndef MSDOS
+; 261  : 	 /* 6/15/99 GL, BATS#896 don't do this initialization for MSDOS */
+; 262  : 	 pKsd_t->loaded_languages = 0;
+
+  00240	8b 44 24 04	 mov	 eax, DWORD PTR _pKsd_t$[esp-4]
+
+; 263  : 
+; 264  : 	 usa_init(pKsd_t);
+
+  00244	50		 push	 eax
+  00245	c7 80 54 04 00
+	00 00 00 00 00	 mov	 DWORD PTR [eax+1108], 0
+  0024f	e8 00 00 00 00	 call	 _usa_init
+  00254	59		 pop	 ecx
+
+; 265  : #endif
+; 266  : 
+; 267  : }
+
+  00255	c3		 ret	 0
+_cm_util_init_type ENDP
+_TEXT	ENDS
+PUBLIC	_cm_util_dtpc_tones
+PUBLIC	_cm_util_write_pipe
+EXTRN	_cm_cmd_sync:NEAR
+EXTRN	_WaitForLtsFlush:NEAR
+_TEXT	SEGMENT
+_phTTS$ = 8
+_iFrequency$ = 16
+_iDuration$ = 20
+_pipe$ = -12
+_cm_util_dtpc_tones PROC NEAR
+
+; 326  : {
+
+  00260	83 ec 0c	 sub	 esp, 12			; 0000000cH
+  00263	56		 push	 esi
+
+; 327  :   DT_PIPE_T pipe[6];
+; 328  :   PKSD_T pKsd_t = phTTS->pKernelShareData;
+
+  00264	8b 74 24 14	 mov	 esi, DWORD PTR _phTTS$[esp+12]
+  00268	57		 push	 edi
+
+; 329  :  
+; 330  :   /* LPTTS_HANDLE_T phTTS; */
+; 331  :   
+; 332  :   /********************************************************************/
+; 333  :   /*  Get the text to speech handle.                                  */
+; 334  :   /********************************************************************/
+; 335  :   
+; 336  :   /* phTTS = TextToSpeechGetHandle(); */
+; 337  :   
+; 338  :   /********************************************************************/
+; 339  :   /*  Wait for all characters previously queued to LTS to be          */
+; 340  :   /*  processed.                                                      */
+; 341  :   /********************************************************************/
+; 342  : 
+; 343  :   if ( cm_cmd_sync(phTTS) == CMD_flushing )
+
+  00269	56		 push	 esi
+  0026a	8b 7e 08	 mov	 edi, DWORD PTR [esi+8]
+  0026d	e8 00 00 00 00	 call	 _cm_cmd_sync
+  00272	83 c4 04	 add	 esp, 4
+  00275	83 f8 0b	 cmp	 eax, 11			; 0000000bH
+  00278	75 06		 jne	 SHORT $L71214
+  0027a	5f		 pop	 edi
+  0027b	5e		 pop	 esi
+
+; 390  : }
+
+  0027c	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0027f	c3		 ret	 0
+$L71214:
+
+; 344  :   {
+; 345  : 	return( CMD_flushing );                        
+; 346  :   }
+; 347  : 
+; 348  :   WaitForLtsFlush( phTTS, 0xFFFFFFFF );
+
+  00280	6a ff		 push	 -1
+  00282	56		 push	 esi
+  00283	e8 00 00 00 00	 call	 _WaitForLtsFlush
+
+; 349  : 
+; 350  :   /********************************************************************/
+; 351  :   /*  The packet format here is different than the DTC07. The ramp    */
+; 352  :   /*  duration has been eliminated. The tone generation software      */
+; 353  :   /*  automatically provides 3 msec. cosine squared tapering for      */
+; 354  :   /*  the tone pulse rise and fall time.                              */
+; 355  :   /*                                                                  */
+; 356  :   /*  Packet Index     Packet Data                 Value              */
+; 357  :   /*                                                                  */
+; 358  :   /*      0            Command Word              SPC_type_tone        */
+; 359  :   /*      1            Tone Duration (msec.)     0 to ?               */
+; 360  :   /*      2            Tone 0 Frequency          0 to Fs/2            */
+; 361  :   /*      3            Tone 0 Amplitude          0 to 32767           */
+; 362  :   /*      4            Tone 1 Frequency          0 to Fs/2            */
+; 363  :   /*      5            Tone 1 Amplitude          0 to 32767           */
+; 364  :   /*                                                                  */
+; 365  :   /********************************************************************/
+; 366  : 
+; 367  :   /********************************************************************/
+; 368  :   /*  params[1] is a character pointer to the duration in msec.       */
+; 369  :   /*  params[0] is a character pointer to the frequency in Hertz.     */
+; 370  :   /********************************************************************/
+; 371  : 
+; 372  :   pipe[0] = SPC_type_tone;
+; 373  :   pipe[1] = (short)iDuration;
+
+  00288	66 8b 44 24 2c	 mov	 ax, WORD PTR _iDuration$[esp+24]
+
+; 374  :   pipe[2] = (short)iFrequency;
+
+  0028d	66 8b 4c 24 28	 mov	 cx, WORD PTR _iFrequency$[esp+24]
+  00292	66 c7 44 24 10
+	02 00		 mov	 WORD PTR _pipe$[esp+28], 2
+  00299	66 89 44 24 12	 mov	 WORD PTR _pipe$[esp+30], ax
+  0029e	66 89 4c 24 14	 mov	 WORD PTR _pipe$[esp+32], cx
+
+; 375  : 
+; 376  :   /********************************************************************/
+; 377  :   /*  Disable the second tone.                                        */
+; 378  :   /********************************************************************/
+; 379  : 
+; 380  :   pipe[3] = TONE_AMPLITUDE;
+
+  002a3	66 c7 44 24 16
+	ff 7f		 mov	 WORD PTR _pipe$[esp+34], 32767 ; 00007fffH
+
+; 381  :   pipe[4] = 1000;
+
+  002aa	66 c7 44 24 18
+	e8 03		 mov	 WORD PTR _pipe$[esp+36], 1000 ; 000003e8H
+
+; 382  :   pipe[5] = 0;
+
+  002b1	66 c7 44 24 1a
+	00 00		 mov	 WORD PTR _pipe$[esp+38], 0
+
+; 383  : 
+; 384  : /* GL 04/21/1997  change this for OSF build */
+; 385  : #if defined (WIN32) || defined (__osf__) || defined (__linux__)
+; 386  :   cm_util_write_pipe( pKsd_t, pKsd_t->vtm_pipe, pipe, 6 );
+
+  002b8	8b 87 dc 00 00
+	00		 mov	 eax, DWORD PTR [edi+220]
+  002be	8d 54 24 10	 lea	 edx, DWORD PTR _pipe$[esp+28]
+  002c2	6a 06		 push	 6
+  002c4	52		 push	 edx
+  002c5	50		 push	 eax
+  002c6	57		 push	 edi
+  002c7	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  002cc	83 c4 18	 add	 esp, 24			; 00000018H
+
+; 387  : #endif
+; 388  : 
+; 389  :   return( CMD_success );
+
+  002cf	33 c0		 xor	 eax, eax
+  002d1	5f		 pop	 edi
+  002d2	5e		 pop	 esi
+
+; 390  : }
+
+  002d3	83 c4 0c	 add	 esp, 12			; 0000000cH
+  002d6	c3		 ret	 0
+_cm_util_dtpc_tones ENDP
+_TEXT	ENDS
+PUBLIC	_cm_util_dtpc_tones_reset
+_TEXT	SEGMENT
+_cm_util_dtpc_tones_reset PROC NEAR
+
+; 584  : #ifdef MSDOS
+; 585  : 	unsigned int pipe_value; 
+; 586  : 	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+; 587  : 	PKSD_T pKsd_t = phTTS->pKernelShareData;
+; 588  : 	
+; 589  : 	if(cm_cmd_sync(phTTS) == CMD_flushing)
+; 590  : 	{
+; 591  : 		return(CMD_flushing);                   
+; 592  : 	}
+; 593  : 	sleep(pCmd_t->tone_wait);
+; 594  : 	RESET_DSP;
+; 595  : 	RUN_DSP;
+; 596  : 	pipe_value = LAST_VOICE;
+; 597  : 	cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+; 598  : 	pCmd_t->tone_wait = 0; 
+; 599  : #endif
+; 600  : 	return(CMD_success);
+
+  002e0	33 c0		 xor	 eax, eax
+
+; 601  : }
+
+  002e2	c3		 ret	 0
+_cm_util_dtpc_tones_reset ENDP
+_TEXT	ENDS
+PUBLIC	_cm_util_type_out
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_c$ = 12
+_phone$ = -4
+_cm_util_type_out PROC NEAR
+
+; 617  : {
+
+  002f0	51		 push	 ecx
+  002f1	56		 push	 esi
+
+; 618  : 	unsigned char _far *tp;
+; 619  : 	DT_PIPE_T phone;
+; 620  : 
+; 621  : 	phone = LAST_VOICE;
+; 622  : 	cm_util_write_pipe(pKsd_t,pKsd_t->ph_pipe,&phone,1);
+
+  002f2	8b 74 24 0c	 mov	 esi, DWORD PTR _pKsd_t$[esp+4]
+  002f6	57		 push	 edi
+  002f7	8d 44 24 08	 lea	 eax, DWORD PTR _phone$[esp+12]
+  002fb	8b 8e d4 00 00
+	00		 mov	 ecx, DWORD PTR [esi+212]
+  00301	6a 01		 push	 1
+  00303	50		 push	 eax
+  00304	51		 push	 ecx
+  00305	56		 push	 esi
+  00306	c7 44 24 18 03
+	1f 00 00	 mov	 DWORD PTR _phone$[esp+28], 7939 ; 00001f03H
+  0030e	e8 00 00 00 00	 call	 _cm_util_write_pipe
+
+; 623  : 	for(tp = (unsigned char _far *)pKsd_t->typing_table[c];*tp;tp++)
+
+  00313	8b 96 70 04 00
+	00		 mov	 edx, DWORD PTR [esi+1136]
+  00319	8b 44 24 24	 mov	 eax, DWORD PTR _c$[esp+24]
+  0031d	83 c4 10	 add	 esp, 16			; 00000010H
+  00320	8b 3c 82	 mov	 edi, DWORD PTR [edx+eax*4]
+  00323	8a 07		 mov	 al, BYTE PTR [edi]
+  00325	84 c0		 test	 al, al
+  00327	74 32		 je	 SHORT $L71230
+$L71228:
+
+; 624  : 	{
+; 625  : 		phone = pKsd_t->reverse_ascky[(*tp) & 0xff];
+
+  00329	8b 8e 60 04 00
+	00		 mov	 ecx, DWORD PTR [esi+1120]
+  0032f	25 ff 00 00 00	 and	 eax, 255		; 000000ffH
+
+; 626  : 		cm_util_write_pipe(pKsd_t,pKsd_t->ph_pipe,&phone,1);
+
+  00334	6a 01		 push	 1
+  00336	66 8b 14 81	 mov	 dx, WORD PTR [ecx+eax*4]
+  0033a	8b 8e d4 00 00
+	00		 mov	 ecx, DWORD PTR [esi+212]
+  00340	8d 44 24 0c	 lea	 eax, DWORD PTR _phone$[esp+16]
+  00344	89 54 24 0c	 mov	 DWORD PTR _phone$[esp+16], edx
+  00348	50		 push	 eax
+  00349	51		 push	 ecx
+  0034a	56		 push	 esi
+  0034b	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  00350	8a 47 01	 mov	 al, BYTE PTR [edi+1]
+  00353	83 c4 10	 add	 esp, 16			; 00000010H
+  00356	47		 inc	 edi
+  00357	84 c0		 test	 al, al
+  00359	75 ce		 jne	 SHORT $L71228
+$L71230:
+
+; 627  : 	}
+; 628  : 	phone = (PFUSA<<PSFONT) | COMMA;
+; 629  : 	cm_util_write_pipe(pKsd_t,pKsd_t->ph_pipe,&phone,1);
+
+  0035b	8b 86 d4 00 00
+	00		 mov	 eax, DWORD PTR [esi+212]
+  00361	8d 54 24 08	 lea	 edx, DWORD PTR _phone$[esp+12]
+  00365	6a 01		 push	 1
+  00367	52		 push	 edx
+  00368	50		 push	 eax
+  00369	56		 push	 esi
+  0036a	c7 44 24 18 73
+	1e 00 00	 mov	 DWORD PTR _phone$[esp+28], 7795 ; 00001e73H
+  00372	e8 00 00 00 00	 call	 _cm_util_write_pipe
+  00377	83 c4 10	 add	 esp, 16			; 00000010H
+  0037a	5f		 pop	 edi
+  0037b	5e		 pop	 esi
+
+; 630  : }
+
+  0037c	59		 pop	 ecx
+  0037d	c3		 ret	 0
+_cm_util_type_out ENDP
+_TEXT	ENDS
+PUBLIC	_cm_util_string_match
+EXTRN	_par_lower:BYTE
+_TEXT	SEGMENT
+_sa$ = 8
+_s$ = 12
+_matches$ = -8
+_match_index$ = -4
+_cm_util_string_match PROC NEAR
+
+; 648  : {
+
+  00380	83 ec 08	 sub	 esp, 8
+  00383	53		 push	 ebx
+
+; 649  : 	unsigned char *t, *ta;
+; 650  : 	int index, matches, match_index=0;
+; 651  : 	int i;
+; 652  : 
+; 653  : 	matches = 0;
+; 654  : 
+; 655  : if (s == NULL) //mfg check for a NULL argument BATS#628
+
+  00384	8b 5c 24 14	 mov	 ebx, DWORD PTR _s$[esp+8]
+  00388	55		 push	 ebp
+  00389	33 ed		 xor	 ebp, ebp
+  0038b	56		 push	 esi
+  0038c	3b dd		 cmp	 ebx, ebp
+  0038e	57		 push	 edi
+  0038f	89 6c 24 14	 mov	 DWORD PTR _match_index$[esp+24], ebp
+  00393	89 6c 24 10	 mov	 DWORD PTR _matches$[esp+24], ebp
+
+; 656  : 	{
+; 657  : 	return(NO_STRING_MATCH);
+
+  00397	74 50		 je	 SHORT $L71255
+
+; 658  : 	}
+; 659  : 
+; 660  : #ifdef DEBUGPARS
+; 661  : 		printf("CM_UTIL: string_match:\n");
+; 662  : #endif                         
+; 663  : #ifdef DEBUGPARS
+; 664  : 	putc('s');
+; 665  : 	putc('=');
+; 666  : 	for (i=0;s[i];i++)
+; 667  : 	{
+; 668  : 		putc(s[i]);
+; 669  : 	} 
+; 670  : 	putc('\r');
+; 671  : 	putc('\n');
+; 672  : #endif
+; 673  : 	for(index=0; sa[index]; index+=1)
+
+  00399	8b 54 24 1c	 mov	 edx, DWORD PTR _sa$[esp+20]
+  0039d	8b 0a		 mov	 ecx, DWORD PTR [edx]
+  0039f	3b cd		 cmp	 ecx, ebp
+  003a1	74 46		 je	 SHORT $L71255
+  003a3	8b fa		 mov	 edi, edx
+$L71244:
+
+; 674  : 	{
+; 675  : #ifdef DEBUGPARS
+; 676  : 		putc('s');
+; 677  : 		putc('a');
+; 678  : 		putc('=');
+; 679  : 		for (i=0;sa[index][i];i++)
+; 680  : 		{
+; 681  : 			putc(sa[index][i]);
+; 682  : 		} 
+; 683  : 		putc('\r');
+; 684  : 		putc('\n');
+; 685  : #endif		
+; 686  : 		t = s;
+
+  003a5	8b d3		 mov	 edx, ebx
+
+; 687  : 		ta = sa[index];
+
+  003a7	8b f1		 mov	 esi, ecx
+$L71248:
+
+; 688  : 		while(TRUE)
+; 689  : 		{
+; 690  : 			if (*ta == par_lower[*t])
+
+  003a9	8a 0e		 mov	 cl, BYTE PTR [esi]
+  003ab	33 c0		 xor	 eax, eax
+  003ad	8a 02		 mov	 al, BYTE PTR [edx]
+  003af	3a 88 00 00 00
+	00		 cmp	 cl, BYTE PTR _par_lower[eax]
+  003b5	75 08		 jne	 SHORT $L71250
+
+; 691  : 			{
+; 692  : 				if(*ta == 0)                                                       
+
+  003b7	84 c9		 test	 cl, cl
+  003b9	74 3b		 je	 SHORT $L71286
+
+; 695  : 				}
+; 696  : 				ta += 1;                                              
+
+  003bb	46		 inc	 esi
+
+; 697  : 				t += 1;
+
+  003bc	42		 inc	 edx
+  003bd	eb ea		 jmp	 SHORT $L71248
+$L71250:
+
+; 698  : 			}
+; 699  : 			else 
+; 700  : 			{
+; 701  : 				if(*t == 0)
+
+  003bf	80 3a 00	 cmp	 BYTE PTR [edx], 0
+  003c2	75 0d		 jne	 SHORT $L71245
+
+; 702  : 				{
+; 703  : 					matches += 1;
+
+  003c4	8b 44 24 10	 mov	 eax, DWORD PTR _matches$[esp+24]
+
+; 704  : 					match_index = index;
+
+  003c8	89 6c 24 14	 mov	 DWORD PTR _match_index$[esp+24], ebp
+  003cc	40		 inc	 eax
+  003cd	89 44 24 10	 mov	 DWORD PTR _matches$[esp+24], eax
+$L71245:
+  003d1	8b 4f 04	 mov	 ecx, DWORD PTR [edi+4]
+  003d4	83 c7 04	 add	 edi, 4
+  003d7	45		 inc	 ebp
+  003d8	85 c9		 test	 ecx, ecx
+  003da	75 c9		 jne	 SHORT $L71244
+
+; 705  : 					break;
+; 706  : 				}
+; 707  : 				else
+; 708  : 				{
+; 709  : 					break;
+; 710  : 				}
+; 711  : 			}
+; 712  : 		}
+; 713  : 	}
+; 714  : 	if(matches == 1)
+
+  003dc	8b 44 24 10	 mov	 eax, DWORD PTR _matches$[esp+24]
+  003e0	83 f8 01	 cmp	 eax, 1
+
+; 715  : 	{
+; 716  : 		return(match_index);
+
+  003e3	8b 44 24 14	 mov	 eax, DWORD PTR _match_index$[esp+24]
+  003e7	74 05		 je	 SHORT $L71235
+$L71255:
+
+; 717  : 	}
+; 718  : 	return(NO_STRING_MATCH);
+
+  003e9	b8 ff ff 00 00	 mov	 eax, 65535		; 0000ffffH
+$L71235:
+  003ee	5f		 pop	 edi
+  003ef	5e		 pop	 esi
+  003f0	5d		 pop	 ebp
+  003f1	5b		 pop	 ebx
+
+; 719  : }
+
+  003f2	83 c4 08	 add	 esp, 8
+  003f5	c3		 ret	 0
+$L71286:
+  003f6	5f		 pop	 edi
+
+; 693  : 				{
+; 694  : 					return(index);
+
+  003f7	8b c5		 mov	 eax, ebp
+  003f9	5e		 pop	 esi
+  003fa	5d		 pop	 ebp
+  003fb	5b		 pop	 ebx
+
+; 719  : }
+
+  003fc	83 c4 08	 add	 esp, 8
+  003ff	c3		 ret	 0
+_cm_util_string_match ENDP
+_TEXT	ENDS
+EXTRN	_write_pipe:NEAR
+_TEXT	SEGMENT
+_pKsd_t$ = 8
+_kinp$ = 12
+_phone$ = 16
+_count$ = 20
+_cm_util_write_pipe PROC NEAR
+
+; 741  : 
+; 742  : 
+; 743  : 		/* debug switch */
+; 744  : 		if (DT_DBG(CMD_DBG,0x800))
+
+  00400	8b 44 24 04	 mov	 eax, DWORD PTR _pKsd_t$[esp-4]
+  00404	56		 push	 esi
+  00405	8b 74 24 10	 mov	 esi, DWORD PTR _phone$[esp]
+  00409	57		 push	 edi
+  0040a	66 8b 80 78 04
+	00 00		 mov	 ax, WORD PTR [eax+1144]
+  00411	f6 c4 80	 test	 ah, -128		; ffffff80H
+  00414	74 20		 je	 SHORT $L71266
+  00416	f6 c4 08	 test	 ah, 8
+  00419	74 1b		 je	 SHORT $L71266
+
+; 745  : 		{
+; 746  : 			/*mfg 04/27/98 when pipe is drained let the following pass through*/ 
+; 747  : 			if ((*phone != SYNC) && (*phone != BREATH_BREAK) 
+; 748  : 				&& (*phone != KILL_TASK) && (*phone != FLUSH_SYNC))
+
+  0041b	66 8b 06	 mov	 ax, WORD PTR [esi]
+  0041e	66 3d 0a 1f	 cmp	 ax, 7946		; 00001f0aH
+  00422	74 12		 je	 SHORT $L71266
+  00424	66 3d 0b 1f	 cmp	 ax, 7947		; 00001f0bH
+  00428	74 0c		 je	 SHORT $L71266
+  0042a	66 3d 0c 1f	 cmp	 ax, 7948		; 00001f0cH
+  0042e	74 06		 je	 SHORT $L71266
+  00430	66 3d 0d 1f	 cmp	 ax, 7949		; 00001f0dH
+  00434	75 34		 jne	 SHORT $L71267
+$L71266:
+
+; 749  : 
+; 750  : 			return;
+; 751  : 		}
+; 752  : 
+; 753  :         write_pipe(kinp,phone,count);
+
+  00436	0f bf 4c 24 18	 movsx	 ecx, WORD PTR _count$[esp+4]
+  0043b	8b 7c 24 10	 mov	 edi, DWORD PTR _kinp$[esp+4]
+  0043f	51		 push	 ecx
+  00440	56		 push	 esi
+  00441	57		 push	 edi
+  00442	e8 00 00 00 00	 call	 _write_pipe
+
+; 754  : 
+; 755  : 		/* GL 01/08/98  BATS#547  force a extra space after SYNC, VT/HT to fix the
+; 756  : 		   dropping punctuation problem. */
+; 757  : 		if (*phone == SYNC || *phone == BREATH_BREAK)
+
+  00447	66 8b 06	 mov	 ax, WORD PTR [esi]
+  0044a	83 c4 0c	 add	 esp, 12			; 0000000cH
+  0044d	66 3d 0a 1f	 cmp	 ax, 7946		; 00001f0aH
+  00451	74 06		 je	 SHORT $L71268
+  00453	66 3d 0b 1f	 cmp	 ax, 7947		; 00001f0bH
+  00457	75 11		 jne	 SHORT $L71267
+$L71268:
+
+; 758  : 		{
+; 759  : 			*phone = (PFASCII<<PSFONT) + ' ';
+; 760  : 			write_pipe(kinp,phone,1);
+
+  00459	6a 01		 push	 1
+  0045b	56		 push	 esi
+  0045c	57		 push	 edi
+  0045d	66 c7 06 20 00	 mov	 WORD PTR [esi], 32	; 00000020H
+  00462	e8 00 00 00 00	 call	 _write_pipe
+  00467	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71267:
+  0046a	5f		 pop	 edi
+  0046b	5e		 pop	 esi
+
+; 761  : 		}
+; 762  :         
+; 763  : 		return;
+; 764  : } 
+
+  0046c	c3		 ret	 0
+_cm_util_write_pipe ENDP
+_TEXT	ENDS
+END

@@ -1,0 +1,4528 @@
+	TITLE	D:\work\product\dapi\src\Ph\ph_sort.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_phcluster
+_TEXT	SEGMENT
+_f$ = 8
+_s$ = 12
+_phcluster PROC NEAR
+
+; 146  : 	switch (f)
+; 147  : 	{
+
+  00000	0f bf 44 24 04	 movsx	 eax, WORD PTR _f$[esp-4]
+  00005	83 c0 db	 add	 eax, -37		; ffffffdbH
+  00008	83 f8 0d	 cmp	 eax, 13			; 0000000dH
+  0000b	0f 87 2e 01 00
+	00		 ja	 $L71297
+  00011	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71638[eax*4]
+$L71300:
+
+; 148  : 	case P:
+; 149  : 		if ((s == LL) || (s == R))
+
+  00018	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  0001d	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  00021	74 0a		 je	 SHORT $L71302
+  00023	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  00027	0f 85 12 01 00
+	00		 jne	 $L71297
+$L71302:
+
+; 150  : 			return (CLUSTER_TRYS);
+
+  0002d	66 b8 02 00	 mov	 ax, 2
+
+; 193  : }
+
+  00031	c3		 ret	 0
+$L71303:
+
+; 151  : 		break;
+; 152  : 	case B:
+; 153  : 		if ((s == LL) || (s == R))
+
+  00032	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  00037	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  0003b	74 0a		 je	 SHORT $L71305
+  0003d	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  00041	0f 85 f8 00 00
+	00		 jne	 $L71297
+$L71305:
+
+; 154  : 			return (CLUSTER);
+
+  00047	66 b8 01 00	 mov	 ax, 1
+
+; 193  : }
+
+  0004b	c3		 ret	 0
+$L71306:
+
+; 155  : 		break;
+; 156  : 	case F:
+; 157  : 		if (s == R)
+
+  0004c	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  00051	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  00055	75 05		 jne	 SHORT $L71307
+
+; 158  : 			return (CLUSTER_TRYS);
+
+  00057	66 b8 02 00	 mov	 ax, 2
+
+; 193  : }
+
+  0005b	c3		 ret	 0
+$L71307:
+
+; 159  : 		if (s == LL)
+
+  0005c	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  00060	0f 85 d9 00 00
+	00		 jne	 $L71297
+
+; 160  : 			return (CLUSTER);
+
+  00066	66 b8 01 00	 mov	 ax, 1
+
+; 193  : }
+
+  0006a	c3		 ret	 0
+$L71309:
+
+; 161  : 		break;
+; 162  : 	case T:
+; 163  : 		if (s == R)
+
+  0006b	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  00070	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  00074	75 50		 jne	 SHORT $L71310
+
+; 164  : 			return (CLUSTER_TRYS);
+
+  00076	66 b8 02 00	 mov	 ax, 2
+
+; 193  : }
+
+  0007a	c3		 ret	 0
+$L71312:
+
+; 165  : 		if (s == W)
+; 166  : 			return (CLUSTER);
+; 167  : 		break;
+; 168  : 	case D:
+; 169  : 	case TH:
+; 170  : 		if ((s == R) || (s == W))
+
+  0007b	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  00080	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  00084	74 46		 je	 SHORT $L71314
+  00086	66 3d 18 00	 cmp	 ax, 24			; 00000018H
+  0008a	0f 85 af 00 00
+	00		 jne	 $L71297
+
+; 171  : 			return (CLUSTER);
+
+  00090	66 b8 01 00	 mov	 ax, 1
+
+; 193  : }
+
+  00094	c3		 ret	 0
+$L71315:
+
+; 172  : 		break;
+; 173  : 	case K:
+; 174  : 		if ((s == R) || (s == LL) || (s == W))
+
+  00095	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  0009a	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  0009e	74 10		 je	 SHORT $L71317
+  000a0	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  000a4	74 0a		 je	 SHORT $L71317
+  000a6	66 3d 18 00	 cmp	 ax, 24			; 00000018H
+  000aa	0f 85 8f 00 00
+	00		 jne	 $L71297
+$L71317:
+
+; 175  : 			return (CLUSTER_TRYS);
+
+  000b0	66 b8 02 00	 mov	 ax, 2
+
+; 193  : }
+
+  000b4	c3		 ret	 0
+$L71318:
+
+; 176  : 		break;
+; 177  : 	case G:
+; 178  : 		if ((s == R) || (s == LL) || (s == W))
+
+  000b5	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  000ba	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  000be	74 0c		 je	 SHORT $L71314
+  000c0	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  000c4	74 06		 je	 SHORT $L71314
+$L71310:
+  000c6	66 3d 18 00	 cmp	 ax, 24			; 00000018H
+  000ca	75 73		 jne	 SHORT $L71297
+$L71314:
+
+; 179  : 			return (CLUSTER);
+
+  000cc	66 b8 01 00	 mov	 ax, 1
+
+; 193  : }
+
+  000d0	c3		 ret	 0
+$L71321:
+
+; 180  : 		break;
+; 181  : 	case S:
+; 182  : 		if ((s == W) || (s == LL) || (s == P) || (s == T)
+; 183  : 			|| (s == K) || (s == M) || (s == N) || (s == F))
+
+  000d1	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  000d6	66 3d 18 00	 cmp	 ax, 24			; 00000018H
+  000da	74 2a		 je	 SHORT $L71323
+  000dc	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  000e0	74 24		 je	 SHORT $L71323
+  000e2	66 3d 2d 00	 cmp	 ax, 45			; 0000002dH
+  000e6	74 1e		 je	 SHORT $L71323
+  000e8	66 3d 2f 00	 cmp	 ax, 47			; 0000002fH
+  000ec	74 18		 je	 SHORT $L71323
+  000ee	66 3d 31 00	 cmp	 ax, 49			; 00000031H
+  000f2	74 12		 je	 SHORT $L71323
+  000f4	66 3d 1f 00	 cmp	 ax, 31			; 0000001fH
+  000f8	74 0c		 je	 SHORT $L71323
+  000fa	66 3d 20 00	 cmp	 ax, 32			; 00000020H
+  000fe	74 06		 je	 SHORT $L71323
+  00100	66 3d 25 00	 cmp	 ax, 37			; 00000025H
+  00104	75 39		 jne	 SHORT $L71297
+$L71323:
+
+; 184  : 			return (CLUSTER);
+
+  00106	66 b8 01 00	 mov	 ax, 1
+
+; 193  : }
+
+  0010a	c3		 ret	 0
+$L71324:
+
+; 185  : 		break;
+; 186  : 	case SH:
+; 187  : 		if ((s == W) || (s == LL) || (s == P) || (s == T)
+; 188  : 			|| (s == R) || (s == M) || (s == N))
+
+  0010b	66 8b 44 24 08	 mov	 ax, WORD PTR _s$[esp-4]
+  00110	66 3d 18 00	 cmp	 ax, 24			; 00000018H
+  00114	74 24		 je	 SHORT $L71326
+  00116	66 3d 1b 00	 cmp	 ax, 27			; 0000001bH
+  0011a	74 1e		 je	 SHORT $L71326
+  0011c	66 3d 2d 00	 cmp	 ax, 45			; 0000002dH
+  00120	74 18		 je	 SHORT $L71326
+  00122	66 3d 2f 00	 cmp	 ax, 47			; 0000002fH
+  00126	74 12		 je	 SHORT $L71326
+  00128	66 3d 1a 00	 cmp	 ax, 26			; 0000001aH
+  0012c	74 0c		 je	 SHORT $L71326
+  0012e	66 3d 1f 00	 cmp	 ax, 31			; 0000001fH
+  00132	74 06		 je	 SHORT $L71326
+  00134	66 3d 20 00	 cmp	 ax, 32			; 00000020H
+  00138	75 05		 jne	 SHORT $L71297
+$L71326:
+
+; 189  : 			return (CLUSTER);
+
+  0013a	66 b8 01 00	 mov	 ax, 1
+
+; 193  : }
+
+  0013e	c3		 ret	 0
+$L71297:
+
+; 190  : 		break;
+; 191  : 	}
+; 192  : 	return (NOCLUSTER);
+
+  0013f	66 33 c0	 xor	 ax, ax
+
+; 193  : }
+
+  00142	c3		 ret	 0
+  00143	90		 npad	 1
+$L71638:
+  00144	00 00 00 00	 DD	 $L71306
+  00148	00 00 00 00	 DD	 $L71297
+  0014c	00 00 00 00	 DD	 $L71312
+  00150	00 00 00 00	 DD	 $L71297
+  00154	00 00 00 00	 DD	 $L71321
+  00158	00 00 00 00	 DD	 $L71297
+  0015c	00 00 00 00	 DD	 $L71324
+  00160	00 00 00 00	 DD	 $L71297
+  00164	00 00 00 00	 DD	 $L71300
+  00168	00 00 00 00	 DD	 $L71303
+  0016c	00 00 00 00	 DD	 $L71309
+  00170	00 00 00 00	 DD	 $L71312
+  00174	00 00 00 00	 DD	 $L71315
+  00178	00 00 00 00	 DD	 $L71318
+_phcluster ENDP
+_TEXT	ENDS
+PUBLIC	_phsort
+EXTRN	_adjust_index:NEAR
+EXTRN	_featb:BYTE
+_TEXT	SEGMENT
+_phTTS$ = 8
+_pKsd_t$ = -16
+_pDphsettar$ = -8
+_n$ = -36
+_curr_dur$ = -24
+_compound_destress$ = -32
+_curr_f0$ = -28
+_in_rhyme$ = -12
+_mf0$ = -4
+_nstresses$ = -20
+_nstartphrase$ = -12
+_phsort	PROC NEAR
+
+; 1637 : {
+
+  00180	83 ec 24	 sub	 esp, 36			; 00000024H
+  00183	53		 push	 ebx
+  00184	55		 push	 ebp
+
+; 1638 : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+
+  00185	8b 6c 24 30	 mov	 ebp, DWORD PTR _phTTS$[esp+40]
+  00189	56		 push	 esi
+
+; 1639 : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+; 1640 : 	PDPHSETTAR_ST           pDphsettar = pDph_t->pSTphsettar;
+; 1641 : 
+; 1642 : 	short                   snphonetot = 0;		/* MVP 03/19/96 changed to short from unsigned int */
+; 1643 : 
+; 1644 : 	short                   n = 0, curr_dur = 0, compound_destress = 0, curr_f0 = 0;	/* MVP : Made local */
+
+  0018a	33 db		 xor	 ebx, ebx
+
+; 1645 : 	short                   curr_in_sym = 0, word_init_sw = 0, in_rhyme = 0, m, mf0, nstresses;		/* MVP : made local */
+; 1646 : 	short                   nstartphrase = 0; 
+; 1647 : #ifdef SPANISH
+; 1648 : 		short				ntmp;
+; 1649 : 		short				phrase_after_quote = 0;
+; 1650 : 		short               nsyll;	   /* Nbr. syllables       */
+; 1651 : 		short               syllclass; /* Set if open syllable */
+; 1652 : 		short               iscoda;	   /* Set after nucleus    */
+; 1653 : 		short               wordstress;/* TRUE if any stress   */
+; 1654 : 		pDph_t->special_phrase=0;
+; 1655 : 		pDph_t->specdur = 0;
+; 1656 : #endif 
+; 1657 : #ifdef GERMAN
+; 1658 : 		SENT_PARS			*pp;
+; 1659 : 		short				nextvowel=0;
+; 1660 : 		short				tmp,ntmp;
+; 1661 : 
+; 1662 : 	pDph_t->Word_has_stress =0;
+; 1663 : 	pDph_t->number_fsyls  = 0;
+; 1664 : #endif
+; 1665 : 	pDph_t->number_words=1; /* eab init there is one less word boundary than number of 
+
+  0018c	b9 01 00 00 00	 mov	 ecx, 1
+  00191	8b 45 08	 mov	 eax, DWORD PTR [ebp+8]
+  00194	8b 75 18	 mov	 esi, DWORD PTR [ebp+24]
+  00197	89 44 24 20	 mov	 DWORD PTR _pKsd_t$[esp+48], eax
+  0019b	57		 push	 edi
+  0019c	8b 86 48 28 00
+	00		 mov	 eax, DWORD PTR [esi+10312]
+  001a2	89 5c 24 1c	 mov	 DWORD PTR _curr_dur$[esp+52], ebx
+  001a6	89 5c 24 18	 mov	 DWORD PTR _curr_f0$[esp+52], ebx
+  001aa	66 89 8e 82 1c
+	00 00		 mov	 WORD PTR [esi+7298], cx
+  001b1	89 44 24 2c	 mov	 DWORD PTR _pDphsettar$[esp+52], eax
+
+; 1666 : 							words*/
+; 1667 : 
+; 1668 : 	pDphsettar->did_del = 0;
+
+  001b5	89 58 1c	 mov	 DWORD PTR [eax+28], ebx
+
+; 1669 : 	
+; 1670 : 
+; 1671 : #ifdef GERMAN
+; 1672 : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 1673 : 	/* clear parsing structure, even if syntax() isn't called        */
+; 1674 : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 1675 : 	for (pp = pDph_t->pars; pp <= &pDph_t->pars[pDph_t->nsymbtot]; pp++)
+; 1676 : 	{
+; 1677 : 		pp->phopoint = 0;
+; 1678 : 		pp->wordclass = 0;
+; 1679 : 		pp->bouflag = 0;
+; 1680 : 	}
+; 1681 : 	/* for */
+; 1682 : #endif
+; 1683 : 
+; 1684 : 	/* Clear structure array */
+; 1685 : 
+; 1686 : 	for (n = 0; n < pDph_t->nsymbtot; n++)
+
+  001b8	33 c0		 xor	 eax, eax
+  001ba	89 5c 24 14	 mov	 DWORD PTR _compound_destress$[esp+52], ebx
+  001be	89 44 24 10	 mov	 DWORD PTR _n$[esp+52], eax
+  001c2	66 39 9e 26 14
+	00 00		 cmp	 WORD PTR [esi+5158], bx
+  001c9	7e 1e		 jle	 SHORT $L71443
+$L71441:
+
+; 1687 : 	{
+; 1688 : 		pDph_t->sentstruc[n] = 0;
+
+  001cb	0f bf d0	 movsx	 edx, ax
+  001ce	8b 86 38 14 00
+	00		 mov	 eax, DWORD PTR [esi+5176]
+  001d4	89 1c 90	 mov	 DWORD PTR [eax+edx*4], ebx
+  001d7	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+  001db	40		 inc	 eax
+  001dc	89 44 24 10	 mov	 DWORD PTR _n$[esp+52], eax
+  001e0	66 3b 86 26 14
+	00 00		 cmp	 ax, WORD PTR [esi+5158]
+  001e7	7c e2		 jl	 SHORT $L71441
+$L71443:
+
+; 1689 : 	}
+; 1690 : 	pDph_t->f0mode = NORMAL;
+; 1691 : #ifdef SPANISH
+; 1692 : 	pDph_t->emphasisflag = FALSE; 
+; 1693 : #endif
+; 1694 : 	pDph_t->cbsymbol = 0;
+; 1695 : 	
+; 1696 : 
+; 1697 : 	/* Main loop 1: Clean up input string re mis-orderings & extra boundaries */
+; 1698 : 	pDph_t->nphonetot = 0;
+; 1699 : 	nstresses = 0;
+; 1700 : 	nstartphrase = 0; 
+; 1701 : 	
+; 1702 : #ifdef GERMAN
+; 1703 : 	for (n = 0; n < pDph_t->nsymbtot; n++)
+; 1704 : 	{
+; 1705 : 		if ((pDph_t->symbols[n] == S1 ||
+; 1706 : 			  pDph_t->symbols[n] == S2 ||
+; 1707 : 			  pDph_t->symbols[n] == S3)
+; 1708 : 			 && !(featb[pDph_t->symbols[n + 1]] & FVOWEL))
+; 1709 : 		{
+; 1710 : 			/* BATS 711 Slight improvement in loop performance start at n+2 not n */
+; 1711 : 			for (nextvowel = n+2; nextvowel < pDph_t->nsymbtot; nextvowel++)
+; 1712 : 			{
+; 1713 : 				if (featb[pDph_t->symbols[nextvowel]] & FVOWEL)
+; 1714 : 				{
+; 1715 : 					tmp = pDph_t->symbols[n];
+; 1716 : 		
+; 1717 : 					for (ntmp = n; ntmp < (nextvowel - 1); ntmp++)
+; 1718 : 					{
+; 1719 : 						pDph_t->symbols[ntmp] = pDph_t->symbols[ntmp + 1];
+; 1720 : 					}
+; 1721 : 					pDph_t->symbols[nextvowel - 1] = tmp;
+; 1722 : 					n = nextvowel;	   /* done to this point so jump ahead */
+; 1723 : 					break;
+; 1724 : 				}
+; 1725 : 			}
+; 1726 : 		}
+; 1727 : 	}
+; 1728 : 
+; 1729 : #endif /* #ifdef GERMAN */
+; 1730 : 
+; 1731 : 
+; 1732 : 	for (n = 0; n < pDph_t->nsymbtot; n++)
+
+  001e9	33 c0		 xor	 eax, eax
+  001eb	66 89 8e 40 14
+	00 00		 mov	 WORD PTR [esi+5184], cx
+  001f2	66 89 9e 42 14
+	00 00		 mov	 WORD PTR [esi+5186], bx
+  001f9	66 89 9e 3c 14
+	00 00		 mov	 WORD PTR [esi+5180], bx
+  00200	89 44 24 10	 mov	 DWORD PTR _n$[esp+52], eax
+  00204	66 39 9e 26 14
+	00 00		 cmp	 WORD PTR [esi+5158], bx
+  0020b	89 5c 24 20	 mov	 DWORD PTR _nstresses$[esp+52], ebx
+  0020f	89 5c 24 28	 mov	 DWORD PTR _nstartphrase$[esp+52], ebx
+  00213	0f 8e aa 03 00
+	00		 jle	 $L71446
+$L71444:
+
+; 1733 : 	{
+; 1734 : 		if (pDphsettar->did_del)
+
+  00219	8b 4c 24 2c	 mov	 ecx, DWORD PTR _pDphsettar$[esp+52]
+  0021d	39 59 1c	 cmp	 DWORD PTR [ecx+28], ebx
+  00220	74 0c		 je	 SHORT $L71447
+
+; 1735 : 		{
+; 1736 : 			n--;					   /* delete was done so back up one to process shifted phoneme eab */
+
+  00222	48		 dec	 eax
+  00223	89 44 24 10	 mov	 DWORD PTR _n$[esp+52], eax
+
+; 1737 : 			pDphsettar->did_del = 0;
+
+  00227	89 59 1c	 mov	 DWORD PTR [ecx+28], ebx
+  0022a	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+$L71447:
+
+; 1738 : 			/* del_cnt++; *//* MVP : Value is never used */
+; 1739 : 		}
+; 1740 : 
+; 1741 : 
+; 1742 : 
+; 1743 : 
+; 1744 : 
+; 1745 : 
+; 1746 : #ifdef GERMAN
+; 1747 : // Solution of trilled R not allows Ng to function properly so I removed substitution this is better
+; 1748 : 		//eab 6/9/98
+; 1749 : 				/*EAB 3/25/98 try using p+ f to imitate pf*/
+; 1750 : 		if (pDph_t->symbols[n] == PF)
+; 1751 : 			
+; 1752 : 			{
+; 1753 : 				pDph_t->symbols[n] = P;
+; 1754 : 				insertphone (phTTS, n+1, F);
+; 1755 : 
+; 1756 : 					/* 12/10/1996 EDB */
+; 1757 : 				n++;
+; 1758 : 			}
+; 1759 : 				/* eab 3/120/98 Make final S much longer by inserting another S
+; 1760 : 		 if word final position in a stressed word 7/28/98 appears to have too much affect
+; 1761 : 		 I thought it one was suppose to be shortened-out until interact review with oliver*/
+; 1762 : 		if (pDph_t->symbols[n] == WBOUND )
+; 1763 : 		{
+; 1764 : 
+; 1765 : 			if( pDph_t->symbols[n-1] == S && pDph_t->Word_has_stress == 1)
+; 1766 : 			{
+; 1767 : 			/*	insertphone (phTTS, (n-1), S);*/
+; 1768 : 				n++;
+; 1769 : 			}
+; 1770 : 			pDph_t->Word_has_stress = 0; //clear word stress flag eab 3/27/98
+; 1771 : 			pDph_t->number_fsyls  = 0; //clear numberfylls eab 4/2/98
+; 1772 : 		}
+; 1773 : 
+; 1774 : 			/*3/18/98 eab inhibit for R becuase we'll glotalize the r in phdraw*/
+; 1775 : 		if (pDph_t->symbols[n] == WBOUND
+; 1776 : 			&& (pDph_t->symbols[n-1] != R))
+; 1777 : 		{
+; 1778 : 		
+; 1779 : 					
+; 1780 : 				/* 12/10/1996 EDB,
+; 1781 : 				 according to caroline always insert a word inital when a vowel*/
+; 1782 : 				
+; 1783 : 			
+; 1784 : 			ntmp = n;
+; 1785 : 				/* step past any non-phonemes such as stress */
+; 1786 : 			while (pDph_t->symbols[ntmp] > 100 && ntmp < pDph_t->nsymbtot)
+; 1787 : 			{
+; 1788 : 				ntmp++;
+; 1789 : 			}
+; 1790 : 				/* Is next thing a vowel*/
+; 1791 : 			if (featb[pDph_t->symbols[ntmp]] & FVOWEL)
+; 1792 : 			{
+; 1793 : 				insertphone (phTTS, n, Q);
+; 1794 : 
+; 1795 : 					/* 12/10/1996 EDB */
+; 1796 : 				n=ntmp;
+; 1797 : 			}
+; 1798 : 			
+; 1799 : 		}
+; 1800 : 		/* eab 11/95 and add glotal bewteen vowels in a word */
+; 1801 : 		/* redo code later for clealiness 12/16/96 out*/
+; 1802 : 		if (featb[pDph_t->symbols[n - 1]] & FVOWEL)
+; 1803 : 		{
+; 1804 : 			ntmp = n;
+; 1805 : 			/* step past any non-phonemes such as stress */
+; 1806 : 			while (pDph_t->symbols[ntmp] > 100 && ntmp < pDph_t->nsymbtot)
+; 1807 : 			{
+; 1808 : 				ntmp++;
+; 1809 : 			}
+; 1810 : 			/* printf(" %x %x %d %d \n",featb[symbols[ntmp]],featb[symbols[ntmp]] & FVOWEL, ntmp,symbols[ntmp]); */
+; 1811 : 
+; 1812 : 			if (featb[pDph_t->symbols[ntmp]] & FVOWEL)
+; 1813 : 			{
+; 1814 : 			/* Eab We need to check this out next Tuesday with SOnia in out or modified */
+; 1815 : 			/* insertphone(n,Q); */
+; 1816 : 			/* printf("insert q\n"); */
+; 1817 : 			}
+; 1818 : 		}
+; 1819 : 
+; 1820 : #endif /* #ifdef GERMAN */
+; 1821 : 		
+; 1822 : 	
+; 1823 : 
+; 1824 : #ifdef SPANISH
+; 1825 : 		/* kludge we need to have a word boundary at the begiining to make things
+; 1826 : 		coding more straight forward n=0 is becuase of no inital wbound.*/
+; 1827 : 
+; 1828 : 		if (pDph_t->symbols[n] == WBOUND || n==0)
+; 1829 : 		{
+; 1830 : 
+; 1831 : 			/* allophonic rule for grapheme Y->e 
+; 1832 : 			before an I as in Y india pronounced e india*/
+; 1833 : 			if((pDph_t->symbols[n+1] == E_I)
+; 1834 : 				&& (pDph_t->symbols[n+2] == WBOUND))
+; 1835 : 			{
+; 1836 : 			/* then look ahead to see if the next real phoneme is the vowel E_I*/
+; 1837 : 
+; 1838 : 				ntmp = n+2;
+; 1839 : 				/* step past any non-phonemes such as stress */
+; 1840 : 				while ( (pDph_t->symbols[ntmp] > 100 ||
+; 1841 : 					pDph_t->symbols[ntmp]==E_Q )
+; 1842 : 					&& ntmp < pDph_t->nsymbtot)
+; 1843 : 				{
+; 1844 : 					ntmp++;
+; 1845 : 				}
+; 1846 : 				/* Is next thing a the vowel*/
+; 1847 : 				if (pDph_t->symbols[ntmp] == E_I)		
+; 1848 : 				{
+; 1849 : 					pDph_t->symbols[n+1]=E_E;
+; 1850 : 				}
+; 1851 : 			}
+; 1852 : 				/* allophonic rule for "or" O->e 
+; 1853 : 			before an I as in Y india pronounced e india*/
+; 1854 : 			if((pDph_t->symbols[n+2] == E_O)
+; 1855 : 				&& (pDph_t->symbols[n+3] == WBOUND))
+; 1856 : 			{
+; 1857 : 			/* then look ahead to see if the next real phoneme is the vowel E_I*/
+; 1858 : 
+; 1859 : 				ntmp = n+3;
+; 1860 : 				/* step past any non-phonemes such as stress */
+; 1861 : 				while ( (pDph_t->symbols[ntmp] > 100 ||
+; 1862 : 					pDph_t->symbols[ntmp] == E_Q )
+; 1863 : 					&& ntmp < pDph_t->nsymbtot)
+; 1864 : 				{
+; 1865 : 					ntmp++;
+; 1866 : 				}
+; 1867 : 				/* Is next thing E_O */
+; 1868 : 				if (pDph_t->symbols[ntmp] == E_O)		
+; 1869 : 				{
+; 1870 : 					pDph_t->symbols[n+2]=E_U;
+; 1871 : 				}
+; 1872 : 			}
+; 1873 : 				
+; 1874 : 			
+; 1875 : #ifdef BOOKSAYSDIFFERENT //from previous input perhaps a castillion/latin difference or
+; 1876 : 			// maybe anna was wrng/anglicanixzed
+; 1877 : 		/* 12/27/96 EAB insert a glotal stop bewteen s#s V#s and s#v and 
+; 1878 : 			Juan would like it with sonor #sonor*/
+; 1879 : 			if(pDph_t->symbols[n-1] == E_S || pDph_t->symbols[n-1] == E_TH)
+; 1880 : 			{
+; 1881 : 
+; 1882 : 				ntmp = n;
+; 1883 : 				/* step past any non-phonemes such as stress */
+; 1884 : 				while (pDph_t->symbols[ntmp] > 100 && ntmp < pDph_t->nsymbtot)
+; 1885 : 				{
+; 1886 : 					ntmp++;
+; 1887 : 				}
+; 1888 : 				/* If next thing an S use sil instead of  a voiced
+; 1889 : 				glotal stop*/
+; 1890 : 				if(pDph_t->symbols[ntmp] == E_S || pDph_t->symbols[ntmp] == E_TH)
+; 1891 : 				{
+; 1892 : 					insertphone (phTTS, n, SIL);
+; 1893 : 					n=ntmp;
+; 1894 : 				}
+; 1895 : 
+; 1896 : 				/* Is next thing a vowel*/
+; 1897 : 				else if (featb[pDph_t->symbols[ntmp]] & FVOWEL	)
+; 1898 : 		
+; 1899 : 				{
+; 1900 : 					if((pDph_t->wordclass[n] & 0x020))
+; 1901 : 						insertphone (phTTS, n, E_Q);
+; 1902 : 
+; 1903 : 					/* BATS 677 Found another spot it was doing it wrong
+; 1904 : 					EAB 5/18/98 */
+; 1905 : 					if(!(pDph_t->wordclass[n-1] & 0x00800000)
+; 1906 : 						&& !(pDph_t->wordclass[n+1] & 0x00800000))
+; 1907 : 					{
+; 1908 : 						insertphone (phTTS, n, E_Q);
+; 1909 : 
+; 1910 : 					/* 12/10/1996 EDB */
+; 1911 : 
+; 1912 : 					n=ntmp;
+; 1913 : 					}
+; 1914 : 				}
+; 1915 : 			}
+; 1916 : 				else if(featb[pDph_t->symbols[n-1]] & FSONOR)
+; 1917 : 			{
+; 1918 : 
+; 1919 : 				ntmp = n;
+; 1920 : 				/* step past any non-phonemes such as stress */
+; 1921 : 				while (pDph_t->symbols[ntmp] > 100 && ntmp < pDph_t->nsymbtot)
+; 1922 : 				{
+; 1923 : 					ntmp++;
+; 1924 : 				}
+; 1925 : 				/* Is next thing an s or a vowel i.e. vowel wbound vowel gets a glotal also 
+; 1926 : 				BATS 677 EAB 5/18/98 */
+; 1927 : 				if (featb[pDph_t->symbols[ntmp]] & FSONOR
+; 1928 : 					|| 	pDph_t->symbols[ntmp] == E_S || pDph_t->symbols[ntmp] == E_TH)
+; 1929 : 				{
+; 1930 : 					/*last phoneme of word equals next phoneme so glotal stop it*/
+; 1931 : 					if(pDph_t->symbols[n-1]==pDph_t->symbols[ntmp])
+; 1932 : 					{
+; 1933 : 						insertphone (phTTS, n, E_Q);
+; 1934 : 					
+; 1935 : 					}
+; 1936 : 
+; 1937 : 
+; 1938 : 
+; 1939 : 					/* BATS 674 Should be inserting a glotal stop not silence eab 5/13/98*/
+; 1940 : 					/* now trying to refine so that we don't put in tooo many glotal stops
+; 1941 : 					but we must be careful because we can cause confusion eab 8/7/98 */
+; 1942 : 					
+; 1943 : 
+; 1944 : 					/* BATS 677 Found another spot it was doing it wrong
+; 1945 : 					EAB 5/18/98 
+; 1946 : 					EAB Found a behavior problem because N+1 can be end
+; 1947 : 					marker with no silence at the end yet*/
+; 1948 : 
+; 1949 : 					else if(n>0 && !(pDph_t->wordclass[n-1] & 0x00800000))
+; 1950 : 					{
+; 1951 : 						if(pDph_t->symbols[n+1] != SIL  )
+; 1952 : 							if( !(pDph_t->symbols[n+1] >= 115
+; 1953 : 								&& pDph_t->symbols[n+1] <= 118))
+; 1954 : 							insertphone (phTTS, n, E_Q);
+; 1955 : 
+; 1956 : 					/* 12/10/1996 EDB */
+; 1957 : 
+; 1958 : 			
+; 1959 : 					}
+; 1960 : 					n=ntmp;
+; 1961 : 
+; 1962 : 					
+; 1963 : 				}
+; 1964 : 			}
+; 1965 : #endif
+; 1966 : 							
+; 1967 : 		}
+; 1968 : 				
+; 1969 : 			
+; 1970 : #endif
+; 1971 : #ifdef GERMAN
+; 1972 : 
+; 1973 : 		/* code to insert a secondary stress in a polysyllabic or compound word on the second +syl after
+; 1974 : a stress*/
+; 1975 : 		if(pDph_t->Word_has_stress == 1)
+; 1976 : 		{
+; 1977 : 			if ((featb[pDph_t->symbols[n]] & FSYLL) IS_PLUS)
+; 1978 : 			{
+; 1979 : 				pDph_t->number_fsyls++;
+; 1980 : 			
+; 1981 : 				if(pDph_t->number_fsyls == 4)
+; 1982 : 				{
+; 1983 : 					insertphone (phTTS, n, S2);
+; 1984 : 	
+; 1985 : 				}
+; 1986 : 			}
+; 1987 : 		}
+; 1988 : 
+; 1989 : 
+; 1990 : 		if (pDph_t->symbols[n] == S1 )
+; 1991 : 		{
+; 1992 : 				pDph_t->Word_has_stress =1; // eab 3/37 /98 set word stress marker
+; 1993 : 		
+; 1994 : 				if(compound_destress)
+; 1995 : 				{
+; 1996 : 					/* xxx new code to do compound destress correctly eab 8/94 */
+; 1997 : 					pDph_t->symbols[n] = S2;
+; 1998 : 					compound_destress = FALSE;
+; 1999 : 				}
+; 2000 : 		}
+; 2001 : 
+; 2002 : 
+; 2003 : 
+; 2004 : #endif
+; 2005 : 		
+; 2006 : #if defined ENGLISH_US || defined SPANISH
+; 2007 : 		/* xxx new code to do compound destress correctly eab 8/94 */
+; 2008 : 		if (pDph_t->symbols[n] == HYPHEN)
+
+  0022e	0f bf c8	 movsx	 ecx, ax
+  00231	66 8b 94 4e ca
+	11 00 00	 mov	 dx, WORD PTR [esi+ecx*2+4554]
+  00239	8d 8c 4e ca 11
+	00 00		 lea	 ecx, DWORD PTR [esi+ecx*2+4554]
+  00240	66 83 fa 6e	 cmp	 dx, 110			; 0000006eH
+  00244	75 08		 jne	 SHORT $L71448
+
+; 2009 : 		{
+; 2010 : 			compound_destress = TRUE;
+
+  00246	c7 44 24 14 01
+	00 00 00	 mov	 DWORD PTR _compound_destress$[esp+52], 1
+$L71448:
+
+; 2011 : 		}
+; 2012 : 
+; 2013 : 		if (pDph_t->symbols[n] == S1 && compound_destress)
+
+  0024e	66 83 fa 67	 cmp	 dx, 103			; 00000067H
+  00252	75 14		 jne	 SHORT $L71449
+  00254	66 39 5c 24 14	 cmp	 WORD PTR _compound_destress$[esp+52], bx
+  00259	74 0d		 je	 SHORT $L71449
+
+; 2014 : 			/* xxx new code to do compound destress correctly eab 8/94 */
+; 2015 : 		{
+; 2016 : 			pDph_t->symbols[n] = S2;
+
+  0025b	66 c7 01 66 00	 mov	 WORD PTR [ecx], 102	; 00000066H
+
+; 2017 : 			compound_destress = FALSE;
+
+  00260	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+  00264	89 5c 24 14	 mov	 DWORD PTR _compound_destress$[esp+52], ebx
+$L71449:
+
+; 2018 : 		}
+; 2019 : 
+; 2020 : 		if (pDph_t->symbols[n] == SPECIALWORD)
+
+  00268	0f bf d0	 movsx	 edx, ax
+  0026b	66 83 bc 56 ca
+	11 00 00 78	 cmp	 WORD PTR [esi+edx*2+4554], 120 ; 00000078H
+  00274	75 0e		 jne	 SHORT $L71450
+
+; 2021 : 		{
+; 2022 : #ifdef SPANISH
+; 2023 : 			if (phrase_after_quote)
+; 2024 : 			{
+; 2025 : 				pDph_t->special_phrase = 1;
+; 2026 : 			}
+; 2027 : 			phrase_after_quote = 0;
+; 2028 : #endif
+; 2029 : 			delete_symbol (phTTS, n);
+
+  00276	50		 push	 eax
+  00277	55		 push	 ebp
+  00278	e8 00 00 00 00	 call	 _delete_symbol
+  0027d	8b 44 24 18	 mov	 eax, DWORD PTR _n$[esp+60]
+  00281	83 c4 08	 add	 esp, 8
+$L71450:
+
+; 2030 : 		}
+; 2031 : 
+; 2032 : #ifdef SPANISH
+; 2033 : 		/* EAB I known this code is ugly but it's to recognize that the i
+; 2034 : 		in numbers generated but the number routines is the functor i  and
+; 2035 : 		the wordclass info has to be marked 
+; 2036 : 		eab 9/4/98 is really wb-i-wb with not stress mark it a functor */
+; 2037 : 
+; 2038 : 		if(pDph_t->symbols[n] == E_I)
+; 2039 : 		{
+; 2040 : 			if (pDph_t->symbols[n - 1] == WBOUND
+; 2041 : 				&& pDph_t->symbols[n + 1] == WBOUND)
+; 2042 : 			{
+; 2043 : 				pDph_t->wordclass[n] |= 0x00800000;
+; 2044 : 			}
+; 2045 : 		}
+; 2046 : 
+; 2047 : 		/* 12/10/1996 EDB, 
+; 2048 : 		eab In spanish we need to combine to like vowels together with 
+; 2049 : 		lengthen dur unlike english where a glotal stop effect is ok 
+; 2050 : 		Opps we need to verify that they're real phonemes and not control phones
+; 2051 : 		eab sep 4,1998 eab this code stinks do it in ph_timing*/
+; 2052 : 
+; 2053 : 		if ( (pDph_t->symbols[n-1] < 100) &&
+; 2054 : 			(pDph_t->symbols[n] == WBOUND || pDph_t->symbols[n] == 108 ))
+; 2055 : 		{
+; 2056 : 			if (pDph_t->symbols[n - 1] == pDph_t->symbols[n + 1])
+; 2057 : 			{
+; 2058 : 				delete_symbol (phTTS, n + 1);
+; 2059 : 
+; 2060 : 			}
+; 2061 : 		}
+; 2062 : 
+; 2063 : 
+; 2064 : #endif
+; 2065 : 		if (pKsd_t->halting)
+
+  00284	8b 4c 24 24	 mov	 ecx, DWORD PTR _pKsd_t$[esp+52]
+  00288	39 99 74 01 00
+	00		 cmp	 DWORD PTR [ecx+372], ebx
+  0028e	0f 85 bc 06 00
+	00		 jne	 $L71647
+
+; 2066 : 			return (FALSE);
+; 2067 : #ifdef DEBUGIND
+; 2068 : 		printf ("pDph_t->symbols[n] =	%d n=%d \n", pDph_t->symbols[n], n);
+; 2069 : #endif                
+; 2070 : #endif /* #if defined ENGLISH_US || defined SPANISH */
+; 2071 : 		/* Check for user F0 commands in input string for this clause     */
+; 2072 : 
+; 2073 : 		/* RULES for input of a user f0 command                   */
+; 2074 : 		/* 1. If no f0 commands in input, set f0mode = NORMAL     */
+; 2075 : 		/* 2. If explicit [/] or [\] phonemes in input,           */
+; 2076 : 		/* set f0mode = HAT_LOCATIONS_SPECIFIED           		  */
+; 2077 : 		/* 3. If first f0 command is attached to phoneme and has  */
+; 2078 : 		/* value <= 37, set f0mode = SINGING                      */
+; 2079 : 		/* 4. If first f0 command is attached to phoneme and has  */
+; 2080 : 		/* value > 37, set f0mode = PHONE_TARGETS_SPECIFIED       */
+; 2081 : 		/* 5. If first f0 command is attached to non-phoneme ['], */
+; 2082 : 		/* [/], or [\], set f0mode = HAT_F0_SIZES_SPECIFIED       */
+; 2083 : 		/* NOTE cases are mutually exclusive except 2&5 so all    */
+; 2084 : 		/* f0 commands must be of same category within clause 	  */
+; 2085 : 
+; 2086 : 		/* RULES for interpretation of user f0 commands           */
+; 2087 : 		/* SINGING:  e.g. [a<500,22>].                            */
+; 2088 : 		/* If duration attached to phoneme, convert to frames     */
+; 2089 : 		/* If note number attached to phoneme, convert to Hz      */
+; 2090 : 		/* Go to new note linearly in freq over 160 ms, start     */
+; 2091 : 		/* at begin time of phoneme.                              */
+; 2092 : 		/* Add vibratto of +/-1.8 Hz, at 6.5 Hz repetition rate   */
+; 2093 : 		/* PHONE_TARGETS_SPECIFIED:  e.g. [a<,125>]               */
+; 2094 : 		/* If duration attached to phoneme, convert to frames     */
+; 2095 : 		/* If f0 target attached to phoneme, convert to Hz        */
+; 2096 : 		/* Go to new f0 target linearly in freq over duration     */
+; 2097 : 		/* of phoneme, start at beginning of phoneme              */
+; 2098 : 		/* All Hz values are absolute, there is no spdef scaling  */
+; 2099 : 		/* HAT_LOCATIONS_SPECIFIED:  e.g. [/'ab\a]                */
+; 2100 : 		/* Example: hat rise on first stressed vowel (as is       */
+; 2101 : 		/* usual in DECtalk), but fall on final unstressed V      */
+; 2102 : 		/* Usual practice of Dectalk determining hat locations    */
+; 2103 : 		/* is totally disabled, rises and falls occur only on     */
+; 2104 : 		/* phone following the rise or fall symbol.               */
+; 2105 : 		/* Phone following rise and/or fall must be +syllabic     */
+; 2106 : 		/* or PHSORT will produce garbage                 		  */
+; 2107 : 		/* Rise and fall pDph_t->symbols must alternate,          */
+; 2108 : 		/* first is rise    									  */
+; 2109 : 		/* If syllable will have rise, stress pulse, & fall, it   */
+; 2110 : 		/* is best to specify them in that order, i.e. [/'\a] 	  */
+; 2111 : 		/* HAT_F0_SIZES_SPECIFIED:  e.g. [/'<,12>\<,40>a]         */
+; 2112 : 		/* Example: use normal hat rise, 12 Hz stress impulse,    */
+; 2113 : 		/* and 40 Hz hat fall, times of events are normal 		  */
+; 2114 : 		/* Disable prediction of where to insert hat rises &      */
+; 2115 : 		/* falls if there are [/] and [\] pDph_t->symbols         */
+; 2116 : 		/* present, or     										  */
+; 2117 : 		/* if ['] has an attached user f0 command         		  */
+; 2118 : 		/* Override computed values for hat rise, fall, and       */
+; 2119 : 		/* stress pulses if a user-specified f0 command is        */
+; 2120 : 		/* attached to [/], [\], or [']                   		  */
+; 2121 : 		/* Continue to add continuation rises at commas and       */
+; 2122 : 		/* add question intonation by rule                        */
+; 2123 : 		/* If duration attached, it is time of f0 event onset     */
+; 2124 : 		/* relative to onset of next phone (can be negative)      */
+; 2125 : 		/* F0 targets attached to [/] are step rises, attached    */
+; 2126 : 		/* to [\] are step falls, and attached to ['] are 		  */
+; 2127 : 		/* stress impulses; amount is given in nominal Hz 		  */
+; 2128 : 		/* All Hz values are subjected to spdef scalings  		  */
+; 2129 : 		/* No more than one rise, one stress pulse and one fall   */
+; 2130 : 		/* allowed on each vowel, in that order           		  */
+; 2131 : 		if ((pDph_t->symbols[n] >= HAT_RISE) && (pDph_t->symbols[n] <= HAT_RF))
+
+  00294	0f bf d0	 movsx	 edx, ax
+  00297	66 8b 8c 56 ca
+	11 00 00	 mov	 cx, WORD PTR [esi+edx*2+4554]
+  0029f	66 83 f9 69	 cmp	 cx, 105			; 00000069H
+  002a3	7c 1d		 jl	 SHORT $L71453
+  002a5	66 83 f9 6b	 cmp	 cx, 107			; 0000006bH
+  002a9	7f 17		 jg	 SHORT $L71453
+
+; 2132 : 		{
+; 2133 : 			if (pDph_t->f0mode == NORMAL)
+
+  002ab	66 83 be 40 14
+	00 00 01	 cmp	 WORD PTR [esi+5184], 1
+  002b3	75 0d		 jne	 SHORT $L71453
+
+; 2134 : 			{
+; 2135 : 				pDph_t->f0mode = HAT_LOCATIONS_SPECIFIED;
+
+  002b5	66 c7 86 40 14
+	00 00 02 00	 mov	 WORD PTR [esi+5184], 2
+  002be	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+$L71453:
+
+; 2136 : 			}
+; 2137 : 		}
+; 2138 : 
+; 2139 : 		/* Clause-final function word (preceded by [(]) should be stressed */
+; 2140 : 		if (pDph_t->symbols[n] == PPSTART)
+
+  002c2	0f bf c8	 movsx	 ecx, ax
+  002c5	66 83 bc 4e ca
+	11 00 00 70	 cmp	 WORD PTR [esi+ecx*2+4554], 112 ; 00000070H
+  002ce	0f 85 10 01 00
+	00		 jne	 $L71465
+
+; 2141 : 		{
+; 2142 : 			/* Examine input for next bound, see if cbound or greater */
+; 2143 : 			m = n + 1;
+
+  002d4	8d 78 01	 lea	 edi, DWORD PTR [eax+1]
+
+; 2144 : 			while (m < pDph_t->nsymbtot)
+
+  002d7	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  002de	0f 8d 00 01 00
+	00		 jge	 $L71465
+$L71456:
+
+; 2145 : 			{
+; 2146 : 				if (is_wboundary (pDph_t->symbols[m]))
+
+  002e4	0f bf d7	 movsx	 edx, di
+  002e7	66 8b 84 56 ca
+	11 00 00	 mov	 ax, WORD PTR [esi+edx*2+4554]
+  002ef	50		 push	 eax
+  002f0	e8 00 00 00 00	 call	 _is_wboundary
+  002f5	83 c4 04	 add	 esp, 4
+  002f8	85 c0		 test	 eax, eax
+  002fa	75 0f		 jne	 SHORT $L71645
+
+; 2183 : 						}
+; 2184 : 					}
+; 2185 : #endif /* #if defined ENGLISH_US || defined GERMAN */
+; 2186 : #ifdef SPANISH
+; 2187 : 					if (pDph_t->symbols[m] >= COMMA)
+; 2188 : 					{
+; 2189 : 						pDph_t->symbols[n]= S2;	   /* Replace [(] by [`]  */
+; 2190 : 					}
+; 2191 : 					/* Should be an insert instead   */
+; 2192 : #endif /* #ifdef SPANISH */
+; 2193 : 					break;
+; 2194 : 				}
+; 2195 : 
+; 2196 : 				m++;
+
+  002fc	47		 inc	 edi
+  002fd	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  00304	7c de		 jl	 SHORT $L71456
+
+; 2363 : 	{
+; 2364 : loopy:
+; 2365 : 	/* GL 03/27/1997 BATS#270 fix German index delay problem(fixed by Ed bruckert) */
+; 2366 : /*#if defined (ENGLISH_US) || defined (SPANISH)*/
+; 2367 : 		snphonetot = pDph_t->nphonetot;
+; 2368 : /*#endif*/
+; 2369 : 		if (pKsd_t->halting)
+
+  00306	e9 d5 00 00 00	 jmp	 $L71655
+$L71645:
+
+; 2147 : 				{
+; 2148 : #if defined ENGLISH_US || defined GERMAN
+; 2149 : 					if ((pDph_t->symbols[m] >= COMMA)
+; 2150 : #ifdef ENGLISH_US
+; 2151 : 						|| ((pDph_t->symbols[m] == PPSTART) && (pDph_t->symbols[m + 1] != W)))
+
+  0030b	0f bf c7	 movsx	 eax, di
+  0030e	66 8b 8c 46 ca
+	11 00 00	 mov	 cx, WORD PTR [esi+eax*2+4554]
+  00316	66 83 f9 73	 cmp	 cx, 115			; 00000073H
+  0031a	7d 19		 jge	 SHORT $L71460
+  0031c	66 83 f9 70	 cmp	 cx, 112			; 00000070H
+  00320	0f 85 ba 00 00
+	00		 jne	 $L71655
+  00326	66 83 bc 46 cc
+	11 00 00 18	 cmp	 WORD PTR [esi+eax*2+4556], 24 ; 00000018H
+  0032f	0f 84 ab 00 00
+	00		 je	 $L71655
+$L71460:
+
+; 2152 : #endif
+; 2153 : #ifdef GERMAN
+; 2154 : 						|| ((pDph_t->symbols[m] == PPSTART)))
+; 2155 : #endif
+; 2156 : 					{
+; 2157 : 						pDph_t->symbols[n] = WBOUND;	/* Replace [(] by [ ] */
+
+  00335	0f bf 4c 24 10	 movsx	 ecx, WORD PTR _n$[esp+52]
+  0033a	66 c7 84 4e ca
+	11 00 00 6f 00	 mov	 WORD PTR [esi+ecx*2+4554], 111 ; 0000006fH
+
+; 2158 : 						/* Raise PPSTART to VPSTART to set off verbal particle */
+; 2159 : 						if (pDph_t->symbols[m] == PPSTART)
+
+  00344	66 83 bc 46 ca
+	11 00 00 70	 cmp	 WORD PTR [esi+eax*2+4554], 112 ; 00000070H
+  0034d	75 0a		 jne	 SHORT $L71461
+
+; 2160 : 						{
+; 2161 : 							pDph_t->symbols[m] = VPSTART;
+
+  0034f	66 c7 84 46 ca
+	11 00 00 71 00	 mov	 WORD PTR [esi+eax*2+4554], 113 ; 00000071H
+$L71461:
+
+; 2162 : 						}
+; 2163 : 						/* Unreduce the vowel in "for, to, into" */
+; 2164 : #ifdef ENGLISH_US
+; 2165 : 						if ((pDph_t->symbols[n + 1] == F) && (pDph_t->symbols[n + 2] == RR))
+
+  00359	8b 54 24 10	 mov	 edx, DWORD PTR _n$[esp+52]
+  0035d	0f bf ca	 movsx	 ecx, dx
+  00360	66 83 bc 4e cc
+	11 00 00 25	 cmp	 WORD PTR [esi+ecx*2+4556], 37 ; 00000025H
+  00369	75 19		 jne	 SHORT $L71462
+  0036b	66 83 bc 4e ce
+	11 00 00 0f	 cmp	 WORD PTR [esi+ecx*2+4558], 15 ; 0000000fH
+  00374	75 0e		 jne	 SHORT $L71462
+
+; 2166 : 						{
+; 2167 : 							pDph_t->symbols[n + 2] = OR;
+
+  00376	66 c7 84 4e ce
+	11 00 00 16 00	 mov	 WORD PTR [esi+ecx*2+4558], 22 ; 00000016H
+  00380	8b 54 24 10	 mov	 edx, DWORD PTR _n$[esp+52]
+$L71462:
+
+; 2168 : 						}
+; 2169 : 						if ((pDph_t->symbols[m - 2] == T) && (pDph_t->symbols[m - 1] == UH))
+
+  00384	66 83 bc 46 c6
+	11 00 00 2f	 cmp	 WORD PTR [esi+eax*2+4550], 47 ; 0000002fH
+  0038d	75 1c		 jne	 SHORT $L71463
+  0038f	66 83 bc 46 c8
+	11 00 00 0d	 cmp	 WORD PTR [esi+eax*2+4552], 13 ; 0000000dH
+  00398	75 11		 jne	 SHORT $L71463
+
+; 2170 : 						{
+; 2171 : 							pDph_t->symbols[n + 2] = UW;
+
+  0039a	0f bf d2	 movsx	 edx, dx
+  0039d	66 c7 84 56 ce
+	11 00 00 0e 00	 mov	 WORD PTR [esi+edx*2+4558], 14 ; 0000000eH
+  003a7	8b 54 24 10	 mov	 edx, DWORD PTR _n$[esp+52]
+$L71463:
+
+; 2172 : 						}
+; 2173 : #endif
+; 2174 : 						/* Promote init secondary stress, or find V to stress */
+; 2175 : 						if (pDph_t->symbols[n + 1] == S2)
+
+  003ab	0f bf c2	 movsx	 eax, dx
+  003ae	66 83 bc 46 cc
+	11 00 00 66	 cmp	 WORD PTR [esi+eax*2+4556], 102 ; 00000066H
+  003b7	8d 84 46 cc 11
+	00 00		 lea	 eax, DWORD PTR [esi+eax*2+4556]
+  003be	75 07		 jne	 SHORT $L71464
+
+; 2176 : 						{
+; 2177 : 							pDph_t->symbols[n + 1] = S1;	/* Replace [`] by ['] */
+
+  003c0	66 c7 00 67 00	 mov	 WORD PTR [eax], 103	; 00000067H
+
+; 2178 : 						}
+; 2179 : 						else
+
+  003c5	eb 19		 jmp	 SHORT $L71655
+$L71464:
+
+; 2180 : 						{
+; 2181 : 							insertphone (phTTS, n + 1, S1);		/* Insert dangling ['] */
+
+  003c7	42		 inc	 edx
+  003c8	6a 67		 push	 103			; 00000067H
+  003ca	52		 push	 edx
+  003cb	55		 push	 ebp
+  003cc	e8 00 00 00 00	 call	 _insertphone
+
+; 2182 : 							move_stdangle (phTTS, n + 1);	/* Move to right place */
+
+  003d1	8b 4c 24 1c	 mov	 ecx, DWORD PTR _n$[esp+64]
+  003d5	41		 inc	 ecx
+  003d6	51		 push	 ecx
+  003d7	55		 push	 ebp
+  003d8	e8 00 00 00 00	 call	 _move_stdangle
+  003dd	83 c4 14	 add	 esp, 20			; 00000014H
+$L71655:
+
+; 2178 : 						}
+; 2179 : 						else
+
+  003e0	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+$L71465:
+
+; 2197 : 			}
+; 2198 : 		}
+; 2199 : 
+; 2200 : 		/* Look for dangling stress mark (i.e. not followed by +SYLL) */
+; 2201 : #ifdef GERMAN
+; 2202 : 		if ((pDph_t->symbols[n] >= S3) && (pDph_t->symbols[n] <= HAT_RF))
+; 2203 : #endif
+; 2204 : #if defined ENGLISH_US || defined SPANISH
+; 2205 : 		if ((pDph_t->symbols[n] >= S2) && (pDph_t->symbols[n] <= SEMPH))
+
+  003e4	0f bf d0	 movsx	 edx, ax
+  003e7	66 8b 8c 56 ca
+	11 00 00	 mov	 cx, WORD PTR [esi+edx*2+4554]
+  003ef	66 83 f9 66	 cmp	 cx, 102			; 00000066H
+  003f3	7c 7b		 jl	 SHORT $stzapped$71472
+  003f5	66 83 f9 68	 cmp	 cx, 104			; 00000068H
+  003f9	7f 75		 jg	 SHORT $stzapped$71472
+
+; 2206 : #endif
+; 2207 : 		{
+; 2208 : 			/* if ((pDph_t->symbols[n] == S1) || (pDph_t->symbols[n] == SEMPH)) */ /* english */
+; 2209 : 			if (pDph_t->symbols[n] != S2)		/* these are the same */		   /* spanish */
+
+  003fb	66 83 f9 66	 cmp	 cx, 102			; 00000066H
+  003ff	74 04		 je	 SHORT $L71467
+
+; 2210 : 			{
+; 2211 : 				nstresses++;		   /* Count # stresses to this point */
+
+  00401	ff 44 24 20	 inc	 DWORD PTR _nstresses$[esp+52]
+$L71467:
+
+; 2212 : 			}
+; 2213 : 			/* Examine following input for next segment, see if syllabic */
+; 2214 : 			m = n + 1;
+
+  00405	8d 50 01	 lea	 edx, DWORD PTR [eax+1]
+
+; 2215 : 			while ((pDph_t->symbols[m] >= TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
+
+  00408	0f bf ca	 movsx	 ecx, dx
+  0040b	66 8b 8c 4e ca
+	11 00 00	 mov	 cx, WORD PTR [esi+ecx*2+4554]
+  00413	66 83 f9 39	 cmp	 cx, 57			; 00000039H
+  00417	7c 34		 jl	 SHORT $L71470
+  00419	66 8b be 26 14
+	00 00		 mov	 di, WORD PTR [esi+5158]
+$L71469:
+  00420	66 3b d7	 cmp	 dx, di
+  00423	7d 28		 jge	 SHORT $L71470
+
+; 2216 : 			{
+; 2217 : #ifdef ENGLISH_US
+; 2218 : 				if (pDph_t->symbols[m] > WBOUND && pDph_t->symbols[m] < NEW_PARAGRAPH
+; 2219 : 					&& pDph_t->symbols[m] != HYPHEN /* xxx for auto compunds */ )
+
+  00425	66 83 f9 6f	 cmp	 cx, 111			; 0000006fH
+  00429	7e 10		 jle	 SHORT $L71471
+  0042b	66 83 f9 77	 cmp	 cx, 119			; 00000077H
+  0042f	7d 0a		 jge	 SHORT $L71471
+  00431	66 83 f9 6e	 cmp	 cx, 110			; 0000006eH
+  00435	0f 85 b4 00 00
+	00		 jne	 $L71646
+$L71471:
+
+; 2228 : 				}
+; 2229 : 				m++;
+
+  0043b	42		 inc	 edx
+  0043c	0f bf ca	 movsx	 ecx, dx
+  0043f	66 8b 8c 4e ca
+	11 00 00	 mov	 cx, WORD PTR [esi+ecx*2+4554]
+  00447	66 83 f9 39	 cmp	 cx, 57			; 00000039H
+  0044b	7d d3		 jge	 SHORT $L71469
+$L71470:
+
+; 2230 : 			}
+; 2231 : 
+; 2232 : 			if ((featb[pDph_t->symbols[m]] & FSYLL) IS_MINUS)
+
+  0044d	0f bf d2	 movsx	 edx, dx
+  00450	0f bf 8c 56 ca
+	11 00 00	 movsx	 ecx, WORD PTR [esi+edx*2+4554]
+  00458	f6 04 4d 00 00
+	00 00 01	 test	 BYTE PTR _featb[ecx*2], 1
+  00460	75 0e		 jne	 SHORT $stzapped$71472
+
+; 2233 : 			{
+; 2234 : 				move_stdangle (phTTS, n);
+
+  00462	50		 push	 eax
+  00463	55		 push	 ebp
+  00464	e8 00 00 00 00	 call	 _move_stdangle
+$L71664:
+  00469	8b 44 24 18	 mov	 eax, DWORD PTR _n$[esp+60]
+  0046d	83 c4 08	 add	 esp, 8
+$stzapped$71472:
+
+; 2235 : 			}
+; 2236 : 		}
+; 2237 : 	  stzapped:
+; 2238 : 
+; 2239 : #if defined ENGLISH_US || defined GERMAN
+; 2240 : 		/* Remove weaker of two boundary pDph_t->symbols in a row */
+; 2241 : 		if ((pDph_t->symbols[n] >= SBOUND) && (pDph_t->symbols[n] <= EXCLAIM))
+
+  00470	0f bf d0	 movsx	 edx, ax
+  00473	66 8b 8c 56 ca
+	11 00 00	 mov	 cx, WORD PTR [esi+edx*2+4554]
+  0047b	66 83 f9 6c	 cmp	 cx, 108			; 0000006cH
+  0047f	7c 38		 jl	 SHORT $L71476
+  00481	66 83 f9 76	 cmp	 cx, 118			; 00000076H
+  00485	7f 32		 jg	 SHORT $L71476
+
+; 2242 : 		{
+; 2243 : /* for (m=n+1; m<pDph_t->nsymbtot; m++) out-goofs up when trying to do all at once { */
+; 2244 : #ifdef ENGLISH_US
+; 2245 : 			m = n + 1;
+
+  00487	8d 48 01	 lea	 ecx, DWORD PTR [eax+1]
+
+; 2246 : 			if (m < pDph_t->nsymbtot)
+
+  0048a	66 3b 8e 26 14
+	00 00		 cmp	 cx, WORD PTR [esi+5158]
+  00491	7d 26		 jge	 SHORT $L71476
+
+; 2247 : 			{
+; 2248 : 				/* if (pDph_t->symbols[m] < TOT_ALLOPHONES)    break; */
+; 2249 : 				if ((pDph_t->symbols[m] >= SBOUND) && (pDph_t->symbols[m] <= EXCLAIM))
+
+  00493	0f bf d1	 movsx	 edx, cx
+  00496	66 8b 94 56 ca
+	11 00 00	 mov	 dx, WORD PTR [esi+edx*2+4554]
+  0049e	66 83 fa 6c	 cmp	 dx, 108			; 0000006cH
+  004a2	7c 15		 jl	 SHORT $L71476
+  004a4	66 83 fa 76	 cmp	 dx, 118			; 00000076H
+  004a8	7f 0f		 jg	 SHORT $L71476
+
+; 2250 : 				{
+; 2251 : 					zap_weaker_bound (phTTS, n, m);
+
+  004aa	51		 push	 ecx
+  004ab	50		 push	 eax
+  004ac	55		 push	 ebp
+  004ad	e8 00 00 00 00	 call	 _zap_weaker_bound
+  004b2	8b 44 24 1c	 mov	 eax, DWORD PTR _n$[esp+64]
+  004b6	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71476:
+
+; 2252 : 				}
+; 2253 : 			}
+; 2254 : #endif
+; 2255 : #ifdef GERMAN
+; 2256 : 			for (m = n + 1; m < pDph_t->nsymbtot; m++)
+; 2257 : 			{
+; 2258 : 				if (pDph_t->symbols[m] < TOT_ALLOPHONES)
+; 2259 : 					break;
+; 2260 : 				if ((pDph_t->symbols[m] >= SBOUND) && (pDph_t->symbols[m] <= EXCLAIM))
+; 2261 : 				{
+; 2262 : 					zap_weaker_bound (phTTS, n, m);
+; 2263 : 				}
+; 2264 : 			}
+; 2265 : #endif
+; 2266 : 		}
+; 2267 : 		/* Replace weak boundaries by stronger ones at slow rates */
+; 2268 : 		if (pKsd_t->sprate <= 120)
+
+  004b9	8b 4c 24 24	 mov	 ecx, DWORD PTR _pKsd_t$[esp+52]
+  004bd	66 8b 89 22 02
+	00 00		 mov	 cx, WORD PTR [ecx+546]
+  004c4	66 83 f9 78	 cmp	 cx, 120			; 00000078H
+  004c8	7f 3a		 jg	 SHORT $L71477
+
+; 2269 : 		{
+; 2270 : 			if ((pDph_t->symbols[n] == VPSTART) || (pDph_t->symbols[n] == PPSTART))
+
+  004ca	0f bf d0	 movsx	 edx, ax
+  004cd	8d 8c 56 ca 11
+	00 00		 lea	 ecx, DWORD PTR [esi+edx*2+4554]
+  004d4	66 8b 94 56 ca
+	11 00 00	 mov	 dx, WORD PTR [esi+edx*2+4554]
+  004dc	66 83 fa 71	 cmp	 dx, 113			; 00000071H
+  004e0	74 06		 je	 SHORT $L71479
+  004e2	66 83 fa 70	 cmp	 dx, 112			; 00000070H
+  004e6	75 41		 jne	 SHORT $L71482
+$L71479:
+
+; 2271 : 			{
+; 2272 : 				pDph_t->symbols[n] = COMMA;
+
+  004e8	66 c7 01 73 00	 mov	 WORD PTR [ecx], 115	; 00000073H
+
+; 2273 : 			}
+; 2274 : 		}
+; 2275 : 		else if (pKsd_t->sprate <= 140)
+
+  004ed	eb 36		 jmp	 SHORT $L71665
+$L71646:
+
+; 2220 : #endif
+; 2221 : #if defined SPANISH || defined GERMAN 
+; 2222 : 				if (pDph_t->symbols[m] >= SBOUND)
+; 2223 : #endif
+; 2224 : 				{
+; 2225 : 					nstresses--;
+
+  004ef	8b 7c 24 20	 mov	 edi, DWORD PTR _nstresses$[esp+52]
+
+; 2226 : 					delete_symbol (phTTS, n);	/* Ignore stress at end of */
+
+  004f3	50		 push	 eax
+  004f4	4f		 dec	 edi
+  004f5	55		 push	 ebp
+  004f6	89 7c 24 28	 mov	 DWORD PTR _nstresses$[esp+60], edi
+  004fa	e8 00 00 00 00	 call	 _delete_symbol
+
+; 2227 : 					goto stzapped;	   /* syllable or word     */
+
+  004ff	e9 65 ff ff ff	 jmp	 $L71664
+$L71477:
+
+; 2273 : 			}
+; 2274 : 		}
+; 2275 : 		else if (pKsd_t->sprate <= 140)
+
+  00504	66 81 f9 8c 00	 cmp	 cx, 140			; 0000008cH
+  00509	7f 1e		 jg	 SHORT $L71482
+
+; 2276 : 		{
+; 2277 : 			if (pDph_t->symbols[n] == PPSTART)
+
+  0050b	0f bf c8	 movsx	 ecx, ax
+  0050e	66 83 bc 4e ca
+	11 00 00 70	 cmp	 WORD PTR [esi+ecx*2+4554], 112 ; 00000070H
+  00517	8d 8c 4e ca 11
+	00 00		 lea	 ecx, DWORD PTR [esi+ecx*2+4554]
+  0051e	75 09		 jne	 SHORT $L71482
+
+; 2278 : 			{
+; 2279 : 				pDph_t->symbols[n] = VPSTART;
+
+  00520	66 c7 01 71 00	 mov	 WORD PTR [ecx], 113	; 00000071H
+$L71665:
+  00525	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+$L71482:
+
+; 2280 : 			}
+; 2281 : 		}
+; 2282 : #endif	/* #if defined ENGLISH_US || defined GERMAN*/
+; 2283 : 
+; 2284 : 		/* Every breath group must have at least one 1-stress */
+; 2285 : 		if ((pDph_t->symbols[n] >= COMMA) && (pDph_t->symbols[n] <= EXCLAIM))
+
+  00529	0f bf d0	 movsx	 edx, ax
+  0052c	66 8b 8c 56 ca
+	11 00 00	 mov	 cx, WORD PTR [esi+edx*2+4554]
+  00534	66 83 f9 73	 cmp	 cx, 115			; 00000073H
+  00538	7c 29		 jl	 SHORT $L71484
+  0053a	66 83 f9 76	 cmp	 cx, 118			; 00000076H
+  0053e	7f 23		 jg	 SHORT $L71484
+
+; 2286 : 		{
+; 2287 : 
+; 2288 : 			if ((n > 0) && (nstresses == 0))
+
+  00540	66 3b c3	 cmp	 ax, bx
+  00543	7e 1e		 jle	 SHORT $L71484
+  00545	66 39 5c 24 20	 cmp	 WORD PTR _nstresses$[esp+52], bx
+  0054a	75 17		 jne	 SHORT $L71484
+
+; 2289 : 			{
+; 2290 : 				find_syll_to_stress (phTTS, &n, nstartphrase);	/* MVP : was n and n was static */
+
+  0054c	8b 44 24 28	 mov	 eax, DWORD PTR _nstartphrase$[esp+52]
+  00550	8d 4c 24 10	 lea	 ecx, DWORD PTR _n$[esp+52]
+  00554	50		 push	 eax
+  00555	51		 push	 ecx
+  00556	55		 push	 ebp
+  00557	e8 00 00 00 00	 call	 _find_syll_to_stress
+  0055c	8b 44 24 1c	 mov	 eax, DWORD PTR _n$[esp+64]
+  00560	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71484:
+
+; 2291 : #ifdef SPANISH
+; 2292 : 				nstresses = 1;
+; 2293 : #endif			
+; 2294 : 			}
+; 2295 : 		}
+; 2296 : #if defined ENGLISH_US || defined GERMAN
+; 2297 : 		/* Reset to new phrase if encounter [ } , . ? ! ] */
+; 2298 : 		/* 
+; 2299 : 		 * NOTE: Phoneme RELSTART = [}] not currently defined.  When it is, 
+; 2300 : 		 * all words in FUNWRD1.DIC that introduce relative clauses, such as
+; 2301 : 		 * "when, that, which" should have [}] symbol appended to front. 
+; 2302 : 		 */
+; 2303 : 		if ((pDph_t->symbols[n] >= RELSTART) && (pDph_t->symbols[n] <= EXCLAIM))
+
+  00563	0f bf d0	 movsx	 edx, ax
+  00566	66 8b 8c 56 ca
+	11 00 00	 mov	 cx, WORD PTR [esi+edx*2+4554]
+  0056e	66 83 f9 72	 cmp	 cx, 114			; 00000072H
+  00572	7c 0e		 jl	 SHORT $L71485
+  00574	66 83 f9 76	 cmp	 cx, 118			; 00000076H
+  00578	7f 1c		 jg	 SHORT $L71486
+
+; 2304 : 		{
+; 2305 : 			nstresses = 0;
+
+  0057a	89 5c 24 20	 mov	 DWORD PTR _nstresses$[esp+52], ebx
+
+; 2306 : 			nstartphrase = n;
+
+  0057e	89 44 24 28	 mov	 DWORD PTR _nstartphrase$[esp+52], eax
+$L71485:
+
+; 2307 : 		}
+; 2308 : #endif
+; 2309 : 		/* Exclamation point raises last stress of sentence to emphasis */
+; 2310 : 		if (pDph_t->symbols[n] == EXCLAIM)
+
+  00582	66 83 f9 76	 cmp	 cx, 118			; 00000076H
+  00586	75 0e		 jne	 SHORT $L71486
+
+; 2311 : 		{
+; 2312 : 			raise_last_stress (pDph_t, n);
+
+  00588	50		 push	 eax
+  00589	56		 push	 esi
+  0058a	e8 00 00 00 00	 call	 _raise_last_stress
+  0058f	8b 44 24 18	 mov	 eax, DWORD PTR _n$[esp+60]
+  00593	83 c4 08	 add	 esp, 8
+$L71486:
+
+; 2313 : 		}
+; 2314 : 		/* Set varaible to indicate a question sentence */
+; 2315 : 		if (pDph_t->symbols[n] == QUEST)
+
+  00596	0f bf c8	 movsx	 ecx, ax
+  00599	66 83 bc 4e ca
+	11 00 00 75	 cmp	 WORD PTR [esi+ecx*2+4554], 117 ; 00000075H
+  005a2	75 0d		 jne	 SHORT $L71445
+
+; 2316 : 		{
+; 2317 : 			pDph_t->cbsymbol = TRUE;
+
+  005a4	66 c7 86 42 14
+	00 00 01 00	 mov	 WORD PTR [esi+5186], 1
+  005ad	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+$L71445:
+  005b1	40		 inc	 eax
+  005b2	89 44 24 10	 mov	 DWORD PTR _n$[esp+52], eax
+  005b6	66 3b 86 26 14
+	00 00		 cmp	 ax, WORD PTR [esi+5158]
+  005bd	0f 8c 56 fc ff
+	ff		 jl	 $L71444
+$L71446:
+
+; 2318 : 		}
+; 2319 : 	}
+; 2320 : 
+; 2321 : #ifdef SPANISH
+; 2322 : 	spanish_allophonics (phTTS);
+; 2323 : #endif
+; 2324 : 
+; 2325 : 	/* Main loop 2: for each input symbol, pass to output array or turn into */
+; 2326 : 	/* a feature value */
+; 2327 : 
+; 2328 : 	mf0 = 0;
+
+  005c3	89 5c 24 30	 mov	 DWORD PTR _mf0$[esp+52], ebx
+
+; 2329 : 	pDph_t->nphonetot = 0;
+; 2330 : 	word_init_sw = FALSE;
+; 2331 : 	in_rhyme = FALSE;
+; 2332 : 	pDph_t->newparagsw = FALSE;
+; 2333 : 
+; 2334 : #ifdef SPANISH
+; 2335 : 	nsyll = 0;						   /* Monosyllabic for now          */
+; 2336 : 	syllclass = 0;					   /* Assume closed syllable     	*/
+; 2337 : 	iscoda = 0;						   /* Haven't seen vowel yet        */
+; 2338 : 	wordstress = 0;					   /* Word isn't stressed           */
+; 2339 : 	compound_destress = FALSE;
+; 2340 : #endif
+; 2341 : 	
+; 2342 : #ifdef GERMAN
+; 2343 : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2344 : 	/* initialization of german variables                					  */
+; 2345 : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2346 : 	pDph_t->hat_seen = 0;
+; 2347 : 	pDph_t->wordcount = 1;
+; 2348 : 
+; 2349 : 
+; 2350 : #ifdef OBSLETE_CODE
+; 2351 : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2352 : 	/* do syntactical check if no hat markers were seen      				  */
+; 2353 : 	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2354 : 	if (pDph_t->f0mode == NORMAL)
+; 2355 : 	{
+; 2356 : 		german_syntax (pDph_t);
+; 2357 : 	}
+; 2358 : 	compound_destress = FALSE;
+; 2359 : #endif
+; 2360 : #endif        
+; 2361 : 
+; 2362 : 	for (n = 0; n < pDph_t->nsymbtot; n++)
+
+  005c7	33 c0		 xor	 eax, eax
+  005c9	66 89 9e 3c 14
+	00 00		 mov	 WORD PTR [esi+5180], bx
+  005d0	c6 86 3e 14 00
+	00 00		 mov	 BYTE PTR [esi+5182], 0
+  005d7	33 ed		 xor	 ebp, ebp
+  005d9	89 44 24 10	 mov	 DWORD PTR _n$[esp+52], eax
+  005dd	66 39 9e 26 14
+	00 00		 cmp	 WORD PTR [esi+5158], bx
+  005e4	89 5c 24 28	 mov	 DWORD PTR _in_rhyme$[esp+52], ebx
+  005e8	0f 8e 55 03 00
+	00		 jle	 $L71490
+$L71488:
+
+; 2363 : 	{
+; 2364 : loopy:
+; 2365 : 	/* GL 03/27/1997 BATS#270 fix German index delay problem(fixed by Ed bruckert) */
+; 2366 : /*#if defined (ENGLISH_US) || defined (SPANISH)*/
+; 2367 : 		snphonetot = pDph_t->nphonetot;
+; 2368 : /*#endif*/
+; 2369 : 		if (pKsd_t->halting)
+
+  005ee	8b 54 24 24	 mov	 edx, DWORD PTR _pKsd_t$[esp+52]
+  005f2	66 8b 9e 3c 14
+	00 00		 mov	 bx, WORD PTR [esi+5180]
+$loopy$71491:
+  005f9	8b 8a 74 01 00
+	00		 mov	 ecx, DWORD PTR [edx+372]
+  005ff	85 c9		 test	 ecx, ecx
+  00601	0f 85 49 03 00
+	00		 jne	 $L71647
+
+; 2371 : 
+; 2372 : 
+; 2373 : 		curr_in_sym = pDph_t->symbols[n];	/* Precompute useful variable */
+; 2374 : 
+; 2375 : 		curr_dur = pDph_t->user_durs[n];	/* User-specified dur if non-zero */
+
+  00607	8b 8e 28 14 00
+	00		 mov	 ecx, DWORD PTR [esi+5160]
+  0060d	0f bf c0	 movsx	 eax, ax
+  00610	66 8b 14 41	 mov	 dx, WORD PTR [ecx+eax*2]
+  00614	66 8b bc 46 ca
+	11 00 00	 mov	 di, WORD PTR [esi+eax*2+4554]
+  0061c	89 54 24 1c	 mov	 DWORD PTR _curr_dur$[esp+52], edx
+
+; 2376 : 		pDph_t->user_durs[n] = 0;
+
+  00620	8b 8e 28 14 00
+	00		 mov	 ecx, DWORD PTR [esi+5160]
+  00626	66 c7 04 41 00
+	00		 mov	 WORD PTR [ecx+eax*2], 0
+
+; 2377 : 
+; 2378 : 		curr_f0 = pDph_t->user_f0[n];  /* User-specified f0 if non-zero  */
+
+  0062c	8b 96 2c 14 00
+	00		 mov	 edx, DWORD PTR [esi+5164]
+  00632	0f bf 44 24 10	 movsx	 eax, WORD PTR _n$[esp+52]
+  00637	d1 e0		 shl	 eax, 1
+  00639	66 8b 0c 10	 mov	 cx, WORD PTR [eax+edx]
+  0063d	89 4c 24 18	 mov	 DWORD PTR _curr_f0$[esp+52], ecx
+
+; 2379 : 		pDph_t->user_f0[n] = 0;
+
+  00641	8b 96 2c 14 00
+	00		 mov	 edx, DWORD PTR [esi+5164]
+
+; 2380 : 
+; 2381 : 		/* Check to see if user-specified f0 hats/stress-pulses */
+; 2382 : 
+; 2383 : 		interp_user_f0 (pDph_t, &curr_dur, &curr_f0, curr_in_sym, &mf0);
+
+  00647	8d 4c 24 18	 lea	 ecx, DWORD PTR _curr_f0$[esp+52]
+  0064b	66 c7 04 10 00
+	00		 mov	 WORD PTR [eax+edx], 0
+  00651	8d 44 24 30	 lea	 eax, DWORD PTR _mf0$[esp+52]
+  00655	50		 push	 eax
+  00656	57		 push	 edi
+  00657	8d 54 24 24	 lea	 edx, DWORD PTR _curr_dur$[esp+60]
+  0065b	51		 push	 ecx
+  0065c	52		 push	 edx
+  0065d	56		 push	 esi
+  0065e	e8 00 00 00 00	 call	 _interp_user_f0
+
+; 2384 : 
+; 2385 : 		/* Switch on the current input symbol */
+; 2386 : 				
+; 2387 : 		/* added wordclass info for AD */
+; 2388 : #if (defined ENGLISH) || (defined GERMAN) 
+; 2389 : 		if(pDph_t->wordclass[n] & FC_NOUN)
+
+  00663	0f bf 44 24 24	 movsx	 eax, WORD PTR _n$[esp+72]
+  00668	83 c4 14	 add	 esp, 20			; 00000014H
+  0066b	8b 84 86 b4 0c
+	00 00		 mov	 eax, DWORD PTR [esi+eax*4+3252]
+  00672	f6 c4 04	 test	 ah, 4
+  00675	74 0f		 je	 SHORT $L71493
+
+; 2390 : 		{
+; 2391 : 			add_feature (pDph_t,  F_NOUN, NEXTPHONE);
+
+  00677	66 8b 8e 3c 14
+	00 00		 mov	 cx, WORD PTR [esi+5180]
+  0067e	51		 push	 ecx
+  0067f	68 00 00 08 00	 push	 524288			; 00080000H
+
+; 2392 : 			//printf("FOUND a NOUN %d\n",pDph_t->wordclass[n] & FC_NOUN);
+; 2393 : 		}
+; 2394 : 		else if(pDph_t->wordclass[n] & FC_ADJ )
+
+  00684	eb 32		 jmp	 SHORT $L71667
+$L71493:
+  00686	a8 01		 test	 al, 1
+  00688	74 0f		 je	 SHORT $L71495
+
+; 2395 : 		{
+; 2396 : 			add_feature (pDph_t,  F_ADJ, NEXTPHONE);
+
+  0068a	66 8b 96 3c 14
+	00 00		 mov	 dx, WORD PTR [esi+5180]
+  00691	52		 push	 edx
+  00692	68 00 00 10 00	 push	 1048576			; 00100000H
+
+; 2397 : 		//	printf("FOUND an ADJ \n",pDph_t->wordclass[n] & FC_NOUN);
+; 2398 : 		}
+; 2399 : 		else if(pDph_t->wordclass[n] & FC_VERB
+
+  00697	eb 1f		 jmp	 SHORT $L71667
+$L71495:
+
+; 2400 : 			|| pDph_t->wordclass[n] & FC_ED)/* eab and ed word is a verb 9/31/98 */
+
+  00699	a9 00 00 02 00	 test	 eax, 131072		; 00020000H
+  0069e	75 04		 jne	 SHORT $L71498
+  006a0	a8 80		 test	 al, 128			; 00000080H
+  006a2	74 1d		 je	 SHORT $L71497
+$L71498:
+
+; 2401 : 		{
+; 2402 : 			//printf("FOUND a VERB %d\n",pDph_t->wordclass[n] & FC_VERB);
+; 2403 : 			pDph_t->number_verbs++;
+; 2404 : 			add_feature (pDph_t,  F_VERB, pDph_t->nphonetot);
+
+  006a4	66 8b 86 3c 14
+	00 00		 mov	 ax, WORD PTR [esi+5180]
+  006ab	66 ff 86 84 1c
+	00 00		 inc	 WORD PTR [esi+7300]
+  006b2	50		 push	 eax
+  006b3	68 00 00 20 00	 push	 2097152			; 00200000H
+$L71667:
+  006b8	56		 push	 esi
+  006b9	e8 00 00 00 00	 call	 _add_feature
+  006be	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71497:
+
+; 2405 : 		}
+; 2406 : 		if(pDph_t->wordclass[n] & FC_FUNC)
+
+  006c1	0f bf 4c 24 10	 movsx	 ecx, WORD PTR _n$[esp+52]
+  006c6	f7 84 8e b4 0c
+	00 00 00 00 80
+	00		 test	 DWORD PTR [esi+ecx*4+3252], 8388608 ; 00800000H
+  006d1	74 16		 je	 SHORT $L71499
+
+; 2407 : 		{
+; 2408 : 			add_feature (pDph_t,  F_FUNC, pDph_t->nphonetot);
+
+  006d3	66 8b 96 3c 14
+	00 00		 mov	 dx, WORD PTR [esi+5180]
+  006da	52		 push	 edx
+  006db	68 00 00 40 00	 push	 4194304			; 00400000H
+  006e0	56		 push	 esi
+  006e1	e8 00 00 00 00	 call	 _add_feature
+  006e6	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71499:
+
+; 2409 : 		} 
+; 2410 : 
+; 2411 : 
+; 2412 : /*
+; 2413 : 				if(pDph_t->wordclass[n] & FC_ART)
+; 2414 : 					printf("FOUND a article word %d /n",pDph_t->wordclass[n] & FC_ART);
+; 2415 : 
+; 2416 : 
+; 2417 : 		if(pDph_t->wordclass[n] & FC_PRON)
+; 2418 : 		{
+; 2419 : 			add_feature (pDph_t,  FSTRESS_1, n);
+; 2420 : 		} 
+; 2421 : 		if(pDph_t->wordclass[n] & FC_FUNC)
+; 2422 : 		{
+; 2423 : 			//	printf("FOUND a FUNCTOR at  %d/n",pDph_t->wordclass[n] & FC_FUNC);
+; 2424 : 		} */
+; 2425 : 
+; 2426 : 				
+; 2427 : 			
+; 2428 : #endif
+; 2429 : 
+; 2430 : 
+; 2431 : 		if (curr_in_sym < TOT_ALLOPHONES)
+
+  006e9	66 83 ff 39	 cmp	 di, 57			; 00000039H
+  006ed	0f 8d 9e 00 00
+	00		 jge	 $L71500
+
+; 2432 : 		{							   /* A real phoneme */
+; 2433 : 
+; 2434 : 			make_phone (pDph_t, curr_in_sym, n, curr_dur, curr_f0);		/* eab try handling stuff in make */
+
+  006f3	8b 44 24 18	 mov	 eax, DWORD PTR _curr_f0$[esp+52]
+  006f7	8b 4c 24 1c	 mov	 ecx, DWORD PTR _curr_dur$[esp+52]
+  006fb	8b 54 24 10	 mov	 edx, DWORD PTR _n$[esp+52]
+  006ff	50		 push	 eax
+  00700	51		 push	 ecx
+  00701	52		 push	 edx
+  00702	57		 push	 edi
+  00703	56		 push	 esi
+  00704	e8 00 00 00 00	 call	 _make_phone
+
+; 2435 : #ifdef SPANISH
+; 2436 : 			if (word_init_sw)
+; 2437 : 			{
+; 2438 : 				nsyll = countsyll (pDph_t, n); 	/* Get nbr of syllables     */
+; 2439 : 				syllclass = 0;		   			/* Setup for new syll   */
+; 2440 : 				iscoda = 0;			   			/* Haven't seen vowel   */
+; 2441 : 				wordstress = getwordstress (pDph_t,n);
+; 2442 : 				if ((featb[curr_in_sym] & FSYLL) IS_MINUS)
+; 2443 : 				{
+; 2444 : 					add_feature (pDph_t, FWINITC, CURRPHONE);
+; 2445 : 
+; 2446 : 				}
+; 2447 : 				word_init_sw = FALSE;
+; 2448 : 			}
+; 2449 : #endif
+; 2450 : 			/* If syllabic, look ahead to see initial/medial/final syll */
+; 2451 : 			if ((featb[curr_in_sym] & FSYLL) IS_PLUS)
+
+  00709	0f bf c7	 movsx	 eax, di
+  0070c	83 c4 14	 add	 esp, 20			; 00000014H
+  0070f	f6 04 45 00 00
+	00 00 01	 test	 BYTE PTR _featb[eax*2], 1
+  00717	74 2b		 je	 SHORT $L71501
+
+; 2452 : 			{
+; 2453 : 				in_rhyme = TRUE;
+; 2454 : #if defined (ENGLISH_US) || defined (GERMAN)
+; 2455 : 				word_init_sw = FALSE;
+; 2456 : 				init_med_final (pDph_t, n);
+
+  00719	8b 4c 24 10	 mov	 ecx, DWORD PTR _n$[esp+52]
+  0071d	c7 44 24 28 01
+	00 00 00	 mov	 DWORD PTR _in_rhyme$[esp+52], 1
+  00725	51		 push	 ecx
+  00726	56		 push	 esi
+  00727	33 ed		 xor	 ebp, ebp
+  00729	e8 00 00 00 00	 call	 _init_med_final
+
+; 2485 : 			{
+; 2486 : 				get_next_bound_type (pDph_t, n);
+
+  0072e	8b 54 24 18	 mov	 edx, DWORD PTR _n$[esp+60]
+  00732	83 c4 08	 add	 esp, 8
+  00735	52		 push	 edx
+  00736	56		 push	 esi
+  00737	e8 00 00 00 00	 call	 _get_next_bound_type
+  0073c	83 c4 08	 add	 esp, 8
+
+; 2487 : 			}
+; 2488 : 		}
+; 2489 : 		else
+
+  0073f	e9 c8 01 00 00	 jmp	 $L71526
+$L71501:
+
+; 2457 : #endif
+; 2458 : #ifdef SPANISH
+; 2459 : 				if (iscoda == 0)
+; 2460 : 				{
+; 2461 : 					syllclass = getsyllclass (pDph_t, n + 1);
+; 2462 : 					iscoda = FCODA;
+; 2463 : 				}
+; 2464 : 				add_feature (pDph_t, nsyll + syllclass + wordstress, CURRPHONE);
+; 2465 : #endif
+; 2466 : 			}
+; 2467 : 			/* Assign stress feature to consonants */
+; 2468 : 			else
+; 2469 : 			{
+; 2470 : 				get_stress_of_conson (pDph_t, n, compound_destress);
+
+  00744	8b 54 24 14	 mov	 edx, DWORD PTR _compound_destress$[esp+52]
+  00748	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+  0074c	52		 push	 edx
+  0074d	50		 push	 eax
+  0074e	56		 push	 esi
+  0074f	e8 00 00 00 00	 call	 _get_stress_of_conson
+  00754	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 2471 : #ifdef SPANISH
+; 2472 : 				/* Do we need to set "wordstress" here? */
+; 2473 : 				add_feature (pDph_t,nsyll + syllclass + iscoda, CURRPHONE);
+; 2474 : #endif
+; 2475 : 			}
+; 2476 : 			/* Assign word-initial feature to consonant(s) */
+; 2477 : #if defined ENGLISH_US || defined GERMAN
+; 2478 : 			if (word_init_sw == TRUE)
+
+  00757	66 83 fd 01	 cmp	 bp, 1
+  0075b	75 15		 jne	 SHORT $L71503
+
+; 2479 : 			{
+; 2480 : 				add_feature (pDph_t, FWINITC, CURRPHONE);
+
+  0075d	66 8b 8e 3c 14
+	00 00		 mov	 cx, WORD PTR [esi+5180]
+  00764	66 49		 dec	 cx
+  00766	51		 push	 ecx
+  00767	6a 04		 push	 4
+  00769	56		 push	 esi
+  0076a	e8 00 00 00 00	 call	 _add_feature
+  0076f	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71503:
+
+; 2481 : 			}
+; 2482 : #endif
+; 2483 : 			/* Assign boundary type to segments of rhyme */
+; 2484 : 			if (in_rhyme == TRUE)
+
+  00772	66 83 7c 24 28
+	01		 cmp	 WORD PTR _in_rhyme$[esp+52], 1
+  00778	0f 85 8e 01 00
+	00		 jne	 $L71526
+
+; 2485 : 			{
+; 2486 : 				get_next_bound_type (pDph_t, n);
+
+  0077e	8b 54 24 10	 mov	 edx, DWORD PTR _n$[esp+52]
+  00782	52		 push	 edx
+  00783	56		 push	 esi
+  00784	e8 00 00 00 00	 call	 _get_next_bound_type
+  00789	83 c4 08	 add	 esp, 8
+
+; 2487 : 			}
+; 2488 : 		}
+; 2489 : 		else
+
+  0078c	e9 7b 01 00 00	 jmp	 $L71526
+$L71500:
+
+; 2490 : 		{							   /* A non-phoneme */
+; 2491 : 
+; 2492 : 			switch (curr_in_sym)
+; 2493 : 			{
+
+  00791	0f bf c7	 movsx	 eax, di
+  00794	83 c0 9c	 add	 eax, -100		; ffffff9cH
+  00797	83 f8 13	 cmp	 eax, 19			; 00000013H
+  0079a	0f 87 6c 01 00
+	00		 ja	 $L71526
+  007a0	ff 24 85 00 00
+	00 00		 jmp	 DWORD PTR $L71670[eax*4]
+$L71510:
+
+; 2494 : /* Per Oliver this code allows for vowels before double consonants to have a faster duration
+; 2495 : 	BATS 709	EAB 7/2/98*/
+; 2496 : 
+; 2497 : #ifdef GERMAN
+; 2498 : 			case DOUBLCONS:
+; 2499 : 
+; 2500 : 				add_feature (pDph_t, FDOUBLECONS, NEXTPHONE);
+; 2501 : 				break;
+; 2502 : #endif
+; 2503 : 
+; 2504 : 			case S1:
+; 2505 : 
+; 2506 : 				
+; 2507 : #ifdef GERMAN
+; 2508 : 				pDph_t->Word_has_stress =1; // eab 3/37 /98 set word stress marker 
+; 2509 : 				if (compound_destress == TRUE)
+; 2510 : 				{
+; 2511 : 					add_feature (pDph_t, FSTRESS_2, NEXTPHONE);
+; 2512 : 				}
+; 2513 : 				else
+; 2514 : 				{
+; 2515 : #endif
+; 2516 : 					add_feature (pDph_t, FSTRESS_1, NEXTPHONE);
+
+  007a7	66 8b 86 3c 14
+	00 00		 mov	 ax, WORD PTR [esi+5180]
+  007ae	50		 push	 eax
+  007af	6a 01		 push	 1
+  007b1	56		 push	 esi
+  007b2	e8 00 00 00 00	 call	 _add_feature
+  007b7	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 2517 : #ifdef GERMAN
+; 2518 : 				}
+; 2519 : #endif
+; 2520 : #ifdef MSDBG8
+; 2521 : 				printf ("add_feature(FSTRESS_1,NEXTPHONE)\n");
+; 2522 : #endif
+; 2523 : 		 		break;
+
+  007ba	e9 4d 01 00 00	 jmp	 $L71526
+$L71511:
+
+; 2524 : 			case S2:
+; 2525 : #ifdef GERMAN
+; 2526 : 				if (compound_destress == FALSE)
+; 2527 : 				{
+; 2528 : 					// add_feature (pDph_t, FSTRESS_2, n + 1 /* NEXTPHONE */ );
+; 2529 : 					add_feature (pDph_t, FSTRESS_2,  NEXTPHONE );
+; 2530 : 				}
+; 2531 : #endif
+; 2532 : #if defined (ENGLISH_US) || defined (SPANISH)
+; 2533 : 				add_feature (pDph_t, FSTRESS_2, NEXTPHONE);
+
+  007bf	66 8b 8e 3c 14
+	00 00		 mov	 cx, WORD PTR [esi+5180]
+  007c6	51		 push	 ecx
+  007c7	6a 02		 push	 2
+  007c9	56		 push	 esi
+  007ca	e8 00 00 00 00	 call	 _add_feature
+  007cf	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 2534 : #endif
+; 2535 : #ifdef MSDBG8
+; 2536 : 					printf ("add_feature(FSTRESS_2,NEXTPHONE)\n");
+; 2537 : #endif
+; 2538 : 				break;
+
+  007d2	e9 35 01 00 00	 jmp	 $L71526
+$L71512:
+
+; 2539 : #ifdef SPANISH
+; 2540 : 			case S3:
+; 2541 : 				/* 
+; 2542 : 				 * This is being used in the spanish as a marker for ", which causes 
+; 2543 : 				 * the next clause to be treated differently didn't use feature
+; 2544 : 				 * bits because there is now room for S3 
+; 2545 : 				 */
+; 2546 : 				phrase_after_quote = 1;
+; 2547 : 
+; 2548 : 				break;
+; 2549 : #endif
+; 2550 : #ifdef GERMAN
+; 2551 : 				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2552 : 				/* add tertiary stress for german DECtalk                				  */
+; 2553 : 				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2554 : 			case S3:
+; 2555 : 				if (compound_destress == FALSE)
+; 2556 : 				{
+; 2557 : 					// add_feature (pDph_t, FSTRESS_3, n + 1  /* NEXTPHONE */ );
+; 2558 : 					add_feature (pDph_t, FSTRESS_3, NEXTPHONE  );
+; 2559 : 				}
+; 2560 : 				break;
+; 2561 : #endif
+; 2562 : 			case SEMPH:
+; 2563 : 				add_feature (pDph_t, FEMPHASIS, NEXTPHONE);
+
+  007d7	66 8b 96 3c 14
+	00 00		 mov	 dx, WORD PTR [esi+5180]
+  007de	52		 push	 edx
+  007df	6a 03		 push	 3
+  007e1	56		 push	 esi
+  007e2	e8 00 00 00 00	 call	 _add_feature
+  007e7	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 2564 : #ifdef MSDBG8
+; 2565 : 				printf ("add_feature(FEMPHASIS,NEXTPHONE\n");
+; 2566 : #endif
+; 2567 : #ifdef SPANISH
+; 2568 : 					pDph_t->emphasisflag = TRUE; /* Reduce other f0 gestures */
+; 2569 : #endif
+; 2570 : 				break;
+
+  007ea	e9 1d 01 00 00	 jmp	 $L71526
+$L71514:
+
+; 2571 : 			case HYPHEN:
+; 2572 : 
+; 2573 : #ifdef SPANISH
+; 2574 : /* compound_destress = TRUE;         break; 6/94 eab for spanish this is not correct this is an english rule per tony */
+; 2575 : 				compound_destress = FALSE;
+; 2576 : 			case MBOUND:
+; 2577 : 
+; 2578 : 			case SBOUND:
+; 2579 : /* printf("\n at syl at %d ",n); */
+; 2580 : 
+; 2581 : 				add_feature (pDph_t, FISBOUND, CURRPHONE);
+; 2582 : 				add_feature (pDph_t, FSBOUND, CURRPHONE);
+; 2583 : 				iscoda = 0;
+; 2584 : 				syllclass = 0;
+; 2585 : #endif
+; 2586 : #ifdef GERMAN
+; 2587 : 				compound_destress = TRUE;
+; 2588 : #endif
+; 2589 : 				break;
+; 2590 : 
+; 2591 : 
+; 2592 : #ifdef GERMAN
+; 2593 : 			case COMMA:
+; 2594 : 				pDph_t->clausetype = COMMACLAUSE;
+; 2595 : 				pDph_t->clausenumber++;
+; 2596 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+; 2597 : 				word_init_sw = TRUE;
+; 2598 : 				compound_destress = FALSE;
+; 2599 : 				break;				
+; 2600 : 			case PERIOD:
+; 2601 : 				pDph_t->clausetype = DECLARATIVE;
+; 2602 : 				pDph_t->clausenumber=0;
+; 2603 : 				add_feature (pDph_t, FSENTENDS, NEXTPHONE);
+; 2604 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+; 2605 : 				word_init_sw = TRUE;
+; 2606 : 				compound_destress = FALSE;
+; 2607 : 				break;
+; 2608 : 			
+; 2609 : 			case EXCLAIM:
+; 2610 : 				pDph_t->clausetype = EXCLAIMCLAUSE;
+; 2611 : 				pDph_t->clausenumber=0;
+; 2612 : 				add_feature (pDph_t, FSENTENDS, NEXTPHONE);
+; 2613 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+; 2614 : 				word_init_sw = TRUE;
+; 2615 : 				compound_destress = FALSE;
+; 2616 : 				break;
+; 2617 : 			
+; 2618 : 					
+; 2619 : 			case QUEST:          			
+; 2620 : 				pDph_t->clausetype = QUESTION;
+; 2621 : 				pDph_t->clausenumber=0;
+; 2622 : 				add_feature (pDph_t, FSENTENDS, NEXTPHONE);
+; 2623 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+; 2624 : 				word_init_sw = TRUE;
+; 2625 : 				compound_destress = FALSE;
+; 2626 : 				break;
+; 2627 : 			
+; 2628 : 				
+; 2629 : #endif
+; 2630 : 
+; 2631 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+; 2632 : 			case WBOUND:
+; 2633 : 
+; 2634 : 				pDph_t->number_words++; /* EAB Let's count  up the number of words*/
+; 2635 : 					/* eab AT slow speaking rate insert a glottal stop that later 
+; 2636 : 				gets it's timing adjusted and voicing reduced*/
+; 2637 : 				
+; 2638 : 			
+; 2639 : 					/* eab AT slow speaking rate insert a glottal stop that later 
+; 2640 : 				gets it's timing adjusted and voicing reduced*/
+; 2641 : #ifdef SLOWTALK
+; 2642 : 				if(pKsd_t->sprate <75)
+
+  007ef	8b 44 24 24	 mov	 eax, DWORD PTR _pKsd_t$[esp+52]
+  007f3	66 ff 86 82 1c
+	00 00		 inc	 WORD PTR [esi+7298]
+  007fa	66 83 b8 22 02
+	00 00 4b	 cmp	 WORD PTR [eax+546], 75	; 0000004bH
+  00802	7d 15		 jge	 SHORT $L71515
+
+; 2643 : #ifndef SPANISH
+; 2644 : 					insertphone (phTTS, n+1, Q);
+
+  00804	8b 4c 24 10	 mov	 ecx, DWORD PTR _n$[esp+52]
+  00808	8b 54 24 38	 mov	 edx, DWORD PTR _phTTS$[esp+48]
+  0080c	41		 inc	 ecx
+  0080d	6a 35		 push	 53			; 00000035H
+  0080f	51		 push	 ecx
+  00810	52		 push	 edx
+  00811	e8 00 00 00 00	 call	 _insertphone
+  00816	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71515:
+
+; 2645 : #else
+; 2646 : 					insertphone (phTTS, n+1, E_Q);
+; 2647 : #endif
+; 2648 : #endif /*SLOWTALK*/
+; 2649 : 
+; 2650 : #ifdef SPANISH
+; 2651 : /* printf("at boun  %d \n ",n); */
+; 2652 : 				if (n > 1)
+; 2653 : 				{
+; 2654 : 					add_feature (pDph_t, FISBOUND, CURRPHONE);
+; 2655 : 				}
+; 2656 : #endif
+; 2657 : 			case PPSTART:
+; 2658 : 			case VPSTART:
+; 2659 : 			case RELSTART:
+; 2660 : #ifdef ENGLISH_US
+; 2661 : 				if (pDph_t->symbols[n + 1] == HYPHEN)
+
+  00819	0f bf 44 24 10	 movsx	 eax, WORD PTR _n$[esp+52]
+  0081e	66 83 bc 46 cc
+	11 00 00 6e	 cmp	 WORD PTR [esi+eax*2+4556], 110 ; 0000006eH
+  00827	0f 84 df 00 00
+	00		 je	 $L71526
+
+; 2662 : 				{
+; 2663 : 					break;			   /* xxx here to allow compound noun insert */
+; 2664 : 				}
+; 2665 : #endif
+; 2666 : 				word_init_sw = TRUE;
+
+  0082d	bd 01 00 00 00	 mov	 ebp, 1
+
+; 2667 : #ifdef SPANISH
+; 2668 : 				nsyll = 0;
+; 2669 : 				compound_destress = FALSE;
+; 2670 : #endif    
+; 2671 : #ifdef GERMAN
+; 2672 : 				word_init_sw = TRUE;
+; 2673 : 				compound_destress = FALSE;
+; 2674 : #endif
+; 2675 : 				break;
+
+  00832	e9 d5 00 00 00	 jmp	 $L71526
+$L71518:
+
+; 2676 : #if defined ENGLISH_US || defined SPANISH
+; 2677 : 				case COMMA:
+; 2678 : 				pDph_t->clausetype = COMMACLAUSE;
+; 2679 : 				pDph_t->clausenumber++;
+
+  00837	66 ff 86 96 11
+	00 00		 inc	 WORD PTR [esi+4502]
+  0083e	bd 01 00 00 00	 mov	 ebp, 1
+  00843	66 89 ae fc 02
+	00 00		 mov	 WORD PTR [esi+764], bp
+
+; 2680 : #ifdef SPANISH
+; 2681 : 				if (n > 1)
+; 2682 : 				{
+; 2683 : 					add_feature (pDph_t,FISBOUND, CURRPHONE);
+; 2684 : 				}
+; 2685 :             	nsyll=0;
+; 2686 : #endif
+; 2687 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+
+  0084a	8b 4c 24 18	 mov	 ecx, DWORD PTR _curr_f0$[esp+52]
+  0084e	8b 54 24 1c	 mov	 edx, DWORD PTR _curr_dur$[esp+52]
+  00852	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+  00856	51		 push	 ecx
+  00857	52		 push	 edx
+  00858	50		 push	 eax
+  00859	6a 00		 push	 0
+  0085b	56		 push	 esi
+  0085c	e8 00 00 00 00	 call	 _make_phone
+  00861	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 2688 : 				word_init_sw = TRUE;
+; 2689 : 				compound_destress = FALSE;
+
+  00864	c7 44 24 14 00
+	00 00 00	 mov	 DWORD PTR _compound_destress$[esp+52], 0
+
+; 2690 : 				break;
+
+  0086c	e9 9b 00 00 00	 jmp	 $L71526
+$L71519:
+
+; 2691 : 			case PERIOD:
+; 2692 : 			pDph_t->clausetype = DECLARATIVE;
+
+  00871	33 ff		 xor	 edi, edi
+  00873	66 89 be fc 02
+	00 00		 mov	 WORD PTR [esi+764], di
+
+; 2693 : 			pDph_t->clausenumber=0;
+; 2694 : #ifdef SPANISH
+; 2695 : 				if (n > 1)
+; 2696 : 				{
+; 2697 : 					add_feature (pDph_t,FISBOUND, CURRPHONE);
+; 2698 : 				}
+; 2699 :             	nsyll=0;
+; 2700 : #endif
+; 2701 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+; 2702 : 				word_init_sw = TRUE;
+; 2703 : 				compound_destress = FALSE;
+; 2704 : 				break;
+
+  0087a	eb 16		 jmp	 SHORT $L71669
+$L71520:
+
+; 2705 : 			case EXCLAIM:
+; 2706 : 			pDph_t->clausetype = EXCLAIMCLAUSE;
+
+  0087c	66 c7 86 fc 02
+	00 00 02 00	 mov	 WORD PTR [esi+764], 2
+
+; 2707 : 			pDph_t->clausenumber=0;
+; 2708 : #ifdef SPANISH
+; 2709 : 				if (n > 1)
+; 2710 : 				{
+; 2711 : 					add_feature (pDph_t,FISBOUND, CURRPHONE);
+; 2712 : 				}
+; 2713 :             	nsyll=0;
+; 2714 : #endif
+; 2715 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+; 2716 : 				word_init_sw = TRUE;
+; 2717 : 				compound_destress = FALSE;
+; 2718 : 				break;
+
+  00885	eb 09		 jmp	 SHORT $L71668
+$L71521:
+
+; 2719 : 				
+; 2720 : 			case QUEST:          			
+; 2721 : 			pDph_t->clausetype = QUESTION;
+
+  00887	66 c7 86 fc 02
+	00 00 03 00	 mov	 WORD PTR [esi+764], 3
+$L71668:
+
+; 2722 : 			pDph_t->clausenumber=0;
+
+  00890	33 ff		 xor	 edi, edi
+$L71669:
+  00892	66 89 be 96 11
+	00 00		 mov	 WORD PTR [esi+4502], di
+
+; 2723 : #ifdef SPANISH
+; 2724 : 				if (n > 1)
+; 2725 : 				{
+; 2726 : 					add_feature (pDph_t,FISBOUND, CURRPHONE);
+; 2727 : 				}
+; 2728 :             	nsyll=0;
+; 2729 : #endif
+; 2730 : 				make_phone (pDph_t, SIL, n, curr_dur, curr_f0);
+
+  00899	8b 4c 24 18	 mov	 ecx, DWORD PTR _curr_f0$[esp+52]
+  0089d	8b 54 24 1c	 mov	 edx, DWORD PTR _curr_dur$[esp+52]
+  008a1	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+  008a5	51		 push	 ecx
+  008a6	52		 push	 edx
+  008a7	50		 push	 eax
+  008a8	57		 push	 edi
+  008a9	56		 push	 esi
+  008aa	e8 00 00 00 00	 call	 _make_phone
+  008af	83 c4 14	 add	 esp, 20			; 00000014H
+
+; 2731 : 				word_init_sw = TRUE;
+
+  008b2	bd 01 00 00 00	 mov	 ebp, 1
+
+; 2732 : 				compound_destress = FALSE;
+
+  008b7	89 7c 24 14	 mov	 DWORD PTR _compound_destress$[esp+52], edi
+
+; 2733 : 				break;
+
+  008bb	eb 4f		 jmp	 SHORT $L71526
+$L71522:
+
+; 2734 : 
+; 2735 : #endif      /* #if defined ENGLISH_US || defined SPANISH */
+; 2736 : 			case HAT_RISE:
+; 2737 : #ifdef GERMAN
+; 2738 : 				pDph_t->hat_seen++;
+; 2739 : 				add_feature (pDph_t, FHAT_BEGINS, NEXTPHONE );
+; 2740 : #endif
+; 2741 : #if defined ENGLISH_US || defined SPANISH
+; 2742 : 				add_feature (pDph_t, FHAT_BEGINS, NEXTPHONE);
+
+  008bd	66 8b 8e 3c 14
+	00 00		 mov	 cx, WORD PTR [esi+5180]
+  008c4	51		 push	 ecx
+  008c5	68 00 02 00 00	 push	 512			; 00000200H
+  008ca	56		 push	 esi
+  008cb	e8 00 00 00 00	 call	 _add_feature
+  008d0	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 2743 : #endif
+; 2744 : #ifdef MSDBG8
+; 2745 : 				printf ("add_feature(FHAT_BEGINS,NEXTPHONE)\n");
+; 2746 : #endif
+; 2747 : 				break;
+
+  008d3	eb 37		 jmp	 SHORT $L71526
+$L71523:
+
+; 2748 : 			case HAT_FALL:
+; 2749 : #ifdef GERMAN
+; 2750 : 				pDph_t->hat_seen++;
+; 2751 : #endif
+; 2752 : 				add_feature (pDph_t, FHAT_ENDS, NEXTPHONE);
+
+  008d5	66 8b 96 3c 14
+	00 00		 mov	 dx, WORD PTR [esi+5180]
+  008dc	52		 push	 edx
+  008dd	68 00 04 00 00	 push	 1024			; 00000400H
+  008e2	56		 push	 esi
+  008e3	e8 00 00 00 00	 call	 _add_feature
+  008e8	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 2753 : #ifdef MSDBG8
+; 2754 : 				printf ("add_feature(FHAT_ENDS,NEXTPHONE)\n");
+; 2755 : #endif
+; 2756 : 				break;
+
+  008eb	eb 1f		 jmp	 SHORT $L71526
+$L71524:
+
+; 2757 : #ifdef GERMAN
+; 2758 : 			case HAT_RF:
+; 2759 : 				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2760 : 				/* german DECtalk uses also HAT_RF                   					  */
+; 2761 : 				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+; 2762 : 				pDph_t->hat_seen++;
+; 2763 : 				add_feature (pDph_t, FHAT_ROOF, NEXTPHONE);
+; 2764 : 				break;
+; 2765 : #endif
+; 2766 : 			case BLOCK_RULES:
+; 2767 : 				add_feature (pDph_t, FBLOCK, NEXTPHONE);
+
+  008ed	66 8b 86 3c 14
+	00 00		 mov	 ax, WORD PTR [esi+5180]
+  008f4	50		 push	 eax
+  008f5	68 00 20 00 00	 push	 8192			; 00002000H
+  008fa	56		 push	 esi
+  008fb	e8 00 00 00 00	 call	 _add_feature
+  00900	83 c4 0c	 add	 esp, 12			; 0000000cH
+
+; 2768 : #ifdef MSDBG8
+; 2769 : 				printf ("add_feature(FBLOCK,NEXTPHONE)\n");
+; 2770 : #endif
+; 2771 : 				break;
+
+  00903	eb 07		 jmp	 SHORT $L71526
+$L71525:
+
+; 2772 : 			case NEW_PARAGRAPH:
+; 2773 : #ifdef SPANISH
+; 2774 : 				pDph_t->nf0ev = -2;			   /* Force f0 to power-up value  */
+; 2775 : #endif
+; 2776 : 				pDph_t->newparagsw = TRUE;
+
+  00905	c6 86 3e 14 00
+	00 01		 mov	 BYTE PTR [esi+5182], 1
+$L71526:
+
+; 2777 : 				break;
+; 2778 : 			default:
+; 2779 : 				break;
+; 2780 : 			}
+; 2781 : 		}
+; 2782 : 		if ((pDph_t->nphonetot == snphonetot))	/* eab */
+
+  0090c	66 39 9e 3c 14
+	00 00		 cmp	 WORD PTR [esi+5180], bx
+  00913	75 18		 jne	 SHORT $L71489
+
+; 2783 : 		{
+; 2784 : #ifdef MSDOS
+; 2785 : 			adjust_index ((n + 1), -1, 0);	/* eab n+1 to bind forward */
+; 2786 : #else
+; 2787 : 			adjust_index (pKsd_t, (n + 1), -1, 0);	/* eab n+1 to bind forward */
+
+  00915	0f bf 4c 24 10	 movsx	 ecx, WORD PTR _n$[esp+52]
+  0091a	8b 54 24 24	 mov	 edx, DWORD PTR _pKsd_t$[esp+52]
+  0091e	6a 00		 push	 0
+  00920	41		 inc	 ecx
+  00921	6a ff		 push	 -1
+  00923	51		 push	 ecx
+  00924	52		 push	 edx
+  00925	e8 00 00 00 00	 call	 _adjust_index
+  0092a	83 c4 10	 add	 esp, 16			; 00000010H
+$L71489:
+  0092d	8b 44 24 10	 mov	 eax, DWORD PTR _n$[esp+52]
+  00931	40		 inc	 eax
+  00932	89 44 24 10	 mov	 DWORD PTR _n$[esp+52], eax
+  00936	66 3b 86 26 14
+	00 00		 cmp	 ax, WORD PTR [esi+5158]
+  0093d	0f 8c ab fc ff
+	ff		 jl	 $L71488
+$L71490:
+  00943	5f		 pop	 edi
+  00944	5e		 pop	 esi
+  00945	5d		 pop	 ebp
+
+; 2788 : #endif
+; 2789 : #ifdef DEBUGIND
+; 2790 : 
+; 2791 : 			printf ("adj -1 on %d %d \n", curr_in_sym, (n + 1));
+; 2792 : #endif
+; 2793 : 		}
+; 2794 : 	}
+; 2795 : 	return (TRUE);
+
+  00946	b8 01 00 00 00	 mov	 eax, 1
+  0094b	5b		 pop	 ebx
+
+; 2796 : }
+
+  0094c	83 c4 24	 add	 esp, 36			; 00000024H
+  0094f	c3		 ret	 0
+$L71647:
+  00950	5f		 pop	 edi
+  00951	5e		 pop	 esi
+  00952	5d		 pop	 ebp
+
+; 2370 : 			return (FALSE);
+
+  00953	33 c0		 xor	 eax, eax
+  00955	5b		 pop	 ebx
+
+; 2796 : }
+
+  00956	83 c4 24	 add	 esp, 36			; 00000024H
+  00959	c3		 ret	 0
+  0095a	8b ff		 npad	 2
+$L71670:
+  0095c	00 00 00 00	 DD	 $L71524
+  00960	00 00 00 00	 DD	 $L71526
+  00964	00 00 00 00	 DD	 $L71511
+  00968	00 00 00 00	 DD	 $L71510
+  0096c	00 00 00 00	 DD	 $L71512
+  00970	00 00 00 00	 DD	 $L71522
+  00974	00 00 00 00	 DD	 $L71523
+  00978	00 00 00 00	 DD	 $L71526
+  0097c	00 00 00 00	 DD	 $L71526
+  00980	00 00 00 00	 DD	 $L71526
+  00984	00 00 00 00	 DD	 $L71526
+  00988	00 00 00 00	 DD	 $L71514
+  0098c	00 00 00 00	 DD	 $L71515
+  00990	00 00 00 00	 DD	 $L71515
+  00994	00 00 00 00	 DD	 $L71515
+  00998	00 00 00 00	 DD	 $L71518
+  0099c	00 00 00 00	 DD	 $L71519
+  009a0	00 00 00 00	 DD	 $L71521
+  009a4	00 00 00 00	 DD	 $L71520
+  009a8	00 00 00 00	 DD	 $L71525
+_phsort	ENDP
+_pDph_t$ = 8
+_msym$ = 12
+_get_stress_of_conson PROC NEAR
+
+; 67   : 	short                   m, mcl = 0, cl = 0, sy = 0, stresslevel = 0;
+; 68   : /* GL 04/21/1997  change this for the OSF build */
+; 69   : 	extern short            phcluster (short f, short s);
+; 70   : 
+; 71   : 	stresslevel = FNOSTRESS;
+; 72   : 	for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  009b0	8b 54 24 08	 mov	 edx, DWORD PTR _msym$[esp-4]
+  009b4	53		 push	 ebx
+  009b5	8b 5c 24 08	 mov	 ebx, DWORD PTR _pDph_t$[esp]
+  009b9	55		 push	 ebp
+  009ba	8d 42 01	 lea	 eax, DWORD PTR [edx+1]
+  009bd	56		 push	 esi
+  009be	66 8b 8b 26 14
+	00 00		 mov	 cx, WORD PTR [ebx+5158]
+  009c5	57		 push	 edi
+  009c6	66 3b c1	 cmp	 ax, cx
+  009c9	0f 8d f1 00 00
+	00		 jge	 $L71288
+$L71276:
+
+; 73   : 	{
+; 74   : 		sy = pDph_t->symbols[m];
+
+  009cf	0f bf f0	 movsx	 esi, ax
+  009d2	66 8b b4 73 ca
+	11 00 00	 mov	 si, WORD PTR [ebx+esi*2+4554]
+
+; 75   : 		/* Search forward from present consonant for nonconsonant */
+; 76   : 		if ((sy == S1) || (sy == S2) || (sy == SEMPH))
+
+  009da	66 83 fe 67	 cmp	 si, 103			; 00000067H
+  009de	74 38		 je	 SHORT $L71280
+  009e0	66 83 fe 66	 cmp	 si, 102			; 00000066H
+  009e4	74 32		 je	 SHORT $L71280
+  009e6	66 83 fe 68	 cmp	 si, 104			; 00000068H
+  009ea	74 2c		 je	 SHORT $L71280
+
+; 112  : #ifdef MSDBG8
+; 113  : 				printf ("add_feature(FEMPHASIS, CURRPHONE)\n");
+; 114  : #endif
+; 115  : 			}
+; 116  : 			return;
+; 117  : 		}
+; 118  : 		if ((featb[sy] & FSYLL) IS_PLUS)
+
+  009ec	0f bf fe	 movsx	 edi, si
+  009ef	f6 04 7d 00 00
+	00 00 01	 test	 BYTE PTR _featb[edi*2], 1
+  009f7	0f 85 c3 00 00
+	00		 jne	 $L71288
+
+; 119  : 		{
+; 120  : 			return;					   /* No stress before vowel */
+; 121  : 		}
+; 122  : 		if ((sy >= SBOUND) && (sy <= EXCLAIM))
+
+  009fd	66 83 fe 6c	 cmp	 si, 108			; 0000006cH
+  00a01	7c 0a		 jl	 SHORT $L71277
+  00a03	66 83 fe 76	 cmp	 si, 118			; 00000076H
+  00a07	0f 8e b3 00 00
+	00		 jle	 $L71288
+$L71277:
+
+; 67   : 	short                   m, mcl = 0, cl = 0, sy = 0, stresslevel = 0;
+; 68   : /* GL 04/21/1997  change this for the OSF build */
+; 69   : 	extern short            phcluster (short f, short s);
+; 70   : 
+; 71   : 	stresslevel = FNOSTRESS;
+; 72   : 	for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00a0d	40		 inc	 eax
+  00a0e	66 3b c1	 cmp	 ax, cx
+  00a11	7c bc		 jl	 SHORT $L71276
+  00a13	5f		 pop	 edi
+  00a14	5e		 pop	 esi
+  00a15	5d		 pop	 ebp
+  00a16	5b		 pop	 ebx
+
+; 123  : 		{
+; 124  : 			return;					   /* No vowel before syllable ends */
+; 125  : 		}
+; 126  : 	}
+; 127  : }
+
+  00a17	c3		 ret	 0
+$L71280:
+
+; 77   : 		{
+; 78   : 			/* Number of consonants in potential legal cluster */
+; 79   : 			mcl = m - msym;
+
+  00a18	8b f8		 mov	 edi, eax
+  00a1a	2b fa		 sub	 edi, edx
+
+; 80   : 			/* 1st of more than 3 consonants in a row is not member of cluster */
+; 81   : 			if (mcl > 3)
+
+  00a1c	66 83 ff 03	 cmp	 di, 3
+  00a20	0f 8f 9a 00 00
+	00		 jg	 $L71288
+
+; 82   : 				return;
+; 83   : 			/* One consonant is always stressable */
+; 84   : 			if (mcl != 1)
+
+  00a26	66 83 ff 01	 cmp	 di, 1
+  00a2a	74 39		 je	 SHORT $L71284
+
+; 85   : 			{
+; 86   : 				/* See if pair of consonants next to vowel is legal cluster */
+; 87   : 				cl = phcluster (pDph_t->symbols[m - 2], pDph_t->symbols[m - 1]);
+
+  00a2c	0f bf e8	 movsx	 ebp, ax
+  00a2f	66 8b 84 6b c8
+	11 00 00	 mov	 ax, WORD PTR [ebx+ebp*2+4552]
+  00a37	66 8b 8c 6b c6
+	11 00 00	 mov	 cx, WORD PTR [ebx+ebp*2+4550]
+  00a3f	50		 push	 eax
+  00a40	51		 push	 ecx
+  00a41	e8 00 00 00 00	 call	 _phcluster
+  00a46	83 c4 08	 add	 esp, 8
+
+; 88   : 				if (cl == NOCLUSTER)
+
+  00a49	66 85 c0	 test	 ax, ax
+  00a4c	74 72		 je	 SHORT $L71288
+
+; 89   : 					return;
+; 90   : 				/* See if triple of consonants next to vowel is legal cluster */
+; 91   : 				if ((mcl == 3)
+; 92   : 					&& ((cl != CLUSTER_TRYS) || (pDph_t->symbols[m - 3] != S)))
+
+  00a4e	66 83 ff 03	 cmp	 di, 3
+  00a52	75 11		 jne	 SHORT $L71284
+  00a54	66 3d 02 00	 cmp	 ax, 2
+  00a58	75 66		 jne	 SHORT $L71288
+  00a5a	66 83 bc 6b c4
+	11 00 00 29	 cmp	 WORD PTR [ebx+ebp*2+4548], 41 ; 00000029H
+
+; 93   : 					return;
+
+  00a63	75 5b		 jne	 SHORT $L71288
+$L71284:
+
+; 94   : 			}
+; 95   : 			if (sy == S1)
+
+  00a65	66 83 fe 67	 cmp	 si, 103			; 00000067H
+  00a69	75 1a		 jne	 SHORT $L71286
+
+; 96   : 			{
+; 97   : 				add_feature (pDph_t, FSTRESS_1, CURRPHONE);
+
+  00a6b	66 8b 93 3c 14
+	00 00		 mov	 dx, WORD PTR [ebx+5180]
+  00a72	66 4a		 dec	 dx
+  00a74	52		 push	 edx
+  00a75	6a 01		 push	 1
+
+; 110  : 			{
+; 111  : 				add_feature (pDph_t, FEMPHASIS, CURRPHONE);
+
+  00a77	53		 push	 ebx
+  00a78	e8 00 00 00 00	 call	 _add_feature
+  00a7d	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00a80	5f		 pop	 edi
+  00a81	5e		 pop	 esi
+  00a82	5d		 pop	 ebp
+  00a83	5b		 pop	 ebx
+
+; 123  : 		{
+; 124  : 			return;					   /* No vowel before syllable ends */
+; 125  : 		}
+; 126  : 	}
+; 127  : }
+
+  00a84	c3		 ret	 0
+$L71286:
+
+; 98   : #ifdef MSDBG8
+; 99   : 				printf ("add_feature(FSTRESS_1,CURRPHONE)\n");
+; 100  : #endif
+; 101  : 			}
+; 102  : 			if (sy == S2)
+
+  00a85	66 83 fe 66	 cmp	 si, 102			; 00000066H
+  00a89	75 1a		 jne	 SHORT $L71287
+
+; 103  : 			{
+; 104  : 				add_feature (pDph_t, FSTRESS_2, CURRPHONE);
+
+  00a8b	66 8b 83 3c 14
+	00 00		 mov	 ax, WORD PTR [ebx+5180]
+  00a92	66 48		 dec	 ax
+  00a94	50		 push	 eax
+  00a95	6a 02		 push	 2
+
+; 110  : 			{
+; 111  : 				add_feature (pDph_t, FEMPHASIS, CURRPHONE);
+
+  00a97	53		 push	 ebx
+  00a98	e8 00 00 00 00	 call	 _add_feature
+  00a9d	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00aa0	5f		 pop	 edi
+  00aa1	5e		 pop	 esi
+  00aa2	5d		 pop	 ebp
+  00aa3	5b		 pop	 ebx
+
+; 123  : 		{
+; 124  : 			return;					   /* No vowel before syllable ends */
+; 125  : 		}
+; 126  : 	}
+; 127  : }
+
+  00aa4	c3		 ret	 0
+$L71287:
+
+; 105  : #ifdef MSDBG8
+; 106  : 				printf ("add_feature(FSTRESS_2, CURRPHONE)\n");
+; 107  : #endif
+; 108  : 			}
+; 109  : 			if (sy == SEMPH)
+
+  00aa5	66 83 fe 68	 cmp	 si, 104			; 00000068H
+  00aa9	75 15		 jne	 SHORT $L71288
+
+; 110  : 			{
+; 111  : 				add_feature (pDph_t, FEMPHASIS, CURRPHONE);
+
+  00aab	66 8b 8b 3c 14
+	00 00		 mov	 cx, WORD PTR [ebx+5180]
+  00ab2	66 49		 dec	 cx
+  00ab4	51		 push	 ecx
+  00ab5	6a 03		 push	 3
+  00ab7	53		 push	 ebx
+  00ab8	e8 00 00 00 00	 call	 _add_feature
+  00abd	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71288:
+  00ac0	5f		 pop	 edi
+  00ac1	5e		 pop	 esi
+  00ac2	5d		 pop	 ebp
+  00ac3	5b		 pop	 ebx
+
+; 123  : 		{
+; 124  : 			return;					   /* No vowel before syllable ends */
+; 125  : 		}
+; 126  : 	}
+; 127  : }
+
+  00ac4	c3		 ret	 0
+_get_stress_of_conson ENDP
+_pDph_t$ = 8
+_msym$ = 12
+_init_med_final PROC NEAR
+
+; 53   : {
+
+  00ad0	53		 push	 ebx
+  00ad1	55		 push	 ebp
+  00ad2	56		 push	 esi
+  00ad3	57		 push	 edi
+
+; 54   : 	short m, sylltype;
+; 55   : 
+; 56   : 	sylltype = FMONOSYL;			   /* Assume curr word is monosyllabic */
+; 57   : 
+; 58   : 	/* Examine output string to see if any sylls at beginning of word */
+; 59   : 	for (m = CURRPHONE - 1; m > 0; m--)
+
+  00ad4	8b 7c 24 14	 mov	 edi, DWORD PTR _pDph_t$[esp+12]
+  00ad8	33 d2		 xor	 edx, edx
+  00ada	66 8b af 3c 14
+	00 00		 mov	 bp, WORD PTR [edi+5180]
+  00ae1	8d 4d fe	 lea	 ecx, DWORD PTR [ebp-2]
+  00ae4	66 85 c9	 test	 cx, cx
+  00ae7	7e 36		 jle	 SHORT $L71686
+
+; 60   : 	{
+; 61   : 		if ((pDph_t->sentstruc[m] & FBOUNDARY) >= FWBNEXT)
+
+  00ae9	8b b7 38 14 00
+	00		 mov	 esi, DWORD PTR [edi+5176]
+$L71335:
+  00aef	0f bf c1	 movsx	 eax, cx
+  00af2	8b 1c 86	 mov	 ebx, DWORD PTR [esi+eax*4]
+  00af5	81 e3 e0 01 00
+	00		 and	 ebx, 480		; 000001e0H
+  00afb	83 fb 60	 cmp	 ebx, 96			; 00000060H
+  00afe	73 1f		 jae	 SHORT $L71686
+
+; 62   : 		{
+; 63   : 			break;					   /* Beginning of word found */
+; 64   : 		}
+; 65   : 		else if ((featb[pDph_t->phonemes[m]] & FSYLL) IS_PLUS)
+
+  00b00	8b 9f 34 14 00
+	00		 mov	 ebx, DWORD PTR [edi+5172]
+  00b06	0f bf 04 43	 movsx	 eax, WORD PTR [ebx+eax*2]
+  00b0a	f6 04 45 00 00
+	00 00 01	 test	 BYTE PTR _featb[eax*2], 1
+  00b12	74 05		 je	 SHORT $L71336
+
+; 66   : 		{
+; 67   : 			sylltype = FFINALSYL;	   /* Syll exists befor this one */
+
+  00b14	ba 18 00 00 00	 mov	 edx, 24			; 00000018H
+$L71336:
+
+; 54   : 	short m, sylltype;
+; 55   : 
+; 56   : 	sylltype = FMONOSYL;			   /* Assume curr word is monosyllabic */
+; 57   : 
+; 58   : 	/* Examine output string to see if any sylls at beginning of word */
+; 59   : 	for (m = CURRPHONE - 1; m > 0; m--)
+
+  00b19	49		 dec	 ecx
+  00b1a	66 85 c9	 test	 cx, cx
+  00b1d	7f d0		 jg	 SHORT $L71335
+$L71686:
+
+; 68   : 		}
+; 69   : 	}
+; 70   : 	/* Examine input string to see if any sylls in remainder of word */
+; 71   : 	for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00b1f	8b 4c 24 18	 mov	 ecx, DWORD PTR _msym$[esp+12]
+  00b23	66 8b b7 26 14
+	00 00		 mov	 si, WORD PTR [edi+5158]
+  00b2a	41		 inc	 ecx
+  00b2b	66 3b ce	 cmp	 cx, si
+  00b2e	7d 5b		 jge	 SHORT $L71345
+  00b30	b3 01		 mov	 bl, 1
+$L71341:
+
+; 72   : 	{
+; 73   : 		if ((pDph_t->symbols[m] >= WBOUND)
+; 74   : 			&& (pDph_t->symbols[m] <= EXCLAIM))
+
+  00b32	0f bf c1	 movsx	 eax, cx
+  00b35	66 8b 84 47 ca
+	11 00 00	 mov	 ax, WORD PTR [edi+eax*2+4554]
+  00b3d	66 3d 6f 00	 cmp	 ax, 111			; 0000006fH
+  00b41	7c 06		 jl	 SHORT $L71344
+  00b43	66 3d 76 00	 cmp	 ax, 118			; 00000076H
+  00b47	7e 2e		 jle	 SHORT $L71687
+$L71344:
+
+; 79   : #ifdef MSDBG8
+; 80   : 				printf ("add_feature(sylltype,CURRPHONE) sylltype=%d\n", sylltype);
+; 81   : #endif
+; 82   : 			}
+; 83   : 			return;
+; 84   : 		}
+; 85   : 		else if ((featb[pDph_t->symbols[m]] & FSYLL) IS_PLUS)
+
+  00b49	0f bf c0	 movsx	 eax, ax
+  00b4c	84 1c 45 00 00
+	00 00		 test	 BYTE PTR _featb[eax*2], bl
+  00b53	74 17		 je	 SHORT $L71342
+
+; 86   : 		{
+; 87   : 			if (sylltype == FFINALSYL)
+
+  00b55	66 83 fa 18	 cmp	 dx, 24			; 00000018H
+  00b59	75 07		 jne	 SHORT $L71348
+
+; 88   : 			{
+; 89   : 				sylltype = FMEDIALSYL; /* Syll exists before & after */
+
+  00b5b	ba 10 00 00 00	 mov	 edx, 16			; 00000010H
+
+; 90   : 			}
+; 91   : 			if (sylltype == FMONOSYL)
+
+  00b60	eb 0a		 jmp	 SHORT $L71342
+$L71348:
+  00b62	66 85 d2	 test	 dx, dx
+  00b65	75 05		 jne	 SHORT $L71342
+
+; 92   : 			{
+; 93   : 				sylltype = FFIRSTSYL;  /* Syll exists after only */
+
+  00b67	ba 08 00 00 00	 mov	 edx, 8
+$L71342:
+
+; 68   : 		}
+; 69   : 	}
+; 70   : 	/* Examine input string to see if any sylls in remainder of word */
+; 71   : 	for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00b6c	41		 inc	 ecx
+  00b6d	66 3b ce	 cmp	 cx, si
+  00b70	7c c0		 jl	 SHORT $L71341
+  00b72	5f		 pop	 edi
+  00b73	5e		 pop	 esi
+  00b74	5d		 pop	 ebp
+  00b75	5b		 pop	 ebx
+
+; 94   : 			}
+; 95   : 		}
+; 96   : 	}
+; 97   : 
+; 98   : }
+
+  00b76	c3		 ret	 0
+$L71687:
+
+; 75   : 		{							   /* Look for next boundary */
+; 76   : 			if (sylltype != FMONOSYL)
+
+  00b77	66 85 d2	 test	 dx, dx
+  00b7a	74 0f		 je	 SHORT $L71345
+
+; 77   : 			{
+; 78   : 				add_feature (pDph_t, sylltype, CURRPHONE);
+
+  00b7c	0f bf ca	 movsx	 ecx, dx
+  00b7f	4d		 dec	 ebp
+  00b80	55		 push	 ebp
+  00b81	51		 push	 ecx
+  00b82	57		 push	 edi
+  00b83	e8 00 00 00 00	 call	 _add_feature
+  00b88	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71345:
+  00b8b	5f		 pop	 edi
+  00b8c	5e		 pop	 esi
+  00b8d	5d		 pop	 ebp
+  00b8e	5b		 pop	 ebx
+
+; 94   : 			}
+; 95   : 		}
+; 96   : 	}
+; 97   : 
+; 98   : }
+
+  00b8f	c3		 ret	 0
+_init_med_final ENDP
+_phTTS$ = 8
+_locend$ = 12
+_nstartphrase$ = 16
+_find_syll_to_stress PROC NEAR
+
+; 119  : 	short                   m, locbeg = 0;	// MVP: Initialized 
+; 120  : 
+; 121  : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+; 122  : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+; 123  : 
+; 124  : #ifndef  GERMAN
+; 125  : 	/* Try to promote a secondary stress to primary, working from back */
+; 126  : 	for (m = *locend - 1; m >= nstartphrase; m--)
+
+  00b90	8b 54 24 08	 mov	 edx, DWORD PTR _locend$[esp-4]
+  00b94	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00b98	53		 push	 ebx
+  00b99	55		 push	 ebp
+  00b9a	8b 48 18	 mov	 ecx, DWORD PTR [eax+24]
+  00b9d	56		 push	 esi
+  00b9e	66 8b 74 24 18	 mov	 si, WORD PTR _nstartphrase$[esp+8]
+  00ba3	57		 push	 edi
+  00ba4	66 8b 3a	 mov	 di, WORD PTR [edx]
+  00ba7	33 db		 xor	 ebx, ebx
+  00ba9	8d 57 ff	 lea	 edx, DWORD PTR [edi-1]
+  00bac	8b c2		 mov	 eax, edx
+  00bae	66 3b c6	 cmp	 ax, si
+  00bb1	7c 14		 jl	 SHORT $L71363
+$L71361:
+
+; 127  : 	{
+; 128  :   /* eab 4/21/98 This code is wierd in that in German we don't want to do this
+; 129  : 	and English never has really had secondary stress until Tony added it to the dictionary which was
+; 130  : 	way after this code was writeen by Dennis*/
+; 131  : 		if (pDph_t->symbols[m] == S2)
+
+  00bb3	0f bf e8	 movsx	 ebp, ax
+  00bb6	66 83 bc 69 ca
+	11 00 00 66	 cmp	 WORD PTR [ecx+ebp*2+4554], 102 ; 00000066H
+  00bbf	74 27		 je	 SHORT $L71696
+  00bc1	48		 dec	 eax
+  00bc2	66 3b c6	 cmp	 ax, si
+  00bc5	7d ec		 jge	 SHORT $L71361
+$L71363:
+
+; 134  : 			return;
+; 135  : 		}
+; 136  : 	}
+; 137  : #endif
+; 138  : 	/* Else try to find a vowel to stress in last word */
+; 139  : 	for (m = *locend - 1; m >= nstartphrase; m--)
+
+  00bc7	8b c2		 mov	 eax, edx
+  00bc9	66 3b c6	 cmp	 ax, si
+  00bcc	7c 2e		 jl	 SHORT $L71367
+  00bce	ba 6f 00 00 00	 mov	 edx, 111		; 0000006fH
+$L71365:
+
+; 140  : 	{
+; 141  : 		if (pDph_t->symbols[m] >= WBOUND)
+
+  00bd3	0f bf e8	 movsx	 ebp, ax
+  00bd6	66 39 94 69 ca
+	11 00 00	 cmp	 WORD PTR [ecx+ebp*2+4554], dx
+  00bde	7d 1a		 jge	 SHORT $L71697
+  00be0	48		 dec	 eax
+  00be1	66 3b c6	 cmp	 ax, si
+  00be4	7d ed		 jge	 SHORT $L71365
+
+; 149  : 	{
+; 150  : 		if ((featb[pDph_t->symbols[m]] & FSYLL) IS_PLUS)
+
+  00be6	eb 14		 jmp	 SHORT $L71367
+$L71696:
+
+; 132  : 		{
+; 133  : 			pDph_t->symbols[m] = S1;
+
+  00be8	0f bf c0	 movsx	 eax, ax
+  00beb	5f		 pop	 edi
+  00bec	5e		 pop	 esi
+  00bed	5d		 pop	 ebp
+  00bee	66 c7 84 41 ca
+	11 00 00 67 00	 mov	 WORD PTR [ecx+eax*2+4554], 103 ; 00000067H
+  00bf8	5b		 pop	 ebx
+
+; 155  : 			return;
+; 156  : 		}
+; 157  : 	}
+; 158  : 	/* Else give up, clause contains no primary stresses */
+; 159  : 
+; 160  : }
+
+  00bf9	c3		 ret	 0
+$L71697:
+
+; 142  : 		{
+; 143  : 
+; 144  : 			locbeg = m;
+
+  00bfa	8b d8		 mov	 ebx, eax
+$L71367:
+
+; 145  : 			break;
+; 146  : 		}
+; 147  : 	}
+; 148  : 	for (m = locbeg; m < *locend; m++)
+
+  00bfc	66 3b df	 cmp	 bx, di
+  00bff	8b c3		 mov	 eax, ebx
+  00c01	7d 38		 jge	 SHORT $L71371
+  00c03	b2 01		 mov	 dl, 1
+$L71369:
+
+; 149  : 	{
+; 150  : 		if ((featb[pDph_t->symbols[m]] & FSYLL) IS_PLUS)
+
+  00c05	0f bf f0	 movsx	 esi, ax
+  00c08	0f bf b4 71 ca
+	11 00 00	 movsx	 esi, WORD PTR [ecx+esi*2+4554]
+  00c10	84 14 75 00 00
+	00 00		 test	 BYTE PTR _featb[esi*2], dl
+  00c17	75 0b		 jne	 SHORT $L71698
+  00c19	40		 inc	 eax
+  00c1a	66 3b c7	 cmp	 ax, di
+  00c1d	7c e6		 jl	 SHORT $L71369
+  00c1f	5f		 pop	 edi
+  00c20	5e		 pop	 esi
+  00c21	5d		 pop	 ebp
+  00c22	5b		 pop	 ebx
+
+; 155  : 			return;
+; 156  : 		}
+; 157  : 	}
+; 158  : 	/* Else give up, clause contains no primary stresses */
+; 159  : 
+; 160  : }
+
+  00c23	c3		 ret	 0
+$L71698:
+
+; 151  : 		{
+; 152  : 
+; 153  : 			insertphone (phTTS, m, S1);		/* Insert S1 at location m */
+
+  00c24	8b 4c 24 14	 mov	 ecx, DWORD PTR _phTTS$[esp+12]
+  00c28	6a 67		 push	 103			; 00000067H
+  00c2a	50		 push	 eax
+  00c2b	51		 push	 ecx
+  00c2c	e8 00 00 00 00	 call	 _insertphone
+
+; 154  : 			(*locend)++;			   /* Move pointer in calling loop *//* MVP : was n++ and n was static */
+
+  00c31	8b 44 24 24	 mov	 eax, DWORD PTR _locend$[esp+24]
+  00c35	83 c4 0c	 add	 esp, 12			; 0000000cH
+  00c38	66 ff 00	 inc	 WORD PTR [eax]
+$L71371:
+  00c3b	5f		 pop	 edi
+  00c3c	5e		 pop	 esi
+  00c3d	5d		 pop	 ebp
+  00c3e	5b		 pop	 ebx
+
+; 155  : 			return;
+; 156  : 		}
+; 157  : 	}
+; 158  : 	/* Else give up, clause contains no primary stresses */
+; 159  : 
+; 160  : }
+
+  00c3f	c3		 ret	 0
+_find_syll_to_stress ENDP
+_TEXT	ENDS
+EXTRN	_bounftab:BYTE
+_TEXT	SEGMENT
+_pDph_t$ = 8
+_msym$ = 12
+_get_next_bound_type PROC NEAR
+
+; 182  : 	extern short bounftab[];		/* MVP : defined in PHROM.C (a Look up table) */
+; 183  : 	short        m;
+; 184  : 
+; 185  : 	for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00c40	8b 44 24 08	 mov	 eax, DWORD PTR _msym$[esp-4]
+  00c44	8b 54 24 04	 mov	 edx, DWORD PTR _pDph_t$[esp-4]
+  00c48	56		 push	 esi
+  00c49	66 8b b2 26 14
+	00 00		 mov	 si, WORD PTR [edx+5158]
+  00c50	8d 48 01	 lea	 ecx, DWORD PTR [eax+1]
+  00c53	66 3b ce	 cmp	 cx, si
+  00c56	7d 53		 jge	 SHORT $L71705
+$L71380:
+
+; 186  : 	{
+; 187  : 		if ((pDph_t->symbols[m] >= SBOUND)
+; 188  : 			&& (pDph_t->symbols[m] <= EXCLAIM))
+
+  00c58	0f bf c1	 movsx	 eax, cx
+  00c5b	66 8b 84 42 ca
+	11 00 00	 mov	 ax, WORD PTR [edx+eax*2+4554]
+  00c63	66 3d 6c 00	 cmp	 ax, 108			; 0000006cH
+  00c67	7c 06		 jl	 SHORT $L71383
+  00c69	66 3d 76 00	 cmp	 ax, 118			; 00000076H
+  00c6d	7e 15		 jle	 SHORT $L71704
+$L71383:
+
+; 191  : #ifdef MSDBG8
+; 192  : 			printf ("add_feature(bounftab[symbols[m] - SBOUND], CURRPHONE) bounftab[%d]=%d\n", pDph_t->symbols[m] - SBOUND, bounftab[pDph_t->symbols[m] - SBOUND]);
+; 193  : #endif
+; 194  : 			return;
+; 195  : 		}
+; 196  : 		else if ((featb[pDph_t->symbols[m]] & FSYLL) IS_PLUS)
+
+  00c6f	0f bf c0	 movsx	 eax, ax
+  00c72	f6 04 45 00 00
+	00 00 01	 test	 BYTE PTR _featb[eax*2], 1
+  00c7a	75 2f		 jne	 SHORT $L71705
+  00c7c	41		 inc	 ecx
+  00c7d	66 3b ce	 cmp	 cx, si
+  00c80	7c d6		 jl	 SHORT $L71380
+  00c82	5e		 pop	 esi
+
+; 197  : 		{
+; 198  : 			return;					   /* Abort if see vowel first */
+; 199  : 		}
+; 200  : 	}
+; 201  : 
+; 202  : }
+
+  00c83	c3		 ret	 0
+$L71704:
+
+; 189  : 		{							   /* Look for next boundary */
+; 190  : 			add_feature (pDph_t, bounftab[pDph_t->symbols[m] - SBOUND], CURRPHONE);
+
+  00c84	66 8b 82 3c 14
+	00 00		 mov	 ax, WORD PTR [edx+5180]
+  00c8b	0f bf c9	 movsx	 ecx, cx
+  00c8e	66 48		 dec	 ax
+  00c90	50		 push	 eax
+  00c91	0f bf 84 4a ca
+	11 00 00	 movsx	 eax, WORD PTR [edx+ecx*2+4554]
+  00c99	0f bf 0c 45 28
+	ff ff ff	 movsx	 ecx, WORD PTR _bounftab[eax*2-216]
+  00ca1	51		 push	 ecx
+  00ca2	52		 push	 edx
+  00ca3	e8 00 00 00 00	 call	 _add_feature
+  00ca8	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71705:
+  00cab	5e		 pop	 esi
+
+; 197  : 		{
+; 198  : 			return;					   /* Abort if see vowel first */
+; 199  : 		}
+; 200  : 	}
+; 201  : 
+; 202  : }
+
+  00cac	c3		 ret	 0
+_get_next_bound_type ENDP
+_phTTS$ = 8
+_msym$ = 12
+_stdangle$ = 12
+_move_stdangle PROC NEAR
+
+; 223  : 	short   m, stdangle, durdangle, f0dangle;
+; 224  : 	PKSD_T  pKsd_t = phTTS->pKernelShareData;
+; 225  : 	PDPH_T  pDph_t = phTTS->pPHThreadData;
+
+  00cb0	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  00cb4	53		 push	 ebx
+  00cb5	55		 push	 ebp
+
+; 226  : 
+; 227  : 	stdangle = pDph_t->symbols[msym];
+
+  00cb6	8b 6c 24 10	 mov	 ebp, DWORD PTR _msym$[esp+4]
+  00cba	56		 push	 esi
+  00cbb	8b 70 18	 mov	 esi, DWORD PTR [eax+24]
+  00cbe	0f bf c5	 movsx	 eax, bp
+
+; 228  : 	durdangle = pDph_t->user_durs[msym];
+
+  00cc1	8b 96 28 14 00
+	00		 mov	 edx, DWORD PTR [esi+5160]
+  00cc7	57		 push	 edi
+  00cc8	66 8b 8c 46 ca
+	11 00 00	 mov	 cx, WORD PTR [esi+eax*2+4554]
+  00cd0	66 8b 1c 42	 mov	 bx, WORD PTR [edx+eax*2]
+
+; 229  : 	f0dangle = pDph_t->user_durs[msym];
+; 230  : 
+; 231  : 	/* 1. If emphasis, replace strongest stress in current word */
+; 232  : 	if (stdangle == SEMPH)
+
+  00cd4	66 83 f9 68	 cmp	 cx, 104			; 00000068H
+  00cd8	89 4c 24 18	 mov	 DWORD PTR _stdangle$[esp+12], ecx
+  00cdc	0f 85 dd 00 00
+	00		 jne	 $L71715
+
+; 233  : 	{
+; 234  : 		for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00ce2	8d 7d 01	 lea	 edi, DWORD PTR [ebp+1]
+  00ce5	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  00cec	7d 28		 jge	 SHORT $L71713
+$L71398:
+
+; 235  : 		{
+; 236  : 			if (pDph_t->symbols[m] == S1)
+
+  00cee	0f bf c7	 movsx	 eax, di
+  00cf1	66 8b 84 46 ca
+	11 00 00	 mov	 ax, WORD PTR [esi+eax*2+4554]
+  00cf9	66 3d 67 00	 cmp	 ax, 103			; 00000067H
+  00cfd	74 58		 je	 SHORT $L71712
+
+; 242  : #ifdef DEBUGIND
+; 243  : 
+; 244  : 				printf ("delete rule 2\n");
+; 245  : #endif
+; 246  : 
+; 247  : 				return;
+; 248  : 			}
+; 249  : 			if (is_wboundary (pDph_t->symbols[m]))
+
+  00cff	50		 push	 eax
+  00d00	e8 00 00 00 00	 call	 _is_wboundary
+  00d05	83 c4 04	 add	 esp, 4
+  00d08	85 c0		 test	 eax, eax
+  00d0a	75 0a		 jne	 SHORT $L71713
+  00d0c	47		 inc	 edi
+  00d0d	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  00d14	7c d8		 jl	 SHORT $L71398
+$L71713:
+
+; 250  : 			{
+; 251  : 				break;	/* No longer current word, give up S1 search */
+; 252  : 			}
+; 253  : 		}
+; 254  : 	    for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00d16	8d 7d 01	 lea	 edi, DWORD PTR [ebp+1]
+  00d19	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  00d20	0f 8d d7 00 00
+	00		 jge	 $L71717
+$L71403:
+
+; 255  : 		{
+; 256  : 			if (pDph_t->symbols[m] == S2)
+
+  00d26	0f bf cf	 movsx	 ecx, di
+  00d29	66 8b 84 4e ca
+	11 00 00	 mov	 ax, WORD PTR [esi+ecx*2+4554]
+  00d31	66 3d 66 00	 cmp	 ax, 102			; 00000066H
+  00d35	74 54		 je	 SHORT $L71714
+
+; 262  : #ifdef DEBUGIND
+; 263  : 
+; 264  : 				printf ("delete rule S2\n");
+; 265  : #endif
+; 266  : 
+; 267  : 				return;
+; 268  : 			}
+; 269  : 			if (is_wboundary (pDph_t->symbols[m]))
+
+  00d37	50		 push	 eax
+  00d38	e8 00 00 00 00	 call	 _is_wboundary
+  00d3d	83 c4 04	 add	 esp, 4
+  00d40	85 c0		 test	 eax, eax
+  00d42	0f 85 b5 00 00
+	00		 jne	 $L71717
+  00d48	47		 inc	 edi
+  00d49	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  00d50	7c d4		 jl	 SHORT $L71403
+
+; 328  : 			return;
+; 329  : 		}
+; 330  : 		else if ((featb[pDph_t->symbols[m]] & FSYLL) IS_PLUS)
+
+  00d52	e9 a6 00 00 00	 jmp	 $L71717
+$L71712:
+
+; 237  : 			{
+; 238  : 				pDph_t->symbols[m] = SEMPH;
+
+  00d57	0f bf c7	 movsx	 eax, di
+
+; 239  : 				pDph_t->user_durs[m] = durdangle;
+; 240  : 				pDph_t->user_f0[m] = f0dangle;
+; 241  : 				delete_symbol (phTTS, msym);
+
+  00d5a	55		 push	 ebp
+  00d5b	66 c7 84 46 ca
+	11 00 00 68 00	 mov	 WORD PTR [esi+eax*2+4554], 104 ; 00000068H
+  00d65	8b 8e 28 14 00
+	00		 mov	 ecx, DWORD PTR [esi+5160]
+  00d6b	66 89 1c 41	 mov	 WORD PTR [ecx+eax*2], bx
+  00d6f	8b 96 2c 14 00
+	00		 mov	 edx, DWORD PTR [esi+5164]
+  00d75	66 89 1c 42	 mov	 WORD PTR [edx+eax*2], bx
+  00d79	8b 44 24 18	 mov	 eax, DWORD PTR _phTTS$[esp+16]
+  00d7d	50		 push	 eax
+  00d7e	e8 00 00 00 00	 call	 _delete_symbol
+  00d83	83 c4 08	 add	 esp, 8
+  00d86	5f		 pop	 edi
+  00d87	5e		 pop	 esi
+  00d88	5d		 pop	 ebp
+  00d89	5b		 pop	 ebx
+
+; 342  : 		}
+; 343  : 	}
+; 344  : }
+
+  00d8a	c3		 ret	 0
+$L71714:
+
+; 257  : 			{
+; 258  : 				pDph_t->symbols[m] = SEMPH;
+
+  00d8b	0f bf c7	 movsx	 eax, di
+
+; 259  : 				pDph_t->user_durs[m] = durdangle;
+; 260  : 				pDph_t->user_f0[m] = f0dangle;
+; 261  : 				delete_symbol (phTTS, msym);
+
+  00d8e	55		 push	 ebp
+  00d8f	66 c7 84 46 ca
+	11 00 00 68 00	 mov	 WORD PTR [esi+eax*2+4554], 104 ; 00000068H
+  00d99	8b 96 28 14 00
+	00		 mov	 edx, DWORD PTR [esi+5160]
+  00d9f	66 89 1c 42	 mov	 WORD PTR [edx+eax*2], bx
+  00da3	8b 8e 2c 14 00
+	00		 mov	 ecx, DWORD PTR [esi+5164]
+  00da9	8b 54 24 18	 mov	 edx, DWORD PTR _phTTS$[esp+16]
+  00dad	52		 push	 edx
+  00dae	66 89 1c 41	 mov	 WORD PTR [ecx+eax*2], bx
+  00db2	e8 00 00 00 00	 call	 _delete_symbol
+  00db7	83 c4 08	 add	 esp, 8
+  00dba	5f		 pop	 edi
+  00dbb	5e		 pop	 esi
+  00dbc	5d		 pop	 ebp
+  00dbd	5b		 pop	 ebx
+
+; 342  : 		}
+; 343  : 	}
+; 344  : }
+
+  00dbe	c3		 ret	 0
+$L71715:
+
+; 270  : 			{
+; 271  : 				break;	/* No longer current word, give up S2 search */
+; 272  : 			}
+; 273  : 		}
+; 274  : 	}
+; 275  : 	/* 2. If primary stress, replace the first secondary stress encountered */
+; 276  : 	/* in word; if none, attach to first vowel in word via step 3 below.    */
+; 277  : 	if (stdangle == S1)
+
+  00dbf	66 83 f9 67	 cmp	 cx, 103			; 00000067H
+  00dc3	75 38		 jne	 SHORT $L71717
+
+; 278  : 	{
+; 279  : 		for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00dc5	8d 7d 01	 lea	 edi, DWORD PTR [ebp+1]
+  00dc8	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  00dcf	7d 2c		 jge	 SHORT $L71717
+$L71409:
+
+; 280  : 		{
+; 281  : 			if (pDph_t->symbols[m] == S2)
+
+  00dd1	0f bf c7	 movsx	 eax, di
+  00dd4	66 8b 84 46 ca
+	11 00 00	 mov	 ax, WORD PTR [esi+eax*2+4554]
+  00ddc	66 3d 66 00	 cmp	 ax, 102			; 00000066H
+  00de0	0f 84 a3 00 00
+	00		 je	 $L71716
+
+; 292  : 				return;
+; 293  : 			}
+; 294  : 			if (is_wboundary (pDph_t->symbols[m]))
+
+  00de6	50		 push	 eax
+  00de7	e8 00 00 00 00	 call	 _is_wboundary
+  00dec	83 c4 04	 add	 esp, 4
+  00def	85 c0		 test	 eax, eax
+  00df1	75 0a		 jne	 SHORT $L71717
+  00df3	47		 inc	 edi
+  00df4	66 3b be 26 14
+	00 00		 cmp	 di, WORD PTR [esi+5158]
+  00dfb	7c d4		 jl	 SHORT $L71409
+$L71717:
+
+; 295  : 			{
+; 296  : 				break;	/* No longer current word, give up S2 search */
+; 297  : 			}
+; 298  : 		}
+; 299  : 	}
+; 300  : 	/* 3. Attach to first vowel encountered, use stronger of two stresses if */
+; 301  : 	/* another stress encountered before vowel encountered */
+; 302  : 	for (m = msym + 1; m < pDph_t->nsymbtot; m++)
+
+  00dfd	45		 inc	 ebp
+  00dfe	66 3b ae 26 14
+	00 00		 cmp	 bp, WORD PTR [esi+5158]
+  00e05	0f 8d 2d 01 00
+	00		 jge	 $L71416
+$L71414:
+
+; 303  : 	{
+; 304  : 		if (is_wboundary (pDph_t->symbols[m]))
+
+  00e0b	0f bf fd	 movsx	 edi, bp
+  00e0e	66 8b 8c 7e ca
+	11 00 00	 mov	 cx, WORD PTR [esi+edi*2+4554]
+  00e16	51		 push	 ecx
+  00e17	e8 00 00 00 00	 call	 _is_wboundary
+  00e1c	83 c4 04	 add	 esp, 4
+  00e1f	85 c0		 test	 eax, eax
+  00e21	0f 85 96 00 00
+	00		 jne	 $L71718
+
+; 312  : 			return;
+; 313  : 		}
+; 314  : 		if ((pDph_t->symbols[m] >= S2) && (pDph_t->symbols[m] <= SEMPH))
+
+  00e27	66 8b 84 7e ca
+	11 00 00	 mov	 ax, WORD PTR [esi+edi*2+4554]
+  00e2f	66 3d 66 00	 cmp	 ax, 102			; 00000066H
+  00e33	7c 0a		 jl	 SHORT $L71418
+  00e35	66 3d 68 00	 cmp	 ax, 104			; 00000068H
+  00e39	0f 8e 92 00 00
+	00		 jle	 $L71719
+$L71418:
+
+; 328  : 			return;
+; 329  : 		}
+; 330  : 		else if ((featb[pDph_t->symbols[m]] & FSYLL) IS_PLUS)
+
+  00e3f	0f bf d0	 movsx	 edx, ax
+  00e42	f6 04 55 00 00
+	00 00 01	 test	 BYTE PTR _featb[edx*2], 1
+  00e4a	0f 85 c2 00 00
+	00		 jne	 $L71720
+
+; 335  : 			return;
+; 336  : 		}
+; 337  : 		else
+; 338  : 		{
+; 339  : 			pDph_t->symbols[m - 1] = pDph_t->symbols[m];	/* Move symbol backward one */
+
+  00e50	66 89 84 7e c8
+	11 00 00	 mov	 WORD PTR [esi+edi*2+4552], ax
+
+; 340  : 			pDph_t->user_durs[m - 1] = pDph_t->user_durs[m];
+
+  00e58	8b 86 28 14 00
+	00		 mov	 eax, DWORD PTR [esi+5160]
+  00e5e	45		 inc	 ebp
+  00e5f	66 8b 0c 78	 mov	 cx, WORD PTR [eax+edi*2]
+  00e63	8d 04 78	 lea	 eax, DWORD PTR [eax+edi*2]
+  00e66	66 89 48 fe	 mov	 WORD PTR [eax-2], cx
+
+; 341  : 			pDph_t->user_f0[m - 1] = pDph_t->user_f0[m];
+
+  00e6a	8b 96 2c 14 00
+	00		 mov	 edx, DWORD PTR [esi+5164]
+  00e70	66 8b 0c 7a	 mov	 cx, WORD PTR [edx+edi*2]
+  00e74	8d 04 7a	 lea	 eax, DWORD PTR [edx+edi*2]
+  00e77	66 89 48 fe	 mov	 WORD PTR [eax-2], cx
+  00e7b	66 3b ae 26 14
+	00 00		 cmp	 bp, WORD PTR [esi+5158]
+  00e82	7c 87		 jl	 SHORT $L71414
+  00e84	5f		 pop	 edi
+  00e85	5e		 pop	 esi
+  00e86	5d		 pop	 ebp
+  00e87	5b		 pop	 ebx
+
+; 342  : 		}
+; 343  : 	}
+; 344  : }
+
+  00e88	c3		 ret	 0
+$L71716:
+
+; 282  : 			{
+; 283  : 				pDph_t->symbols[m] = S1;
+
+  00e89	0f bf c7	 movsx	 eax, di
+
+; 284  : 				pDph_t->user_durs[m] = durdangle;
+; 285  : 				pDph_t->user_f0[m] = f0dangle;
+; 286  : #ifdef DEBUGIND
+; 287  : 
+; 288  : 				printf ("delete rule 4\n");
+; 289  : #endif
+; 290  : 
+; 291  : 				delete_symbol (phTTS, msym);
+
+  00e8c	55		 push	 ebp
+  00e8d	66 c7 84 46 ca
+	11 00 00 67 00	 mov	 WORD PTR [esi+eax*2+4554], 103 ; 00000067H
+  00e97	8b 8e 28 14 00
+	00		 mov	 ecx, DWORD PTR [esi+5160]
+  00e9d	66 89 1c 41	 mov	 WORD PTR [ecx+eax*2], bx
+  00ea1	8b 96 2c 14 00
+	00		 mov	 edx, DWORD PTR [esi+5164]
+  00ea7	66 89 1c 42	 mov	 WORD PTR [edx+eax*2], bx
+  00eab	8b 44 24 18	 mov	 eax, DWORD PTR _phTTS$[esp+16]
+  00eaf	50		 push	 eax
+  00eb0	e8 00 00 00 00	 call	 _delete_symbol
+  00eb5	83 c4 08	 add	 esp, 8
+  00eb8	5f		 pop	 edi
+  00eb9	5e		 pop	 esi
+  00eba	5d		 pop	 ebp
+  00ebb	5b		 pop	 ebx
+
+; 342  : 		}
+; 343  : 	}
+; 344  : }
+
+  00ebc	c3		 ret	 0
+$L71718:
+
+; 305  : 		{
+; 306  : #ifdef DEBUGIND
+; 307  : 
+; 308  : 			printf ("delete rule 5\n");
+; 309  : #endif
+; 310  : 
+; 311  : 			delete_symbol (phTTS, m - 1);
+
+  00ebd	8b 54 24 14	 mov	 edx, DWORD PTR _phTTS$[esp+12]
+  00ec1	4d		 dec	 ebp
+  00ec2	55		 push	 ebp
+  00ec3	52		 push	 edx
+  00ec4	e8 00 00 00 00	 call	 _delete_symbol
+  00ec9	83 c4 08	 add	 esp, 8
+  00ecc	5f		 pop	 edi
+  00ecd	5e		 pop	 esi
+  00ece	5d		 pop	 ebp
+  00ecf	5b		 pop	 ebx
+
+; 342  : 		}
+; 343  : 	}
+; 344  : }
+
+  00ed0	c3		 ret	 0
+$L71719:
+
+; 315  : 		{
+; 316  : 			if (pDph_t->symbols[m] < stdangle)
+
+  00ed1	8b 4c 24 18	 mov	 ecx, DWORD PTR _stdangle$[esp+12]
+  00ed5	0f bf c5	 movsx	 eax, bp
+  00ed8	66 39 8c 46 ca
+	11 00 00	 cmp	 WORD PTR [esi+eax*2+4554], cx
+  00ee0	7d 1c		 jge	 SHORT $L71419
+
+; 317  : 			{
+; 318  : 				pDph_t->symbols[m] = stdangle;
+
+  00ee2	66 89 8c 46 ca
+	11 00 00	 mov	 WORD PTR [esi+eax*2+4554], cx
+
+; 319  : 				pDph_t->user_durs[m] = durdangle;
+
+  00eea	8b 8e 28 14 00
+	00		 mov	 ecx, DWORD PTR [esi+5160]
+  00ef0	66 89 1c 41	 mov	 WORD PTR [ecx+eax*2], bx
+
+; 320  : 				pDph_t->user_f0[m] = f0dangle;
+
+  00ef4	8b 96 2c 14 00
+	00		 mov	 edx, DWORD PTR [esi+5164]
+  00efa	66 89 1c 42	 mov	 WORD PTR [edx+eax*2], bx
+$L71419:
+
+; 321  : 			}
+; 322  : #ifdef DEBUGIND
+; 323  : 
+; 324  : 			printf ("delete rule 6\n");
+; 325  : #endif
+; 326  : 
+; 327  : 			delete_symbol (phTTS, m - 1);
+
+  00efe	8b 44 24 14	 mov	 eax, DWORD PTR _phTTS$[esp+12]
+  00f02	4d		 dec	 ebp
+  00f03	55		 push	 ebp
+  00f04	50		 push	 eax
+  00f05	e8 00 00 00 00	 call	 _delete_symbol
+  00f0a	83 c4 08	 add	 esp, 8
+  00f0d	5f		 pop	 edi
+  00f0e	5e		 pop	 esi
+  00f0f	5d		 pop	 ebp
+  00f10	5b		 pop	 ebx
+
+; 342  : 		}
+; 343  : 	}
+; 344  : }
+
+  00f11	c3		 ret	 0
+$L71720:
+
+; 331  : 		{
+; 332  : 			pDph_t->symbols[m - 1] = stdangle;	/* Found syllabic, put stress here */
+
+  00f12	66 8b 4c 24 18	 mov	 cx, WORD PTR _stdangle$[esp+12]
+  00f17	0f bf c5	 movsx	 eax, bp
+  00f1a	66 89 8c 46 c8
+	11 00 00	 mov	 WORD PTR [esi+eax*2+4552], cx
+
+; 333  : 			pDph_t->user_durs[m - 1] = durdangle;
+
+  00f22	8b 96 28 14 00
+	00		 mov	 edx, DWORD PTR [esi+5160]
+  00f28	66 89 5c 42 fe	 mov	 WORD PTR [edx+eax*2-2], bx
+
+; 334  : 			pDph_t->user_f0[m - 1] = f0dangle;
+
+  00f2d	8b 8e 2c 14 00
+	00		 mov	 ecx, DWORD PTR [esi+5164]
+  00f33	66 89 5c 41 fe	 mov	 WORD PTR [ecx+eax*2-2], bx
+$L71416:
+  00f38	5f		 pop	 edi
+  00f39	5e		 pop	 esi
+  00f3a	5d		 pop	 ebp
+  00f3b	5b		 pop	 ebx
+
+; 342  : 		}
+; 343  : 	}
+; 344  : }
+
+  00f3c	c3		 ret	 0
+_move_stdangle ENDP
+_pDph_t$ = 8
+_psCurr_dur$ = 12
+_psCurr_f0$ = 16
+_curr_in_sym$ = 20
+_psMf0$ = 24
+_interp_user_f0 PROC NEAR
+
+; 2818 : 	/* If attached to a 1-stress symbol, dur,f0 mean stress-impulse commands */
+; 2819 : #if defined ENGLISH_US || defined GERMAN
+; 2820 : 	if ((curr_in_sym == S1) || (curr_in_sym == SEMPH)
+; 2821 : 		|| (curr_in_sym == HAT_RISE) || (curr_in_sym == HAT_FALL)
+; 2822 : 		&& (pDph_t->f0mode != PHONE_TARGETS_SPECIFIED)
+; 2823 : 		&& (pDph_t->f0mode != SINGING))
+
+  00f40	8b 54 24 04	 mov	 edx, DWORD PTR _pDph_t$[esp-4]
+  00f44	56		 push	 esi
+  00f45	57		 push	 edi
+  00f46	66 8b 7c 24 18	 mov	 di, WORD PTR _curr_in_sym$[esp+4]
+  00f4b	66 83 ff 67	 cmp	 di, 103			; 00000067H
+  00f4f	0f 84 96 00 00
+	00		 je	 $L71540
+  00f55	66 83 ff 68	 cmp	 di, 104			; 00000068H
+  00f59	0f 84 8c 00 00
+	00		 je	 $L71540
+  00f5f	66 83 ff 69	 cmp	 di, 105			; 00000069H
+  00f63	0f 84 82 00 00
+	00		 je	 $L71540
+  00f69	66 83 ff 6a	 cmp	 di, 106			; 0000006aH
+  00f6d	75 13		 jne	 SHORT $L71539
+  00f6f	66 8b 82 40 14
+	00 00		 mov	 ax, WORD PTR [edx+5184]
+  00f76	66 3d 05 00	 cmp	 ax, 5
+  00f7a	74 06		 je	 SHORT $L71539
+  00f7c	66 3d 04 00	 cmp	 ax, 4
+  00f80	75 69		 jne	 SHORT $L71540
+$L71539:
+
+; 2854 : 	}
+; 2855 : 	/* Otherwise, they are note commands for singing, or f0 targets for segs */
+; 2856 : 	else if (*psCurr_f0 != 0)
+
+  00f82	8b 74 24 14	 mov	 esi, DWORD PTR _psCurr_f0$[esp+4]
+  00f86	66 8b 0e	 mov	 cx, WORD PTR [esi]
+  00f89	66 85 c9	 test	 cx, cx
+  00f8c	0f 84 e6 00 00
+	00		 je	 $L71556
+
+; 2857 : 	{
+; 2858 : 		if (pDph_t->f0mode != HAT_F0_SIZES_SPECIFIED)
+
+  00f92	66 8b 82 40 14
+	00 00		 mov	 ax, WORD PTR [edx+5184]
+  00f99	66 3d 03 00	 cmp	 ax, 3
+  00f9d	74 3b		 je	 SHORT $L71551
+
+; 2859 : 		{
+; 2860 : 			if ((pDph_t->f0mode != PHONE_TARGETS_SPECIFIED)
+; 2861 : 				&& (*psCurr_f0 <= 37))
+
+  00f9f	66 3d 05 00	 cmp	 ax, 5
+  00fa3	74 12		 je	 SHORT $L71552
+  00fa5	66 83 f9 25	 cmp	 cx, 37			; 00000025H
+  00fa9	7f 0c		 jg	 SHORT $L71552
+  00fab	5f		 pop	 edi
+
+; 2862 : 			{
+; 2863 : 				pDph_t->f0mode = SINGING;
+
+  00fac	66 c7 82 40 14
+	00 00 04 00	 mov	 WORD PTR [edx+5184], 4
+  00fb5	5e		 pop	 esi
+
+; 2891 : 		}
+; 2892 : 	}
+; 2893 : }
+
+  00fb6	c3		 ret	 0
+$L71552:
+
+; 2864 : 			}
+; 2865 : 			else if (pDph_t->f0mode != SINGING)
+
+  00fb7	66 3d 04 00	 cmp	 ax, 4
+  00fbb	74 0c		 je	 SHORT $L71554
+  00fbd	5f		 pop	 edi
+
+; 2866 : 			{
+; 2867 : 				pDph_t->f0mode = PHONE_TARGETS_SPECIFIED;
+
+  00fbe	66 c7 82 40 14
+	00 00 05 00	 mov	 WORD PTR [edx+5184], 5
+  00fc7	5e		 pop	 esi
+
+; 2891 : 		}
+; 2892 : 	}
+; 2893 : }
+
+  00fc8	c3		 ret	 0
+$L71554:
+
+; 2868 : 			}
+; 2869 : 			else
+; 2870 : 			{
+; 2871 : 
+; 2872 : #ifdef DEBUG_USER_PROSODICS
+; 2873 : 				printf (
+; 2874 : 						   "ERROR in PHSORT: f0 commands for singing and phoneme-targets intermixed\n");
+; 2875 : #endif
+; 2876 : 
+; 2877 : 				*psCurr_dur = 0;
+
+  00fc9	8b 44 24 10	 mov	 eax, DWORD PTR _psCurr_dur$[esp+4]
+  00fcd	5f		 pop	 edi
+  00fce	66 c7 00 00 00	 mov	 WORD PTR [eax], 0
+
+; 2878 : 				*psCurr_f0 = 0;
+
+  00fd3	66 c7 06 00 00	 mov	 WORD PTR [esi], 0
+  00fd8	5e		 pop	 esi
+
+; 2891 : 		}
+; 2892 : 	}
+; 2893 : }
+
+  00fd9	c3		 ret	 0
+$L71551:
+
+; 2879 : 			}
+; 2880 : 		}
+; 2881 : 		else
+; 2882 : 		{
+; 2883 : 
+; 2884 : #ifdef DEBUG_USER_PROSODICS
+; 2885 : 			printf (
+; 2886 : 					   "ERROR in PHSORT: f0 commands for phonemes and stress/hat pDph_t->symbols intermixed\n");
+; 2887 : #endif
+; 2888 : 
+; 2889 : 			*psCurr_dur = 0;
+
+  00fda	8b 4c 24 10	 mov	 ecx, DWORD PTR _psCurr_dur$[esp+4]
+  00fde	5f		 pop	 edi
+  00fdf	66 c7 01 00 00	 mov	 WORD PTR [ecx], 0
+
+; 2890 : 			*psCurr_f0 = 0;
+
+  00fe4	66 c7 06 00 00	 mov	 WORD PTR [esi], 0
+  00fe9	5e		 pop	 esi
+
+; 2891 : 		}
+; 2892 : 	}
+; 2893 : }
+
+  00fea	c3		 ret	 0
+$L71540:
+
+; 2824 : #endif
+; 2825 : #ifdef SPANISH
+; 2826 : 	if (((curr_in_sym == S1) || (curr_in_sym == SEMPH)
+; 2827 : 		|| (curr_in_sym == HAT_RISE) || (curr_in_sym == HAT_FALL))
+; 2828 : 		&& ((pDph_t->f0mode != PHONE_TARGETS_SPECIFIED)
+; 2829 : 		&& (pDph_t->f0mode != SINGING)))
+; 2830 : #endif
+; 2831 : 	{
+; 2832 : 		if ((*psCurr_f0 != 0) || (pDph_t->f0mode == HAT_F0_SIZES_SPECIFIED))
+
+  00feb	8b 44 24 14	 mov	 eax, DWORD PTR _psCurr_f0$[esp+4]
+  00fef	8b 74 24 1c	 mov	 esi, DWORD PTR _psMf0$[esp+4]
+  00ff3	66 8b 08	 mov	 cx, WORD PTR [eax]
+  00ff6	66 85 c9	 test	 cx, cx
+  00ff9	75 0a		 jne	 SHORT $L71542
+  00ffb	66 83 ba 40 14
+	00 00 03	 cmp	 WORD PTR [edx+5184], 3
+  01003	75 70		 jne	 SHORT $L71541
+$L71542:
+
+; 2833 : 		{
+; 2834 : 			/* Truncate f0 gestures that are unreasonable */
+; 2835 : 			if (*psCurr_f0 < 0)
+
+  01005	66 85 c9	 test	 cx, cx
+  01008	7d 05		 jge	 SHORT $L71543
+
+; 2836 : 				*psCurr_f0 = -(*psCurr_f0);
+
+  0100a	f7 d9		 neg	 ecx
+  0100c	66 89 08	 mov	 WORD PTR [eax], cx
+$L71543:
+
+; 2837 : 			if (*psCurr_f0 > 199)
+
+  0100f	66 81 38 c7 00	 cmp	 WORD PTR [eax], 199	; 000000c7H
+  01014	7e 05		 jle	 SHORT $L71544
+
+; 2838 : 				*psCurr_f0 = 199;	   /* Should be about 50 */
+
+  01016	66 c7 00 c7 00	 mov	 WORD PTR [eax], 199	; 000000c7H
+$L71544:
+
+; 2839 : 			/* Attach flags to identify what kind of f0 gesture */
+; 2840 : 			if (curr_in_sym == HAT_RISE)
+
+  0101b	66 83 ff 69	 cmp	 di, 105			; 00000069H
+  0101f	75 07		 jne	 SHORT $L71545
+
+; 2841 : 				*psCurr_f0 += 200;
+
+  01021	66 81 00 c8 00	 add	 WORD PTR [eax], 200	; 000000c8H
+
+; 2842 : 			else if (curr_in_sym == HAT_FALL)
+
+  01026	eb 12		 jmp	 SHORT $L71548
+$L71545:
+  01028	66 83 ff 6a	 cmp	 di, 106			; 0000006aH
+  0102c	75 07		 jne	 SHORT $L71547
+
+; 2843 : 				*psCurr_f0 += 400;
+
+  0102e	66 81 00 90 01	 add	 WORD PTR [eax], 400	; 00000190H
+
+; 2844 : 			else
+
+  01033	eb 05		 jmp	 SHORT $L71548
+$L71547:
+
+; 2845 : 				*psCurr_f0 += 1000;
+
+  01035	66 81 00 e8 03	 add	 WORD PTR [eax], 1000	; 000003e8H
+$L71548:
+
+; 2846 : 			pDph_t->user_f0[*psMf0] = *psCurr_f0;
+
+  0103a	0f bf 0e	 movsx	 ecx, WORD PTR [esi]
+  0103d	8b ba 2c 14 00
+	00		 mov	 edi, DWORD PTR [edx+5164]
+  01043	53		 push	 ebx
+  01044	66 8b 18	 mov	 bx, WORD PTR [eax]
+  01047	55		 push	 ebp
+  01048	66 89 1c 4f	 mov	 WORD PTR [edi+ecx*2], bx
+
+; 2847 : 			pDph_t->user_offset[*psMf0] = *psCurr_dur;
+
+  0104c	8b 4c 24 18	 mov	 ecx, DWORD PTR _psCurr_dur$[esp+12]
+  01050	0f bf 3e	 movsx	 edi, WORD PTR [esi]
+  01053	8b 9a 30 14 00
+	00		 mov	 ebx, DWORD PTR [edx+5168]
+  01059	66 8b 29	 mov	 bp, WORD PTR [ecx]
+  0105c	66 89 2c 7b	 mov	 WORD PTR [ebx+edi*2], bp
+
+; 2848 : 			*psCurr_dur = 0;
+
+  01060	66 c7 01 00 00	 mov	 WORD PTR [ecx], 0
+
+; 2849 : 			*psCurr_f0 = 0;
+
+  01065	66 c7 00 00 00	 mov	 WORD PTR [eax], 0
+  0106a	5d		 pop	 ebp
+
+; 2850 : 			pDph_t->f0mode = HAT_F0_SIZES_SPECIFIED;
+
+  0106b	66 c7 82 40 14
+	00 00 03 00	 mov	 WORD PTR [edx+5184], 3
+  01074	5b		 pop	 ebx
+$L71541:
+
+; 2851 : 		}
+; 2852 : 		/* mf0 counts # of HAT_RISE, HAT_FALL, S1, & SEMPH pDph_t->symbols */
+; 2853 : 		(*psMf0)++;
+
+  01075	66 ff 06	 inc	 WORD PTR [esi]
+$L71556:
+  01078	5f		 pop	 edi
+  01079	5e		 pop	 esi
+
+; 2891 : 		}
+; 2892 : 	}
+; 2893 : }
+
+  0107a	c3		 ret	 0
+_interp_user_f0 ENDP
+_symb$ = 8
+_is_wboundary PROC NEAR
+
+; 2914 : 	if ((symb >= WBOUND) && (symb <= EXCLAIM))
+
+  01080	66 8b 44 24 04	 mov	 ax, WORD PTR _symb$[esp-4]
+  01085	66 3d 6f 00	 cmp	 ax, 111			; 0000006fH
+  01089	7c 0c		 jl	 SHORT $L71560
+  0108b	66 3d 76 00	 cmp	 ax, 118			; 00000076H
+  0108f	7f 06		 jg	 SHORT $L71560
+
+; 2915 : 	{
+; 2916 : 		return (TRUE);
+
+  01091	b8 01 00 00 00	 mov	 eax, 1
+
+; 2919 : }
+
+  01096	c3		 ret	 0
+$L71560:
+
+; 2917 : 	}
+; 2918 : 	return (FALSE);
+
+  01097	33 c0		 xor	 eax, eax
+
+; 2919 : }
+
+  01099	c3		 ret	 0
+_is_wboundary ENDP
+_phTTS$ = 8
+_loc$ = 12
+_fone$ = 16
+_pKsd_t$ = 8
+_insertphone PROC NEAR
+
+; 2938 : 	short                   m;
+; 2939 : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+
+  010a0	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  010a4	8b 48 08	 mov	 ecx, DWORD PTR [eax+8]
+
+; 2940 : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+
+  010a7	8b 40 18	 mov	 eax, DWORD PTR [eax+24]
+  010aa	89 4c 24 04	 mov	 DWORD PTR _pKsd_t$[esp-4], ecx
+
+; 2941 : 
+; 2942 : 	if (pDph_t->nsymbtot >= NPHON_MAX)
+
+  010ae	66 8b 88 26 14
+	00 00		 mov	 cx, WORD PTR [eax+5158]
+  010b5	66 81 f9 2c 01	 cmp	 cx, 300			; 0000012cH
+  010ba	0f 8d 9c 00 00
+	00		 jge	 $L71575
+  010c0	53		 push	 ebx
+
+; 2943 : 		return;						   /* No room, do nothing */
+; 2944 : 	for (m = pDph_t->nsymbtot; m > loc; m--)
+
+  010c1	66 8b 5c 24 0c	 mov	 bx, WORD PTR _loc$[esp]
+  010c6	66 3b cb	 cmp	 cx, bx
+  010c9	56		 push	 esi
+  010ca	7e 46		 jle	 SHORT $L71574
+  010cc	55		 push	 ebp
+  010cd	57		 push	 edi
+  010ce	0f bf f1	 movsx	 esi, cx
+  010d1	0f bf fb	 movsx	 edi, bx
+  010d4	8d 0c 36	 lea	 ecx, DWORD PTR [esi+esi]
+  010d7	8d 94 70 ca 11
+	00 00		 lea	 edx, DWORD PTR [eax+esi*2+4554]
+  010de	2b f7		 sub	 esi, edi
+  010e0	8b fe		 mov	 edi, esi
+$L71572:
+
+; 2945 : 	{
+; 2946 : 		pDph_t->symbols[m] = pDph_t->symbols[m - 1];
+
+  010e2	66 8b 72 fe	 mov	 si, WORD PTR [edx-2]
+  010e6	66 89 32	 mov	 WORD PTR [edx], si
+
+; 2947 : 		pDph_t->user_durs[m] = pDph_t->user_durs[m - 1];	/* Push down */
+
+  010e9	8b b0 28 14 00
+	00		 mov	 esi, DWORD PTR [eax+5160]
+  010ef	03 f1		 add	 esi, ecx
+  010f1	83 ea 02	 sub	 edx, 2
+  010f4	66 8b 6e fe	 mov	 bp, WORD PTR [esi-2]
+  010f8	66 89 2e	 mov	 WORD PTR [esi], bp
+
+; 2948 : 		pDph_t->user_f0[m] = pDph_t->user_f0[m - 1];	/* user dur/f0 */
+
+  010fb	8b b0 2c 14 00
+	00		 mov	 esi, DWORD PTR [eax+5164]
+  01101	03 f1		 add	 esi, ecx
+  01103	83 e9 02	 sub	 ecx, 2
+  01106	4f		 dec	 edi
+  01107	66 8b 6e fe	 mov	 bp, WORD PTR [esi-2]
+  0110b	66 89 2e	 mov	 WORD PTR [esi], bp
+  0110e	75 d2		 jne	 SHORT $L71572
+  01110	5f		 pop	 edi
+  01111	5d		 pop	 ebp
+$L71574:
+
+; 2949 : 	}
+; 2950 : 	pDph_t->symbols[loc] = fone;
+
+  01112	66 8b 54 24 14	 mov	 dx, WORD PTR _fone$[esp+4]
+  01117	0f bf cb	 movsx	 ecx, bx
+  0111a	66 89 94 48 ca
+	11 00 00	 mov	 WORD PTR [eax+ecx*2+4554], dx
+
+; 2951 : #ifdef SPANISH
+; 2952 : 	if(pDph_t->specdur >0)
+; 2953 : 	{
+; 2954 : 		pDph_t->user_durs[loc] = pDph_t->specdur;
+; 2955 : 		pDph_t->specdur=0;
+; 2956 : 	}
+; 2957 : 	else
+; 2958 : #endif
+; 2959 : 		pDph_t->user_durs[loc] = 0;
+
+  01122	8b b0 28 14 00
+	00		 mov	 esi, DWORD PTR [eax+5160]
+  01128	66 c7 04 4e 00
+	00		 mov	 WORD PTR [esi+ecx*2], 0
+
+; 2960 : 	pDph_t->user_f0[loc] = 0;
+
+  0112e	8b b0 2c 14 00
+	00		 mov	 esi, DWORD PTR [eax+5164]
+  01134	66 c7 04 4e 00
+	00		 mov	 WORD PTR [esi+ecx*2], 0
+
+; 2961 : 	pDph_t->nsymbtot++;
+
+  0113a	66 ff 80 26 14
+	00 00		 inc	 WORD PTR [eax+5158]
+  01141	5e		 pop	 esi
+
+; 2962 : 	if (fone != S1) {				/* KSB - Fixed for index marks */
+
+  01142	66 83 fa 67	 cmp	 dx, 103			; 00000067H
+  01146	5b		 pop	 ebx
+  01147	74 13		 je	 SHORT $L71575
+
+; 2963 : #ifdef MSDOS
+; 2964 : 		adjust_index ((loc + 1), 1, 0);
+; 2965 : #else
+; 2966 : 		adjust_index (pKsd_t, (loc + 1), 1, 0);
+
+  01149	8b 54 24 04	 mov	 edx, DWORD PTR _pKsd_t$[esp-4]
+  0114d	6a 00		 push	 0
+  0114f	41		 inc	 ecx
+  01150	6a 01		 push	 1
+  01152	51		 push	 ecx
+  01153	52		 push	 edx
+  01154	e8 00 00 00 00	 call	 _adjust_index
+  01159	83 c4 10	 add	 esp, 16			; 00000010H
+$L71575:
+
+; 2967 : #endif
+; 2968 : 	}
+; 2969 : #ifdef DEBUGIND
+; 2970 : 	printf ("loc %d pDph_t->nsymbtot %d \n", loc, pDph_t->nsymbtot);
+; 2971 : 	printf ("adj +1 inserting %d \n", fone);
+; 2972 : #endif
+; 2973 : 	return;
+; 2974 : }
+
+  0115c	c3		 ret	 0
+_insertphone ENDP
+_pDph_t$ = 8
+_msym$ = 12
+_raise_last_stress PROC NEAR
+
+; 2991 : 	short m;
+; 2992 : 
+; 2993 : 	for (m = msym - 1; m > 0; m--)
+
+  01160	8b 44 24 08	 mov	 eax, DWORD PTR _msym$[esp-4]
+  01164	56		 push	 esi
+  01165	48		 dec	 eax
+  01166	66 85 c0	 test	 ax, ax
+  01169	7e 2b		 jle	 SHORT $L71584
+  0116b	8b 4c 24 08	 mov	 ecx, DWORD PTR _pDph_t$[esp]
+  0116f	ba 67 00 00 00	 mov	 edx, 103		; 00000067H
+$L71582:
+
+; 2994 : 	{
+; 2995 : 		if (pDph_t->symbols[m] == S1)
+
+  01174	0f bf f0	 movsx	 esi, ax
+  01177	66 39 94 71 ca
+	11 00 00	 cmp	 WORD PTR [ecx+esi*2+4554], dx
+  0117f	74 08		 je	 SHORT $L71736
+  01181	48		 dec	 eax
+  01182	66 85 c0	 test	 ax, ax
+  01185	7f ed		 jg	 SHORT $L71582
+  01187	5e		 pop	 esi
+
+; 2998 : 			return;
+; 2999 : 		}
+; 3000 : 	}
+; 3001 : }
+
+  01188	c3		 ret	 0
+$L71736:
+
+; 2996 : 		{
+; 2997 : 			pDph_t->symbols[m] = SEMPH;
+
+  01189	0f bf d0	 movsx	 edx, ax
+  0118c	66 c7 84 51 ca
+	11 00 00 68 00	 mov	 WORD PTR [ecx+edx*2+4554], 104 ; 00000068H
+$L71584:
+  01196	5e		 pop	 esi
+
+; 2998 : 			return;
+; 2999 : 		}
+; 3000 : 	}
+; 3001 : }
+
+  01197	c3		 ret	 0
+_raise_last_stress ENDP
+_phTTS$ = 8
+_msym1$ = 12
+_msym2$ = 16
+_zap_weaker_bound PROC NEAR
+
+; 3020 : 	/* short m; *//* MVP :Unreferenced variable */
+; 3021 : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+; 3022 : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+
+  011a0	8b 54 24 04	 mov	 edx, DWORD PTR _phTTS$[esp-4]
+  011a4	53		 push	 ebx
+  011a5	56		 push	 esi
+
+; 3023 : 
+; 3024 : 	if (pDph_t->symbols[msym1] < pDph_t->symbols[msym2])
+
+  011a6	8b 74 24 10	 mov	 esi, DWORD PTR _msym1$[esp+4]
+  011aa	8b 42 18	 mov	 eax, DWORD PTR [edx+24]
+  011ad	57		 push	 edi
+  011ae	8b 7c 24 18	 mov	 edi, DWORD PTR _msym2$[esp+8]
+  011b2	0f bf ce	 movsx	 ecx, si
+  011b5	0f bf df	 movsx	 ebx, di
+  011b8	66 8b 8c 48 ca
+	11 00 00	 mov	 cx, WORD PTR [eax+ecx*2+4554]
+  011c0	66 8b 84 58 ca
+	11 00 00	 mov	 ax, WORD PTR [eax+ebx*2+4554]
+  011c8	66 3b c8	 cmp	 cx, ax
+  011cb	7d 14		 jge	 SHORT $L71595
+
+; 3025 : 	{
+; 3026 : #ifdef GERMAN
+; 3027 : 		pDph_t->symbols[msym1] = pDph_t->symbols[msym2];	/* Boundarys can't have */
+; 3028 : #endif
+; 3029 : #if defined ENGLISH_US || defined SPANISH
+; 3030 : 		/* pDph_t->symbols[msym1] = pDph_t->symbols[msym2];    Boundarys can't have */
+; 3031 : 		if (pDph_t->symbols[msym1] != HYPHEN)
+
+  011cd	66 83 f9 6e	 cmp	 cx, 110			; 0000006eH
+  011d1	74 1e		 je	 SHORT $L71597
+
+; 3032 : 			delete_symbol (phTTS, msym1);
+
+  011d3	56		 push	 esi
+
+; 3039 : #endif
+; 3040 : 		delete_symbol (phTTS, msym2);
+
+  011d4	52		 push	 edx
+  011d5	e8 00 00 00 00	 call	 _delete_symbol
+  011da	83 c4 08	 add	 esp, 8
+  011dd	5f		 pop	 edi
+  011de	5e		 pop	 esi
+  011df	5b		 pop	 ebx
+
+; 3041 : }
+
+  011e0	c3		 ret	 0
+$L71595:
+
+; 3033 : 		return;
+; 3034 : #endif
+; 3035 : 	}
+; 3036 : 	/* user durs or f0 */
+; 3037 : #if defined ENGLISH_US || defined SPANISH
+; 3038 : 	if (pDph_t->symbols[msym2] != HYPHEN)
+
+  011e1	66 3d 6e 00	 cmp	 ax, 110			; 0000006eH
+  011e5	74 0a		 je	 SHORT $L71597
+
+; 3039 : #endif
+; 3040 : 		delete_symbol (phTTS, msym2);
+
+  011e7	57		 push	 edi
+  011e8	52		 push	 edx
+  011e9	e8 00 00 00 00	 call	 _delete_symbol
+  011ee	83 c4 08	 add	 esp, 8
+$L71597:
+  011f1	5f		 pop	 edi
+  011f2	5e		 pop	 esi
+  011f3	5b		 pop	 ebx
+
+; 3041 : }
+
+  011f4	c3		 ret	 0
+_zap_weaker_bound ENDP
+_phTTS$ = 8
+_msym$ = 12
+_delete_symbol PROC NEAR
+
+; 3058 : 	short                   m;
+; 3059 : 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
+
+  01200	8b 44 24 04	 mov	 eax, DWORD PTR _phTTS$[esp-4]
+  01204	53		 push	 ebx
+  01205	57		 push	 edi
+
+; 3060 : 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+; 3061 : 	PDPHSETTAR_ST           pDphsettar = pDph_t->pSTphsettar;
+; 3062 : 
+; 3063 : #ifdef DEBUGIND
+; 3064 : 	printf ("adj -1 del sym %d at %d \n ", pDph_t->symbols[msym], msym);
+; 3065 : #endif
+; 3066 : 	pDph_t->nsymbtot--;
+; 3067 : 	pDphsettar->did_del = 1;
+; 3068 : 	for (m = msym; m < pDph_t->nsymbtot; m++)
+
+  01206	8b 7c 24 10	 mov	 edi, DWORD PTR _msym$[esp+4]
+  0120a	8b 58 08	 mov	 ebx, DWORD PTR [eax+8]
+  0120d	8b 40 18	 mov	 eax, DWORD PTR [eax+24]
+  01210	8b d7		 mov	 edx, edi
+  01212	8b 88 48 28 00
+	00		 mov	 ecx, DWORD PTR [eax+10312]
+  01218	66 ff 88 26 14
+	00 00		 dec	 WORD PTR [eax+5158]
+  0121f	c7 41 1c 01 00
+	00 00		 mov	 DWORD PTR [ecx+28], 1
+  01226	66 3b b8 26 14
+	00 00		 cmp	 di, WORD PTR [eax+5158]
+  0122d	7d 3f		 jge	 SHORT $L71609
+  0122f	55		 push	 ebp
+  01230	56		 push	 esi
+$L71607:
+
+; 3069 : 	{
+; 3070 : 		pDph_t->symbols[m] = pDph_t->symbols[m + 1];
+
+  01231	0f bf ca	 movsx	 ecx, dx
+  01234	42		 inc	 edx
+  01235	66 8b b4 48 cc
+	11 00 00	 mov	 si, WORD PTR [eax+ecx*2+4556]
+  0123d	66 89 b4 48 ca
+	11 00 00	 mov	 WORD PTR [eax+ecx*2+4554], si
+
+; 3071 : 		pDph_t->user_durs[m] = pDph_t->user_durs[m + 1];	/* If deleted sym has dur or */
+
+  01245	8b b0 28 14 00
+	00		 mov	 esi, DWORD PTR [eax+5160]
+  0124b	66 8b 6c 4e 02	 mov	 bp, WORD PTR [esi+ecx*2+2]
+  01250	66 89 2c 4e	 mov	 WORD PTR [esi+ecx*2], bp
+
+; 3072 : 		pDph_t->user_f0[m] = pDph_t->user_f0[m + 1];	/* f0, it will be lost */
+
+  01254	8b b0 2c 14 00
+	00		 mov	 esi, DWORD PTR [eax+5164]
+  0125a	66 8b 6c 4e 02	 mov	 bp, WORD PTR [esi+ecx*2+2]
+  0125f	66 89 2c 4e	 mov	 WORD PTR [esi+ecx*2], bp
+  01263	66 3b 90 26 14
+	00 00		 cmp	 dx, WORD PTR [eax+5158]
+  0126a	7c c5		 jl	 SHORT $L71607
+  0126c	5e		 pop	 esi
+  0126d	5d		 pop	 ebp
+$L71609:
+
+; 3073 : 	}
+; 3074 : #ifdef DEBUGIND
+; 3075 : 
+; 3076 : 	WAIT_PRINT;
+; 3077 : 	printf ("\n sym num %d   ", msym);
+; 3078 : 	printf ("now %d  \n\n ", pDph_t->symbols[msym]);
+; 3079 : 	SIGNAL_PRINT;
+; 3080 : #endif
+; 3081 : #ifdef MSDOS
+; 3082 : 	adjust_index (msym + 1, -1, 1);
+; 3083 : #else
+; 3084 : 	adjust_index (pKsd_t, msym + 1, -1, 1);
+
+  0126e	0f bf d7	 movsx	 edx, di
+  01271	6a 01		 push	 1
+  01273	42		 inc	 edx
+  01274	6a ff		 push	 -1
+  01276	52		 push	 edx
+  01277	53		 push	 ebx
+  01278	e8 00 00 00 00	 call	 _adjust_index
+  0127d	83 c4 10	 add	 esp, 16			; 00000010H
+  01280	5f		 pop	 edi
+  01281	5b		 pop	 ebx
+
+; 3085 : 	/* 
+; 3086 : 	 * plus one because index may be pointing at this
+; 3087 : 	 * very one in which case it promotes forward (i.e. stays the same) 
+; 3088 : 	 */
+; 3089 : #endif
+; 3090 : }
+
+  01282	c3		 ret	 0
+_delete_symbol ENDP
+_pDph_t$ = 8
+_phoname$ = 12
+_n$ = 16
+_curr_dur$ = 20
+_curr_f0$ = 24
+_make_phone PROC NEAR
+
+; 3112 : #ifdef GERMAN
+; 3113 : 	if ((phoname < 0) || (phoname >= TOT_ALLOPHONES))
+; 3114 : 	{
+; 3115 : 		return;						   /* Ignore this phoneme */
+; 3116 : 	}
+; 3117 : #endif
+; 3118 : 	if (pDph_t->nphonetot > n)
+
+  01290	8b 44 24 04	 mov	 eax, DWORD PTR _pDph_t$[esp-4]
+  01294	66 8b 88 3c 14
+	00 00		 mov	 cx, WORD PTR [eax+5180]
+  0129b	66 3b 4c 24 0c	 cmp	 cx, WORD PTR _n$[esp-4]
+  012a0	7f 60		 jg	 SHORT $L71623
+
+; 3119 : 	{
+; 3120 : 
+; 3121 : 		return;
+; 3122 : 	}
+; 3123 : 	/* Put phoneme away */
+; 3124 : 	pDph_t->phonemes[pDph_t->nphonetot] = phoname;
+
+  012a2	8b 90 34 14 00
+	00		 mov	 edx, DWORD PTR [eax+5172]
+  012a8	56		 push	 esi
+  012a9	66 8b 74 24 0c	 mov	 si, WORD PTR _phoname$[esp]
+  012ae	0f bf c9	 movsx	 ecx, cx
+  012b1	66 89 34 4a	 mov	 WORD PTR [edx+ecx*2], si
+
+; 3125 : 	pDph_t->user_durs[pDph_t->nphonetot] = curr_dur;	/* Move user-specified dur */
+
+  012b5	8b 90 28 14 00
+	00		 mov	 edx, DWORD PTR [eax+5160]
+  012bb	0f bf 88 3c 14
+	00 00		 movsx	 ecx, WORD PTR [eax+5180]
+  012c2	66 8b 74 24 14	 mov	 si, WORD PTR _curr_dur$[esp]
+  012c7	66 89 34 4a	 mov	 WORD PTR [edx+ecx*2], si
+
+; 3126 : 	if (pDph_t->f0mode != HAT_F0_SIZES_SPECIFIED)
+
+  012cb	66 83 b8 40 14
+	00 00 03	 cmp	 WORD PTR [eax+5184], 3
+  012d3	74 16		 je	 SHORT $L71622
+
+; 3127 : 	{
+; 3128 : 		pDph_t->user_f0[pDph_t->nphonetot] = curr_f0;	/* Move user-specified f0 */
+
+  012d5	0f bf 88 3c 14
+	00 00		 movsx	 ecx, WORD PTR [eax+5180]
+  012dc	8b 90 2c 14 00
+	00		 mov	 edx, DWORD PTR [eax+5164]
+  012e2	66 8b 74 24 18	 mov	 si, WORD PTR _curr_f0$[esp]
+  012e7	66 89 34 4a	 mov	 WORD PTR [edx+ecx*2], si
+$L71622:
+
+; 3129 : 	}
+; 3130 : 
+; 3131 : #ifdef DEBUG_USER_PROSODICS
+; 3132 : 	if (curr_dur != 0)
+; 3133 : 	{
+; 3134 : 		printf ("\tFound user_dur[%s] = %3d ms in PHSORT\n",
+; 3135 : 				phprint (phoname), curr_dur);
+; 3136 : 	}
+; 3137 : 	if (curr_f0 != 0)
+; 3138 : 	{
+; 3139 : 		printf ("\tFound  pDph_t->user_f0[%s] = %3d Hz in PHSORT, pDph_t->f0mode = %d\n",
+; 3140 : 				phprint (phoname), curr_f0, pDph_t->f0mode);
+; 3141 : 	}
+; 3142 : #endif
+; 3143 : 
+; 3144 : 	/* tag this index */
+; 3145 : 
+; 3146 : 	/* set_index_phone(n,nphonetot); */
+; 3147 : 	/* See if there is room for next phoneme */
+; 3148 : 	if (pDph_t->nphonetot < NPHON_MAX)
+
+  012eb	66 8b 88 3c 14
+	00 00		 mov	 cx, WORD PTR [eax+5180]
+  012f2	5e		 pop	 esi
+  012f3	66 81 f9 2c 01	 cmp	 cx, 300			; 0000012cH
+  012f8	7d 08		 jge	 SHORT $L71623
+
+; 3149 : 		pDph_t->nphonetot++;
+
+  012fa	41		 inc	 ecx
+  012fb	66 89 88 3c 14
+	00 00		 mov	 WORD PTR [eax+5180], cx
+$L71623:
+
+; 3150 : #ifdef DEBUGIND
+; 3151 : 
+; 3152 : 	printf ("tot= %d phoname=%d \n ", pDph_t->nphonetot, phoname);
+; 3153 : #endif
+; 3154 : }
+
+  01302	c3		 ret	 0
+_make_phone ENDP
+_pDph_t$ = 8
+_feaname$ = 12
+_location$ = 16
+_add_feature PROC NEAR
+
+; 3173 : 	if ((location < 0) || (location >= NPHON_MAX))
+
+  01310	66 8b 44 24 0c	 mov	 ax, WORD PTR _location$[esp-4]
+  01315	66 85 c0	 test	 ax, ax
+  01318	7c 28		 jl	 SHORT $L71634
+  0131a	66 3d 2c 01	 cmp	 ax, 300			; 0000012cH
+  0131e	7d 22		 jge	 SHORT $L71634
+
+; 3174 : 	{
+; 3175 : 		return;
+; 3176 : 	}
+; 3177 : #ifdef ENGLISH_US	
+; 3178 : 	if ((feaname <= 0) || (feaname > FMAXIMUM))
+
+  01320	8b 4c 24 08	 mov	 ecx, DWORD PTR _feaname$[esp-4]
+  01324	85 c9		 test	 ecx, ecx
+  01326	7e 1a		 jle	 SHORT $L71634
+  01328	81 f9 00 00 00
+	40		 cmp	 ecx, 1073741824		; 40000000H
+  0132e	7f 12		 jg	 SHORT $L71634
+
+; 3179 : 	{
+; 3180 : 		return;
+; 3181 : 	}                                          
+; 3182 : #endif
+; 3183 : #ifdef GERMAN
+; 3184 : #ifdef CKFEAT
+; 3185 : 	if ((feaname <= 0) || (feaname > FMAXIMUM))
+; 3186 : 	{
+; 3187 : 		return;
+; 3188 : 	}                                          
+; 3189 : #endif
+; 3190 : #endif
+; 3191 : 	/* Do it */
+; 3192 : 	pDph_t->sentstruc[location] |= feaname;
+
+  01330	8b 54 24 04	 mov	 edx, DWORD PTR _pDph_t$[esp-4]
+  01334	0f bf c0	 movsx	 eax, ax
+  01337	8b 92 38 14 00
+	00		 mov	 edx, DWORD PTR [edx+5176]
+  0133d	8d 04 82	 lea	 eax, DWORD PTR [edx+eax*4]
+  01340	09 08		 or	 DWORD PTR [eax], ecx
+$L71634:
+
+; 3193 : 
+; 3194 : }
+
+  01342	c3		 ret	 0
+_add_feature ENDP
+_TEXT	ENDS
+END

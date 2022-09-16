@@ -1,0 +1,828 @@
+	TITLE	D:\work\product\dapi\src\Lts\ls_homo.c
+	.386P
+include listing.inc
+if @Version gt 510
+.model FLAT
+else
+_TEXT	SEGMENT PARA USE32 PUBLIC 'CODE'
+_TEXT	ENDS
+_DATA	SEGMENT DWORD USE32 PUBLIC 'DATA'
+_DATA	ENDS
+CONST	SEGMENT DWORD USE32 PUBLIC 'CONST'
+CONST	ENDS
+_BSS	SEGMENT DWORD USE32 PUBLIC 'BSS'
+_BSS	ENDS
+_TLS	SEGMENT DWORD USE32 PUBLIC 'TLS'
+_TLS	ENDS
+FLAT	GROUP _DATA, CONST, _BSS
+	ASSUME	CS: FLAT, DS: FLAT, SS: FLAT
+endif
+PUBLIC	_homo_table
+_DATA	SEGMENT
+_homo_table DD	080H
+	DD	00H
+	DD	00H
+	DD	0400H
+	DD	080H
+	DD	04H
+	DD	01H
+	DD	00H
+	DD	0200H
+	DD	00H
+	DD	00H
+	DD	0400H
+	DD	0200H
+	DD	04H
+	DD	01H
+	DD	00H
+	DD	02H
+	DD	00H
+	DD	01H
+	DD	00H
+	DD	020001H
+	DD	00H
+	DD	00H
+	DD	0400H
+	DD	020400H
+	DD	00H
+	DD	00H
+	DD	01H
+	DD	0401H
+	DD	00H
+	DD	00H
+	DD	020000H
+	DD	00H
+	DD	020H
+	DD	01H
+	DD	00H
+	DD	00H
+	DD	0100000H
+	DD	020000H
+	DD	00H
+	DD	00H
+	DD	010000H
+	DD	020000H
+	DD	00H
+	DD	00H
+	DD	040000H
+	DD	00H
+	DD	0400H
+	DD	00H
+	DD	0100H
+	DD	080H
+	DD	00H
+	DD	00H
+	DD	020H
+	DD	080H
+	DD	00H
+	DD	00H
+	DD	010H
+	DD	080H
+	DD	00H
+	DD	00H
+	DD	08H
+	DD	020000H
+	DD	00H
+	DD	00H
+	DD	0100H
+	DD	020000H
+	DD	00H
+	DD	00H
+	DD	020H
+	DD	020000H
+	DD	00H
+	DD	00H
+	DD	010H
+	DD	020000H
+	DD	00H
+	DD	00H
+	DD	02000H
+	DD	020000H
+	DD	00H
+	DD	00H
+	DD	01000H
+	DD	00H
+	DD	020000H
+	DD	00H
+	DD	04H
+	DD	00H
+	DD	020000H
+	DD	00H
+	DD	04H
+	DD	0400H
+	DD	00H
+	DD	00H
+	DD	01H
+	DD	00H
+	DD	020000H
+	DD	00H
+	DD	01H
+	DD	0400H
+	DD	00H
+	DD	00H
+	DD	020000H
+	DD	0400H
+	DD	00H
+	DD	00H
+	DD	0800H
+	DD	0400H
+	DD	00H
+_DATA	ENDS
+PUBLIC	_ls_homo_homo
+EXTRN	__imp__fprintf:NEAR
+EXTRN	__imp__printf:NEAR
+_DATA	SEGMENT
+$SG71728 DB	0aH, 'HOMO:(%d)', 00H
+	ORG $+1
+$SG71729 DB	0aH, 'HOMO:(%d)', 00H
+_DATA	ENDS
+_TEXT	SEGMENT
+_phTTS$ = 8
+_index$ = 12
+_entry_primary$ = 8
+_entry_secondary$ = 12
+_pLts_t$ = -8
+_pKsd_t$ = -4
+_ls_homo_homo PROC NEAR
+
+; 76   : {
+
+  00000	83 ec 08	 sub	 esp, 8
+
+; 77   : 	struct dic_entry far *entry_temporary;
+; 78   : 	struct dic_entry far *entry_primary;
+; 79   : 	struct dic_entry far *entry_secondary;
+; 80   : 	int	i,try_other; 
+; 81   : 	PLTS_T	pLts_t;
+; 82   : 	PKSD_T	pKsd_t;
+; 83   : 
+; 84   : 	pLts_t = phTTS->pLTSThreadData;
+
+  00003	8b 44 24 0c	 mov	 eax, DWORD PTR _phTTS$[esp+4]
+  00007	53		 push	 ebx
+  00008	55		 push	 ebp
+  00009	56		 push	 esi
+  0000a	8b 50 10	 mov	 edx, DWORD PTR [eax+16]
+
+; 85   : 	pKsd_t = phTTS->pKernelShareData;   
+
+  0000d	8b 40 08	 mov	 eax, DWORD PTR [eax+8]
+
+; 86   : 
+; 87   : 
+; 88   : 	/*
+; 89   : 	 *  homograph is either right before this or right after ...
+; 90   : 	 */
+; 91   : 
+; 92   : 	entry_primary = DICT_HEAD[index-1];
+
+  00010	8b 74 24 1c	 mov	 esi, DWORD PTR _index$[esp+16]
+  00014	89 44 24 10	 mov	 DWORD PTR _pKsd_t$[esp+20], eax
+  00018	8b 00		 mov	 eax, DWORD PTR [eax]
+  0001a	57		 push	 edi
+  0001b	89 54 24 10	 mov	 DWORD PTR _pLts_t$[esp+24], edx
+
+; 93   : 	entry_secondary = DICT_HEAD[index];
+; 94   : 	try_other = true;
+
+  0001f	bd 01 00 00 00	 mov	 ebp, 1
+  00024	8b 4c b0 fc	 mov	 ecx, DWORD PTR [eax+esi*4-4]
+  00028	8b 3c b0	 mov	 edi, DWORD PTR [eax+esi*4]
+  0002b	89 4c 24 1c	 mov	 DWORD PTR _entry_primary$[esp+20], ecx
+  0002f	89 7c 24 20	 mov	 DWORD PTR _entry_secondary$[esp+20], edi
+
+; 95   : 
+; 96   : 	if(DES.fc & FC_HOMOGRAPH)
+
+  00033	f7 07 00 00 00
+	80		 test	 DWORD PTR [edi], -2147483648 ; 80000000H
+  00039	74 46		 je	 SHORT $L71754
+
+; 97   : 	{
+; 98   : 		for(i=0;DES.text[i];i++)
+
+  0003b	8a 57 04	 mov	 dl, BYTE PTR [edi+4]
+  0003e	8d 4f 04	 lea	 ecx, DWORD PTR [edi+4]
+  00041	33 db		 xor	 ebx, ebx
+  00043	84 d2		 test	 dl, dl
+  00045	74 1a		 je	 SHORT $L71745
+  00047	8b 7c 24 1c	 mov	 edi, DWORD PTR _entry_primary$[esp+20]
+  0004b	2b 7c 24 20	 sub	 edi, DWORD PTR _entry_secondary$[esp+20]
+$L71695:
+
+; 99   : 		{
+; 100  : 			if(DEP.text[i] != DES.text[i])
+
+  0004f	38 14 0f	 cmp	 BYTE PTR [edi+ecx], dl
+  00052	75 09		 jne	 SHORT $L71755
+  00054	8a 51 01	 mov	 dl, BYTE PTR [ecx+1]
+  00057	43		 inc	 ebx
+  00058	41		 inc	 ecx
+  00059	84 d2		 test	 dl, dl
+  0005b	75 f2		 jne	 SHORT $L71695
+$L71755:
+
+; 97   : 	{
+; 98   : 		for(i=0;DES.text[i];i++)
+
+  0005d	8b 7c 24 20	 mov	 edi, DWORD PTR _entry_secondary$[esp+20]
+$L71745:
+
+; 101  : 			{
+; 102  : #ifdef HDEBUG
+; 103  : 				printf("at2 %d %d \n",entry_primary,entry_secondary);
+; 104  :     			printf("landed incor \n");
+; 105  : #endif
+; 106  : 				break;
+; 107  : 			}
+; 108  : 		}
+; 109  : 		if(DEP.text[i] == '\0' && DES.text[i] == '\0')
+
+  00061	8b 4c 24 1c	 mov	 ecx, DWORD PTR _entry_primary$[esp+20]
+  00065	8a 54 0b 04	 mov	 dl, BYTE PTR [ebx+ecx+4]
+  00069	84 d2		 test	 dl, dl
+  0006b	75 10		 jne	 SHORT $L71757
+  0006d	8a 54 3b 04	 mov	 dl, BYTE PTR [ebx+edi+4]
+  00071	84 d2		 test	 dl, dl
+  00073	75 08		 jne	 SHORT $L71757
+
+; 110  : 		{
+; 111  : #ifdef HDEBUG
+; 112  : 			printf("landed cor \n");
+; 113  : #endif
+; 114  : 
+; 115  : 			try_other = false;
+; 116  : 		}
+; 117  : 	}
+; 118  : 	if(try_other)
+
+  00075	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+24]
+  00079	33 ed		 xor	 ebp, ebp
+  0007b	eb 64		 jmp	 SHORT $L71708
+$L71757:
+  0007d	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+24]
+$L71754:
+
+; 119  : 	{
+; 120  : 		index++;
+; 121  : 		entry_primary = DICT_HEAD[index-1];
+; 122  : 		entry_secondary = DICT_HEAD[index];
+
+  00081	8b 7c b0 04	 mov	 edi, DWORD PTR [eax+esi*4+4]
+  00085	8b 0c b0	 mov	 ecx, DWORD PTR [eax+esi*4]
+  00088	46		 inc	 esi
+  00089	89 4c 24 1c	 mov	 DWORD PTR _entry_primary$[esp+20], ecx
+
+; 123  : 		if(DES.fc & FC_HOMOGRAPH)
+
+  0008d	8b 1f		 mov	 ebx, DWORD PTR [edi]
+  0008f	f7 c3 00 00 00
+	80		 test	 ebx, -2147483648	; 80000000H
+  00095	74 46		 je	 SHORT $L71759
+
+; 124  : 		{
+; 125  : 
+; 126  : 			for(i=0;DES.text[i];i++)
+
+  00097	8a 4f 04	 mov	 cl, BYTE PTR [edi+4]
+  0009a	8d 47 04	 lea	 eax, DWORD PTR [edi+4]
+  0009d	33 f6		 xor	 esi, esi
+  0009f	84 c9		 test	 cl, cl
+  000a1	74 18		 je	 SHORT $L71746
+  000a3	8b 54 24 1c	 mov	 edx, DWORD PTR _entry_primary$[esp+20]
+  000a7	2b d7		 sub	 edx, edi
+$L71704:
+
+; 127  : 			{
+; 128  : 				if(DEP.text[i] != DES.text[i])
+
+  000a9	38 0c 10	 cmp	 BYTE PTR [eax+edx], cl
+  000ac	75 09		 jne	 SHORT $L71758
+  000ae	8a 48 01	 mov	 cl, BYTE PTR [eax+1]
+  000b1	46		 inc	 esi
+  000b2	40		 inc	 eax
+  000b3	84 c9		 test	 cl, cl
+  000b5	75 f2		 jne	 SHORT $L71704
+$L71758:
+
+; 124  : 		{
+; 125  : 
+; 126  : 			for(i=0;DES.text[i];i++)
+
+  000b7	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+24]
+$L71746:
+
+; 129  : 				{
+; 130  : #ifdef HDEBUG
+; 131  : 					printf("plus and minus failed???");
+; 132  : #endif
+; 133  : 					break;
+; 134  : 
+; 135  : 				}
+; 136  : 			}
+; 137  : 			if(DEP.text[i] == '\0' && DES.text[i] == '\0')
+
+  000bb	8b 44 24 1c	 mov	 eax, DWORD PTR _entry_primary$[esp+20]
+  000bf	8a 4c 06 04	 mov	 cl, BYTE PTR [esi+eax+4]
+  000c3	84 c9		 test	 cl, cl
+  000c5	75 16		 jne	 SHORT $L71759
+  000c7	8a 44 3e 04	 mov	 al, BYTE PTR [esi+edi+4]
+  000cb	84 c0		 test	 al, al
+  000cd	75 0e		 jne	 SHORT $L71759
+
+; 138  : 			{
+; 139  : 				/*match on + code so primnary=index+1 */
+; 140  : #ifdef HDEBUG
+; 141  : 				printf("gtcha. reversing.");
+; 142  : #endif
+; 143  : 				if(DES.fc & FC_CHARACTER)
+
+  000cf	f7 c3 00 00 00
+	02		 test	 ebx, 33554432		; 02000000H
+  000d5	74 04		 je	 SHORT $L71709
+
+; 144  : 				{
+; 145  : 
+; 146  : 					entry_primary = entry_secondary;
+
+  000d7	89 7c 24 1c	 mov	 DWORD PTR _entry_primary$[esp+20], edi
+$L71709:
+
+; 147  : 					entry_secondary = DICT_HEAD[index];
+; 148  : #ifdef HDEBUG
+; 149  : 
+; 150  : 		printf("rever again");
+; 151  : #endif
+; 152  : 				}	
+; 153  : 				try_other = false;
+
+  000db	33 ed		 xor	 ebp, ebp
+$L71759:
+  000dd	8b 4c 24 1c	 mov	 ecx, DWORD PTR _entry_primary$[esp+20]
+$L71708:
+
+; 154  : 			}
+; 155  : 		}
+; 156  : 			
+; 157  : 	}
+; 158  : 
+; 159  : 	/* GL 09/29/98, remove the FC_CHARACTER which is used as primary homo indicator */
+; 160  : 	if(DEP.fc & FC_CHARACTER)
+
+  000e1	8b 01		 mov	 eax, DWORD PTR [ecx]
+  000e3	a9 00 00 00 02	 test	 eax, 33554432		; 02000000H
+  000e8	74 07		 je	 SHORT $L71711
+
+; 161  : 	{
+; 162  : 
+; 163  : 	    DEP.fc = DEP.fc & ~FC_CHARACTER;
+
+  000ea	25 ff ff ff fd	 and	 eax, -33554433		; fdffffffH
+  000ef	89 01		 mov	 DWORD PTR [ecx], eax
+$L71711:
+
+; 164  : 	}
+; 165  : 	
+; 166  : 	if(try_other)
+
+  000f1	85 ed		 test	 ebp, ebp
+  000f3	74 0a		 je	 SHORT $L71712
+  000f5	5f		 pop	 edi
+  000f6	5e		 pop	 esi
+  000f7	5d		 pop	 ebp
+
+; 167  : 	{
+; 168  : 		return(entry_primary);
+
+  000f8	8b c1		 mov	 eax, ecx
+  000fa	5b		 pop	 ebx
+
+; 312  : 
+; 313  : }
+
+  000fb	83 c4 08	 add	 esp, 8
+  000fe	c3		 ret	 0
+$L71712:
+
+; 169  : 	}
+; 170  : 
+; 171  : 	/*
+; 172  : 	 *  set the primary and secondary field correctly ...
+; 173  : 	 */
+; 174  : 
+; 175  : 	/*
+; 176  : 	 *  change 5/12/96, GL
+; 177  : 	 *  both primary and alternate only apply to next word only.
+; 178  : 	 */
+; 179  : 	
+; 180  :         if(pKsd_t->pronflag & PRON_DIC_PRIMARY)
+
+  000ff	8b 74 24 14	 mov	 esi, DWORD PTR _pKsd_t$[esp+24]
+  00103	8b 86 0c 02 00
+	00		 mov	 eax, DWORD PTR [esi+524]
+  00109	a8 01		 test	 al, 1
+  0010b	74 12		 je	 SHORT $L71713
+
+; 181  :         {
+; 182  :                 pKsd_t->pronflag &= (~PRON_DIC_PRIMARY);
+
+  0010d	24 fe		 and	 al, -2			; fffffffeH
+  0010f	5f		 pop	 edi
+  00110	89 86 0c 02 00
+	00		 mov	 DWORD PTR [esi+524], eax
+  00116	5e		 pop	 esi
+  00117	5d		 pop	 ebp
+
+; 183  :                 return(entry_primary);
+
+  00118	8b c1		 mov	 eax, ecx
+  0011a	5b		 pop	 ebx
+
+; 312  : 
+; 313  : }
+
+  0011b	83 c4 08	 add	 esp, 8
+  0011e	c3		 ret	 0
+$L71713:
+
+; 184  :         }
+; 185  :         if(pKsd_t->pronflag & PRON_DIC_ALTERNATE)
+
+  0011f	a8 02		 test	 al, 2
+  00121	74 12		 je	 SHORT $L71714
+
+; 186  :         {
+; 187  :                 pKsd_t->pronflag &= (~PRON_DIC_ALTERNATE);
+
+  00123	24 fd		 and	 al, -3			; fffffffdH
+  00125	89 86 0c 02 00
+	00		 mov	 DWORD PTR [esi+524], eax
+
+; 188  :                 return(entry_secondary);
+
+  0012b	8b c7		 mov	 eax, edi
+  0012d	5f		 pop	 edi
+  0012e	5e		 pop	 esi
+  0012f	5d		 pop	 ebp
+  00130	5b		 pop	 ebx
+
+; 312  : 
+; 313  : }
+
+  00131	83 c4 08	 add	 esp, 8
+  00134	c3		 ret	 0
+$L71714:
+
+; 189  :         }
+; 190  : 
+; 191  :         /*
+; 192  :            force the first word to pick up the verb. this may not be 100% right but is better
+; 193  :            then dangling there
+; 194  : 		   GL 11/04/1996, change to pick up the primary for first word. This could also
+; 195  : 		   break some other word since we have no idea which formclass we should use.
+; 196  : 		   we ned to lookahead the formclass of next word someday..
+; 197  : 		   GL 1/31/1997, actually only "wind" will be the problem for "first word verb"
+; 198  : 		   rule.  So force to pick up the primary for "wind" only.
+; 199  : 		   can't use strnicmp() in DECtalk kernel
+; 200  :            GL 10/22/1997, wind is set to primary in dictionary, so first word always
+; 201  : 		   is primary as the way V42C work(for NWS only)
+; 202  : 		*/
+; 203  :         if(pLts_t->fc_index == 1)
+
+  00135	8b 82 bc 08 00
+	00		 mov	 eax, DWORD PTR [edx+2236]
+  0013b	83 f8 01	 cmp	 eax, 1
+  0013e	75 24		 jne	 SHORT $L71717
+
+; 204  :         {
+; 205  : #ifdef NWS_US
+; 206  :            		return(entry_primary);
+; 207  : #else
+; 208  : 				if (DEP.fc & FC_VERB) return(entry_primary);
+
+  00140	f7 01 00 00 02
+	00		 test	 DWORD PTR [ecx], 131072	; 00020000H
+  00146	74 0a		 je	 SHORT $L71716
+  00148	5f		 pop	 edi
+  00149	5e		 pop	 esi
+  0014a	5d		 pop	 ebp
+  0014b	8b c1		 mov	 eax, ecx
+  0014d	5b		 pop	 ebx
+
+; 312  : 
+; 313  : }
+
+  0014e	83 c4 08	 add	 esp, 8
+  00151	c3		 ret	 0
+$L71716:
+
+; 209  :            		if (DES.fc & FC_VERB) return(entry_secondary);
+
+  00152	f7 07 00 00 02
+	00		 test	 DWORD PTR [edi], 131072	; 00020000H
+  00158	74 0a		 je	 SHORT $L71717
+  0015a	8b c7		 mov	 eax, edi
+  0015c	5f		 pop	 edi
+  0015d	5e		 pop	 esi
+  0015e	5d		 pop	 ebp
+  0015f	5b		 pop	 ebx
+
+; 312  : 
+; 313  : }
+
+  00160	83 c4 08	 add	 esp, 8
+  00163	c3		 ret	 0
+$L71717:
+
+; 210  : #endif
+; 211  : 
+; 212  : 
+; 213  :         }
+; 214  : 
+; 215  :     /*
+; 216  : 	   GL 07/08/1998 BATS#705 set the previous wordclass to noun if
+; 217  : 	                          it is unknown.  Since we did some dictionary
+; 218  : 							  reduction for "noun" word for dual language
+; 219  : 							  (US+SP) express, this guess should provide
+; 220  : 							  the formclass information for these words
+; 221  : 							  which got removed.
+; 222  : 	*/
+; 223  :     if (pLts_t->fc_struct[pLts_t->fc_index-1] == 0)
+
+  00164	8b 8c 82 b8 04
+	00 00		 mov	 ecx, DWORD PTR [edx+eax*4+1208]
+  0016b	85 c9		 test	 ecx, ecx
+  0016d	75 0b		 jne	 SHORT $L71718
+
+; 224  :          pLts_t->fc_struct[pLts_t->fc_index-1] = 0x400;
+
+  0016f	c7 84 82 b8 04
+	00 00 00 04 00
+	00		 mov	 DWORD PTR [edx+eax*4+1208], 1024 ; 00000400H
+$L71718:
+
+; 225  : 
+; 226  : 
+; 227  : 
+; 228  : 	/*
+; 229  : 	 *  Now run through the list and try to pick one ...
+; 230  : 	 */
+; 231  : 
+; 232  : 	for(i=0;i<MAX_HOMO_RULE;i++)
+
+  0017a	8b 2d 00 00 00
+	00		 mov	 ebp, DWORD PTR __imp__fprintf
+  00180	33 db		 xor	 ebx, ebx
+  00182	be 04 00 00 00	 mov	 esi, OFFSET FLAT:_homo_table+4
+$L71719:
+
+; 233  : 	{
+; 234  : 		/*
+; 235  : 		 *  First, if there is no suffix for this rule or the suffix matches a
+; 236  : 		 *  stripped suffix ...
+; 237  : 		 */
+; 238  : 		if(HTAB.h_suffix == 0 || ((HTAB.h_suffix & pLts_t->fc_struct[pLts_t->fc_index]) == HTAB.h_suffix))
+
+  00187	8b 46 fc	 mov	 eax, DWORD PTR [esi-4]
+  0018a	85 c0		 test	 eax, eax
+  0018c	74 17		 je	 SHORT $L71723
+  0018e	8b 8a bc 08 00
+	00		 mov	 ecx, DWORD PTR [edx+2236]
+  00194	8b 8c 8a bc 04
+	00 00		 mov	 ecx, DWORD PTR [edx+ecx*4+1212]
+  0019b	23 c8		 and	 ecx, eax
+  0019d	3b c8		 cmp	 ecx, eax
+  0019f	0f 85 9b 00 00
+	00		 jne	 $L71720
+$L71723:
+
+; 239  : 		{
+; 240  : 		    /* GL 3/3/1997 check the word before previous word if
+; 241  : 		       previous word is a Adv. */
+; 242  : 			if(HTAB.h_context == 0 ||
+; 243  : 			  (HTAB.h_context & pLts_t->fc_struct[pLts_t->fc_index-1]) ||
+; 244  : 			  ((pLts_t->fc_index >= 3) &&
+; 245  : 			   (FC_ADV & pLts_t->fc_struct[pLts_t->fc_index-1]) &&
+; 246  : 			   (HTAB.h_context & pLts_t->fc_struct[pLts_t->fc_index-2])))
+
+  001a5	8b 0e		 mov	 ecx, DWORD PTR [esi]
+  001a7	85 c9		 test	 ecx, ecx
+  001a9	74 2c		 je	 SHORT $L71725
+  001ab	8b 82 bc 08 00
+	00		 mov	 eax, DWORD PTR [edx+2236]
+  001b1	8b 94 82 b8 04
+	00 00		 mov	 edx, DWORD PTR [edx+eax*4+1208]
+  001b8	85 ca		 test	 ecx, edx
+  001ba	75 17		 jne	 SHORT $L71760
+  001bc	83 f8 03	 cmp	 eax, 3
+  001bf	7c 7b		 jl	 SHORT $L71761
+  001c1	f6 c2 02	 test	 dl, 2
+  001c4	74 76		 je	 SHORT $L71761
+  001c6	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+24]
+  001ca	85 8c 82 b4 04
+	00 00		 test	 DWORD PTR [edx+eax*4+1204], ecx
+  001d1	74 69		 je	 SHORT $L71761
+$L71760:
+  001d3	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+24]
+$L71725:
+
+; 247  : 			{
+; 248  : 				/* debug switch */
+; 249  : 				if (DT_DBG(LTS_DBG,0x020))
+
+  001d7	8b 4c 24 14	 mov	 ecx, DWORD PTR _pKsd_t$[esp+24]
+  001db	66 8b 81 78 04
+	00 00		 mov	 ax, WORD PTR [ecx+1144]
+  001e2	f6 c4 40	 test	 ah, 64			; 00000040H
+  001e5	74 2d		 je	 SHORT $L71726
+  001e7	a8 20		 test	 al, 32			; 00000020H
+  001e9	74 29		 je	 SHORT $L71726
+
+; 250  : 				{
+; 251  : #ifndef MSDOS
+; 252  : 					if (pKsd_t->dbglog)			/*mfg 04/28/98 added debug support*/
+
+  001eb	8b 81 7c 04 00
+	00		 mov	 eax, DWORD PTR [ecx+1148]
+  001f1	85 c0		 test	 eax, eax
+  001f3	74 0c		 je	 SHORT $L71727
+
+; 253  : 					fprintf(pKsd_t->dbglog,"\nHOMO:(%d)",i);
+
+  001f5	53		 push	 ebx
+  001f6	68 00 00 00 00	 push	 OFFSET FLAT:$SG71728
+  001fb	50		 push	 eax
+  001fc	ff d5		 call	 ebp
+  001fe	83 c4 0c	 add	 esp, 12			; 0000000cH
+$L71727:
+
+; 254  : #endif    
+; 255  : 			   		printf("\nHOMO:(%d)",i);
+
+  00201	53		 push	 ebx
+  00202	68 00 00 00 00	 push	 OFFSET FLAT:$SG71729
+  00207	ff 15 00 00 00
+	00		 call	 DWORD PTR __imp__printf
+  0020d	8b 54 24 18	 mov	 edx, DWORD PTR _pLts_t$[esp+32]
+  00211	83 c4 08	 add	 esp, 8
+$L71726:
+
+; 256  : 				}
+; 257  : #ifdef HDEBUG
+; 258  : 				printf(" got context at %d \n",i);
+; 259  : #endif
+; 260  : 				if(HTAB.h_select)
+
+  00214	8b 46 04	 mov	 eax, DWORD PTR [esi+4]
+  00217	85 c0		 test	 eax, eax
+  00219	74 0c		 je	 SHORT $L71732
+
+; 261  : 				{
+; 262  : /*					if( (HTAB.h_select & DEP.fc) == 0)
+; 263  : 						{
+; 264  : 						break;
+; 265  : 						} */						
+; 266  : 					/* GL, 10/01/1996, if match the primary formclass then should get out of loop */
+; 267  : 					if (HTAB.h_select & DEP.fc)
+
+  0021b	8b 4c 24 1c	 mov	 ecx, DWORD PTR _entry_primary$[esp+20]
+  0021f	85 01		 test	 eax, DWORD PTR [ecx]
+  00221	75 3d		 jne	 SHORT $L71721
+
+; 268  : 					{
+; 269  : 						break;
+; 270  : 					}						
+; 271  : 					if(HTAB.h_select & DES.fc)
+
+  00223	85 07		 test	 DWORD PTR [edi], eax
+  00225	75 35		 jne	 SHORT $L71748
+$L71732:
+
+; 272  : 					{
+; 273  : #ifdef HDEBUG
+; 274  : 						printf("changing primary to secondary1. rule i %d\n",i);
+; 275  : 						printf(" %d %d \n",entry_primary,entry_secondary);
+; 276  : #endif
+; 277  : 
+; 278  : 						entry_temporary = entry_primary;
+; 279  : 						entry_primary = entry_secondary;
+; 280  : 						entry_secondary = entry_temporary;
+; 281  : 
+; 282  : 						break;
+; 283  : 
+; 284  : 					}
+; 285  : 				}
+; 286  : 				if(HTAB.h_elim)
+
+  00227	8b 46 08	 mov	 eax, DWORD PTR [esi+8]
+  0022a	85 c0		 test	 eax, eax
+  0022c	74 12		 je	 SHORT $L71720
+
+; 287  : 				{
+; 288  : 					if(HTAB.h_elim & DES.fc)
+
+  0022e	85 07		 test	 DWORD PTR [edi], eax
+  00230	75 2e		 jne	 SHORT $L71721
+
+; 289  : 						break;
+; 290  : 					if(HTAB.h_elim & DEP.fc)
+
+  00232	8b 4c 24 1c	 mov	 ecx, DWORD PTR _entry_primary$[esp+20]
+  00236	85 01		 test	 eax, DWORD PTR [ecx]
+  00238	75 22		 jne	 SHORT $L71748
+  0023a	eb 04		 jmp	 SHORT $L71720
+$L71761:
+  0023c	8b 54 24 10	 mov	 edx, DWORD PTR _pLts_t$[esp+24]
+$L71720:
+
+; 225  : 
+; 226  : 
+; 227  : 
+; 228  : 	/*
+; 229  : 	 *  Now run through the list and try to pick one ...
+; 230  : 	 */
+; 231  : 
+; 232  : 	for(i=0;i<MAX_HOMO_RULE;i++)
+
+  00240	83 c6 10	 add	 esi, 16			; 00000010H
+  00243	43		 inc	 ebx
+  00244	81 fe b4 01 00
+	00		 cmp	 esi, OFFSET FLAT:_homo_table+436
+  0024a	0f 8c 37 ff ff
+	ff		 jl	 $L71719
+
+; 309  : 	}
+; 310  : 
+; 311  : 	return(entry_primary);
+
+  00250	8b 44 24 1c	 mov	 eax, DWORD PTR _entry_primary$[esp+20]
+  00254	5f		 pop	 edi
+  00255	5e		 pop	 esi
+  00256	5d		 pop	 ebp
+  00257	5b		 pop	 ebx
+
+; 312  : 
+; 313  : }
+
+  00258	83 c4 08	 add	 esp, 8
+  0025b	c3		 ret	 0
+$L71748:
+
+; 291  : 					{
+; 292  : #ifdef HDEBUG
+; 293  : 						printf("changing primary to secondary2. rule %d\n",i);
+; 294  : #endif
+; 295  : 
+; 296  : 						entry_temporary = entry_primary;
+; 297  : 						entry_primary = entry_secondary;
+
+  0025c	89 7c 24 1c	 mov	 DWORD PTR _entry_primary$[esp+20], edi
+$L71721:
+
+; 298  : 						entry_secondary = entry_temporary;
+; 299  : 						break;
+; 300  : 					}
+; 301  : 				}
+; 302  : 			}
+; 303  : 		}
+; 304  : 	}
+; 305  : 
+; 306  : 	if((i < MAX_HOMO_RULE) && HTAB.h_suffix)
+
+  00260	83 fb 1b	 cmp	 ebx, 27			; 0000001bH
+  00263	7d 20		 jge	 SHORT $L71736
+  00265	c1 e3 04	 shl	 ebx, 4
+  00268	8b 83 00 00 00
+	00		 mov	 eax, DWORD PTR _homo_table[ebx]
+  0026e	85 c0		 test	 eax, eax
+  00270	74 13		 je	 SHORT $L71736
+
+; 307  : 	{
+; 308  : 		pLts_t->fc_struct[pLts_t->fc_index] = DEP.fc;
+
+  00272	8b 4c 24 1c	 mov	 ecx, DWORD PTR _entry_primary$[esp+20]
+  00276	8b 82 bc 08 00
+	00		 mov	 eax, DWORD PTR [edx+2236]
+  0027c	8b 09		 mov	 ecx, DWORD PTR [ecx]
+  0027e	89 8c 82 bc 04
+	00 00		 mov	 DWORD PTR [edx+eax*4+1212], ecx
+$L71736:
+
+; 309  : 	}
+; 310  : 
+; 311  : 	return(entry_primary);
+
+  00285	8b 44 24 1c	 mov	 eax, DWORD PTR _entry_primary$[esp+20]
+  00289	5f		 pop	 edi
+  0028a	5e		 pop	 esi
+  0028b	5d		 pop	 ebp
+  0028c	5b		 pop	 ebx
+
+; 312  : 
+; 313  : }
+
+  0028d	83 c4 08	 add	 esp, 8
+  00290	c3		 ret	 0
+_ls_homo_homo ENDP
+_TEXT	ENDS
+END
