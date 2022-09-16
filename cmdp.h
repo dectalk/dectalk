@@ -1,0 +1,75 @@
+extern	int main(unsigned int data_seg,unsigned int stack_start);
+extern	int icommand(void );
+#ifdef SINGLE_THREADED
+extern	int __far dtpc_cmd(unsigned char inchar);
+#else
+extern	int __far dtpc_cmd(void);
+#endif
+extern	void process_char(unsigned int c);
+extern	void match_command(unsigned int c);
+extern	void build_param(unsigned int c);
+extern	int string_match(unsigned char **sa ,unsigned char *s);
+extern	void reset_command(unsigned int state);
+extern	void new_state(int state);
+extern	void do_command(unsigned int new_state);
+extern	int load_defaults(unsigned int *da);
+extern	void sendit(void );
+extern	int sendat(void );
+extern	int lookup_ascky(unsigned int ph);
+extern	int lookup_arpabet(unsigned int ph1,unsigned int ph2);
+extern	int param_check(unsigned int c);
+extern	int flush_phone(void);
+extern	void match_phoneme(unsigned int c);
+#ifdef SINGLE_THREADED
+extern	unsigned int getseq(unsigned char inchar);
+void lts_loop(unsigned short *input);
+#else
+extern	unsigned int getseq(void);
+#endif
+extern	int cmd_stress(void);
+extern	void type_out(unsigned int c);
+extern	int cmd_tone(void);
+extern	int cmd_dial(void);
+extern	int dtpc_tones(unsigned int key,unsigned int freq,unsigned int dur);
+extern	int dtpc_tones_reset(void);
+//extern	int cmd_digitized(void);
+//extern	void command_error(int type);
+//extern	int cmd_mode(void);
+//extern	int cmd_pronounce(void);
+extern	int cmd_rate(void);
+extern	int cmd_name(void);
+//extern	int cmd_latin(void);
+extern	int cmd_comma(void);
+extern	int cmd_period(void);
+extern	int cmd_mark(void);
+extern	int cmd_define(void);
+//extern	int cmd_plang(void);
+//extern	int cmd_phoneme(void);
+//extern	int cmd_log(void);
+//extern	int cmd_break(void);
+//extern	int cmd_say(void);
+//extern	int cmd_error(void);
+//extern	int cmd_pause(void);
+//extern	int cmd_resume(void );
+extern	int cmd_flush(void);
+extern	int cmd_sync(void);
+extern	int cmd_enable(void);
+//extern	int cmd_punct(void);
+//extern	int cmd_timeout(void);
+//extern	int cmd_cpu_rate(void);
+//extern	int cmd_setv(void);
+//extern	int cmd_loadv(void);
+//extern	int cmd_code_page(void);
+//extern	int cmd_vs(void);
+//extern	int cmd_volume(void);
+extern	int cmd_language(void);
+//extern	int cmd_remove(void);
+extern	void textpreproc(void );
+extern	void insertchar(int posx,char addchar);
+extern	void deletechar(int posx,char addchar);
+extern	void changchar(int posx,char newchar);
+extern	void checkrule(void );
+extern	int adjustindex(int rcntr);
+extern	int doaction(int rcntr);
+extern	void getclause(void );
+extern	int ablook(unsigned char *end,unsigned char *start);
