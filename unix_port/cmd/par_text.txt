@@ -1,0 +1,797 @@
+My idea for the implementation of the text preprocessor
+
+The parser function call will be recursive
+
+
+	from the jargon file index
+		
+		circular references:	see references, circular
+		recursion:				see recursion
+		references, circular:	see circular references.
+		
+		                                       
+inputs to the parser
+
+a pointer into the rule table where the processing left off
+the input array
+
+
+outputs from the parser
+
+the output array
+
+
+the parser function
+
+this function will match the states 
+	Optional
+	Replace
+	Delete
+	Insert
+	Insert After
+	Insert Before
+	Copy	(this is the default action state)
+	
+it will perform the required operation on the matched data
+
+	
+
+the recursive parser function will have the following parameters
+
+	the location of the rule table being processed
+	the input array
+	the ouput array
+	an array of 10 temporary variable locations for the current rule
+	a pointer the the return structure
+
+the recursive function will return a structure with the following information (this must be a local variable)
+
+	the number of characters in the input matched
+	the number of characters used in the rule for the match
+	the number of characters placed in the output array
+	a success flag with the following states
+		SUCCESS		a rule was completely processed
+		FAIL		a rule was not completely processed
+		OPT_FAIL	an optional state was not matched correctly (the matcing still procedes)
+
+
+
+
+
+there will be a function that takes care of matching the D<1-5,7> type strings
+
+this function will match the character type strings 
+	' ' Exact
+	D	digit
+	U	upper case
+	A	any alphabet
+	C	any character
+	W	whitespace
+	P	punctuation
+	L	lower case
+	N	non alphabet
+	S	sets of exact characters
+	V	vowel
+	O	consonant
+	
+the function will have the following parameters
+
+	the location of the rule table being processed
+	the input array
+	the ouput array
+	an array of 10 temporary variable locations for the current rule
+	a pointer the the return structure
+
+
+the output of the function will be a structure with the following information
+
+	the number of characters in the input matched
+	the number of characters used in the rule for the match
+	the number of characters placed in the output array
+	a success flag with the following states
+		SUCCESS		a rule was completely processed
+		FAIL		a rule was not completely processed
+		OPT_FAIL	an optional state was not matched correctly (the matcing still procedes
+
+this function will perform a lookahead so it can try to resolve some of the 
+	ambiguities in the language
+	
+
+	
+
+
+the ret_value structure explained (because I don't know what I want to do with it) exactly
+
+1	the number of characters in the input matched                                         
+2	the starting position for the match of he input
+3	the number of characters placed in the output array
+4	the starting position of the write.
+5	the number of characters used in the rule for the match
+6	a success flag with the following states
+		SUCCESS		a rule was completely processed
+		FAIL		a rule was not completely processed
+		OPT_FAIL	an optional state was not matched correctly (the matcing still procedes)
+                                                                                          
+there are 6 fields in the structure that are used to pass information
+to and from different levels of the parser
+
+
+struct return_values_s
+{
+	short input_pos;		/* the positiion to start the matching at */
+	short input_offset;		/* the number of characters that were matched in the input */
+	short output_pos;  		/* the position to start writiing the output into the array */
+	short output_offset;	/* the number of characters written inpt the output array */
+	short rule;				/* the offset from the begining of the rule the matching is at */
+	short value;			/* return value of the function */ /* the actaul intent of this structure */
+};
+
+The matching always starts at the begining of a word.
+
+At the start of the matching of a clause (lack of a better term) the rev_value array is
+initialized to 0,0,0,0,0,0.   
+This sets the position to start matching at to 0,
+		  the offset of the current matched item to 0
+		  the position to start writiing into the output array to 0
+		  the number of characters to written into the ouput array to 0
+		  the number of characters in the rule used to do the match
+		  and the flag to FAIL
+
+The rules in the rule table are tried one at a time until either there is a 
+success or all the rules fail 
+		  
+The match starts by selecting the first rule in the rule table and
+The matching always starts at the begining of a word.
+
+this updates the rule field of the structure (the length is added to the current value of rule)
+
+The array of temporary values is reset to all empty strings
+
+the recursive function is called now  with the action Copy /* the default */
+	the function finds the first action state in the rule 
+		it finds the state and also the slash /
+		
+start:	it updates the rule field for the characters used in the rule              
+	
+		the input_pos + input_offset thing is resolved here
+		new_ret->input_pos=ret_value->input_pos+ret_value->input_offset
+		new_ret->output_pos=ret_value->output_pos+ret_value->output_offset
+		rule = rule
+		input_offset=0;
+		output_offset=0;
+		value=FAIL; 
+		set action state;
+		find first /
+		
+	The ret_value structure is copied to another structure new_ret for its all children
+	it calls the function and tells it the action state found                
+	  these are done in a loop until the matching slash / is found
+		this function should be pointed at the first character of the matching string
+			in the rule i.e.  D<2> or 'abc' or r/'x'/'y'/   
+		The data is looked at to decied whether to call the string matcher or to look
+			look for more action states
+		if the rule matcher going to be called,
+			the rule field is updated to point at the first character in the in the next 
+			action state   the quote ' in r/'x'/'y'/
+				the call is made, go to start: to follow the trace
+			The new_ret structure is updated .......  (all the fields could have been updated)
+			if new_ret->value is FAIL return FAIL in the ret_value
+				field	 		action in ret_value
+				input_offset	nothing yet
+				output_offset	nothing yet
+				rule			nothing yet
+				
+				
+		if the string matcher is going to be called,
+			the rule field is not updated	Because we are already at the point the 
+			the string matcher is going to start the matching
+			The new_ret structure is updated .......  
+			if new_ret->value is FAIL return FAIL in the ret_value
+				field	 		action in ret_value
+				input_offset	nothing yet 
+				rule			nothing yet 
+			the new_ret structure is for the children all to modify and then the parent
+			makes those changes back into its parent for the number of characters matched 
+			and the current output position
+	  the matching / is found
+	the action is now performed
+	new_ret field action in ret_value
+	field				action
+	input_pos			input_pos=new_ret->input_pos+new_ret->input_offset
+	input_offset		input_offset=0;
+	output_pos			output_pos=new_ret->output_pos+new_ret->output_offset
+	output_offset		output_offset=0;
+	rule				rule=new_ret->rule;
+	value				SUCCESS
+	
+	field				action
+	input_pos			no_action
+	input_offset		input_offset=0;
+	output_pos			no_action
+	output_offset		output_offset=0;
+	rule				rule=new_ret->rule;
+	value				OPT_FAIL
+	                                                         
+	ret_value is returned to the caller	                                                         
+			
+			
+			
+		
+		
+		  
+The string matcher gets the following parameters
+	the pointer to the beginning of the rule
+	The input array
+	The output array
+	The array of temporary variables
+	a pointer to the return value structure 
+	
+	The string matcher does not allocate its own ret_value structure, only the 
+	rule matcher allocates a local ret_value  /* support for optional */
+	
+	The string matcher handles the matching of all the character type and exact character
+		matches in the program.  It looks ahead in all cases for the next string match
+		that the matcher would perform to try to remove ambiguities from the the language
+			it will only start the checking ahead if the string gets a successful match
+	Once a successful match is found, the input_offset field is updated to reflect the 
+		number of characters matched (this is for use by the rule matcher)
+		(this function doesn't know about the action states)                       
+	the rule field is updated to reflect the number of characters used in the match	
+	output_pos output_offset are left alone
+	value is set to SUCCESS or FAIL
+return ret_value
+                            
+                            
+copy word could be just a rule like c/C<*>W<*>/  
+copy any characters and its white space to the output
+	                                                                                         
+	                                                                                         
+for the SAVE_STATE or shuffle action
+
+each piece of the matching in the state has to be saved after each piece is found
+and the different pieces have to be handled differently
+
+this result has to be processed with the other pieces of character matching
+in the correct order.  if the rule is i/D<3>r/')'/'a'/L<3>/'q'/ and the input is
+467)kit  the output should be 4q6q7qaqkqiqt  
+
+the output array can be used if we want to have to move the data around in the array many times 
+during the comparing stage of the processing
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+the rule is
+
+i/D<3>r/'IBM'/'DEC'/L<4>/'.'/
+
+
+                                    	input buffer 					output buffer
+processing INSERT_STATE					     p                               p
+{										matt 430IBMtalk					matt 
+
+	found D
+	string matching state       
+		found 3 digits					     p  o                            p  o
+		copy to output					matt 430IBMtalk					matt 430 
+		the matching data is found 
+		and copied to the output
+		
+	processing REPLACE_STATE (new_ret)      	p                               p
+	{									matt 430IBMtalk					matt 430
+		found '
+			String matching state	
+			found IBM						    p  o                            p  o
+			copy to output				matt 430IBMtalk					matt 430IBM 
+		found ending '	            
+	                        					p  o						    p  o
+		execute replace					matt 430IBMtalk					matt 430DEC
+		The replace is executed in 
+		the output array nothing before p
+		is touched
+    }
+    										 p     o                         p     o
+										matt 430IBMtalk					matt 430DECtalk
+	Found L	
+	String matching state
+		found 4 lower case              	 p         o                     p         o
+		copy to output    				matt 430IBMtalk					matt 430DECtalk
+	
+											 p         o					 p                  o
+	execute insert						matt 430IBMtalk					matt 4.3.0.D.E.C.t.a.l.k  
+	The action is performed and the '.'
+	added in between the characters
+	this all happens in the output array
+	
+}
+		
+		
+	
+how to handle the conditional replacements
+the build string function has to check if it is a conditional replacement and
+if it is, it had to figure out which string to choose 
+conditional replacement only applies to the D character type
+
+the digit string can be of a fixed length 
+	or be between a two integer values
+
+for a conditional replacement or insert or insert before or insert after
+to work, the only thing in the matching part of the string are digits
+the matched number is then bound between output_pos and output_offset
+the first character is output_pos and the last character is output_offset-1
+
+build string will search for a conditional replacement in the replacement/insert part
+build string has to know what state is it looking for a replacemant in
+	i.e. replace/insert/insert after/insert before
+	
+when build string finds a conditional replacement it calls atoi on the data between
+output_pos and output_offset and performs the conditional replacement
+                
+the rule r/D[3-7]/'first'|'second'|'third'|'fourth'|'fifth'/
+the D[3-7] will do conditional replcement on the range of numbers from 3 to 7 where the 
+3 is replaced by first
+4 is replaced by second
+5 is replaced by third
+6 is repalced by fourth
+7 is repalced by fifth
+
+b/D<3>/'d'|'f'|'q'|.../
+before conditional replacements work on the first character only and the character 
+order of the replacement strings is zero based always                                            
+
+a/D<3>/'d'|'f'|'r'|.../ 
+after conditional replacements work on the last character only and the character
+order of the replacement strings is zero based always.
+
+
+num_chars_matched=match_string(current_rule,new_char_type,input_array,output_array,match_array,&new_ret,&range_value);
+
+
+int match_string(char *current_rule,int char_type,char *input_array,char *output_array,pmatch_arrays_t match_array,preturn_value_t ret_value,prange_value_t range_value,int lookahead)
+{
+/*if range_value !=0 set range value NOT_A_RANGE_ONLY */
+/* ranges for digits can still be processed, but the range replacement will not work properly */
+/* if range_value ==0 and there is a range set the range value */
+/* this function has to perform the lookahead to try to resolv ambiguity in rules */
+/* this resolution will not be perfect */
+/* leave the rule pointer pointing to the character after the first character type definition */
+/* this character will be a rule type, a character type, a single quote, or a slash */
+}
+
+
+the function match_string
+parameters
+
+char *current_rule
+int char_type
+char *input_array
+char *output_array
+pmatch_arrays_t match_array
+preturn_value_t ret_value
+prange_value_t range_value
+int lookahead;
+
+it returns the number of characters mathced
+
+
+check the parameters for valid inputs
+
+check the ambiguity table to see if lookahead has to be performed if there is 
+	any ambiguity in the rule.  i.e. characer type ALPHA after LOWER like
+										L<2-*>A<4>  
+	lookahead is only performed if there is ambiguity in the rule
+	and only if this call to match_string is not a call from another call to match_string
+	another parameter
+
+
+check the string type for ambiguity.
+
+EXACT is the only character type totally exempt from lookahead
+$'s things are also exempt because they are actually an EXACT matching
+there will be an array of ambiguity matrix that stores the first type
+and the second type if the pair could be ambigous
+
+
+if it is exact, put together the string to be matched to
+get_string_piece()
+and call strncmp(exact string)
+
+if it is a type
+find the next format specifier
+
+<2>  <3,5> <3,5,7-9> <1-*>
+<*>
+D <> [3-5]
+the values in the range and # of charcter types must be in sorted order!!!!
+
+S {'eee','ggg',0xd4}
+the items in sets will be matched in the order they appear so 'eee' will be tried first 
+and 0xd4 will be done last
+
+
+
+
+
+get_string_piece() will find the piece of a string, substuting for
+$'s things and picking up the stuff between the single quotes
+translating the escaped sequences of
+\\      backslash
+\`      single quote
+
+
+
+
+
+
+
+char *build_string_from_rule(char *current_rule,char *buf,pmatch_arrays_t match_array,preturn_value_t ret_value,prange_values_t range_value,int state,int *length)
+
+/* build the string that is going to be used for the replacement or insertion */
+/* this function does the replacement for $1's */
+/* it returns a pointer to the string built */
+/* the string is NULL terminated */
+/* the ret_value->rule is left pointing at the character after the slash */
+/* this isn't called from copy_string so its not a problem to have the rule index */
+/* after the slash */
+
+this function builds the replacement string that is going to be used in the replace or insert
+this function doesn't have to know about the character types because it has to end up
+	with an exact string for the replacement
+	
+current rule starts out pointing at the character after the second slash in the rule and will
+continue to build the string until the next slash is encountered ('/' does not count at the slash)
+
+this function has three states 
+	exact
+	match_array        
+	conditional
+	
+once a conditional replacement is found, the matching does the numberic conversion of the output value
+and finds the proper conditional thing to pick up
+
+if the conditional is supposed to pick up the first thing, it should already be in buf
+
+
+r/'matthew'/'m'0xda'tthew'/
+
+
+lang-mode:R10;M20;H45,r/'i'/'eye'/
+
+	rule;miss;hit
+	
+	
+call process input again with new output buffer for the hit occurrences
+
+output copied from the start of the current output buffer to the new output buffer
+the current output buffer becomes the input buffer, and the input_pos is set to
+the location where the other rule started 
+
+the current rule index has to be passed to process input
+
+
+thing so still get working and what things have to be changet to get them working
+
+
+D[2-20]			match_string, copy the routine that matches the string lengths and
+				add to it the length generator function and also check for out of range in the numbers
+D[2-20,23-40]	changes to match_string, build_string_from_rule, find_conditional_number
+				the range_value structure has to be fully documented.
+				
+optional 		has to be fully documented and tested.
+				changes to match_rule, match_string, build_string_from_rule,
+					perform_action, all the action states
+					some of these changes have taken place
+					
+					
+sets			match_string, call it recursively for each part until the comma of } is encountered
+				put the matching loop thing in the other loop to match using the <> field correctly
+				
+
+things that have to change in 
+int match_string(unsigned char *current_rule,
+				 int char_type,
+				 unsigned char *input_array,
+				 unsigned char *output_array,
+				 pmatch_arrays_t match_array,
+				 preturn_value_t ret_value,
+				 prange_value_t range_value,
+				 int lookahead,
+				 int *optional)
+
+the D[] character type has to be written                    
+	match_string
+		copy the block of code that handles the normal character string length specifiers
+			but change it so that
+			every entry must be a range
+			* means the largest number	the value of INT_MAX or 32767
+			+ means the largest number	the value of INT_MAX or 32767
+			* and + alone are an error                          
+			the length of the numbers is set be the get_number_length function
+			the numbers are checked for range and for digit character type
+			 
+			
+
+			
+optional has to be written
+	an optional field will be added to the return_value structure, because it is already used that way
+	upon entry to the match_rule function the optional field is copied from the ret_value to new_ret
+		if the state is optional set the optional field to 1
+		if the optional field is 1 and there is a return value of FAIL set the optional field to -1
+		if the optional field is 1 and there is a return value of FATAL_FAIL return FATAL_FAIL
+		if the optional field is -1 continue processing the rule but do no actions or actual matching
+				just use the functions as a syntax checker
+	exiting from match_rule       
+		if the state is OPTIONAL_STATE
+			leave ret_value optional alone
+			return OPT_FAIL so nothing changes in the caller			
+		non OPTIONAL_STATE
+			if new_ret optional is 0, leave ret_value optional alone  these should be the same anyway
+			if new_ret optional is 1, leave ret_value optional alone
+			if new_ret optional is -1, change ret_value optional to -1
+
+	entering match_string
+		optional is 0
+			normal operation
+		optional is 1
+			if a match fails, set optional to -1 and be sure to leave the rule pointer in 
+			a place where other syntax chacking can take place
+		optional is -1
+			do syntax checking only.  no actual matching.
+			
+	leaving match_string
+		nothing special
+			it doesn't keep its own copy of ret_value
+			
+
+	build_string_from_rule
+		only has to know about optional = -1 to not actually build an output string
+	
+	perform action
+		nothing because it is in the return_value strucutre
+		
+	action states
+		if optional is -1 don't actually do anyhing
+		
+	
+
+look_ahead has to be written
+
+for look ahead to work, the lookaheas function has to know where it is in the rule to be 
+able to find the next actual search string
+
+the lookahead function is passed the rule, and the rule pointer index.
+
+the location the index is in is any either in the middle of a character type specifier
+or it is after the specifier or it is at the end of this part of the rule
+
+if the current state is replace insert... there is another part to the rule, which doesn't
+and shouldn't get looked at by the lookahead because it is the replacement string
+but since the states can be nested so much, there could be a number of possible state 
+replacement parts to walk around.
+
+so to get this implimented, the lookahead function has to have a way to look back at 
+though the stack to find out which states the matching is in.  
+the lookahead function can assume that it always gets called when inside the 
+first part of the rules.
+
+code changes to get this to work
+
+the ret_value structure has to have 2 more fields added to it
+	the state that the current matching is in
+	a pointer to the pervious copy of ret_value
+	
+match_rule changes
+	entry,
+		the state field is set to the current state in match rule
+		the previous field is a pointer to the callers ret_value structure
+
+	exit
+		nothing.
+		
+		
+lookahead can then use that information to do the corrrect parsing of the 
+rule syntax
+
+what it will do in each state	the state has to be gotten out of the ret_value structure, not passed 
+															as an argument.
+
+state		slashes		what to do
+
+null			0		look for the next character type specifier
+						if a null is found, stop looking ahead
+						if a slash is found before the character type specifier
+							look into the ret_value->prev->state to find out what state we were called from
+							look for the char type
+							if there is an action state specifier
+								skip the specifier and the slash, unless it is a save state 
+									and then skip the paren, dollar, number, and comma
+								and the type had better be there 
+							if there is a slash first
+								do the other state's skipping	
+						
+
+copy			1		look for the next character type specifier
+delete					if a slash is found before the character type specifier
+optional					look into the ret_value->prev->state to find out what state we were called from
+							if there is an action state specifier
+								skip the specifier and the slash, unless it is a save state 
+									and then skip the paren, dollar, number, and comma
+								and the type had better be there 
+							look for the char type
+							if there is a slash first
+								do the other state's skipping	
+
+replace
+insert...		2		look for the next character type specifier
+						if a slash is found before the character type
+							skip until after the next slash
+							if there is an action state specifier
+								skip the specifier and the slash, unless it is a save state 
+									and then skip the paren, dollar, number, and comma
+								and the type had better be there 
+							look for the character type specifier
+							if there is a slash first
+								do the other state's skipping	
+	
+
+
+
+add more stuff to the character table.  make it complete
+
+
+
+the range value structure explained
+the range value structure is set by match_string when it encounters a digit range
+	or a set
+	
+the structure contains fields
+
+	start	this field contains the lowest number in the range
+			if there are 2 ranges of numbers
+				it contains the sum of
+										the lowest number
+										the size of the gap in the ranges
+			
+			or the number of the thing to pickup from a set zero based. 
+
+	end		this field contains the highest number in the range
+			it is probably useless
+			
+	range_set	this field contains -1 if there is no way to do a conditional replacemnt
+									 0 if there is no range that is currently set
+									 1 if there is a digit range set
+									 2 if there is a set number in start 
+									
+				
+					
+build_string_from_rule
+
+for D[] done. and sets
+	has to properly recognize the fields in the range_value strucutre
+	
+find_conditional_number done. 
+	has to recognize the fields in the range_value structure 
+	has to process the range_set field correctly and decide what to do with start not in find_conditional_number
+		
+
+another thing that has to be done is dealing with the ouptut buffer being filled up
+by the parser when there is still input to be read in 
+
+
+build_string_from_rule and find_conditional_number have to be updated for
+range_value->range_set == -1		done.
+
+				                                               
+
+
+stuff that still has to be done 5/8/96
+
+sets			write function like match_standard to do the matching.  call match_string to actually match
+				the strings
+optional		has to be tested
+
+R10;H20;M30,    all three are changes to process input to support recursion and other things
+mode:
+lang-
+
+
+sets S{}<> have to be written.  
+		this will be a series of recursive calls to match_string
+		this is another copy of the character matching loops with a very different matching in it
+		the return_value structure will have to be saved and restored many many many times
+			is has to be restored with all but the rule field
+
+
+optional has to be tested it is written but it hasn't been tested yet.
+	the tuff part is getting it skip the extra states properly
+
+another thing that has to be done is dealing with the ouptut buffer being filled up
+by the parser when there is still input to be read in 
+
+the R10;M20;H30	support
+				changes to process_input
+
+stop:			changes to process_input
+
+Mode:			changes to process_input
+
+lookahead		write the lookahead function
+
+
+return_value
+	add the optional field and remove the optional parameter from all the functions
+
+
+things that hae to change in 
+void process_input(unsigned char *input_array,unsigned char *output_array)
+
+return value has to have the number of input character processed and 
+	the number of output characters written
+	
+
+	
+parameters to be passed
+	a flag to tell how far to go in the rule
+	i.e.	to the end of the input
+			stoping 2/3 of the way down the buffer
+			
+	
+to support hit next rules
+
+a value has to be in the function to tell it if it is the first level of the matching
+
+more parameters that have to be passed
+	the rule number to be processed has to be passed
+	a flag that tells it to only go to the hit and miss rules if they are there
+	the starting positions of the input and output buffers
+	
+
+match_set
+
+inputs
+
+input_array
+current_rule
+rule_p pointing to the {
+input_pos
+ret_value
+range_value
+match_array
+lookahead
+                           
+outputs
+range_value->start will have the item number matched
+ret_value->value will have success or fail
+
+returns
+the length of the thing matched
+-1 if the end of the string was reached
+                           
+                           
+start the searching for a piece that matches the input
+each piece is seperated by a comma
+every character type in the piece has to match or else that piece fails
+the matching stops when any piece is fully successfully matched or when the } is found
+
+
+
+
+upon the hit of a rule

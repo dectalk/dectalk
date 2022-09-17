@@ -1,0 +1,1 @@
+dttest "par_st8.txt" "run"

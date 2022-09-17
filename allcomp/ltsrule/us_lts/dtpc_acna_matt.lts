@@ -1,0 +1,1953 @@
+;		C O M P A N Y    C O N F I D E N T I A L
+;	      Copyright (c) 1984,1985,1886,1987,1988,1989 
+;		by DIGITAL EQUIPMENT CORPORATION
+
+; This information is proprietary to DIGITAL EQUIPMENT CORPORATION and is
+; not to be provided to a third party. KEEP THIS FILE SECURE!
+; 
+; This file is the base rule set for text-to-speech for DECVoice.
+; It includes the language-specific rules for ACNA as a subset.
+; A number of changes have been incorporated in order to make
+; letter to sound more accurate, reduce the number of errors.
+; See the edit History for a synopsis of these modifications.
+; The Edit History is the history since the development of DECtalk III.
+;
+;			EDIT HISTORY
+; 0001	09-Dec-86  TV	Corrected two bugs in the rules for MN and NM.
+; 0002	17-Dec-86  TV	Took out superfluous  (context-free) rules for
+;			SUPER, FORE, HUM, WHERE (i.e. doubles)
+;
+; 0003  29-Feb-88  TV	Began to actively add new rules which will handle
+;			items not adequately done in DT3. All such rules
+;			are marked by ;newrule which will make them easier
+;			to locate.
+; 0004  03-Mar-88	Major edit began. Moved all context-free rules to
+;			front, followed by context sensitive rules, prefix
+;			rules followed by suffix rules. It will be easier
+;			to locate rules and debug them this way and there
+;			should be no liability with ordering etc. 
+;			Many of the formerly context-sensitive rules were
+;			made context free before the end of DECtalk III
+;			so that these are essentially the same rules as in
+;			DECtalk III. The way this rule set is not divided
+;			is as follows: 1) context free morphological or
+;			semi-morphological rules; 2) context-sensitive
+;			prefix rules; 3) context-sensitive suffix rules;
+;			4) non-morphological grapheme sequences.
+;			Rules which were not used and commented out in
+;			DTIII have been deleted. For these, see
+;			newrules8.txt.
+;  0005 04-Apr-88 TV	Began folding in selected rules for better surname
+;			pronunciation. These came from CNL.LTS and was the
+;			ruleset for the CNA application. This file only
+;			contains certain of these rules since we want to
+;			insure that the additional rules are all benign.
+
+
+;  0006 08-Sep-88 TV	Completely redid the merge of ACNA rules in with 
+;			standard letter-to-sound.
+;			While some of the rules (the unambiguous
+;			ones) (see the previous commment in the edit history)
+;			have already been merged in, the rule set from
+;			this point on will contain ALL rules both for specific
+;			ACNA applications) as well as for general applications.
+;			Certain rules which were originally language-specific
+;			have been merged in with General (English) since they
+;			were determined to be benign. Benign here means
+;			either do not apply to any English word (i.e. -INO)
+;			or apply only to loanword from that language,
+;			e.g., LINGUINI. If, after closer examination, any of 
+;			these context-free (non-English)
+;			rules turn out not to be benign, then that rule can
+;			simply be marked as a language specific rule and thus
+;			will apply only in a language-specific rule-set.
+
+;  0007 28-Nov-88	Began degug and testing since stress rules (last piece)
+;			has been implemented. Put in a number of VV rules for
+; 			Japanese names since the alternative would have been
+;			to modify ls05.c sources for syllabification which
+;			would have put too much complexity in this piece with 
+;			the modifications which were necessarily made for stress
+
+
+;			LETTER TO SOUND RULES
+
+;		           DECTALK 5
+
+; The following is a new version of the lts rules. Comments, old
+; versions of a rule subset, history of development, can be found in
+; another place in files under the headings newrules*.txt where * = 
+; versions 0-9 dating back over four years. The rule set,
+; newrules8.txt was the one implemented in DECtalk 3. The rule
+; set newrules9.txt was the rework of the DECtalk 3 rules but
+; without the name rules merged in. The definitions
+; (below) are the same as they were for DECtalk 3) with the exception of
+; the addition of the ACNA definitions (below):
+;
+; This rule set is a superset of the DECtalk 3 rules. 
+; It incorporates all of the DECtalk 3 rules as well as others.
+; The new rules have two functions:
+
+; (1) They improve on the old rule set by greater accuracy (which will
+; ultimately have to be measured.
+
+; (2) They assist applications concerned with a more accurate
+; pronunciation of names.
+
+; Define ; as commented out.
+;
+;The following are definitions for the rule set below:
+;
+; Format:	X becomes Y in environment Z where:
+; 	X is a set of graphemic material;
+; 	Y is a set of phonemic material;
+; 	Z is a set of graphemic material.
+;	
+; Morphophonemic rules are located primarily in letter to sound although
+; DHK has a small part of this in code. Allophonic rules are also done in
+; both places depending upon type of rule. Gross allophonics such as
+; assimilative velarization of [n] are done in lts. Other more complex
+; context-sentitive rules such as degrees and types of aspiration of
+; voiceless stops are done by DHK in code.
+; 
+;  [**] two phonemes in brackets mean that there is a choice when 
+;       it is stressed or unstressed.  The first one is when it is stressed.
+;       The second one is when it is unstressed.
+;
+; Features are always defined as to the right of "/"
+; Define [+Seg] as: Any char except whitespace, tab, or boundary symbols
+; Define [+Voc] as: A,E,I,O,U,Y
+; Define [+Cons] as: B,C,D,F,G,H,J,K,L,M,N,P,Q,R,S,T,V,W,X,Z
+; Define [+Voc] as: I,U,
+;        [+High]
+; 
+; Define [+Voc] as: A,E,O
+;        [-High]
+; 
+; Define [+Cons] as: B,D,G,M,N,V,Z,J,L,R,W
+;        [+Voice]
+; 
+; Define [+Liq] as: L,R,
+; 
+; Define [] as zero phonemic realization of grapheme<s>.
+; 
+; Define [+Cons]	as: C,F,H,K,P,Q,S,T,X
+;        [-Voice]
+; 
+; Define [+Cons] as: S,Z,J,SH,CH,DG,DJ
+;        [+Sib]
+; 
+; Define [+Cons] as: B,C,F,G,H,K,L,M,P,Q,V,W,X
+;        [-Cor]
+;
+; Define [+Cons] as: B,C,D,F,G,J,K,M,N,P,S,T,V,X,Z
+;	 [+Obstr]
+;
+; Define [+Cons] as: all [+Cons] except K,G,
+;        [-Velar]
+; 
+; Define [+Nas] as: M,N
+; 
+; Define # as: Word boundary
+; Define + as: Morpheme boundary
+; Define {} as: disjunction where {A,B} is read as: either A or B
+; Define :XX (at the leftmost side of the rule as: Index for
+; language XX (the rule applies only when (a) the languuage identified
+; matches that language, and (b) the string appropriately matches a 
+; string in the word.
+; 
+; Define <> as minimum-maximum when enclosing a number or n.
+; 	  Where [+Cons]<0-1> = optional consonant and
+; 		[+Cons]<1-n> = a minimum of 1 and a maximum of n consonants.
+; 
+; Define [+Cons,-C] as any consonant except C. There is currently two
+; such features: -C and -R.
+
+;			LETTER TO SOUND RULES 
+
+;		    NEW VERSION - DECEMBER - 1988
+
+
+	IFICATION >	[1][|][=][1][f][|][=][3][k][e][=][1][S][|][n]   / - +
+	ANTHROPO  >	[1][@][n][=][1][T][r][x][=][1][p][ax]	/ # -
+       	CHILDREN  >	[*][C][I][l][d][=][1][r][x][n]
+	CULTURAL  >	[3][k][^][l][=][1][C][R][=][1][x][l]	/ - +
+:GE	DOERFFER  >	[d][c][r][f][=][1][R]	
+	IFICENCE  >	[3][I][f][=][1][x][s][=][1][|][n][s]	/ - +
+	MENTALLY  >	[3][m][E][n][t][=][1][L][=][1][i]	/ - +
+	NATIONAL  >	[n][@][S][|][n][x][l]		
+	RATIONAL  >	[r][@][S][N][x][l]		
+ABILITY	> E+[1][x][=][3][b][I][l][=][1][|][=][1][t][i]	/ [+Cons]{U,I,A}R-+
+ABILITY	> E+[=][1][x][=][3][b][I][l][=][1][|][=][1][t][i]/ {U,A,R,N} C - +
+ABILITY	> E+[1][x][=][3][b][I][l][=][1][|][=][1][t][i]	/ {A,U} {M,P} - +
+ABILITY	> +[1][x][=][3][b][I][l][=][1][|][=][1][t][i]	/ - +
+	ARCHAEO	>	[a][r][k][i][ax]		
+	ATIONAL	>	[3][e][=][1][S][|][n][=][1][L]	/ - +
+	BOROUGH	>	+[=][1][b][R][=][1][o]		/ - +
+	CEPHALO	>	[=][3][s][E][f][=][1][x][=][1][l][ao] 	
+	COUNTER >	[=][3][k][W][n][=][1][t][R][*]
+	COUNTRY	>	[=][3][k][^][n][=][1][t][r][i]
+	CULTURE	>	[5][k][^x][l][=][1][C][R] 	/ - +
+	ESCENCE >	[3][E][s][=][1][N][s]		/ - +
+	FACTION	>	[3][f][@][k][=][1][S][|][n]	/ - +
+	FECTION >	[3][f][E][k][=][1][S][|][n]	/ - +
+	GENESIS	>	[3][J][E][=][1][n][x][=][1][s][|][s]
+	GRAPHER	>	+[=][4][g][r][x][=][1][f][x][r]	/ - +
+	GRAPHIC	>	+[=][3][g][r][@][=][1][f][|][k]	/ - +
+IBILITY	> E+[1][|][=][3][b][I][l][=][1][|][=][1][t][i]	/ [+Cons]{U,I,A}R-+
+IBILITY	> E+[1][|][=][3][b][I][l][=][1][|][=][1][t][i]	/ {U,A,R,N} C - +
+IBILITY	> E+[1][|][=][3][b][I][l][=][1][|][=][1][t][i]	/ {A,U} M - +
+IBILITY	> +[=][1][|][=][3][b][I][l][=][1][|][=][1][t][i]	/ - +
+	ICIENCY	>	[3][I][S][=][1][|][n][=][1][s][i] / - +
+	IFEROUS	>	[3][I][=][1][f][R][=][1][x][s]	/ - +
+	IZATION	>	[1][|][=][3][z][e][=][1][S][|][n]  / - +
+	KIEWICZ	>	[4][k][x][=][1][v][I][C]	/ - #	
+;:SL2	KIEWICZ	>	[k][i][=][e][=][v][I][C]	/ - #	
+	LATERAL	>	[3][l][@][t][=][1][R][=][1][x][l]	/ - +
+	LOGICAL >	[3][l][a][=][1][J][|][k][x][l]	/ - +
+	MACHINE	>	[=][1][m][x][=][3][S][i][n]	
+	MEISTER >	[5][m][A][s][t][=][1][R]	
+;	OGRAPHY	>	[3][a][=][1][g][r][x][f][=][1][i]	/ - +
+	SCHMIDT >	[5][S][m][I][t]		
+	THOUGHT	>	[T][c][t]			
+	THUNDER	>	[T][^][n][=][1][d][R][#]
+	TIATION	 >	[1][S][i][3][e][1][S][|][n]
+	TROUBLE	>	[=][3][t][r][^][=][1][b][L]	
+	WEATHER	>	[=][3][w][E][=][1][D][R]			
+	ACEOUS	>	[3][e][=][1][S][|][s]	
+	ACIOUS	>	[3][e][=][1][S][|][s]		
+	AGEOUS	>	[3][e][=][1][J][|][s]		/ - +
+	ARIOUS	>	[3][e][r][=][1][i][=][1][|][s]  / - +
+        ATIOUS	>	[3][e][=][1][S][|][s]		/ - +
+	BECKER	>	[b][E][k][=][R]		
+:GE	BECKER	>	[b][E][k][=][R]		
+	BERGER	>	+[=][b][R][g][=][R]	
+:GE	BERGER	>	+[=][b][R][g][=][R]	
+	BREAST	>	+[b][r][E][s][t]			
+	BRONCH	>	[b][r][a][G][k]			
+	BURGER	>	+[5][b][R][=][1][g][R]		/ - +
+	CARDIO	>	[=][2][k][a][r][=][1][d][i][=][1][o] / # -
+:FR	CHAMPS	>	[S][c][m][p]			/ - #	
+:SL	CHENKO	>	[C][E][G][k][o]			/ - #
+	CHOREO	>	[k][o][r][i][ax]		
+	CHROME	>	[1][k][r][o][m]			/ - +
+	CIALLY	>	[S][x][l][=][1][i]			/ - +
+	CIRCUM	>	[s][R][k][^x][m]		
+	COLOUR	>	+[=][1][k][^][l][=][1][R]	/ - +
+	COMMON	>	[=][3][k][a][m][=][1][x][n]			
+	CREDIT	>	[=][k][r][E][=][1][d][|][t]			
+	CRIMIN	>	[=][k][r][I][=][1][m][|][n]
+	CRYPTO	  >	[k][r][I][p][t][=][ax]
+	DORFER	>	[d][c][r][f][=][R]	
+:GE	DORFER	>	[d][c][r][f][=][R]	
+	EENING	>	[i][n][|][G]			/ - +
+	EMBRYO	  >	[E][m][b][r][i][ao]		
+	ENNIAL	>	+[=][3][E][n][=][1][i][=][1][x][l]	/ - +
+	ESCENT	>	[3][E][s][=][1][N][t]		/ - +
+	EVITCH	>	[e][=][v][I][C]	/ - #	
+:SL	EVITCH	>	[e][=][v][I][C]			/ - #	
+:SL	EWITCH	>	[e][=][v][I][C]			/ - #	
+	FELDER	>	[f][E][l][d][=][R]	
+:GE	FELDER	>	[f][E][l][d][=][R]	
+	FINKLE	>	[f][I][G][k][=][x][l]	
+:GE	FINKLE	>	[f][I][G][k][=][L]	
+	GAMOUS	  >	[4][g][x][=][1][m][x][s]
+	GRAPHY	>	+[=][4][g][r][x][=][1][f][i]	/ - +
+	GYNECO	>	[g][A][n][x][k][ax]		
+	HAUSEN	>	[h][W][z][=][x][n]	
+:GE	HAUSEN	>	[h][W][z][=][x][n]	
+	HAUSER	>	[h][W][z][=][R]		
+:GE	HAUSER	>	[h][W][z][=][R]		
+	HETERO	>	[h][E][=][1][t][x][=][1][r][ax]	/ # -
+	HOFFER	>	[h][c][f][=][R]		
+:GE	HOFFER	>	[h][c][f][=][R]		
+	IATION	>      [1][i][=][3][e][=][1][S][|][n] / [+Cons][+Voc]{L,T} - +
+	IATION	>	E+[=][1][i][=][3][e][=][1][S][|][n] / - +
+	ICIDAL	>	+[=][1][x][=][3][s][A][d][=][1][L]  / - +
+	ICIOUS	>	[3][I][S][=][1][|][s]		/ - +
+	IDIOUS	>	[3][I][d][=][1][i][=][1][|][s]  / - +
+	IEWICZ	>	[4][x][v][I][C]			/ - #
+;:SL2	IEWICZ	>	[=][i][=][e][=][v][I][C] / - #	
+;:SL3	IEWICZ	>	[=][i][=][x][=][w][I][C] / - # 
+	ILIOUS	>	[3][I][l][=][1][i][=][1][|][s]	/ - +
+        INGHAM	>	[1][|][G][=][1][h][@][m]	/ - +
+        INGTON	>	+[=][1][|][G][=][1][t][x][n]	/ - +
+	ISSIMO	>	[3][i][=][1][s][i][=][1][m][o]	/ - +
+	ITIOUS	>	[3][I][S][=][1][|][s]		/ - +
+	LOGIST	>	[4][l][x][=][1][J][|][s][t]	/ - +
+	LOGIZE	>	+[=][4][l][x][=][1][J][A][z]	/ - +
+	MASTER	>	+[=][2][m][@][s][=][1][t][R]	/ - +
+	MECHAN  >	[m][E|][=][k][@x][n]
+	MENTAL	>	[3][m][E][n][t][=][1][L]	/ - +
+	METRIC	>	+[=][3][m][E][=][1][t][r][|][k]	/ - +
+	MIDDLE	>	[m][I][d][L]
+	NUCLEO  >	[n][u][k][l][i][o]		
+	OCRACY	>	[3][a][=][1][k][r][x][=][1][s][i]	/  - +
+	OLENCE	>	+[=][4][L][=][1][x][n][s]	/ - +
+	OMETER	>	[=][3][a][=][1][m][x][=][1][t][R]
+	PHOBIA	>	[3][f][o][b][=][1][i][=][1][x]	/ - +
+	PLICIT	>	[3][p][l][I][s][=][1][|][t]	/ - +
+	POLICE	>	[=][1][p][L][=][3][i][s]
+	POULOS	>	[4][p][L][=][1][|][s]		/ - #
+	PSEUDO	>	[s][u][d][o]			
+	PSYCHO	>	[s][A][k][ax]
+	SAURUS	>	[5][s][c][r][=][1][x][s]	/ - +
+	SCHOOL	>	+[s][k][u][l]		
+	SCIOUS	>	[4][S][|][s]			/ - +
+	SCOPIC	>	[3][s][k][a][=][1][p][|][k]	/ - +
+	SEISMO	>	[s][A][z][m][ao]		
+	SELVES  >	+[=][3][s][E][l][v][z]		/ - +
+	SOEVER	>	+[=][1][s][o][=][3][E][v][=][1][R] / - +
+	SPHERE	>	+[=][2][s][f][i][r]		/ - +
+	STEREO	>	[=][s][t][e][r][=][1][i][=][1][ao]
+	SUALLY	>	[1][Z][u][=][1][L][i]		/ - +
+	SYMBOL	>	[s][I|][m][b][ax][l]		
+	THERMO	>	[T][R][m][ao]			
+	TAKING	>	+[=][1][t][e][k][=][1][|][G]	/ - +
+	THESIS	>	[4][T][i|][=][1][s][|][s]	/ - +
+	TIALLY	>	[S][x][l][=][1][i]			/ - +
+	TUALLY	>	[1][C][u][=][1][L][i]		/ - +	
+	UALITY	>	[1][u][=][3][@][l][=][1][|][t][=][1][i] / - +
+	VANDEN	>	[v][@][n][=][d][x][n]		/ # -	
+:GE	VANDEN	>	[v][@][n][=][d][x][n]		/ # -	
+	VANDER	>	[v][@][n][=][d][R]		/ # -	
+:GE	VANDER	>	[v][@][n][=][d][R]		/ # -	
+	WORTHY	>	+[=][1][w][R][=][1][D][i]	/ - +
+	AEMIA	>	[=][3][i][m][=][1][i][=][1][x]	/ - +	
+	AFORE	>	[x][f][o][r]			
+	AFTER	>	+[@][f][t][R]			
+	ALITY	>	[3][@][l][=][1][|][t][=][1][i]	/ [+Syl] - +
+	ALSKI	>	[=][a][l][=][s][k][i]	/ - # 	
+:SL	ALSKI	>	[=][a][l][=][s][k][i]	/ - # 	
+	ALPHA	>	[@][l][f][x]			
+	AMPHI	>	[@][m][f][I|]			
+;:FR1	ANGER	>	[a][n][=][Z][e]	/ - #	
+;:FR2	ANGER	>	[=][x][n][=][J][R]	/ - #	
+	ANGLO	>	[@][n][g][l][ox]		
+	ANSKY	>	[3][@][n][=][1][s][k][i]	/ - #
+	ARCHY	>	[5][a][r][=][1][k][i]		/ - +
+	ARIAN	>	[3][e][r][=][1][i][=][1][x][n]	/ - +
+	ARILY	>	[3][e][r][=][1][L][=][1][i]	/ [+Cons] - +
+:IT	ASTRO	>	[@][s][t][r][o]		
+	ASTRO	>	[@x][s][t][r][ax]		
+	ATION	>	[3][e][=][1][S][|][n]		/ - +
+	ATIVE	>	[e][t][|][v]		/ # [+Cons]<1-n> - +
+	ATIVE	>	[=][1][|][=][1][t][|][v]	/ - +
+	ATORY	>	[=][1][x][t][=][1][o][r][=][1][i]	/ - +
+	ATRIC	>	+[=][3][@][=][1][t][r][|][k]	/ - +
+	AWSKI	>	[3][a][f][=][s][k][i]	/ - #	
+:SL	AWSKI	>	[a][f][=][s][k][i]	/ - #	
+	BAUGH	>	[=][5][b][c]
+:GE	BAUGH	>	[b][W]			
+	BERRY	>	+[=][1][b][e][=][1][r][i]	/ - +
+	BURGH	>	[b][R][g]		
+:GE	BURGH	>	[b][R][g]		
+	BLOOD	>	+[b][l][^][d]
+	BOARD	>	+[b][o][r][d]
+	BREAK	>	+[b][r][e][k]			
+	BROAD	>	[b][r][c][d]			
+	CEIVE	>	[=][3][s][i][v]
+	CENTI	>	[s][E][n][t][x]			
+:FR	CHAMP	>	[S][@][m][p]			/ # -
+:FR	CHAMP	>	[S][c][m][p]			/ - #		
+	CHARA   >	[k][@][r][x]
+:EN+	CENTI   >	[s][E][n][t][x]			
+	CHILD	>	+[C][A][l][d]		;	/ - [-R]
+	CHORD	>	[5][k][o][r][d]			/ - +
+	CIENT	>	[4][S][|][n][t]			/ - +
+	CIOUS	>	[=][4][S][|][s]			/ - +
+	CLOSE	>	[=][3][k][l][o][z]		
+	COEUR	>	[k][R]				
+:FR	COEUR	>	[k][R]				
+	COLOR	>	+[=][1][k][^][l][=][1][R]	/ - +
+	COURT	>	[=][3][k][R][t]			/ - E
+	COURT	>	[=][3][k][o][r][t]		
+	COVER	>	[=][3][k][^][=][1][v][R]
+	CRAFT	>	+[k][r][@][f][t]	
+	CYCLE	>	+[=][s][|][=][1][k][x][l]	/ # [+Syl] - +
+	CYCLE	>	+[=][5][s][A][=][1][k][x][l]	/ - +
+	DELL'	>	[d][E][l]			/ # -	
+:IT	DELL'	>	[d][E][l]			/ # -	
+	DELLA	>	[d][E][=][l][ax]		/ # -	
+:IT	DELLA	>	[d][E][=][l][ax]		/ # -	
+	DELLE	>	[d][E][=][l][x]			/ # -	
+:IT	DELLE	>	[d][E][=][l][x]			/ # -	
+	EAULT	>	[3][o]			/ - #
+	EILLE	>	[e]			
+:FR	EILLE	>	[e]			
+	ENING	>	E+[=][1][x][n][=][1][|][G] / [+Voc]{V,D,K,P,R,M,T,S} - +
+	ENING	>	[=][1][x][n][=][1][|][G]
+	ERITY	>	[3][E][r][=][1][x][t][i]	/ - +
+	ETION	>	[3][i][=][1][S][|][n]		/ - +
+	EVERY	>	[=][3][E][v][=][1][r][i]			
+	EWSKI	>	[3][E][f][=][s][k][i]		/ - #	
+:SL	EWSKI	>	[E][f][=][s][k][i]		/ - #	
+;:SL2	EWSKI	>	[u][=][s][k][i]			/ - #	
+	EXTRA	>	[E][k][s][t][r][@x]		
+	FIBER	>	[=][3][f][A][b][R]			
+	FIBRE	>	[=][3][f][A][b][R]			
+	FLUOR	>	[f][l][ux][r]			
+	FULLY	>	+[=][1][f][Ux][l][=][1][i]	/ - +
+	GAARD	>	[5][g][a][r][d]			/ - #
+:GE	GAARD	>	[g][a][r][d]			/ - #
+	GENIC	>	[=][3][J][E][n][=][1][|][k]	/ - +
+	GHLIN	>	[k][=][l][I][n]			/ - #	
+	GIBLE	>	[=][1][J][I|][=][1][b][L]	
+	GLASS	>	[=][1][g][l][@][s]
+	GOING	>	+[=][1][g][o][|][G]		/ - +
+	GONAL	>	[4][g][x][n][=][1][L]		/ - +
+	GRADE	>	[1][g][r][e][d]			/ - +
+	GRAND	>	[=][3][g][r][@][n][d]			
+	GRAPH	>	+[=][5][g][r][@][f]		/ - +
+	GREAT	>	[g][r][e][t]
+	HANDI	>	[h][@][n][d][i]			/ # -
+	HELIO	>	[h][i][l][i][o]			
+	HOMEO	>	[h][o][m][i][o]			/ - {P,S}
+	HONOR	>	[a][n][=][1][R]			
+	HORST	>	[h][o][r][s][t]			
+:GE	HORST	>	[h][o][r][s][t]			
+	HEART	>	+[h][a][r][t]			
+	HORSE	>	+[h][o][r][s]			
+	HOUSE	>	+[*][h][W][s]			
+	HUMAN	>	[h][Y][m][@x][n]		
+	HYDRO	>	[=][3][h][A][=][1][d][r][ax]		
+	HYPER	>	[h][A][p][x][r]			
+	HYPNO	>	[h][I][p][n][a|]
+	IABLE	>	Y+[=][1][x][=][1][b][L]		/ - +
+	IALLY	>	[1][i][=][1][x][l][i]		/ - +
+	IATOR	> E+[=][4][i][=][1][e][=][1][t][R] / + [+Cons][+Voc]{V,C,D} - +
+	IATOR	>	[4][i][=][1][e][=][1][t][R]	/ - +
+	ICIDE	>	[=][4][x][=][1][s][A][d]	/ - +
+	IDENT	>	[=][4][x][=][1][d][x][n][t]	/ - +
+	IELLE	>	[1][i][=][3][E][l]			/ - #	
+:FR	IELLE	>	[=][i][=][E][l]			/ - #	
+	IENCE	>	E+[=][4][i][=][x][n][s]		/ {R,T,N,D} - +
+	IENCE	>	[4][i][=][x][n][s]		/ - +
+:SL	IENKO	>	[i][E][G][k][o]			/ - #
+	IENNE	>	[1][i][=][3][E][n]		/ - +
+:FR	IERRE	>	[i][e][r]			/ - #
+	ILITY	>	[3][I][l][=][1][|][t][=][1][i] 	/ - +
+	INESS	>	Y+[1][n][|][s]			/ - +
+	INTER	>	[I|][n][t][R][+]		/ # -
+	INTON	>	[5][I|][n][t][x][n]		/ - #
+	INTRA	>	[I|][n][t][r][@x]		
+	INTRO	>	[=][1][I|][n][=][1][t][r][x]		
+	ISTIC	>	+[=][3][I][s][=][1][t][|][k]	/ - +
+	ITION	>	+[=][3][I][=][1][S][|][n]	/ - +
+	ITIVE	>	[4][|][t][=][1][|][v]		/ - +
+	ITOUS	>	[4][|][t][=][1][|][s]		/ - +
+	LAUGH	>	+[l][@][f][+]
+	LEGAL	>	[=][l][i][g][=][x][l]
+	LIGHT	>	+[l][A][t][+]
+	LITER	>	[5][l][i][=][1][t][R]		/ - +
+	LITHO	>	[=][1][l][I][T][=][1][ax]
+	LITRE	>	[5][l][i][=][1][t][R]		/ - +
+	LOGIC	>	+[=][3][l][a][=][1][J][|][k]	/ - +
+	LYSIS	>	[4][l][|][=][1][s][|][s]	/ - +
+	MACRO	>	[m][@][k][r][o]			
+	MAKER	>	+[=][4][m][e][k][=][1][R]	/ - +
+	MEIER	>	[m][A][=][R]		 	
+:GE	MEIER	>	[m][A][=][R]		 	
+	METER	>	+[=][4][m][i|][=][1][t][x][r]	/ - +
+	METRE	>	+[=][4][m][i|][=][1][t][x][r]	/ - +
+	METRO	>	[m][E][t][r][ax]
+	METRY	>	+[=][4][m][|][=][1][t][r][i]	/ - +
+	MEYER	>	[m][A][=][R]			
+:GE	MEYER	>	[m][A][=][R]			
+	MICRO	>	[m][A][k][r][ao]		
+	MILLI	>	[=][3][m][I][=][1][l][x]			
+	MOTOR	>	[m][o][=][1][t][R]
+;	MOUSE	>	[m][W][s][+]
+	MULTI	>	[3][m][^][l][t][i|]		
+	MYCIN	>	[=][3][m][A][=][1][s][|][n]	/ - #
+	NITRO	>	[n][A][t][r][o]			
+	NUMER	>	[n][u][m][ex][r]		
+	OCITY	>	[3][a][s][=][1][|][t][=][1][i]  / - +
+        OLENT	>	+[=][4][x][l][=][1][x][n][t]	/ - +
+;	OLOGY	>	[3][a][l][=][1][x][=][1][J][i]  / - +	
+	ORTHO	>	[c][r][T][cx]			
+	OTHER	>	[^][D][R]		/ + [+Cons]<0-n> -
+	OROUS	>	+[=][4][R][=][1][x][s]		/ - +
+	OSITY	>	[3][a][s][=][1][|][=][1][t][i]	/ - +
+	OSTIC	>	[3][a][s][=][1][t][|][k]	/ - +
+	OTION	>	[3][o][=][1][S][|][n]		
+	OWSKI	>	[3][c][f][=][s][k][i]		/ - #	
+:SL	OWSKI	>	[c][f][=][s][k][i]		/ - #	
+;:SL2	OWSKI	>	[W][=][s][k][i]			/ - #	
+	PALEO	>	[p][e][l][i][ax]		
+	PAPER	>	[p][e][p][x][r]			
+	PATHY	>	[4][p][x][=][1][T][i]	/ - +
+	PLACE	>	+[=][1][p][l][e][s]	/ - +
+	PHOBE	>	[5][f][o][b]		/ - +
+	PHONE	>	[5][f][o][n]		/ - +
+	PHONO	>	[f][o][n][ax]			
+	PHONY   >	[4][f][x][n][i]		/ [+Syl] - +
+	PHOTO	>	[f][o][t][ax]
+	PIECE	>	+[p][i][s]
+	PLANE	>	+[=][1][p][l][e][n]	/ - +
+	POLIS	>       [=][4][p][L][=][1][|][s] / - +
+	POLOS	>	[4][p][L][=][1][|][s]		/ - #
+	PROTO	>	[p][r][o][t][x]			
+	PSYCH	>	[s][A][k]
+	qENCE	>	[5][k][w][x][n][s]		/ - +
+	RETRO	>	[r][E][t][r][o]			
+	SALES	>	[s][e][l][z]			
+	SCAPE	>	+[s][k][e][p][+]	
+	SCOPE	>	+[=][1][s][k][o][p]	/ - +
+	SCOPY	>	+[=][4][s][k][a][=][1][p][i]	/ - +
+	SEOUS	>	[1][S][|][s]		/ - +
+	SHILL	>	[S][I][l]	/+ -
+	SHIRE	>	[1][=][S][i][r]			/ - #
+	SIGHT	>	+[=][4][s][A][t]	/ - +
+	SOCIO   >	[s][o][s][i][ax]		
+	SOUTH	>	[s][^][D]			/ - ER
+	SPIKE	>	+[5][s][p][A][k]
+	STACK	>	+[5][s][t][@][k]
+	STADT	>	[S][t][@][t]			
+:GE	STADT	>	[S][t][@][t]			
+	STATE	>	[s][t][e][t] 			
+	STEIN	>	+[=][5][s][t][A][n]	
+;:GE2	STEIN	>	+[=][s][t][i][n]		
+	STICK	>	+[s][t][I][k]
+	STOCK	>	+[s][t][a][k]
+	STONE	>	+[=][s][t][o][n]	/ - +
+	STORE	>	[=][1][s][t][o][r]
+	SUPER	>	[=][1][s][u][=][3][p][R]	/ - {F,L,B}
+	SUPER	>	[s][u][p][R]		
+	TABLE	>	[t][e][b][L]			/ # -
+	THERE	>	[D][e][r]			/ # -
+	THERM	>	[T][R][m]			
+	TIATE	>	+[=][4][S][i][=][1][e][t]
+	TIOUS	>	[S][|][s]		/ - +
+	TOLER	>	[=][3][t][c][=][1][l][R]
+	TRANS	>	[t][r][@][n][z]		/ - {[+Nas],[+Voc]}
+	TRANS	>	[t][r][@][n][s]		
+	TUARY	>	[=][4][C][u][=][1][e][r][=][1][i]	/ - +
+	TURAL	>	[4][C][R][=][1][x][l]	/ - +
+	UANCE	>	[4][Y][=][1][x][n][s]	/ - +
+	UENCE	>	[5][u][=][1][x][n][s]	/ - +
+	ULOUS	>	[=][4][x][l][=][1][x][s]	/ R - +
+	ULOUS	>	[4][y][x][l][=][1][x][s]	/ - +
+	ULTRA	>	[^][l][t][r][x]			
+	UNDER	>	[^x][n][d][R]			/ # -
+	UPLET	>	[3][^][p][=][1][l][|][t]	/ - +
+	UPPER	>	[=][3][^][p][=][1][R]			
+	UNANI	>	[Y][n][@|][n][Ix]		
+	USION	>	[3][Y][=][1][Z][|][n]	/ F - +
+	USION	>	[3][u][=][1][Z][|][n]	/ - +   
+	UTION	>	[3][Y][=][1][S][|][n]	/ {C,B} - +
+	UTION	>	[3][u][=][1][S][|][n]	/ [+Cons] - +
+	UTIVE	>	[4][Y][=][1][t][|][v]	/ - +
+	VANDE	>	[v][@][n][d][x]			/ # -
+:GE	VANDE	>	[v][@][n][d][x]			/ # -	
+	VELDT	>	[5][v][E][l][t]			
+:GE	VELDT	>	[v][E][l][t]			
+	VILLE	>	+[=][1][v][I][l]	/ - +
+	VITCH	>	[=][v][I][C]		/ - #	
+:SL	VITCH	>	[=][v][I][C]		/ - #	
+	WATER	>	+[w][c][t][R]			
+	WHERE	>	+[w][e][r]			
+	WHITE	>	[*][w][A][t]
+	WHOLE	>	[=][3][h][o][l]			
+:SL	WITCH	>	[=][w][I][C]		/ - #	
+	WOMAN	>	+[=][1][w][U][=][1][m][x][n] / - +
+	WOMEN	>	+[=][1][w][I][=][1][m][x][n] / - +
+	WORTH	>	+[=][5][w][R][T]			
+	XIOUS	>	[4][=][S][|][s]		     / - +
+	YOUNG	>	[y][^][G]			
+	ABLE	>	+[=][1][x][=][1][b][L]	/ [+Cons][+Cons,+Gem] - +
+	ABLE	>	[e][b][L]		/ + [+Cons]<0-n> - +
+	ABLE	>	E+[=][1][x][=][1][b][L]	/ [+Voc] {G,S,T,U,V,Z} - +
+	ABLE	>	E+[=][1][x][=][1][b][L]	/ [+Cons] {U,I,A} R - +
+	ABLE	>	E+[=][1][x][=][1][b][L]	/ {U,A,R,N} C - +
+	ABLE	>	E+[=][1][x][=][1][b][L]	/ {A,U} {M,P} - +
+	ABLE	>	+[=][1][x][=][1][b][L]	/ - +
+	ABLY	>	E+[=][1][x][=][1][b][l][i]	/ [+Cons] {U,I,A} R - +
+	ABLY	>	E+[=][1][x][=][1][b][l][i]	/ {U,A,R,N} C - +
+	ABLY	>	E+[=][1][x][=][1][b][l][i]	/ {A,U} M - +
+	ABLY	>	+[=][1][ex][=][1][b][l][i]      / - +
+	ACHE	>	+[=][1][e][k]		/ [+Cons] - +
+	ACLE 	>	+[=][4][x][=][1][k][x][l]	/ - +
+	AERO	>	[e][r][ao]		        / # - {P,S} 
+:GE	AGER	>	[e][g][R]
+	AIER	>	[A][R]			
+:GE	AIER	>	[A][R]			
+	AINE	>	[=][3][e][n]		/ - +
+	AIRE	>	+[3][e][r]		/ - +
+	AISE	>	[3][e][z]		/ - +
+:EN+	AISE	>	[3][e][z]		/ - +
+	ALLO	>	[@][l][o]			/ # -
+	ALLY	>	[@][l][=][1][i]		/ # [+Cons]<1-n> - +
+	ALLY	>	+[=][5][l][i]		/ C - +
+	ALLY	>	+[=][5][x][l][i]	/ - +
+	ANCE	>	[@][n][s]		/ # [+Cons]<1-n> - +
+	ANCE	>	E+[=][1][x][n][s]	/ [+Cons][+Voc]{D,N,R} - +
+	ANCE	>	[1][x][n][s]		/ - +
+	ANCY	>	[1][@x][n][=][1][s][i]	/ - +
+	ANTE	>	[@][n][t][E|]			/ # -
+	ANTI	  >	[@][n][t][i]			/ # - [+Voc]
+	ANTI	>	[@][n][t][I|]			/ # -
+	ARCH	  >	[1][a][r][k]			/ # - [+Voc]
+:EN+	ARCH	>	[1][a][r][k]			/ # - [+Voc]
+	ATOR	>  	[5][e][t][=][1][R]	/ - +
+ 	AUEN	>	[W][x][n]		
+:GE 	AUEN	>	[W][x][n]		
+  	AUER	>	[W][x][r]		
+	AUGH	>	[c]			
+	AULT	>	[c][l][t]		/ - #	
+:FR	AULT	>	[c][l][t]		/ # [+Cons]<1-n> - #	
+:FR	AULT	>	[o]  
+	AUTO	>	[c][t][ax]			
+	BACH	>	[5][b][a][k]		/ - #
+:GE	BACH	>	[b][a][k]		
+	BACK	>	+[=][1][b][@][k]		
+	BAHN	>	[5][b][a][n]		
+:GE	BAHN	>	[b][a][n]		
+	BALL	>	+[=][1][b][c][l]	/ - +
+:GE	BAUM	>	+[=][b][W][m]		/ - #	
+	BAUM	>	+[5][b][W][m]
+	BECK	>	+[5][b][E][k]		
+:GE	BECK	>	+[=][b][E][k]		
+	BELL	>	+[=][1][b][E][l]	/ - +
+	BENE	>	[=][1][b][E|][=][1][n][Ex]				
+	BERG	>	+[5][b][R][g]		
+:GE	BERG	>	+[=][b][R][g]		
+	BOAT	>	+[=][5][b][o][t]
+	BODY	>	+[=][1][b][a][=][1][d][i]	
+:FR	BOIS	>	[b][w][a]			
+;:FR2	BOIS	>	[b][O][s]			
+	BONE	>	+[b][o][n]
+	BOOK	>	+[b][U][k]			
+:GE	BORG	>	[b][o][r][g]			
+	BORO	>	+[=][5][b][R][=][1][o]
+	BTLE	>	[t][L]
+:GE	BURG	>	+[=][b][R][g]			
+	BURY	>	+[=][5][b][E][=][1][r][i] / - #
+	BURY	>	+[=][5][b][R][=][1][i]
+	CAKE	>	+[=][k][e][k]		/ - +
+	CAST	>	+[=][1][k][@][s][t]	/ - +
+	CCIA	>	[C][x]			
+:IT	CCIA	>	[C][ax]			
+	CHAU    >	[S][o]
+	CIAL	>	[4][C][x][l]		/ N - + 
+	CIAL	>	[4][S][x][l]		/ - +
+	CIAN	>	[4][S][|][n]		/ - +
+        CRAT	>	[1][k][r][@][t]		/ - +
+	CYTO	>	[s][A][t][ax]			
+	CZAK	>	[4][C][@][k]		/ - #
+	CZEK	>	[5][C][E][k]		/ - #
+	CZUK	>	[C][U][k]		/ - #	
+	CZYK	>	[4][C][I][k]		/ - #
+	DALE	>	+[=][5][d][e][l]	/ - +
+	DEMI	>	[d][E][m][i]			/ # - [+Syl] +
+	DEMO	>	[d][Ex][m][ax]			/ # -
+	DISH 	>	[d][I|][s]			/ - ON
+	DORF	>	[5][d][o][r][f]			
+	DOWN	>	+[d][W][n]			
+:GE	DORF	>	[d][o][r][f]			
+	DYNA	>	[d][A][n][@x]			
+	EASE	>	[3][i][s]		/ {L,C,R} - +
+	EAUX	>	[o]	
+	EDLY	>	[4][|][d][+][=][1][l][i]	/ - +
+	EIER	>	[A][R]			
+:GE	EIER	>	[A][R]			
+	EIRA	>	[3][e][=][1][r][x]	/ - #
+	EIRO	>	[3][e][=][1][r][o]	/ - #
+	EITY	>	[3][i][=][1][|][t][i]   / - +
+	ELLA	>	[3][E][=][1][l][x]	/ - +
+	ELLE	>	[3][E][l]		/ - #
+	ELLI	>	[3][E][=][1][l][i]	/ - #
+	ELLO	>	[3][E][=][1][l][o]	/ - +
+	EMIA	>	[3][i][m][=][1][i][=][1][x]	/ - +
+	ENCE	>	[E][n][s]		/ # [+Cons]<1-n> - +
+	ENCE	>	E+[=][1][x][n][s] / [+Cons][+Voc]{U,D,T,C,L,R} - +
+	ENCE	>	[1][Ex][n][s]		/ - +
+	ENCY	>	ENCE+[=][i]		/ - +
+	ENDO	>	[E][n][d][o]			
+	ENKO	>	[3][E][G][=][1][k][o]	/ - #
+	EOUS	>	E+[=][4][|][s]		/ G - +
+	EOUS	>	E+[=][4][i][=][1][|][s]	/ [+Cons][+Voc] {N,C,T} - +
+	EOUS	>	[4][i][=][1][|][s]
+	EqAL	>	[i][k][w][ax][l]		
+	ESCE	>	[3][E][s]		/ - +
+	ESIA	>	[3][i][=][1][Z][x]	/ - +
+	ESqE	>	[3][E][s][k]			/ - +
+	ESSA	>	[3][E][=][1][s][x]	/ - #
+	ESSE	>	[3][E][s]		/ - +
+	ETTA	>	[3][E][=][1][t][x]	/ - +
+	ETTE	>	[3][E][t]		/ - +
+	ETTI	>	[3][E][=][1][t][i]	/ - #
+	ETTO	>	[3][E][=][1][t][o]	/ - +
+	EUER	>	[O][=][R]		
+:GE	EUER	>	[O][=][R]		
+	EVER	>	[3][E][v][=][1][R]	/ {#,O,[+Cons]} - +
+	FALS	>	[1][f][c][l][s]
+	FELD	>	[5][f][E][l][d]			
+:GE	FELD	>	[f][E][l][d]			
+	FIRE	>	+[f][A][r]			
+	FISH	>	+[=][f][I|][S]		/ - +
+	FITZ	>	[f][I][t][s]		/ # -
+	FLEX	>	+[=][5][f][l][E][k][s]	/ - +
+	FOOT	>	+[f][U][t]		
+	FORE	>	[f][o][r]			
+	gARD	>	+[g][a][r][d][+]
+	GEON	>	[J][|][n]		/ - +
+	GHTH	>	[T]
+	GOOD	>	[=][5][g][U][d]			
+	GRAM	>	[5][g][r][@][m]		/ - +
+:GE	GREN	>	[g][r][E][n]		/ - #	
+	GYRO	>	[J][A][r][o]			
+	HALF	>	[h][@][f]	
+	HALL	>	+[=][h][c][l][+]	/ [+syl] -
+	HAND	>	+[=][1][h][@][n][d]	/ - +
+:GE	HART	>	+[h][a][r][t]		/ [+Syl] -
+:GE	HAUS	>	[h][W][s]			
+	HAWK	>	[=][h][c][k]		/ [+syl] -
+	HEAD	>	+[5][h][E][d][+]
+	HEIM	>	[5][h][A][m]			
+:GE	HEIM	>	[h][A][m]		
+	HEIR	>	[=][3][e][r]		/ # -
+	HEMI	>	[h][E][m][x]			/ # -
+	HEMO	>	[h][i][m][o]			/ # - [-R]
+	HERE	>	[h][Ex][r][Ex]			/ # - {D,F,S} 
+	HERE	>	[h][i][r]			/ # -
+	HIER	>	[h][A][r]			/ # -
+	HIGH	>	[=][3][h][A]			/ + -
+	HILL	>	+[=][5][h][I][l]	/ - #
+	HOFF	>	[5][h][c][f]			
+:GE	HOFF	>	[h][c][f]		
+	HOLE	>	+[=][1][h][o][l]	/ [+Syl] - +	
+	HOME	>	[h][o][m]		
+	HOMO 	>	[h][ax][m][ax]			/ # -
+	HOOD	>	+[=][1][h][U][d]	/ - +
+	HORO	>	[h][ax][r][ax]			/ # -
+	HOUR	>	[W][r]
+	HYPO	>	[h][I|][p][ax]			/ - CR
+	HYPO	>	[h][A][p][ax]
+	IAGE	>	[=][1][|][J]		/ - +
+:IT	IANO	>	[i][a][n][o]		/ - #
+	IANT	>	[A][x][n][t]		/ + [+Cons]<1-n> - +
+	IANT	>	E+[=][4][i][=][1][x][n][t] / [+Voc]{V,R,D} - +
+	IANT	>	[4][i][=][1][x][n][t]	/ - +
+	IATE	>	E+[=][4][i][=][1][x][t]	/ [+Cons][+Voc]{PR,G} - +
+	IATE	>	E+[=][4][i][=][1][e][t] / [+Cons][+Voc]{BR,C,V,R,D} - +
+	IATE	>	[4][i][=][1][e][t]	/ - +
+	IBLE	>	[I][=][1][b][L]		/ # [+Cons]<1-n> - #
+	IBLE	>	E+[=][1][x][=][1][b][L]	/ [+Cons] {U,I,A} R - +
+	IBLE	>	E+[=][1][x][=][1][b][L]	/ {U,A,R,N} C - +
+	IBLE	>	E+[=][1][x][=][1][b][L]	/ {A,U} M - +
+	IBLE	>	+[=][1][x][=][1][b][L]	/ [+Cons] - +
+	IBLY	>	E+[=][1][x][=][1][b][l][i]	/ [+Cons] {U,I,A} R - +
+	IBLY	>	E+[=][1][x][=][1][b][l][i] / {U,A,R,N} C - +
+	IBLY	>	E+[=][1][x][=][1][b][l][i] / {A,U} M - +
+	IBLY	>	+[=][1][x][=][1][b][l][i]  / - +
+	ICAL	>	[4][|][k][=][1][x][l]	/ - +
+	ICAN	>	[4][|][=][1][k][x][n]	/ - +	
+	ICLE	>	E+[=][4][|][=][1][k][x][l]	/ [+Voc]{H,B,T,C} - +
+	ICLE	>	[4][|][=][1][k][x][l]	/ - +
+	IEAU	>	[i][=][o]		/ - #	
+:FR	IEAU	>	[i][=][o]		/ - #	
+:FR	IERE	>	[i][=][e][r]		/ - #	
+	IENT	>	E+[=][4][y][|][n][t]	/ - +
+:GE	IESS	>	[i][s]
+; Be careful of this next one since it has a high functional load
+	IEST	>	Y+[=][1][|][s][t]	/ - +
+	IETH	>	Y+[=][1][|][T]		/ - +
+	IETT	>	[i][=][3][E][t]		/ - #	
+:FR	IETT	>	[i][=][E][t]		/ - #	
+	IETY	>	[3][A][=][1][x][=][1][t][i]	/ [+Cons] - +
+	ILLA	>	[3][I][l][=][1][x]	/ - +
+	ILLO	>	[3][I][=][1][l][o]	/ - #
+	INAL	>	[3][A][n][=][1][L]	/ # [+Cons]<1-n> - +
+	INAL	>	[4][|][n][=][1][L]	/ - +
+        IOUR	>	E+[y][R]    		/ - +
+	IOUS	>  E+[=][4][i][=][1][|][s] / [+Cons][+Voc]{G,R,B,D,V,N} - +
+	IOUS	>	[4][i][=][1][|][s]	/ - +
+	IRON	>	[5][A][R][n]
+	ISHI	>	[3][i][=][1][S][i]	/ - #
+	ITAL	>	[4][A|][=][1][t][L]	/ - +
+	ITIS	>	[3][A][=][1][t][|][s]	/ - +
+	ITOR	>	[4][|][t][=][1][R]	/ - +
+	IZEN	>	[4][|][z][N]		
+:EN+	IZEN	>	[4][|][z][N]		
+	IZER	>	[5][A][z][=][1][x][r]	/ - +
+:GE	KAMP	>	[k][@][m][p]	
+	KILL	>	[k][I][l]		/ - #
+	KILO	>	[k][I][l][ax]			
+	KOPF	>	+[5][k][c][p][f]	/ - #
+	LAND	>	+[=][1][l][@x][n][d]			
+:EN+	LAND	>	+[=][1][l][@x][n][d]			
+	LEIN	>	[5][l][A][n]			
+:GE	LEIN	>	[l][A][n]			
+	LESS	>	[l][E][s]		/ # [+Cons]<0-n> - +
+	LESS	>	+[=][1][l][|][s]	/ - +
+	LIAN	>	[3][l][y][x][n]		/ - +
+	LIFE	>	+[=][1][l][A][f]		/ - [-R]
+	LIKE	>	+[=][1][l][A][k]
+; 3-Nov-88 Fixed bug LOGUE > LOgE which was a no-op rule before.
+	LOgE	>	[5][l][c][g]			/ [+Syl] - +
+	LOGY	>	[4][l][x][=][1][J][i]	/ - +
+	MAIL	>	[m][e][l]		/ - +
+	MANN	>	+[5][m][@x][n]		/ - #
+;:GE2	MANN	>	[m][a][n]		/ - #	
+	MEGA	>	[m][E][g][x]			
+	MENT	>	[5][m][x][n][t]		/ PLE - +
+	MENT	>	+[=][1][m][Ex][n][t]	/ - +
+	MONO	>	[m][ax][n][ax]			
+	MONY	>	[5][m][o][=][1][n][i]	/ - +
+	MORE	>	+[=][5][m][o][r]	/ - +
+	MOTO	>	[3][m][o][=][1][t][o]	/ - #
+	NECK	>	+[=][1][n][E][k]	/ - +
+	NESS	>	+[=][1][n][|][s]	/ - +
+	NEWS	>	[n][u][z]			
+	NOTE	>	[=][1][n][o][t][*]
+	OBIC	>	[3][o][b][=][1][|][k]	/ - +
+	OIRE	>	[5][w][a][r]		/ - +
+	OLLI	>	[3][o][=][1][l][i]	/ - #
+	OMNI	>	[a][m][n][I|]		
+:GE	OSCH	>	[c][S]		
+	OSIS	>	[3][o][s][=][1][|][s]	/ - +
+	OSKI	>	[3][W][=][s][k][i]	/ - #	
+	OTIC	>	[3][a][=][1][t][|][k]	/ - +
+	OTTE	>	[3][c][t]		/ - #	
+:FR	OTTE	>	[c][t]			/ - #	
+:SL	OSKI	>	[W][=][s][k][i]		/ - #	
+; can remove next three rules when big dictionary is implemented
+	OUGH	>	[u]	/ HR  -		
+	OUGH	>	[x][p]	/ CC  -		
+	OUGH	>	[c][f]	/ # {C,TR} -
+	OUGH	>	[^][f]	/ {N,#R,T,SL} -
+	OUGH	>	[o]	/ {TH,D,RL} -
+	OUGH	>	[W]	
+	OVER	>	[o][v][R]			/ # -
+	PARA	>	[p][ex][r][@x]			
+	PATH	>	[1][p][@][T]		/ - +
+	PIKE	>	[p][A][k]
+	PIPE	>	+[=][1][p][A][p]	
+	POLY	>	[p][ax][l][Ii]			/ # -
+	PORT	>	[p][o][r][t]		/ - +
+	POSE	>	[3][p][o][z]		/ + - +
+	POST	>	[p][a][s][t]			/ - {U,E}
+	POST	>	[p][o][s][t]			/ # -
+	qENT	>	[5][k][w][x][n][t]	/ - +
+	qIST	>	+[=][5][k][w][I][s][t]	/ - +
+	ROAD	>	[r][o][d]			/ # -
+	ROOM	>	[r][u][m]
+	ROSE	>	[r][o][z]			/ # -
+:GE	ROTH	>	[r][c][T]
+	SAFE	>	[s][e][f]	
+	SALT	>	[s][c][l][t]		
+	SAND	>	[=][1][s][@][n][d]		/ # -
+        SCLE	>	[1][s][L]		/ - +
+	SELF 	>	[s][E][l][f]			/ # -
+	SELF	>	+[=][3][s][E][l][f] 	/ - +
+	SEMI 	>	[s][E][m][I|]			/ # -
+	SHIP	>	+[=][1][S][I|][p]	/ - +
+	SHIT	>	[*][S][I][t]
+	SHOP	>	+[S][a][p]		/ - +
+	SIAN	>	[4][Z][|][n]		/ - +
+	SIDE	>	+[s][A][d]			/ - [-R,-Nas]
+	SION	>	[4][Z][|][n]		/ {R,[+Voc]} - 
+	SION	>	[4][S][|][n]		
+	SITY	>	[4][s][|][t][=][1][i]	/ - +
+	SOFT	>	[s][c][f][t]			
+	SOHN	>	[5][s][x][n]		/ - #
+	SOME	>	+[s][^x][m]		
+        SSIA	>	[4][S][x]		/ - +
+	STAT	>	+[=][5][s][t][@][t]	/ - +
+	STEN	>	[1][=][s][N]		/ [+Seg] - +
+	STEP	>	+[5][s][t][E][p]
+	STLE	>	[1][s][L]		/ - +
+	STYL	>	[s][t][A][l]			
+	SUAL	>	[1][Z][u][=][1][x][l]	/ - +
+	SURE	>	[1][SZ][ux][r]	      	/ - +
+	SZCZ	>	[S][C]			
+:SL	SZCZ	>	[S][C]			
+	SZEK	>	[4][S][E][k]		/ - #
+	TAIL	>	+[1][t][e][l]		/ - +
+:JA	TAKE	>	[t][a][k][e]
+	TAKE	>	[t][e][k]			
+	TALK	>	[*][t][c][k]
+	TEEN	>	+[=][3][t][i][n]	/ - +
+	TELE	>	[t][E][l][Ex]			
+	TECH	>	[t][E][k]			
+	TIAL	>	[4][C][x][l]		/ {N,S} - +
+	TIAL	>	[4][S][x][l]		/ - +
+	TIAN	>	[4][C][|][n]		/ {N,S} - +
+	TIAN	>	[4][S][|][n]		/ - +
+	TIME	>	+[t][A][m]			
+	TIME	>	+[=][5][t][A][m]	/ - +
+	TION	>	[4][C][|][n]		/ {N,S} - 
+	TION	>	[4][S][|][n]		
+	TORY	>	[4][t][R][=][1][i]	/ {C,L,P,S} - +
+	TORY	>	[1][t][o][r][=][1][i]	/ - +
+        TOUR	>	[4][t][u][r]		/ - +
+	TOWN	>	+[t][W][n]
+	TSCH	>	[C]	
+	TUAL	>	[4][C][u][x][l]		/ - +
+	TUDE	>	[5][t][u][d]		/ - +
+	TURE	>	[1][C][R]		/ - +
+	TYPE	>	[t][A][p]			
+	TYPE 	>	[1][t][A][p]		/ - +
+	UANT	>	[4][u][=][1][x][n][t]	/ - +
+	UCHI	>	[3][u][=][1][C][i]	/ - #
+	UENT	>	[5][u][=][1][x][n][t]	/ - +
+	UBLE	>	[4][Y][=][1][b][L]	/ [+Cons] - +
+	UITY	>	[3][Y][=][1][|][t][=][1][i]	/ {G,C} - +
+	UITY	>	[3][u][=][1][|][t][=][1][i]	/ - +
+	ULAR	>	[4][y][x][l][=][1][R]	/ [+Cons,-L] - +
+	UOUS	>	[4][Y][=][1][x][s]	/ - +
+	VICH	>	[5][v][I][C]		/ - #
+	VIEW	>	[v][Y]
+	VITZ	>	[5][v][I][t][s]		/ - #
+	WALD	>	[5][w][c][l][d]		
+:GE	WALD	>	[w][c][l][d]		
+	WALK	>	[*][w][c][k]
+        WARD	>	[3][w][o][r][d]		/ {RE,A} - +
+	WARD	>	+[=][w][R][d]		/ [+Seg] - +
+	WARE	>	+[=][5][w][e][r]	/ - +
+	WASH	>	[*][w][c][S]
+	WHAT	>	+[w][^x][t]			
+	WHOM	>	[h][u][m]			
+        WICZ	>	[5][v][I][C]		/ - #
+;:SL2	WICZ	>	[w][I][t][s]		/ - #	
+	WILD	>	+[w][A][l][d]		
+	WILL	>	+[=][3][w][I][l]	/ - +
+	WISE	>	+[=][1][w][A][z]	/ - +
+	WITH	>	+[w][I][T]		
+	WITZ	>	[5][w][I][t][s]		/ - #
+	WOOD	>	+[5][w][U][d]
+	WORK	>	+[w][R][k]			
+	XERO	>	[z][i][=][r][ax]		/ # -
+	XION	>	[=][1][k][S][|][n]	/ - +
+	XYLO	>	[z][A][=][l][ax]		/ # -
+	YAMA	>	[y][a][=][m][ax]	/ - #
+	YARD	>	+[=][1][y][a][r][d]	/ - +
+	ACY	>	[e][s][i]		/ # [+Cons]<1-n> - +
+	ACY	>	E+[=][1][x][s][=][1][s][i] / {V,P,N,R} - +
+	ACY	>	+[=][1][x][s][=][1][s][i]	/ - +
+	ADO	>	[3][a][=][1][d][o]	/ [+Syl] - +
+:GE	AEU	>	[W]	
+	AHL	>	[a][l]			/ - #
+	AGE	>	[e][J]			/ # [+Cons]<0-n> - +
+	AGE	>	+[=][1][|][J]		/ - +
+	AIC	>	[3][e][=][1][|][k]	/ - +
+:FR	AIN	>	[e][n]			/ - #	
+:FR	AIS	>	[e]			/ [+Syl] - #	
+	AKI	>	[3][a][=][1][k][i]	/ - #
+:JA	AMA	>	[=][a][=][m][x]		/ - #	
+	AMY	>	[4][ex][m][=][1][i]	/ [+Cons] - +
+:JA	ANA	>	[=][a][=][n][x]		/ - #	
+	ANA	>	[3][@][n][=][1][x]	/ - +
+	ANT	>	[@][n][t]		/ #[+Cons]<0-n> - +
+	ANT	>	[5][x][n][t]		/ - +
+	ANY	>	[E][n][i]		/ # -
+	ANY	>	[4][x][n][=][1][i]	/ [+Syl] - +
+	AqA	>	[@x][k][w][@x]			
+	ARA	>	[3][a][=][1][r][x]	/ - #
+:FR	ARD	>	[ax][r][d]		/ - #	
+	ARD	>	[=][1][ax][r][d]	/ [+Cons] - +
+	ARY	>	+[=][5][e][=][1][r][i]	/ [+Cons] - +
+	ATA	>	[3][a][=][1][t][x]	/ - #
+:JA	ATE	>	[a][t][e]		/ - #
+	ATE	>	[e][t]			/ # [+Cons]<0-n> - +
+	ATE	>	+[=][5][x][t]		/ {F,L,R} IC - +
+	ATE	>	+[=][5][x][t]		/ [+Liq] {O,I} G - +
+	ATE	>	+[=][5][x][t]		/ {L,T} I {M,N} - +
+	ATE	>	+[=][5][x][t]		/ IO {N,L} - +
+	ATE	>	+[=][5][x][t]		/ {S,T} {U,E} N - +
+	ATE	>	+[=][5][x][t]		/ {P,T,M,C,D} [+Voc] R - +
+	ATE	>	+[=][5][x][t]		/ {q,V} - +
+	ATE	>	+[=][5][x][t]		/ {D,G,P} I - +
+	ATE	>	+[=][5][e][t]		/ - +
+	ATI	>	[3][a][=][1][t][i]	/ - #
+	ATO	>	[3][a][=][1][t][o]	/ - #
+:FR	AUD	>	[o]			/ - #	
+;:FR2	AUD	>	[o][d]			/ - #	
+:GE	AUF	>	[W][f]			
+	AUX	>	[o]	/ - #
+:FR	AUX	>	[o]			
+	AWA	>	[3][a][=][1][w][x]	/ - #
+	AWE	>	[c]			/ # -
+	AZA	>	[3][a][=][1][z][x]	/ - #
+	BAG	>	+[=][1][b][@][g]	/ - +
+	BED	>	[=][3][b][E][d]		/ # - [+Cons]
+	BEW	  >	[b][|][w]			/ # -
+:IT	BIO	>	[b][i][o]	
+	BIO	>	[b][A][ax]		
+	BOX	>	+[=][1][b][a][k][s]	/ - +
+	BOY	>	+[=][1][b][O]		/ - +
+	BRZ	>	[b][r]			/ # -	
+	BRZ	>	[b][r][Z]
+:SL	BRZ	>	[b][r]			/ # -	
+:SL	BRZ	>	[b][r][Z]
+	BUI	>	[b][I]
+	CAP	>	+[=][5][k][@][p]	/ - +
+	CAR	>	+[=][k][a][r]		/ - +
+	CAT	>	+[=][1][k][@][t]	/ - +
+:IT	CCA	>	[k][ax]			
+:IT	CCH	>	[k]			
+;:IT2	CCH	>	[C]			
+:SP	CHO	>	[C][o]  		/ - #	
+:GE	CHT	>	[k][t]	   		
+:IT	CIA	>	[=][C][x]		
+:SL	CIE	>	[C][E]			/ # -	
+	CIR	>	[s][R]			/ # -
+	CKI	>	[4][t][s][k][i]		/ - #
+;:SL2	CKI	>	[k][i]			/ - #	
+:SL	CKY	>	[t][s][k][i]		/ - #	
+;:SL2	CKY	>	[k][i]			/ - # 	
+;	COO	  >	[k][o][c]		/ # - [+Cons][+Syl]
+	COR	  >	[3][k][ox][r]			/ # -
+	CRU	  >	[k][r][u]			/ - [+Cons][+Voc]
+	CUE	>	[5][k][Y]		/ - +
+	CYK	>	[4][C][I][k]		/ - #
+	DAY	>	+[=][1][d][e]		/ - +
+	DIA       >	[d][A][@x]			/ # -
+	DIE	  >	[=][1][d][A][=][1][x]		/ # - [+Seg]
+:GE	DIE	>	[d][i]				/ # - 	
+:EN+	DIE	  >	[=][1][d][A][=][1][x]		/ # - [+Seg]
+	DIS	  >	[d][I|][s]			/ # -
+	DOM	>	+[=][1][d][x][m]	/ - +
+	DRZ	>	[J]
+:SL	DRZ	>	[J]
+	DUO	  >	[d][u][ao]			/ # -
+	EAL	>	[4][i][x][l]		/ [+Voc] R - +
+	EAR	>	[R]			/ # - {N,L,TH}
+	EAR	>	[i][r][+]		/ # -
+:FR	EAU	>	[o]			
+	EAU	>	[3][o]			/ - +
+	EAU	>	[Y]		
+	ECT	>	[3][E][k][t]		/ - +
+	EDO	>	[3][e][=][1][d][o]	/ - #
+	EDU	  >	[E][J][|]			/ # - 
+	EEN	>	[3][i][n]		/ - +
+	EER	>	[3][i][r]		/ - +
+	EFY	>	[|][=][1][f][A]		/ - +
+:FR	EIL	>	[e]			/ [+Syl] - #	
+	EME	>	[i][m]			/ - +
+	END	>	[1][|][n][d]		/{G,D} - +
+	END	>	[3][E][n][d]		/ [+Cons] - +
+	ENE	>	[i][n]			/ # [+Cons]<1-n> - +	
+	ENE	>	[5][i][n]		/ - +
+	ENG	  >	[1][I][G]			/ - L
+	ENT	>	[E][n][t]		/ # [+Cons]<1-n> - +
+	ENT	>	E+[=][1][N][t]		/ [+Voc]{C,L,D,G} - +
+	ENT	>	[1][Ex][n][t]		/ - +
+	EPI	  >	[E|][p][I|]			/ # -
+	ERY	>	[E][r][i]		/ # [+Cons]<1-n> - +
+	ERY	>	E+[=][4][R][=][1][i]	/ [+Voc]{V,N,C,P,K,D} - +
+	ERY	>	[4][R][=][1][i]		/ [+Cons] - +
+:IT	ESE	>	[=][e][z][=][i]		/ - #	
+	ESE	>	[3][i][z]		/ [+Cons] - +
+	ESS	>	[E][s]			/ # [+Cons]<1-n> - +
+	ESS	>	[1][E|][s]		/ - +
+	EST	>	[=][1][x][s][t] 	/ K - #	
+	ETE	>	[3][i][t]		/ [+Syl][+Cons] - +
+	EUM	>	[3][i][=][1][x][m]	/ S - +
+	EUM	>	[4][i][=][1][x][m]	/ - +
+:FR	EUR	>	[R]			
+	EUR	>	[3][x][r]		/ - +
+	EUX	>	[=][o]			
+:FR	EUX	>	[=][o]			
+	EYE	>	+[A]			
+;	EYE	>	[1][A]			/ - +
+	FLY	>	+[=][f][l][A]		/ - +
+	FUL	>	+[=][5][f][L]		/ - +
+	GEO	  >	[J][i][ax]			/ # -
+:SP	gER	>	[g][w][e][r]		/ - #
+	GHB	>	[b]
+	GHT	>	[t]			
+:IT	GIA	>	[=][J][ax]		
+:IT	GIU	>	[=][J][u]		
+:IT	GLI	>	[g][l][y]		/ - [+Voc]	
+:FR	GNE	>	[n][y]			/ - # 
+	HUM	>	[h][Y][m]		/ - [+Voc]
+	IAC	>	E+[=][4][i][=][1][@][k]	/ [+Voc]{D,N} - +
+	IAC	>	[4][i][=][1][@][k]	/ - +
+	IAK	>	[4][i][=][1][@][k]	/ - #
+	IAL	>	[A][l]			/ + [+Cons]<1-n> - +
+	IAL	>	E+[=][4][i][=][1][x][l]	/ [+Voc]{L,B,D,R,P,N} - +
+	IAL	>	[4][i][x][l]		/ - +
+	IAN	>	E+[=][4][i][=][1][x][n]	/[+Voc]{P,R,D,V,B,G,[+Nas]} - +
+	IAN	>	[4][i][=][1][x][n]	/ - +
+	IAR	>	[4][y][R]		/ [+Syl] - +
+	ICA	>	[4][|][=][1][k][x]	/ [+Syl] - #
+	ICE	>	[A][s]			/ # [+Cons]<0-n> - +
+	ICE	>	[1][A][s]		/ [+Voc]{V,F} - +
+	ICE	>	E+[=][1][|][s]		/ [+Voc]{M,D,T,} - +
+	ICE	>	[1][|][s]		/ [+Cons] - +
+:IT	ICO	>	[=][i][k][=][o]		/ - #	
+	IDE	>	[1][A][d]		/ [+Cons] - +
+:SL	IEL	>	[i][l]			/ - #	
+	IFY	>	E+[=][1][|][=][1][f][A]	/ [+Voc]{R,N,T} - +
+	IFY	>	[4][|][=][1][f][A] 	/ - +
+	IgE	>	[3][i][g]		/ - +
+	ION	>	[1][y][x][n]		/ {L,N} - +
+	ION	>	E+[1][|][n]		/ G - +
+	ION	>	[1][|][n]		/ H - +
+	ION	>	[4][i][=][1][x][n]	/ [+Syl] -
+        IOR	>	[A][R]			/ # [+Cons]<1-n> - +
+	IOR	>	E+[=][4][y][R]		/ [+Voc]{V,N} - +
+	IOR	>	[4][i][R]		/ - +
+:FR	IOT	>	[i][=][o]		/ - #	
+;:FR2	IOT	>	[i][=][o][t]		/ - #	
+	IqE	>	[3][i][k]		/ - +
+	ILE	>	[1][L]	 		/ [+Syl] {T,B,C,S} - +
+	ILE	>	[1][A][l]		/ - +
+	ILY	>	[I][l][i]		/ # [+Cons]<1-n> - +
+	ILY	>	[=][1][|][l][i]		/ [+Cons] - +
+:IT	INE	>	[=][i][n][=][i]		/ - #	
+	INE	>	[A][n]			/ + [+Cons]<1-n> - +
+	INE	>	[1][i][n]		/ {Z,T,R,S} - +
+	INE	>	[1][I|][n]		/ {M,G,C,N} - +
+	INE	>	[1][A][n]		/ [+Cons]  - +
+	INI	>	[3][i][n][=][1][i]	/ - +
+	INO	>	[3][i][n][=][1][o]	/ - #
+	ISE	>	[4][|][s]		/ [+Voc] M - +
+	ISE	>	[1][A][s]		/ {D,C} - +
+        ISE	>	[3][A][z]		/ # [+Cons]<1-n> - +
+	ISE	>	[3][A][z]		/ # [+Syl][+Cons] - +
+	ISE	>	[1][A][z]		/ [+Cons] - +
+	ISH	>	[I][S]			/ # [+Cons]<0-n> - +
+	ISH	>  	E+[=][4][|][S]		/ [+Cons][+Voc]{V,D,P} - +
+	ISH	>	+[=][4][|][S]		/ - +
+	ISM	>	+[=][1][I|][z][x][m]	/ - +
+	ISO	  >	[A][s][ax]			/ # -
+	IST	>	+[=][1][I|][s][t]	/ - +
+;	IST	>	+[=][1][I|][s][t]	/ [+Syl][+Syl] - +
+	ITE	>	[A][t]			/ + [+Cons]<1-n> - +
+	ITE	>	[5][|][t]		/ {O,I}{S,N} - +
+	ITE	>	[5][A][t]		/ [+Cons] - +
+	ITY	>	[I][t][i]		/ # [+Cons]<1-n> - +
+	ITY	>	[4][|][=][1][t][i]	/ - +
+	IUK	>	[4][i][=][1][U][k]	/ - #
+	IUM	>  E+[=][4][i][=][1][x][m] / [+Cons][+Voc]{M,N,L,D,P,S} - +
+	IUM	>	[4][i][=][1][x][m]	/ - +
+	IUS	>	E+[=][4][i][=][1][|][s]	/ - +
+	IVE	>	[I][v]			/ # {G,L,R} - +
+	IVE	>	[A][v]			/ # [+Cons]<1-n> - +
+	IVE	>	E+[=][4][I|][v]		/ [+Voc] T -
+	IVE	>	+[=][4][I|][v]		/ [+Cons] - +
+	IZE	>	+[=][1][A][z]		/ [+Syl][+Cons] - +
+	KRZ	>	[k][r]				/ # -	
+:SL	KRZ	>	[k][r]				/ # -	
+	KEY	>	[k][i]				
+	LET	>	[1][l][E|][t]		/ - +
+	LOG	>	[5][l][c][g]		/ [+Syl] - #
+	MAC	>	[m][|][k]			/ # -	
+	MAN	>	+[=][1][m][@x][n]	/ - +
+	MEN	>	+[=][1][m][E][n]	/ - +
+	MIS	  >	[m][I|][s]			/ # -
+	NEO	  >	[n][i][ao]			/ # -
+:GE	NEU	>	[n][O]			/ - #	
+:GE	NEU	>	[n][u]			
+	NGE	>	[n][J]  / - +
+	NON	  >	[n][a][n]			/ # -
+	NUT	>	+[*][1][n][^][t]	/ - +
+	OCK	>	[1][c][k]		/ - +
+	ODE	>	+[=][1][o][d]		/ [+Syl][+Cons] - +
+	OEA	>	[=][3][i][=][1][x]	
+:GE	OEH	>	[o]			
+:GE	OFF	>	[c][f]			/ - # 
+	OFF	>	+[=][1][c][f]		/ - +
+	OGA	>	[3][o][=][1][g][x]	/ - #
+	OgE	>	[5][c][g]		/ [+Syl] - +	
+:GE	OHL	>	[o][l]
+        OIC	>	[3][o][=][1][|][k]	/ - +
+	OID	>	[O][d]			/ - +
+	OIE	>	[w][a]			/ - #		
+	OIR	>	[5][w][a][r]		/ - +
+	OIS	>	[w][a]			/ - #		
+	OIX	>	[w][a]			/ - #	
+:FR	OIX	>	[w][a]			/ - #	
+	OMA	>	[3][o][m][=][1][x]	/ - +
+	OMY	>	[4][x][m][=][1][i]	/ [+Cons] - +
+:JA	ONE	>	[o][n][=][i]		/ - #   
+:IT	ONE	>	[o][n][=][i]		/ - # 	
+;:IT2	ONE	>	[o][n]			/ - # 	
+	ONE	>	[1][w][^][n]		/ + - +
+	ONI	>	[3][o][=][1][n][i]	/ - #
+	ONY	>	[o][n][=][1][i]		/ # [+Cons]<1-n> - +
+	ONY	>	[1][x][n][=][1][i]	/ - +
+	OON	>	[3][u][n]		/ - +
+	ORY	>	[o][r][i]		/ # [+Cons]<1-n> - +
+	ORY	>	[1][o][r][i]		/ [+Cons] T - +
+	ORY	>	[1][R][i]				
+	OSA	>	[3][o][=][1][s][x]	/ - #
+	OSE	>	[1][o][s]		/ {GN,I,C,T,M,D} - +
+	OSI	>	[3][o][s][=][1][i]	/ - # 
+:IT	OSI	>	[3][o][s][=][1][i]	/ - # 
+	OSS	>	[1][c][s]		/ # [+Cons]<1-n> - +
+	OTE	>	[3][o][t]		/ + [+Cons]<0-n> - +
+	OTO	>	[3][o][=][1][t][o]	/ - #
+:FR	OUI	>	[w][i]
+:FR	OUR	>	[u][r]			/ - #
+	OUR	>	E+[=][4][R]	/ [+Cons][+Voc]{V,B,D,P} - +
+	OUR	>	[=][4][R]		/ [+Syl] - +
+	OUS	>	+[=][1][x][s]		/ - +
+	OUT	>	[W][t]				/ # -
+	OUX	>	[3][u]			/ - #
+	OYO	>	[3][o][=][1][y][o]	/ - #
+	PER	>	[p][R]				/ # -
+	PLE	>	[5][p][L]		/ - +
+	POD	>	+[=][1][p][a][d]	/ - +
+	POT	>	[=][1][p][a][t]		/ - +
+;	PRE	>	[p][r][i]			/ # -
+	qER	>	[k][R]			/ - +
+	RED	>	[r][E][d]		/ # - [+Cons,-R]
+	RRH	>	[r]		
+	SAW	>	+[s][c]				
+:GE 	SCH	>	[S]	
+:SL	SCH	>	[S]	
+        SCH	>	[S]	/ - +
+	SCH	>	[S]	/ # - [+Cons]	
+	SCH	>	[s][k]  
+	SEA	>	[s][i]			/ # - [+Cons,-R]
+	SIA	>	[4][Z][x]		/ - +
+:SL	SKE	>	[s][k][i]		/ - #	
+:SL	SKI	>	[s][k][i]		/ - #	
+        SKI	>	[4][s][k][i]		/ - +
+:SL	SKY	>	[s][k][i]		/ - #	
+	SKY	>	[s][k][A]		/ # -
+	SLE	>	[L]			/ - +
+:EN+	SIA	>	[4][Z][x]		/ - +
+	SNE	>	[n]			/ - +		
+	SON	>	[4][s][^x][n]		/ + - +
+	SON	>	[4][z][N]		/ [+Voc][+Voc] - +
+	SON	>	[5][s][N]		/ - +
+;	SUB	>	[s][^x][b]		/ # -
+	SUN	>	[s][^][n]		/ # -
+	TCH	>	[C]			
+;	TET	>	[=][3][t][E][t]		/ - +
+	THY	>	[T][i]			/ - +
+	TIC	>	[4][t][|][k]		/ - +
+	TON	>	[=][5][t][x][n]		/ - +
+	TRY	>	[5][t][r][i]		/ [+Syl] - +
+	UAL	>	[4][u][=][1][x][l]		/ - +
+:JA	UME	>	[u][m][e]		/ - #
+	UME	>	[1][Y][m]		/ {F,H,L} - +
+	UME	>	[1][u][m]		/ - +
+	UNI	>	[Y][n][|]		/ # - [-Nas]
+	UOY	>	[O]
+	UTE	>	[Y][t]			/ # [+Cons,-L] - +
+	UTE	>	[3][Y][t]		/ # [+Syl] {B,C,P,M} - +
+	UTE	>	[1][Y][t]		/ {B,C,P,M} - +
+	UTE	>	[3][u][t]		/ # [+Syl] - +
+	UTE	>	[1][u][t]		/ - +
+:GE	VAN	>	[v][@][n][+]		/ # - 
+	WAR	>	[w][o][r]		/ # - [+Cons]
+	WAY	>	+[=][w][e]		/ - +
+	WELL	>	[w][E][l]		/ - #
+	WON	>	[w][^][n]			
+	WOR	>	[w][R]
+	ZOO	>	[z][o][ax]		/ # - [+Syl]
+	ZZO	>	[z][o]			/ - # 
+:IT	ZZO	>	[z][o]			/ - # 
+
+; the next bunch also have to be treated carefully since these are the
+; heavy morphological rules of pluralization and the like.
+        IED	>	Y+[=][d]			/ - +
+;:FR	IER	>	[i][=][e]		/ - #	
+;:FR2	IER	>	[i][r]			/ - #	
+        IER	>	[i][r]			/ # [+Cons] - +
+        IER	>	Y+[=][1][x][r]		/ - +
+	EST	>	[E][s][t]	/ # [+Cons]<0-n> - +
+	EST	>	+[=][1][|][s][t] 	/ [+Cons][+Cons,+Gem] - #
+	EST	>	E+[=][1][|][s][t]	/ {C,S,U,V,Z} - #
+	EST	>	E+[=][1][|][s][t] / {B,C,D,F,G,K,P,T,Z} L - #	
+	EST	> E+[=][1][|][s][t] / [+Cons][+Voc]{B,D,K,L,M,N,P,R,T} - #
+	EST	>	+[=][1][|][s][t]   / - #
+	ING	>	[I][G]		/ # [+Cons]<0-n> - +
+	ING	>	+[=][1][|][G]	/ [+Cons][+Cons,+Gem] - +
+	ING	>	E+[=][1][|][G]	/ ENG - +
+	ING	>	E+[=][1][|][G]	/ SPONG - +
+	ING	>	E+[=][1][|][G]	/ UNG - +
+	ING	>	E+[=][1][|][G]	/ # {B,P,T,W} AST - #
+	ING	>	E+[=][1][|][G]	/ {CH,FL,D,M,R} ANG - +
+	ING	>	E+[=][1][|][G]	/ {IMP,TW,CR,ER,FR,H,G,S,T} ING - +
+	ING	>	+[=][1][|][G] 	/ NG - +
+	ING	>	E+[=][1][|][G]	/ {C,G,S,U,V,Z} - +
+	ING	>	E+[=][1][|][G]	/ {B,C,D,F,G,K,P,T,Z} L	- +
+	ING	>	E+[=][1][|][G] / [+Cons][+Voc]{B,D,K,L,M,N,P,R,T} - +
+	ING	>	+[=][1][|][G]	/ - +
+	IES	>	Y+[z]		/ - #
+;	OES	>	O+[z]		/ [+Syl] - #
+	AA	>	[3][a]		
+:JA	AE	>	[a][e]
+:GE	AE	>	[E]	
+:IT	AE	>	[a][E]	
+	AE	>	[A]			/ -  #		
+	AE	>	[A]	/ -  #		
+	AE	>	[e]	/ - {R,L}
+	AE	>	[x]	/ # - STH
+	AE	>	[ix]
+:GE	AH	>	[a]	
+	AH	>	[ax]	/ - #
+:JA	AI	>	[a][i]
+:SP	AI	>	[a][i]
+:GE	AI	>	[A]	
+:IT	AI	>	[=][A]	/ - [+Voc] 
+:SL	AI	>	[A]	
+:FR	AI	>	[E]	
+	AI	>	[ex]
+:SL	AJ	>	[A]	
+	AL	>	[@][l]			/ # [+Cons]<0-n> - +
+	AL	>	E+[=][1][@x][l]		/ # [+Cons][+Voc][+Cons]- +
+;	AL	>	E+[=][1][@x][l]		/ {N,T,V,R,B,P} - +
+	AL	>	[1][@x][l]		/ [+Cons] - +
+:JA	AO	>	[a][o]
+	AO	>	[W]			/ - +
+	AR	>	[=][1][ax][r]		/ [+Syl][+Cons] - +
+:JA	AU	>	[a][u]
+:GE	AU	>	[W]			
+:SL	AU	>	[W]			
+:FR	AU	>	[o]			
+:SP	AU	>	[W]			
+;:IR	AU	>	[c]			
+	AU	>	[o]			/ - {F,V,R}
+        AU	>	[W]			/ - #
+	AU	>	[c]     
+:JA	AW	>	[a][w]
+:SL	AW	>	[a][v]
+	AW	>	[c]			/ + [+Cons]<1-n> -
+	AW	>	[c]			/  - [+Cons]<0-1> +
+;	AW	>	[ax][w]	
+:JA	AY	>	[a][y]
+:SL	AY	>	[A]			
+	AY	>	[e]	
+	BI	>	[b][A]		        / # - {D,F,L,N,P,R,S}[+Voc]
+:EN+	BI	>	[b][A]		        / # - {D,F,L,N,P,R,S}[+Voc]
+:GE	BJ	>	[b][y]
+	BT	>	[t]	/ - +
+:EN+	BT	>	[t]	/ - +
+;	BU	>	[b]	/ # - [+Voc]
+:IT	CC	>	[C]	/ - {E,I}	
+:GE	CH	>	[k]			
+:JA	CH	>	[C]			
+:IT	CH	>	[k]			
+:SL	CH	>	[C]	/ # -
+:SL	CH	>	[h]			
+:FR	CH	>	[S]			
+:SP	CH	>	[C]			
+        CH	>	[k]	/ [+Cons]<1-n> {E,O} - +
+	CH	>	[k]	/ # - O [+Liq]
+	CH	>	[k]	/ - {L,N,R}
+	CH	>	[k]	/ # - EM
+	CH	>	[k]	/ # OR -
+	CH	>	[C]
+:IT	CI	> 	[C]	/ - [+Voc] 
+:SL	CK	>	[s][k]	
+;:SL2	CK	>	[k]	
+	CK	>	[k]
+	CY	>	[3][s][A]		/ # - {A,C,P}
+	CZ	>	[z]		/ + -
+	CZ	>	[C]	
+:SL	CZ	>	[C]	
+:IT	DE	>	[d][i]		/ # - [+Cons,-L]
+	DJ	>	[J]
+	DG	>	[J]
+	DT	>	[t]		/ - #	
+:GE	DT	>	[t]		/ - #	
+	DZ	>	[J]		
+:SL	DZ	>	[J]		
+	EA	>	[i]			/ + [+Cons]<1-n> - +
+	EA	>	[i][x]			/ [+Syl] - +
+	EA	>	[E]	/ - SURE	
+	EA	>	[E]	/ - D +
+	EA	>	[e]	/ {BR,ST} - K +
+	EA	>	[e]	/ + {SW,B,P,T,W} - R +
+;       EA	>	[e]	/ GR - T 
+;	EA	>	[i]	/ + [+Cons]<0-n> - T +
+	EA	>	[i]	/ {q,SH,WR} -
+;       EA	>	[i]	/ - THE [+Nas]<0-1> +
+	EA	>	[E]	/ [+Cons,-L] -  {NSE,D}
+	EA	>	[E]	/ - L<0-1>TH
+	EA	>	[E]	/ #H - V
+        EA	>	[E]	/ # {J,Z} - [+Seg]
+	EA	>	[x]	/  - R [+Cons]
+	EA	>	[ix]
+	EE	>	[3][i]			/ {U,Y,C,N,R,S} - +
+	EE	>	[i]			
+:JA	EI	>	[e][i]
+:GE	EI	>	[A]	
+:SL	EI	>	[A]	
+:IT	EI	>	[e][i]	
+        EI	>	[A]	/ H -
+;       EI	>	[A]	/ - SS		
+	EI	>	[ex]    / {V,R} - {N,L}
+	EI	>	[ex]	/ - G {H,N}
+	EI	>	[ix]	
+:SL	EJ	>	[e]	
+:SL	EK	>	[E][k]			/ - #	
+:SP	EL	>	[E][l]			/ - #	
+	EN	>	[E|][n]				/ # -
+	EN	>	[E][n]			/ # [+Cons]<1-n> - +
+;SB added following rule because a true syllabic n doesn't follow a k.
+	EN	>	E+[=][1][|][n]	/ [+Voc]{K} - +
+;SB deleted k from the left environment in the following rule.
+	EN	>	E+[=][1][N]	/ [+Voc]{V,D,P,R,M,T,S} - +
+	EN	>	+[=][N]			/ [+Cons] - +
+:IT	EO	>	[i][=][o]		/ - #	
+:JA	EO	>	[e][o]
+	EO	>	[1][i][o]		/ - +
+	EO	>	[i][x]	/  [+Voc][+Cons][+Cons,+Gem] - N #
+        EO	>	[E]	/ # {J,L} -
+;	EO	>	[i][o]	/ - +
+	EO	>	[i][a]  / # [+Cons]<1-2>  -  N
+        EO	>	[i]	/ # P -
+	EO	>	[i][ax]  
+:JA	EU	>	[e][u]	
+:GE	EU	>	[O]	
+;:GE2	EU	>	[u]	
+:SL	EU	>	[u]	
+:FR	EU	>	[u]	
+	EU	>	[y][u]		/ {H,P,F,#} -
+	EU	>	[u]
+:JA	EW	>	[e][w]
+        EW	>	[o]	/ # S - +
+	EW	>	[y][u]    / {#,F,H,K,M,P} -
+	EW	>	[u]
+	EX	>	E+[1][E][k][s]		/ [+Voc] {P,B,T,D,R} - +
+	EX	>	[1][E][k][s]		/ - +
+	EY	>	[e]			/ # [+Cons]<1-n> - +
+        EY	>	[3][e]			/ {V,+OB} - +
+	EY	>	[1][i]			/ - +
+;	EY	>	[i]	/ - # 
+	EY	>	[e]	/ # [+Cons]<1-n> -  #	
+;	EY	>	[ei]	/  {R,N} [+Cons]<0-1>  -  #
+	EY	>	[ei]	
+	EZ	>	[4][E][z]		/ - #
+:SP	EZ	>	[4][E][z]		/ - #
+	FJ	>	[f][y]
+	FY	>	[1][f][i]		/ - +
+	gE	>	[3][g]			/ - +
+:IT	GG	>	[J]	/ - {I,E} 
+	GG	>	[g][J]	/ SU -
+	GG	>	[J]	/ EXA -
+	GG	>	[g][g]
+:IT	GH	>	[g]	/ - [+Voc] 
+	GH	>	[g]	/ + -
+	GH	>	[]	/  [+Voc,+High]  -  +
+;	GH	>	[]	/  - TH +
+:IT	GI	>	[J]	/ - [+Voc] 
+	GM	>	[m]	/ - #		
+:FR	GN	>	[n][y]	/ # - 	
+:GE	GN	>	[g][n]
+	GN	>	[n]	/ # - 		
+	GN	>	[n]	/ - E<0-1> +
+	GY	>	[J][i]  / {N,R} - +
+	HL	>	[l]		/ - #	
+	HN	>	[n]		/ - #	
+:GE	HN	>	[n]		/ - #	
+	IA	>	[i][x]  / - +
+	IA	>	E+[=][4][i][x]        / [+Voc]{B,C,M,N,R,L,P,D,S} - +
+:IT	IA	>	[y][ax]	/ [+Voc] - 
+:IT	IA	>	[i][x]	/ [+Cons] - #	
+:SL	IA	>	[i][@x]		/ - N		
+:SL	IA	>	[i][ax]				
+:EN+	IA	>	E+[=][4][i][x]        / [+Voc]{B,C,M,N,R,L,P,D,S} - +
+	IA	>	[4][i][x]		/ - +
+	IA	>	[A][x]	/ # [+Cons]<1-n> - [+Cons] +
+	IC	>	+[=][4][I|][k]		/ - +
+	ID	>	[I][d]			/ # [+Cons]<1-n> - +
+	ID	>	E+[=][4][|][d]		/ [+Voc]{M,R,PH} - +
+	ID	>	+[=][4][I|][d]		/ [+Cons] - +
+;	ID	>	[3][i][d]		/ - #		;AR
+:JA	IE	>	[i][e]
+:GE	IE	>	[i]	
+:SL	IE	>	[i]	
+	IE	>	[A] 			/ + [+Cons] -  +
+	IE	>	E+[=][1][i]		/ [+Voc]{G,N,V,R} - +
+	IE	>	+[=][1][i]		/ - +
+        IE	>	[A][|]	/ # SC - 
+        IE	>	[Ai][|]	/ - T +
+        IE	>	[E]	/ FR - N
+        IE	>	[ix]	/ - N
+	IE	>	[A]	/ # H -
+	IE	>	[i]	/ [+Cons] - [+Cons]
+:JA	II	>	[i][i]
+:GE	II	>	[I]	
+:FR	IN	>	[@][n]		/ [+Cons] - # 
+:JA	IO	>	[i][o]
+:IT	IO	>	[i][=][o]	/ [+Cons] - # 
+:SL	IO	>	[i][o]		
+        IO	>	[A][x]	/ # [+Cons]<1-n> - [+Cons] +
+	IO	>	[i][o]			/ - +
+	IS	>	[|][s]			/ [+Syl][+Cons] - #
+	IS	>	E+[|][s]	/ [+Voc] S - #
+	IS	>	[A]	/ # - L		
+:JA	IU	>	[i][u]
+;	IU	>	[i][x]
+:SP	JU	>	[w]	/ # - [+Voc]
+	KH	>	[k]	/ # -
+	KH	>	[k]	/ - #		
+	KN	>	[n]	/ + -		
+	LD	>	[d]	/ U - +
+;	LF	>	[f]	/ A - +
+	LK	>	[k]	/ {A,O} - +	
+	LM	>	[m]	/ {A,O} - +
+:EN+	LM	>	[m]	/ {A,O} - +
+        LY	>	[l][A]			/ # [+Cons]<1-n> - +
+	LY	>	+[=][1][l][i]		/ [+Seg,-L] - +
+	MB	>	[m]	/ - #
+	MC	>	[m][@][k]	/ # - {E,I} 
+	MC	>	[m][|][k]	/ # -	
+; Original rules (DT3) had MN > N and MN > M [sic] where no brackets
+	MN	>	[n]	/ # -		
+	MN	>	[m]	/ - #
+	NG	>	[G]	/ - {+,TH}
+	NG	>	[n][J]	/ CO - E
+	NG	>	[G][g]
+	NK	>	[G][k]
+:GE	NZ	>	[n][s]			/ - # 
+	OA	>	[o][x]	/ - #		
+;       OA	>	[c]	/ BR - D
+	OA	>	[o]     	
+:GE	OE	>	[o]	
+	OE	>	[o][i|]	/ #C -
+        OE	>	[o][Ex]	/ # P  - [+Seg]
+        OE	>	[u]	/ SH  -  	
+        OE	>	[i]	/ F - [+Seg]
+	OE	>	[o]	
+:JA	OH	>	[o][h]			/ - [+Voc]
+:JA	OH	>	[o]
+:GE	OH	>	[o]
+:JA	OI	>	[o][i]
+	OI	>	[O]	
+        OL	>	[3][o][l]		/ TR - +
+	OL	>	[5][x][l]		/ {T,B,D} - #
+	OL	>	[5][c][l]		/ [+Cons] - #
+:SP	ON	>	[c][n]	/ - #
+:JA	OO	>	[o][o]	
+	OO	>	[o]	/ {FL,D} - R
+	OO	>	[^]	/ {BL,FL} - D 
+	OO	>	[U]	/ {F,S} - T +
+	OO	>	[U]	/ - {K} +
+	OO	>	[U] 	/ {ST,W,G,H} -  D +
+        OO	>	[U]	/ {H,W} - {F,L} +
+	OO	>	[u]		
+	OR	>	E+[=][1][R]	/ [+Cons][+Voc]{P,Z,D,R} - +
+	OR	>	E+[=][1][R] 	/ [+Cons][+Voc]{J,B,V,T} - +
+:EN+	OR	>	E+[=][1][R] 	/ [+Cons][+Voc]{J,B,V,T} - +
+:EN+	OR	>	E+[=][1][R]	/ [+Cons][+Voc]{P,Z,D,R} - +
+	OR	>	+[=][1][ox][r]	/ [+Syl][+Cons] - +
+:FR	OT	>	[o]	/ - #		
+;:FR2	OT	>	[o]	/ - #		
+:JA	OU	>	[o][u]
+:SL	OU	>	[u]	
+:FR	OU	>	[u]	
+:SP	OU	>	[u]	
+	OU	>	[1][u]			/ - #
+	OU	>	[U]	/ -  LD 
+        OU	>	[u]	/ T - R +
+	OU	>	[u]	/ -  +
+        OU	>	[u]	/ {Y,C} - TH +
+	OU	>	[o]	/ {C,F,G,M,P,Y,S} - R
+	OU	>	[x]	/ -  R [+Cons,-C]{[+Voc],+}
+	OU	>	[^x]	/ -  {B,P}  LE	
+	OU	>	[u]	/ -  P	
+        OU	>	[^]	/ Y - N
+	OU	>	[^]	/ T - [+Cons,-R]
+	OU	>	[W]	/ - CH
+	OU	>	[o]	/ - {Y,F,C,P,M}
+	OU	>	[c]	/ - GHT 
+	OU	>	[W]		
+:JA	OW	>	[o][w]
+;       OW	>	[a]	/ - LE
+	OW	>	[o]	/ {TH,G,#} R -
+	OW	>	[o]	/ {B,S,#} L -
+	OW	>	[o]	/ S {T,H,N,L}<0-1> -
+	OW	>	[o]	/ {M,T,B,KN} -
+	OW	>	[o]	/ [+Voc][+Cons]<1-2> - +
+	OW	>	[W]
+	OX	>	[ax][k][s]			/ # -
+	OY	>	[O]			
+	PH	>	[p][h]	/ # U -		
+	PH	>	[f]		
+	qE	>	[3][k]	/ - +
+;	RE	>	[x][r]	/ [+Cons,-R] - #
+	RH	>	[r]	/ # -
+	RH	>	R+[h]
+;	RY	>	[5][r][i]		/ [+Syl][+Cons] - +
+	SH	>	[S]		
+:SL	SZ	>	[S]
+;	TH	>	[T]	/ - +
+	TH	>	[D]	/ - ERN<0-1> +
+	TH	>	[D]	/ - OUGH +
+	TH	>	[D]	/ - [+Voc]<1-n> +
+	TH	>	[D]	/ MOO - +
+;	TH	>	[]	/ S - M	
+	TH	>	[T]	/ - #		
+;	TH	>	[T] / # - [+Voc][+Nas][+Cons,-Cont] +
+  	TH	>	[D]	/ # - [+Voc][+Cons]<0-1> #
+	TH	>	[T]		
+	TY	>	[t][A]			/ # - [+Cons,-Nas]
+        TY	>	+[=][4][t][i]		/ {F,N,L}E - +
+	TZ	>	[t][s]  / - #
+:JA	UE	>	[u][e]
+:GE	UE	>	[Y]	/ #{M,B} - 
+:GE	UE	>	[U]	
+;:GE2	UE	>	[u]	
+:SP	UE	>	[w][E]
+	UE	>	[1][Y]			/ [+Voc]{V,L,N,G,H} - +
+	UE	>	[1][u]			/ - +
+	UE	>	[u]	
+:GE	UH	>	[u]	
+:JA	UI	>	[u][i]
+	UI	>	[u][I|]	/  -  {N,D,+}
+	UI	>	[I]	/ B -			
+	UI	>	[u|]	
+	UN	>	[x][n]				/ # -
+:JA	UO	>	[u][o]
+:IT	UO	>	[w][o]
+	UO	>	[o]	/ FL -			
+        UO	>	[u][o]	/ - #			
+	UO	>	[u][o]	/ D -			
+	UP	>	+[1][^][p]		/ [+Syl]{E,[+Cons]} - +
+	US	>	E+[|][s]		/ N - +
+	US	>	[u|][s]			/ [+Syl][+Cons] - +
+;	US	>	[x][s]	/ [+Cons] - #
+        UU	>	[Y]	/ C -			
+        UU	>	[Y][x]	/ N -			
+:JA	UY	>	[u][y]
+	UY	>	[A]	
+	WH	>	[h]  	/ # - O	
+	WH	>	[w]		
+:SL	WR	>	[v][r]	/ # -	
+	WR	>	[r]	/ + -
+:IT	ZZ	>	[t][s]	
+;:IT2	ZZ	>	[z]	
+
+; These following rules are special. Leave them here for now and perhaps
+; later we can move them if there's no liability.
+	D	>	[d]			/ EE - +
+        R	>	[r]			/ EE - +
+	ER	>	[x][r]			/ TH - +
+	ED	>	[E][d] 		/ + [+Cons]<0-n> - + 	
+	ED	>	+[=][d]		/ [+Cons][+Cons,+Gem] - #
+	ED	>	E+[d]		/ ENG - #
+	ED	>	E+[d]		/ SPONG - #
+	ED	>	E+[d]		/ UNG - #
+	ED	>	E+[d]		/ # {B,P,T,W} AST - #
+	ED	>	E+[d]		/ {CH,FL,D,M,R} ANG - #
+	ED	>	E+[d]           / {IMP,TW,CR,ER,FR,H,G,S,T} ING - #
+	ED	>	+[d]		/ NG - #	
+	ED	>	E+[d]		/ {C,G,S,U,V,Z} - #
+	ED	>	E+[d]		/ {B,C,D,F,G,K,P,T,Z} L - #
+	ED	>	E+[d]   / [+Cons][+Voc]{B,D,K,L,M,N,P,R,T} - #
+        ED	>	+[d]		/ - #
+	ER	>	[x][r]		/ # [+Cons]<0-n> - +
+	ER	>	+[=][1][x][r]	/ [+Cons][+Cons,+Gem] - +
+	ER	>	E+[=][1][x][r]	/ ENG - +
+	ER	>	E+[=][1][x][r]	/ SPONG - +
+;       ER	>	E+[=][1][x][r]	/ UNG - +
+	ER	>	E+[=][1][x][r]	/ {CH,FL,D,M,R} ANG - +
+        ER	>	E+[=][1][x][r]	/ {IMP,TW,CR,ER,FR,H,G,S,T} ING - +
+	ER	>	+[=][1][x][r]	/ NG - +
+	ER	>	E+[=][1][x][r]	/ {C,G,S,U,V,Z} - +
+	ER	>	E+[=][1][x][r]	/ {B,C,D,F,G,K,P,T,Z} L - +
+	ER	>	E+[=][1][x][r] / [+Cons][+Voc]{B,D,F,K,L,M,N,P,R,T} - +
+	ER	>	+[=][1][x][r]	/ - +
+	'S	>	+[z]		/ - #
+	S'	>	+[z]		/ - #
+:SP	ES	>	[E][s]		/ - #	
+;	ES	>	+[|][z]		/ [+Cons,+Sib][+Gem] - #
+	ES	>	E+[1][|][z]	/ [+Voc] {S,Z} - #
+;	ES	>	+[|][z]		/ [+Cons,+Sib] - #
+	ES	>	+[z]		/ SH - #
+	ES	>	+[z]		/ [+Voc][+Cons]<1-n>O - #
+	SS	>	[s]		/ - #
+	S	>	[s]		/ # [+Cons]<0-n> [+Voc] - +
+	S	>	+[z]		/ - #
+	+	>	[+]
+	'D	>	+[d]		/ - #
+	'LL	>	+[L]		/ [+Cons] - #
+	'LL	>	+[l]	
+	'M	>	+[m]		/ - #
+	'RE	>	+[r]		/ - #
+	'VE	>	+[x][v]		/ [+Cons] - #
+	'VE	>	+[v]		
+	 N'	>	+[n]		/ # [+Cons]<1-2>[+Voc] -
+	N'	>	+[N]    
+:JA	A	>	[x]	/ - #	
+:JA	A	>	[a]	
+:IT	A	>	[x]	/ - #
+:IT	A	>	[a]	
+:SL	A	>	[@x]	/ - N	
+:SL	A	>	[ax]	
+:SP 	A	>	[x]	/ - #	
+:SP 	A	>	[a]	
+	A	>	[a]	/ [+Cons]<1-n>[+Voc]<0-1> - LM +
+	A	>	[c]	/ + S<0-1>q - {SH,D,L,N,R,T} 
+        A	>	[@]	/ [+Cons]<0-n> - L {F,P} +
+;	A	>	[@]	/ # [+Cons]<1-n> - L [+Cons,-L]
+	A	>	[cx]	/ - L [+Cons] +
+;	A	>	[c]	/ + - L {D,S,M,R,T,W}
+;	A	>	[c]	/  - L [+Cons] +
+	A	>	[c]	/ q - R {[+Cons],#}
+;	A	>	[c]	/ S<0-1>q - L
+	A	>	[@]	/ - qE +
+	A	>	[e]	/ [+Cons,-L] - ST{E,Y}
+	A	>	[@]	/ - {PS,DG,X}
+;	A	>	[@]	/  - {M,G} #
+;	A	>	[a]	/ # SW - [+Cons] +
+	A	>	[e]	/ # W - {F,N,D,V} [+Voc]
+	A	>	[c]   / {[-Voc],#} W -[+Cons,-Velar]
+	A	>	[a]	/ - R {[+Cons,-R]<1-n>,#,+}
+	A	>	[ax]	/ [+Cons] - +
+	A	>	[e]	/  - [+Cons] LE +
+	A	>	[e]	/ # - {SY,TH}
+	A	>	[@]	/ - LV
+	A	>	[e]	/ - NGE 	
+	A	>	[@|]	/ - [+Nas][+Cons][+Voc]+
+	A	>	[@x]	/ - [+Cons][+Cons,+Gem]
+	A	>	[ax]	/ - [+Cons] A +
+;	A	>	[@x]	/ - [-Cont][-Cont][+Voc] +
+	A	>	[ex]	/ - [+Cons]<0-2>[+Voc]  +
+	A	>	[ex]	/  V - R  [+Voc]
+	A	>	[@x]	/ - [+Cons,-R]<1-n> +
+	A	>	[@x]
+	B	>	[b]	
+:IT	C	>	[C]	/ - {E,I} 
+:IT	C	>	[k]	
+:SL	C	>	[C]	/ - {E,I} 
+:SL	C	>	[k]	
+:SP	C	>	[s]	/ - {E,I} 
+:SP	C	>	[k]	
+        C	>       [C]	/ - E [+Cons][+Cons] O #
+        C	>	[s]	/ # - AE
+	C	>	[s]	/ -  {I,E,Y}
+	C	> 	[k]			
+	D	>	[d]	
+;:GE	E	>	[x]	/ [+Cons,-L] - # 
+:JA	E	>	[e]	
+:IT	E	>	[Ex]	/ - R
+:IT	E	>	[i]	/ - #	
+:IT	E	>	[E]	
+:SP	E	>	[e]	
+	E	>	[i]	/ # [+Cons]<1-n> -  +
+	E	>	[]	/ [+Seg] - +
+;	E	>	[E]	/ - VER +
+	E	>	[Ex]	/ - XE
+	E	>	[ix]	/ # Z - {R,N,B}
+	E	>	[ix]	/ - R [+Voc] {[+Voc],#,+}
+	E	>	[i]	/ - q [+Voc,-High]
+	E	>	[Ex]	/ - {R[+Voc][+Cons],RR}
+	E	>	[E|]	/ - [+Cons][+Cons,+Gem]
+	E	>	[x]	/ - R [+Cons]
+	E	>	[i|]	/ - [+Cons][+Voc] +
+	E	>	[E|]
+	F	>	[f] 	
+:GE	G	>	[g]	
+:JA	G	>	[g]	
+:IT	G	>	[J]	/ - {E,I} 
+:IT	G	>	[g]	
+:SL	G	>	[g]	
+:FR	G	>	[Z]	/ - {E,I} 
+:FR	G	>	[g]	
+:SP	G	>	[J]	/ - {E,I} 
+:SP	G	>	[g]	
+;       G 	>	[]	/ - LIO # 
+	G	>	[g]	/ # - E {LD,A,E,T,Y}
+	G	>	[g]	/ # - I {D,F,G,L,M,R,V,Z}
+	G	>	[g]	/ # - YN
+	G	>	[g] / # [+Cons]<1-n>[+Voc] G<0-1> - Y +
+	G	>	[J]     /  -  {I,Y,E}
+	G	>	[g]	
+:JA	g	>	[g][u]		
+:SP	g	>	[g][w]		 / - {A,I} 
+:SP	g	>	[g]		 / - E	
+ 	g	>	[g]		/ # -
+	g	>	[g][Y]	/ - {ITY,OUS,MENT,+ED,R,L}
+	g	>	[g][w]		/ - +
+	g	>	[g]
+:GE	H	>	[h]	
+:JA	H	>	[h]	
+:IT	H	>	[h]	
+:SL	H	>	[h]	
+:SP	H	>	[h]	
+	H	>	[]	/ - #
+	H	>	[]	/ # EX -
+	H	>	[h]
+:JA	I	>	[i]	
+:IT	I	>	[y]	/ [+Voc] - [+Voc] 
+:IT	I	>	[i]
+:SP	I	>	[i]	
+	I	>	[A]	/ - R [+Voc] {[+Voc],#,+}
+	I	>	[I|]	/  # - {R[+Voc][+Cons],RR}
+	I	>	[i]	/ [+Voc] [+Cons] - R #	
+	I	>	[x]     / [+Cons]<0-n> - R [+Cons]<0-n> 
+	I	>	[A]	/ + CL - M
+	I	>	[A|]	/  - {N,L}  D +
+	I	>	[A]	/ - G [+Nas] +
+	I	>	[A]	/ - GH		
+;	I	>	[i]	/ - qE +
+        I	>	[i]	/ + {SK,S,M,T} - +
+	I	>	[A]     / # [+Cons]<0-n> - +
+;	I	>	[i]	/ - #
+	I	>	[i]	/ - + 
+	I	> 	[A]	/ - [+Cons][+Liq][+Voc] +
+	I	>	[A]	/ # [+Cons]<1-n> - {TH,N} E +
+	I	>	[I|]	/ - [+Cons]<1-n> +
+	I	>	[I|]	/ - [+Cons][+Cons,+Gem]
+        I	>	[I|]	/ - [+Cons] I +
+	I	>	[A|]	/ - [+Cons][+Voc] +
+	I	>	[I|]
+:GE 	J	> 	[y]	/ - [+Voc][+Voc] 
+:GE	J	>	[J]	
+:SL	J	> 	[y]	
+;:SL2	J	> 	[J]	
+:FR	J	> 	[Z]	
+:SP	J	>	[y]	
+;:SP2	J	>	[J]	
+;       J	>	[y]	/ # F -
+	J	>	[J]		
+	K	>	[k] 		
+:IT	L	>	[l]	
+	L	>	[L]	/ [+Cons,-L] - E +
+	L	>	[l]		
+	M	>	[x][m]	/ {TH,S} - +
+	M	>	[m]		
+	N	>	[n]
+	O'	>	[o]	/ # -	
+:JA	O	>	[c]	/ - N [+Cons]	
+:JA	O	>	[o]	
+:IT	O	>	[o]	/ - #
+:IT	O	>	[o]	
+:SP	O	>	[o]	
+        O	>	[w][^]	/ + - NC<0-1> E +
+	O	>	[o]	/ # {D,W} - N'T #
+	O	>	[U]	/ W - L{F,V}
+	O	>	[a]	/ - {LV,X}
+	O	>	[o]	/ {N,P,R,T} - L L +
+	O	>	[o]	/ - L [+Cons,-L]
+;	O	>	[x]	/ + W - R [+Cons]
+	O	>	[ox]	/ - R[+Voc]{[+Voc],#,+}
+	O	>	[o]	/ # - R
+	O	> 	[cx]	/ - {R[+Voc][+Cons],RR}
+	O	>	[cx]	/ - R{[+Cons],#,+}
+        O	>	[o]	/ {GH,M,H,P} - ST +
+	O	>	[c]	/ - NG +
+;	O	>	[^]	/ - THER
+;	O	>	[^]	/ W - N
+        O	>	[^]	/ {L,B,D,H,G} - VE 
+        O	>	[^]	/ + {C,S} - ME +
+        O	>	[^]	/ + {D,N} - NE +
+	O	>	[u]	/ {M,PR} - VE +
+        O	>	[u]	/ {#L,WH} - {M,SE} +
+        O	>	[u]	/ {T,W} - MB +
+        O	>	[u]	/ + {TW,D,T} - +
+        O	>	[o]	/ {TR,B} - TH +
+	O	>	[a]	/ - DG
+        O	>	[a]	/ - STLE +
+	O	>	[o]	/ - gE +
+	O	>	[o]	/ - [+Cons] LE	+
+	O	>	[o]	/ # [+Cons]<1-n> - +
+;	O	>	[ax]	/ - + [+Cons]<0-n>[+Voc]
+	O	>	[o]	/ - + 
+        O	>	[ax]	/ - [+Nas][+Cons][+Voc] +
+	O	>	[ax]	/ - [+Cons][+Cons,+Gem]
+	O	>	[ox]	/ - [+Cons][+Voc][+Cons] +
+	O	>	[ox]	/ - [+Cons]<0-2> [+Voc] +
+;	O	>	[cx]	/ - [+Cons][+Voice]<1-n> +
+	O	>	[ax]	/ - [+Cons]<1-n> +
+	O	>	[ax]
+	P	>	[]	/ # - {S,N,T}
+	P	>	[p]	
+:SP	Q	>	[k]	
+        Q	>	[k]	
+	q	>	[k]	/ -  [+Seg] [+Voc] # 
+	q	>	[k]     / - {ETTE,EUR,ET,OR}
+	q	>	[k][w]  
+	R	>	[r]	
+; Next rule could be made more complex where S > [z] / # - and / - [+Voice]
+:GE	S	>	[s]	
+:JA	S	>	[s]	
+:IT	S	>	[s]	
+; The way the next rule really works in Polish is S > [S] / - {I,E}, i.e.
+:SL	S	>	[s]	
+:SP	S	>	[s]	
+	S	>	[z]	/ #BU - {Y,I}
+	S	>	[z]	/ [+Syl] - ERV
+	S	>	[z]	/ PRE - ER
+	S	>	[z]	/ W - {Y,E} +
+	S	>	[z]	/ [+Syl] - M
+	S	>	[z]	/ {#H,F,P} [+Voc] - E +
+	S	>	[z]	/ {F,M,P,T,N,#} EA - 
+	S	>	[z]	/ EE - E +
+	S	>	[z]	/ {O,U}I -
+	S	>	[z]	/ {C,P}L<0-1> AU -
+	S	>	[z]	/ {PHR, PH} A - E +
+	S	>	[z]	/ [+Nas] E - E +
+	S	>	[z]	/ {P,N,H,L,R} O - E +
+	S	>	[z]	/ {C,M,F} U - [+Voc]
+	S	>	[s]
+	T	>	[t]		
+:JA	U	>	[u]	
+:IT	U	>	[u]	
+:SP	U	>	[u]	
+        U	>	[e]	/ # B - R {I,Y,E}
+;	U	>	[Y]	/ + H - +<0-1> M [+Voc]
+	U	>	[Y]	/ - R {E,Y} +
+	U	>	[x]	/ # - R[+Cons]
+;	U	>	[Y]	/ + - NI
+	U	>	[Y]	/ # - {G,B,R,S,T}[+Voc]
+	U	>	[I]	/ + B - S [+Voc]
+	U	>	[x]	/ - R {[+Cons],#,+}
+	U	>	[Yx]	/ - {R[+Voc][+Cons],RR}
+	U	> 	[U]	/ # {P,F,B} - {LL,SH}
+	U	>	[^x]	/ - SCL
+	U	>	[u]	/ [+Cons] - TH #
+	U	>	[^x]	/ [+Cons] - {M,N,L} [+Cons][+Voc] +
+	U	>	[^x]	/ - {X,DG}
+	U	>	[u]	/ - [+Cons] LE 	
+	U	>	[^x]	/ - [+Cons][+Cons]
+	U	>	[ux]	/ - [+Cons][+Voc][+Cons] #	
+	U	> 	[^x]	/ - [+Cons][+Cons,+Gem]
+	U	>	[Y]   /   {C,F,M,B,P} - [+Cons][+Voc]<1-2> 
+;	U	>	[Y]	/ {C,F,M,N,B,P,G} - +
+	U	>	[Y]	/ [+Cons,-R] - L [+Voc] [+Syl]
+;	U	>	[Y]	/ [+Cons,-R] - L + [+Voc]
+	U	>	[u]	/ - [+Cons]<0-2> [+Voc] +
+	U	>	[^x]	/ - [+Cons]<1-n> +
+	U	>	[u]	/ - +
+	U	>	[^x]
+	V	>	[v] 		
+:SL	W	>	[f]	/ [+Cons,-Voice] 
+:SL	W	>	[v]	
+;:SL2	W	>	[w]	
+	W	>	[w]		
+   	X	>	[z]	/ # -		
+	X	>	[k][s]
+:JA	Y	>	[y]	
+:SL	Y	>	[i]	/ - #	
+:SL	Y	>	[y]	/ # -
+:SL	Y	>	[I]	
+:SP	Y	>	[i]	/ - #  
+:SP	Y	>	[y]	
+	Y	>	[y]	/ + -
+	Y	>	[A]	/ # [+Cons]<1-n> - +
+;       Y	>	[A]	/ NZ -	
+	Y	>	[A]	/ # {PS,TH,H,X,Z} -
+;       Y	>	[A]	/ + D - N	
+	Y	>	+[1][i]	/[+Syl][+Cons][+Cons] - +
+	Y	>	[i]	/ - +
+	Y	>	[A]	/ [+Cons]<1-n> - E +
+	Y	>	[A]	/ - [+Cons]<1-n> [+Voc] +
+	Y	>	[I]	/ - [+Cons][+Cons,+Gem]
+	Y	>	[I|]	/ - [+Cons]<1-n> +
+	Y 	>	[I|]
+	Z	>	[z]		
+	'	>	[]	
+
+;*Final rule count:                           1683
+;*LTS 1 rule count:                           1316
+;*LTS 2 rule count:                           1553
+;*LTS 1 file name:                            dtpc.lts
+;*LTS 2 file name:                            dtpc_acna.lts
+;*Output LTS rule file:                       dtpc_all.lts
+
+;*Morph LTS file merge start time:            Mon Jul 10 17:28:26 1995
+;*Morph LTS file merge stop time:             Mon Jul 10 17:28:34 1995
+;*Morph LTS file merge total elapsed time:    0  0:00:08

@@ -1,0 +1,1 @@
+dttest "par_mony.txt" "run"

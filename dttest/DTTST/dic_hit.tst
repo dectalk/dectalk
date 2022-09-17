@@ -1,0 +1,1 @@
+dttest "dic_hit.txt" "run"

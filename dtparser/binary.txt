@@ -1,0 +1,382 @@
+Description of the internal binary format for the pre-processor
+
+The rule file has 2 main sections, Rules and dictionaries
+
+Rules come before dictionaries
+
+The dictionaries section will remain almost unchanged, si it is described first
+
+# if bits	description of bits					label
+
+16			number of dictionaries				A
+A*2*16		dictionary pointers
+16			size of index table					B
+B*16		dictionary index information
+16			size of dictionary					C
+C*8			dictionary data
+
+
+Now the rules section
+
+# of bits	Descritpion							Label
+
+16			number of rule sections				A
+A*16		rule section data
+16			number of rules						B
+B*16		rule header index table		
+
+16			size of rule header table			C
+C*88		rule header info
+
+rule header info
+
+# of bits	Descritpion							Label
+16			rule header flags
+16			Rule number Rxxx
+32			Language flag
+32			Mode flag
+
+The rule header flag is 
+# of bits	Descritpion							Label
+3			Special rule flag
+1			Hit is set							V
+1			Miss is set							W
+1			Goret hit is set					X
+1			goret miss is set					Y
+1			Copy hit is set (new)				Z
+1			dict hit
+1			dict miss
+6			unused
+
+For each flag present VWXYZ
+16			rule number for flag
+
+
+16			size of binary rule indexes			D
+16*D		binary rule indexes
+
+16			size of binary rules				E
+8*E			binary rule data
+
+
+
+# of bits	Descritpion							Label
+3			flags (operation spoecific)
+5			operation		
+
+
+	operation				value	
+	End of Rule				0x00
+	Alphanumeric			0x01
+	Any Alphabet			0x02
+	Any Character			0x03
+	Clause boundry			0x04
+	Consonant				0x05
+	Lower case				0x06
+	Non Alphabet			0x07
+	Number					0x08
+	Punct some				0x09
+	Punctuation				0x0A
+	Upper case				0x0B
+	Vowel					0x0C
+	Vowel non y				0x0D
+	Whitespace				0x0E
+	Digit					0x0F
+	Exact					0x10
+	Hexidecimal match		0x11
+	Restore data			0x12
+	Sets					0x13
+	copy					0x14
+	delete					0x15
+	optional				0x16
+	save					0x17
+	macro					0x18
+	replace					0x19
+	insert					0x1A
+	compound_break			0x1B
+	-----					0x1C
+	dictionary				0x1D
+	status state			0x1E
+	word state				0x1F
+
+
+flags for opetaions 0x01 to 0x0F
+
+	# of bits	Descritpion					Label
+	1			lookahead to disabled
+	1			Look_ahead from disabled
+	1			switch (operation)
+				{
+				case Digit (0x0F):	Digit Range			1=yes 0=no
+				case Exact (0x10):	Case Insensitive	1=yes 0=no
+				case Insert (0x1A):	After Flag			1=yes 0=no these two are exclusive
+									Before Flag			1=yes 0=no these two are exclusive
+
+				}
+	
+
+Character type definitions operations 0x01 to 0x0F
+
+
+	# of bits	Descritpion					Label
+	8		Next char Type in rule (for lookahead) 
+
+	this value will not be here if any of the following conditions exist
+	1.	Lookahead from is disabled
+	2.	The next state is Macro
+	3.	The next character type is a Set
+	4.	The current type is a set
+	5.	The compination of types found is not ambiguous
+		exact characters types will be checked for ambiguity with the type.
+
+
+	# of bits	Descritpion					Label
+	2			flags				
+
+	Flags description
+
+		bit	Meaning							Options
+		7	Compilment						0=no	1=yes
+		6	Large Descriptors				0=no	1=yes
+
+	# of bits	Descritpion					Label
+	6			number of size descriptors	A
+
+	if the descrpitors are small
+
+	# of bits	Descritpion					Label
+	A*8			Size descriptors
+	
+		bit	Meaning							Options
+		7	Any number 						0=no	1=yes	
+		6	continuation of size			0=no	1=yes	continuation of descriptor to the next one
+		5	first bit in number
+		4	second bit in number
+		3	third bit in number
+		2	fourth bit on number
+		1	fifth bit in number
+		0	sixth bit in number
+
+		maximum number for small descriptors is 63
+		any number greater than 1 is accomplished be setting the value (bit 0) to 1
+
+
+	if the descrpitors are large
+
+	A*16		size descriptors
+	
+		size descriptors
+
+		bit	Meaning							Options
+		15	Any number >=0					0=no	1=yes	
+		14	continuation of size			0=no	1=yes
+		13	first bit in number
+		12	second bit in number
+		11	third bit in number
+		10	fourth bit on number
+		 9	fifth bit in number
+		 8	sixth bit in number
+		 7	seventh bit in number
+		 6	eighth bit in number
+		 5	ninth bit in size
+		 4	tenth bit in size
+		 3	eleventh bit in size
+		 2	twelveth bit in size
+		 1	thirteenth bit in size
+		 0	fourteenth bit in size
+
+		maximal size for large descriptors is 16383 characters
+		any number greater than 1 is accomplished be setting the value (bit 0) to 1
+
+
+	operation			value	
+	Exact				0x10
+	
+		# of bits		Descritpion			Label	
+		8				size of string to match		A
+		A*8				string to match
+	
+	operation			value	
+	Hexidecimal match	0x11
+
+		# of bits		Descritpion			Label	
+		8				byte to match
+
+	operation			value	
+	restore data		0x12
+
+		# of bits		Descritpion			Label
+		8				data source to use
+
+	operation			value
+	Sets				0x13
+
+	# of bits	Descritpion					Label
+	2			flags				
+
+	Flags description
+
+		bit	Meaning							Options
+		7	Unused
+		6	Large Descriptors				0=no	1=yes
+
+	# of bits	Descritpion					Label
+	6			number of size descriptors	A
+
+	if the descrpitors are small
+
+	# of bits	Descritpion					Label
+	A*8			Size descriptors
+	
+		bit	Meaning							Options
+		7	Any number 						0=no	1=yes	
+		6	continuation of size			0=no	1=yes
+		5	first bit in number
+		4	second bit in number
+		3	third bit in number
+		2	fourth bit on number
+		1	fifth bit in number
+		0	sixth bit in number
+
+		maximum number for small descriptors is 63
+		any number greater than 1 is accomplished be setting the value (bit 0) to 1
+
+
+	if the descrpitors are large
+
+	A*16		size descriptors
+	
+		size descriptors
+
+		bit	Meaning							Options
+		15	Any number >=0					0=no	1=yes	
+		14	continuation of size			0=no	1=yes
+		13	first bit in number
+		12	second bit in number
+		11	third bit in number
+		10	fourth bit on number
+		 9	fifth bit in number
+		 8	sixth bit in number
+		 7	seventh bit in number
+		 6	eighth bit in number
+		 5	ninth bit in size
+		 4	tenth bit in size
+		 3	eleventh bit in size
+		 2	twelveth bit in size
+		 1	thirteenth bit in size
+		 0	fourteenth bit in size
+
+		maximal size for large descriptors is 16383 characters
+		any number greater than 1 is accomplished be setting the value (bit 0) to 1
+		
+		# of bits	Descritpion			Label
+		8			number of sections	N
+		N*16		indexes of the last bytes in the sections
+
+
+
+operation
+
+Action states
+
+
+	operation			value
+	copy				0x14
+
+		# of bits		Descritpion			Label
+		8				end of match
+
+
+	operation			value
+	delete				0x15
+
+		# of bits		Descritpion			Label
+		8				end of match
+
+	operation			value
+	optional			0x16
+	
+		# of bits		Descritpion			Label
+		8				end of match
+
+	operation			value
+	save				0x17
+		
+		# of bits		Descritpion			Label
+		8				save location
+		8				end of match
+
+	operation			value
+	macro				0x18
+
+		# of bits		Descritpion			Label
+		16				rule to macro to
+
+flags for operations 0x19 through 0x1C
+
+	# of bits	Descritpion					Label
+	1			Conditional replace is active
+
+these come after the other things in the operation
+	contitional replacements
+	# of bits	Descritpion					Label
+	8			number of replacements		W
+	W*8			indexes of the end of each replacement
+
+	operation			value
+	replace				0x19
+
+		# of bits		Descritpion			Label
+		8				end of match
+		8				end of action
+
+
+	operation			value
+	insert				0x1A
+		# of bits		Descritpion			Label
+		8				end of match
+		8				end of action
+
+	operation			value
+	after				0x1B
+		# of bits		Descritpion			Label
+		8				end of match
+		8				end of action
+
+	operation			value
+	before				0x1C
+		# of bits		Descritpion			Label
+		8				end of match
+		8				end of action
+
+	operation			value
+	dictionary			0x1D
+		# of bits		Descritpion			Label
+		8				dictionary number
+		8				end of match
+		8				end of hit action
+		8				end of miss action
+
+flags for operation 0x1D
+
+	# of bits	Descritpion					Label
+	1			Hit action is FAIL
+	1			Miss actin is FAIL
+
+
+	operation			value
+	status state		0x1E
+		# of bits		Descritpion			Label
+		8				end of match
+		8				end of action
+
+	operation			value
+	word				0x1F
+		# of bits		Descritpion			Label
+		8				end of match
+
+
+
+end of match and end of action are indexes of the last byte in the state.  The next byte
+is in the next state.
+

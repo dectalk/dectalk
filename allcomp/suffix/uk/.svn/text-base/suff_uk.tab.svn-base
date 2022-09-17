@@ -1,0 +1,493 @@
+;+
+;***********************************************************************
+;*
+;*							 Coryright (c)
+;*	  © Digital Equipment Corporation 1995. All rights reserved.
+;*		(c) 1990		DIGITAL EQUIPMENT CORPORATION
+;*
+;*	  Restricted Rights: Use, duplication, or disclosure by the U.S.
+;*	  Government is subject to restrictions as set forth in subparagraph
+;*	  (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
+;*	  52.227-14 Alt. III, as applicable.
+;*
+;*	  This software is proprietary to and embodies the confidential
+;*	  technology of Digital Equipment Corporation and other parties.
+;*	  Possession, use, or copying of this software and media is authorized
+;*	  only pursuant to a valid written license from Digital or an
+;*	  authorized sublicensor.
+;*
+;***********************************************************************
+;*	  File Name:	suff_uk.tab
+;*	  Author:		Doug Robinson/Ginger Lin
+;*	  Creation Date:10/1/97
+;*
+;*	  Functionality:
+;*		FORM-CLASS IDENTIFIER AND MORPHEME DECOMPOSITION MODULE
+;*
+;***********************************************************************
+;*	  Revision History:
+;*
+	24-Oct-9		TV		Created new table out of old suffix stripper
+				list and new form class identifier list. Code
+				reads list bottom to top since this is an
+				ordered list
+
+	25-Oct-90		TV		Included many strings from lts. Also ordered
+				- suffixes prior to + suffixes
+
+	29-Oct-90		TV		Commented out all triply ambiguous suffixes
+				since always {noun verb adj}. Will be taken
+				care of in parser.
+
+	05-Nov-90		TV		Placed plural strippers at end; reordered list 
+				by putting smallest identifiers first; removed
+				all redundant identifiers (e.g., all *ous were
+				*adj, therefore, all except +ous have been
+				removed. Likewise for others of this type.
+				Ordered all ambiguous identifiers and strippable
+				morphemes after unambiguous ones. Thus, +ity 
+				*noun applies prior to +ty *noun *adj and -ly
+				*adj adv applies after +bly *adv
+
+	08-Nov-90		TV		Did some reordering and cleaning up. Need to
+				have suffixes like -ous (*adj) apply prior to
+				-us (*noun) for obvious reasons. -lly can't be
+				broken out as *adv because of belly, billy etc.
+				Squeeze all -*ally endings and put non-adverbs
+				in dictionary. Removed others also which were
+				supersets of smaller ones, e.g., -atory (-tory),
+
+ 28-Nov-90 TV -ly changed to *adv only (all non-adverbs
+	now in dict. Removed all *ly suffixes from list
+				Also changed all -ful to *adj only (all non-adj
+	"-ful" now in dict)
+	Need to fix problem of dictionary hits which are
+	unambiguous being changed to ambiguous ones, e.g.,
+	noun->{noun,verb} because of -s hit, e.g., coyotes
+	{noun,verb} is not correct but coyote's {adj,verb}
+
+  9-Jan-91		TV Added some new suffixes		
+ 21-Oct-91		TV Ordered plural prior to all others; reordered -es
+		before -ies. 
+ 22-Nov-91		Reordered /:e before /: in all cases. Was getting words
+		like staring, caring, wrong because both car and care in
+		dict. Will try either reordering -s rules or removing
+		recursion.
+  6-2-93  EAB Added "hood" as a strippable sufffix ....
+ 10-1-97  RB/GL  modified from English version of table for UK_english
+ 10-22-97 GL  add -craft and -ling and lings
+
+
+In the following table the following definitions apply:
+
+	Define: + as non-strippable particle (possibly morpheme, possibly
+		non-morpheme) and simple form class identifier
+	Define: - as strippable suffix (always a morpheme and also a
+		form-class identifier
+
+	Define	/: as plain search (FRIENDSHIP < FRIEND)
+	Define: /:e as always reconstitute root-final E (ORATOR < ORATE)
+	Define: /b:ble means find root-final B and reconstitute BLE 
+		(ABLY < ABLE)
+	Define: /i:y as reconstitute root final I as Y (MERRIMENT < MERRY)
+
+	
+	Define: % as phoneme field marker (applies only to strippables)
+	Define: * as form-class field marker, possibly a singleton, possibly
+		a double or triple.
+	Define	/# as recursive 
+Rules for -s (plural), -'s and s' (possessive), -ed (past tense)
+		are  complex rules as commented below.
+
+	Any line not beginning with either + or - is a comment.
+
+
+
+Inflectional suffixes:
+
+
+The following two rules represent a plural or 3rd sing. suffix. These are
+inflectional affixes and need to be stripped first.
+
+Plural Stripper:
+
+-s	/: /:# %[+cons +sib]|z %[+cons -voice]s %z *noun *verb
+-s' /: /:# %[+cons +sib]|z %[+cons -voice]s %z *adj 
+-'s /: /:# %[+cons +sib]|z %[+cons -voice]s %z *adj *verb
+
+-es /:e /: %[+cons +sib]|z %[+cons -voice]s %z	*noun *verb 
+-ies /:y %z /: %iz *noun *verb	
+-ed  /:e /: /i:y /bb:b /cc:c /dd:d /gg:g /hh:h /jj:j /kk:k /mm:m /nn:n /pp:p /rr:r /tt:t /vv:v /xx:x /zz:z %[+td]|d %[+cons -voice]t %d *ed
+
+-er  /:e /: /i:y /bb:b /cc:c /dd:d /gg:g /hh:h /jj:j /kk:k /mm:m /nn:n /pp:p /rr:r /tt:t /vv:v /xx:x /zz:z %x *noun *adj *adv
+-ers /:e /: /i:y %xz *noun *verb 
+
+-ings /:e /: /i:y  /bb:b /cc:c /dd:d /gg:g /hh:h /jj:j /kk:k /mm:m /nn:n /pp:p /rr:r /tt:t /vv:v /xx:x /zz:z %|Gz *noun 
+-ing  /:e /: /i:y  /bb:b /cc:c /dd:d /gg:g /hh:h /jj:j /kk:k /mm:m /nn:n /pp:p /tt:t /vv:v /xx:x /zz:z %|G *ing
+
+
+The above -ed is the past tense stripper. Morphophonemic alternation applies as
+follows: 
+		{TD}			->		[|d]
+		[+CON -VOICE]	->		[t]
+		Else			->		[d]
+
+Also, to do geminate grapheme deletion for the old cases like BAGGED, etc, 
+we need to redo the old procedure of (a) strip, (b) look for geminate graphemes
+(a subset of the total consonant set), and (c) kill the right hand member.
+
+
+-sshiuu /: %k'cpi *noun
+-able /: /:e %xbL *adj //? collectable is a NOUN it is a varient of collectible -DR 8/28/1997
+-less /: %l|s *adj
+-ment /: /i:y %mxnt *noun
+-ness /: /i:y %n|s *noun
+-ship /: %S|p *noun
+-dom  /: %dxm *noun
+-ify /: %|fA  *verb
+-ism /: %|zxm *noun
+-ize /: %Az *verb
+-ly  /: /b:ble %li *adv
+-or  /:e %x *adj *noun
+-our /:e %x *noun //for uk only -DR 8/28/1997
+-ful /: /i:y %fL *adj
+-ish /: %|S *adj *verb
+-hood /: %hUd *noun
+-craft /: %kraft *noun
+-lings /: %l|Gz *noun 
+-ling  /: %l|G *ing
+
+
+
+new sequences added from lts. For now, only suffix rules.
+No phonemics, stress,  syllabification or archiphonemes.
+
+
+			UNAMBIGUOUS IDENTIFIERS
+
+
++a				*noun
++ous			*adj
++sm 			*noun
++us 			*noun
++is 			*noun
+; bly			*adv
++cle			*noun
++cal			*adj
++cur			*verb
++fer			*verb
++mit			*verb
++ogy			*noun
++oir			*noun
++men			*noun
++man			*noun
++ity			*noun
++ion			*noun
++ics			*noun
++pel			*verb
++ski			*noun
++pathy			*noun
++thy			*adj
++tor			*noun
++cede			*verb
++eaux			*noun
++eau			*noun
++edge			*noun
++mark			*noun
++tsch			*noun
++szcz			*noun
++ghth			*adj
++euer			*noun
++eier			*noun
++iest			*adj
++some			*adj
++yard			*noun
++witz			*noun
++wise			*adj
++will			*noun
++wicz			*noun
++ware			*noun
++ward			*adj
++vitz			*noun
++vich			*noun
++ular			*adj
++trouble		*noun
++uble			*adj
++uent			*adj
++uchi			*noun
++uant			*adj
++ture			*noun
++tude			*noun
++tual			*adj
++tory			*adj
++time			*noun
++tial			*adj
++teen			*noun
++tail			*noun
++szek			*noun
++sure			*noun
++sual			*adj
++stle			*adj
++sten			*noun
++stat			*noun
++sohn			*noun
++sian			*noun
++shop			*noun
++pose			*verb	
++port			*noun
++path			*noun
++otte			*noun
++otic			*adj
++olli			*noun
++oire			*noun
++obic			*adj
++neck			*noun
++moto			*noun
++mony			*noun
++mann			*noun
++mail			*noun
++like			*adj
++lian			*noun
++kopf			*noun
++izer			*noun
++ishi			*noun
++ique			*noun
++iour			*noun
++inal			*adj
++illo			*noun
++iety			*noun
++iett			*noun
++ieth			*adj
++cient			*adj
++ient			*noun
++ieau			*noun
++ican			*noun
++ible			*adj
++iate			*adj
++iant			*adj
++iage			*noun
++hole			*noun
++hill			*noun
++hand			*noun
++gram			*noun
++geon			*noun
++flex			*noun
++fish			*noun
++etto			*noun
++etti			*noun
++ette			*noun
++esse			*noun
++enko			*noun
++ency			*noun
++ence			*noun
++ello			*noun
++elli			*noun
++eiro			*noun
+; edly			*adv
++dale			*noun
++czyk			*noun
++czuk			*noun
++czek			*noun
++czak			*noun
++crat			*noun
++cian			*noun
++cast			*noun
++cake			*noun
++bell			*noun
++bach			*noun
++ball			*noun
++ault			*noun
++ancy			*noun
++ance			*noun
+; ally			*adv
++aise			*noun
++aire			*adj
++fitz			*noun
++wald			*noun
++lein			*noun
++heim			*noun
++feld			*noun
++dorf			*noun
++chau			*noun
++bury			*noun
++boro			*noun
++body			*pron
++book			*noun
++berg			*noun
++beck			*noun
++baum			*noun
++bahn			*noun
++augh			*noun
++auer			*noun
++auen			*noun
++vitch			*noun
++ville			*noun
++utive			*adj
++uplet			*noun
++uance			*noun
++tural			*adj
++stone			*noun
++sight			*noun
++scopy			*noun
++scope			*noun
++quist			*noun
++quent			*noun //This has word that are everything VERBS, ADJ, NOUNS. Maybe this should be moved to abmiguous -DR 8/28/1997
++plane			*noun
++polos			*noun
+;phony			*noun
++phone			*noun
++phobe			*noun
++place			*noun
++ostic			*adj
++olent			*adj
++metry			*noun
++metre			*noun
++meter			*noun
++maker			*noun
++loge			*noun
++litre			*noun
++liter			*noun
++istic			*adj
++ienne			*noun
++ielle			*noun
++icide			*noun
++graph			*noun
++grade			*adj
++gonal			*adj
++ghlin			*noun
++gaard			*noun
+; fully 		*adv
++esque			*adj
++eault			*noun
++color			*adj //not in UK
++colour			*adj //UK ONLY -DR 8/28/1997
++chord			*noun
++berry			*noun
++atric			*adj
+; arily 		*adv
++archy			*noun
++ansky			*noun
++vande			*noun
++delle			*noun
++dell'			*noun //This is good like the word dell'arte
++aier			*noun
++veldt			*noun
++stein			*noun
++stadt			*noun
++scape			*noun
++meyer			*noun
++meier			*noun
++logue			*noun
++ional			*adj
++horst			*noun	
++eille			*noun	
++coeur			*noun	
++ceive			*verb
++burgh			*noun	
++baugh			*noun	
++sphere 		*noun
++soever 		*pron
++selves 		*pron
++scopic 		*adj
++poulos 		*noun
++plicit 		*adj
++ocracy 		*noun
++metric 		*adj
++mental 		*adj
++logist 		*noun
++ington 		*noun
++ingham 		*noun
++iewicz 		*noun
++icidal 		*adj
++graphy 		*noun
++evitch 		*noun
++ennial 		*adj
++vander 		*noun
++vanden 		*noun
++pseudo 		*adj
++ometer 		*noun
++hoffer 		*noun
++hauser 		*noun
++hausen 		*noun
++finkle 		*noun
++felder 		*noun
++dorfer 		*noun
++burger 		*noun
++berger 		*noun
++becker 		*noun
++ography		*noun
++kiewicz		*noun
++graphic		*adj
++grapher		*noun
++culture		*adj
++ational		*adj
++weather		*noun
++thunder		*noun
++thought		*noun
++schmidt		*noun
++meister		*noun
++machine		*noun
++country		*noun
++counter		*noun
++borough		*noun
++ational		*adj
++cultural		*adj
++children		*noun
++doerffer		*noun
+;
+;
+				AMBIGUOUS IDENTIFIERS
+
+
++ty 		   *adj *noun
+; ry			*adj *noun *verb //WHY ARE these commented caroline says -DR 8.28.97
+; ure			*adj *noun *verb
+; ute			*adj *noun *verb
++al 		   *adj *noun
++an 		   *adj *noun
++ar 		   *adj *noun
++cy 		   *adj *noun
+; ee			*adj *noun *verb
++er				*adj *noun
++ic 		   *adj *noun
++id 		   *adj *noun
++se 		    *verb
++fy 		   *adj *verb
++gy 		   *adj *noun
+;
++que   *adj *noun  
++ile		   *adj *noun
++ime		   *adj *noun
+; ine			*adj *noun *verb
+; ist			*adj *noun *verb
+; ite			*adj *noun *verb
++ive		   *adj *noun
++ent		   *adj *noun
++ese		   *adj *noun
+; ess			*adj *noun *verb
++ice		   *noun *verb
++chy		   *adj *noun
++ace		   *noun *verb
++age		   *noun *verb
++ale		   *adj *noun
++ain		   *noun *verb
++ant		   *adj *noun
+; ate			*adj *noun *verb
++type		   *noun *adj
++tian		   *noun *adj
++oge		   *noun *adj
++ige		   *noun *verb
++ease		   *noun *verb
++cial		   *noun *adj
++ident		   *noun *adj
++tuary		   *noun *adj
+;
+;
++ous			*adj *noun
+
+
+
+
+
+
+	  

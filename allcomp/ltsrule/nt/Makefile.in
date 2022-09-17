@@ -1,0 +1,83 @@
+# Makefile for dapi/src/nt/ for Dectalk software for @target@ 
+#
+# 001 ETT 10/22/1998 moved to autoconf system. 
+#
+
+#### Start of system configuration section. ####  
+
+# where is the standard include dir? (cross compile critical)
+STD_INCLUDE=@STD_INCLUDE@
+# which compiler do we use?
+CC=@CC@
+# to debug or not to debug?
+DEBUG_FLAGS=@DEBUG_FLAGS@
+# how much optomization do we use?
+OPTO_FLAGS=@OPTO_FLAGS@
+# how many silly compile warnings do we want?
+WARN_FLAGS=@WARN_FLAGS@
+# what do we define?
+DEFINES=@DEFINES@
+# should we build linux_audio.o or not?
+LINUX_AUDIO=@LINUX_AUDIO@
+# include mme stuff?
+MME_DIR=@MME_DIR@
+MME_COMPILE_FLAGS=@MME_COMPILE_FLAGS@
+# add -shared for qnx
+LIB_FLAGS=@LIB_FLAGS@
+
+#### End of system configuration section. #### 
+
+RM=rm -f
+
+API_DIR	    = ../api
+CMD_DIR     = ../cmd
+DIC_DIR     = ../dic
+INCLUDE_DIR = ../include
+KERNEL_DIR  = ../kernel
+LTS_DIR     = ../lts
+NT_DIR      = ../nt
+OSF_DIR     = ../osf
+PH_DIR      = ../ph
+PROTOS_DIR  = ../protos
+VTM_DIR	    = ../vtm
+DECTALKF_H  = ../../../
+PORTAUDIO_DIR = ../portaudio/pa_common -I../portaudio/pablio
+
+INCLUDES= -I$(INCLUDE_DIR) -I$(API_DIR) -I$(CMD_DIR) -I$(DIC_DIR) -I$(KERNEL_DIR) \
+	  -I$(LTS_DIR) -I$(NT_DIR) -I$(OSF_DIR) -I$(PH_DIR) -I$(DECTALKF_H)\
+          -I$(PROTOS_DIR) -I$(VTM_DIR) -I$(MME_DIR) -I$(STD_INCLUDE) \
+	  -I$(PORTAUDIO_DIR)
+
+CFLAGS= $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES) $(MME_COMPILE_FLAGS) $(LIB_FLAGS)
+
+
+NT_SRC= playaud.c mmalloc.c opthread.c spc.c pipe.c linux_audio.c qnx_audio.c
+
+NT_OBJ=	$(OUTPUT_DIR)/playaud.o $(OUTPUT_DIR)/opthread.o $(OUTPUT_DIR)/spc.o \
+	$(OUTPUT_DIR)/pipe.o $(OUTPUT_DIR)/mmalloc.o $(LINUX_AUDIO)
+
+all:: $(NT_OBJ)
+
+$(OUTPUT_DIR)/playaud.o:playaud.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/opthread.o:opthread.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+ 
+$(OUTPUT_DIR)/spc.o:spc.c 
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/pipe.o:pipe.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/mmalloc.o:mmalloc.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/linux_audio.o:linux_audio.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+$(OUTPUT_DIR)/qnx_audio.o:qnx_audio.c
+	$(CC) -c $(CFLAGS) -o $@ $?
+
+clean::
+	rm $(OUTPUT_DIR)/*.o

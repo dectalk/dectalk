@@ -1,0 +1,4055 @@
+
+;                        LETTER-TO-SOUND RULES
+
+;               Copyright (c) 1995 Digital Equipment Corporation
+
+; This is the latest version of letter to sound rules for the new generation
+; of German speech synthesizers (DECtalk(tm)). This rule set replaces all of its 
+; predecessors.
+; It will be used in DECtalk-PC and DECtalk Express in conjuction with the
+; new and larger dictionary for German which contains 50,523 entries with
+; phonetics and form class. Its purposes are (1) to reduce the size of the
+; dictionary by as much as 70% so as to be able to fit two languages in 1 MB;
+; (b) to allow German DECtalk to pronouce words which are not contained in the
+; dictionary.
+
+
+;The following are definitions for the rule set below:
+; 
+; Format:       X becomes Y in environment Z (== X      >       / Z where:
+;       X is a set of graphemic material;
+;       Y is a set of phonemic material;
+;       Z is a set of (optional) graphemic material.
+; Morphophonemic rules are located primarily in letter to sound although
+; DHK has a small part of this in code. Allophonic rules are also done in
+; both places depending upon type of rule. Gross allophonics such as
+; devoicing of [p, t, k] in / # - are done in lts. Other more complex
+; context-sentitive rules such as degrees and types of aspiration of
+; voiceless stops are done by FHG in code (PH*.*).
+; 
+; Features: always defined as to the right of "/"
+; Define [+Seg] as: Any char except whitespace, tab, or boundary symbols
+; Define [+Voc] as: A,E,I,O,U,Y, Ä, Ö, Ü
+; Define [+Cons] as: B,C,D,F,G,H,J,K,L,M,N,P,Q,R,S,ß,T,V,W,X,Z
+; Define [+Voc] as: I,U,Ü
+;        [+High]
+; 
+; Define [+Voc] as: A,E,O,Ä,Ö
+;        [-High]
+; 
+; Define [+Cons] as: B,D,G,M,N,V,Z,J,L,R,W
+;        [+Voice]
+; 
+; Define [+Liq] as: L,R,
+; 
+; Define [] as zero phonemic realization of grapheme<s>.
+; 
+; Define [+Cons]        as: C,F,H,K,P,Q,S,ß,T,X
+;        [-Voice]
+; 
+; Define [-Cont] as P, B, T, D, K, G
+;
+; Define [+Cons] as: S,ß,Z,J,SH,CH,DG,DJ
+;        [+Sib]
+; 
+; Define [+Cons] as: B,C,F,G,H,K,L,M,P,Q,V,W,X
+;        [-Cor]
+;
+; Define [+Cons] as: B,C,D,F,G,J,K,M,N,P,S,ß,T,V,X,Z
+;        [+Obstr]
+;
+;
+; Define [+Cons] as: all [+Cons] except K,G,
+;        [-Velar]
+; 
+; Define [+Nas] as: M,N
+; 
+; Define # as: Word boundary
+; Define + as: Morpheme boundary
+; Define = as: Syllable boundary
+; Note that [=] is a subset of [+]. I.e. [+] == [+] and [=].
+; Furthermore, # is a superset which includes #, [+] and [=].
+; Define {} as disjunction where {A,B} is read as: either A or B
+; 
+; Define <> as minimum-maximum when enclosing a number or n.
+;         Where [+Cons]<0-1> = optional consonant and
+;               [+Cons]<1-n> = a minimum of 1 and a maximum of n consonants.
+; 
+; Ignore all instances of *
+; Define ; as commented out 
+; Define [+Cons,-C] as any consonant except C.
+
+; There is an allophonic rule which must be inserted in phalloph.c which 
+; should read as follows:
+
+;       CH            >       [X]     / {A, O, U} 
+;       CH            >       [x]
+
+; This is due to the fact that the FHG  dictionary makes the disctinction
+; between ichlaut and achlaut phones whereas the CELEX dictionary does not.
+
+; The five nasalized vowels are [A~], [E~], [I~], [O~] and [U~]. These are 
+; either in the dictionary or else are treated as morphemes in the letter-to-
+; sound rules.
+
+; Mappings
+
+
+; There are various mappings which must be implemented:
+
+; 1. AE maps to (==) Ä, e.g., Graebchen == Gräbchen
+; 2. OE maps to (==) Ö, e.g., Groessenordnung == Größenordnung
+; 3. UE maps to (==) Ü, e.g., Grundgebuehr == Grundgebühr
+
+;                       EDIT HISTORY
+
+; 0001  5-Apr-95 TV     Old letter to sound from FHG was in object form only
+;                       and copyrighted by the University of Bochum. Therefore,
+;                       we were forced to created our own letter-to-sound rule
+;                       set. This has been done using a similar (almost 
+;                       identical) formalism to that of English. The same rule
+;                       interpreter used for English, can, with certain modifi-
+;                       cations, be used for this rule set as well.
+;                       This replaced the old letter to sound which was based on
+;                       the FHG dictionary (which I found to be inconsistent
+;                       and contain errors) with new letter to sound rules 
+;                       based on the CELEX dictionary owned by Digital. This 
+;                       rule set is meant to be used with the 50,523 entry
+;                       CELEX dictionary. EB is currently writing a program to
+;                       perform the conversion. TV created a new set of (mostly)
+;                       mnemonic ASCY (1-char) phonemes.
+;  EAB 3/13/00 FOund that ig suffix was wrong it needs to go to sh or k never ch
+
+;                       LETTER-TO-SOUND RULES
+
+; 12 grapheme strings
+
+	BEFRIEDIGUNG    >       +[b][@][=][0][f][r][3][=][0][d][I][=][0][g][U][G][+]
+; MGS 13mar2001 match the celex dictionary
+	BEHERRSCHUNG    >       +[b][@][=][0][h][E][R][=][0][S][U][G][+]
+	BESCHREIBUNG    >       +[b][@][=][0][S][r][A][=][0][b][U][G][+]
+	GEMEINSCHAFT    >       +[g][@][=][0][m][A][n][=][0][S][a][f][t][+]
+	GESELLSCHAFT    >       +[g][@][=][0][z][E][>][l][=][0][S][a][f][t][+]
+	WISSENSCHAFT    >       +[v][I][=][0][s][@][n][=][0][S][a][f][t][+]
+
+; 11 Grapheme strings
+
+
+	AUFOPFERUNG     >       +[W][f][=][0][c][=][0][P][@][=][0][r][U][G][+]
+	EINFLUSSUNG     >       +[A][n][=][0][f][l][U][=][0][s][U][G][+]
+	GESCHNITTEN     >       +[g][@][=][0][S][n][I][=][0][t][@][n][+]
+; MGS 13mar2001 match celex dictionary
+	BEARBEITUNG     >       +[b][@][=][0][a][R][=][0][b][A][=][0][t][U][G][+]
+	GENEHMIGUNG     >       +[g][@][=][0][n][2][=][0][m][I][=][0][g][U][G][+]       
+
+; add 1/22/96 Tony
+	PSYCHOLOGIE     >       +[p][s][6][=][0][x][4][=][0][l][4][=][0][g][3][+]
+;       QUECKSILBER     >       +[k][v][E][>][k][=][0][z][I][l][=][0][b][@][R][+]
+	SICHTIGKEIT     >       +[z][I][x][=][0][t][I][x][=][0][k][A][t][+]
+	VERSTÄNDNIS     >       +[f][E][R][=][0][S][t][E][n][t][=][0][n][I][s][+]
+	VORSTELLUNG     >       +[f][4][R][=][0][S][t][E][=][0][>][l][U][G][+]     
+
+;
+; 10 grapheme strings
+	BEHANDLUNG      >       +[b][@][=][0][h][a][n][=][0][d][l][U][G][+]
+; MGS 13mar2001 remove rule after esch rule was fixed
+;	BESCHÄFTIG      >       +[b][@][=][0][S][E][f][=][0][t][I][g][+]  / - [+voc]
+;	BESCHÄFTIG      >       +[b][@][=][0][S][E][f][=][0][t][I][x][+]
+	BESTIMMUNG      >       +[b][@][=][0][S][t][I][=][0][>][m][U][G][+]
+	BIOGRAPHIE      >       +[b][3][=][0][4][=][0][g][r][a][=]['][f][3][+]
+	GESCHICHTE      >       +[g][@][=][0][S][I][x][=][0][t][@][+]
+	GESPROCHEN      >       +[g][@][=][0][S][p][r][c][=][0][X][@][n][+]
+	HAFTIGKEIT      >       +[h][a][f][=][0][t][I][x][=][0][k][A][t][+]
+;;;;;;;;;;;;;;;cb 14mar01
+	INDUSTRIEN      >       +[I][n][=][0][d][U][s][=]['][t][r][3][@][n][+]
+	PRINZIPIEN      >       +[p][r][I][n][=]['][T][3][=][0][p][3][=][0][@][n][+]
+; MGS 13mar2001 fix this rule [j]->[3]
+	PRODUKTION      >       +[p][r][4][=][0][d][U][k][=][0][T][3][=]['][4][n][+]
+	SCHREIBUNG      >       +[S][r][A][=][0][b][U][G][+]
+	SPEZIFISCH      >       +[S][p][2][=]['][T][3][=][0][f][I][S][+]
+
+; add 1/22/96 Tony
+	TEMPERATUR      >       +[t][E][m][=][0][p][@][=][0][r][a][=]['][t][5][R][+]    / # -
+	TEMPERATUR      >       +[t][E][m][=][0][p][@][=][0][r][a][=][0][t][5][R][+]
+	VERGNÜGENS      >       +[f][E][R][=][0][g][n][6][=][0][g][@][n][s][+]
+	VERWALTUNG      >       +[f][E][R][=][0][v][a][l][=][0][t][U][G][+]
+	VERWENDUNG      >       +[f][E][R][=]['][v][E][n][=][0][d][U][G][+]
+; add 11/28/95
+	WEIHNACHTS      >       +[v][A][=][0][n][a][X][T][+]							/ # -
+	WIRTSCHAFT      >       +[v][I][r][t][+][S][a][f][t][+]
+
+;
+; 9 grapheme strings
+
+	ABENTEUER       >       +[1][=][0][b][@][n][=][0][t][H][=][0][@][r][+]
+	ABTEILUNG       >       +[a][p][=][0][t][A][=][0][l][U][G][+]
+	ARBEITUNG       >       +[a][r][=][0][b][A][=][0][t][U][G][+]
+	ARCHITEKT       >       +[a][r][=][0][x][3][=][0][t][E][k][t][+]
+	BEDEUTUNG       >       +[b][@][=][0][d][H][=][0][t][U][G][+]
+	BESATZUNG       >       +[b][@][=][0][z][a][=][0][T][U][G][+]
+	BEZEIGUNG       >       +[b][@][=][0][T][A][=][0][g][U][G][+]
+	DISZIPLIN       >       +[d][I][s][=][0][T][I][p][=][0][l][3][n][+]
+; add 1/22/96 Tony
+	DYNAMISCH       >       +[d][6][=]['][n][1][=][0][m][I][S][+]
+	FLANSCHEN       >       +[f][l][a][n][=][0][S][@][n][+]
+	GEBROCHEN       >       +[g][@][=][0][b][r][c][=][0][X][@][n][+]
+	GEGENWART       >       +[g][2][=][0][g][@][n][=][0][v][a][r][t][+]
+; add 1/22/96 Tony
+	GESCHWIND       >       +[g][@][=][0][S][v][I][n][d][+]						/ - [+voc]
+	GESCHWIND       >       +[g][@][=][0][S][v][I][n][t][+]
+	GESTALTEN       >       +[g][@][=][0][S][t][a][l][=][0][t][@][n][+]
+	GEWINNUNG       >       +[g][@][=][v][I][=][>][n][U][N][+]
+; add 1/22/96 Tony
+; + MGS 13mar2001 fix phoneme in rule [j] -> [3]
+	IFIKATION       >       +[3][=][0][f][3][=][0][k][a][=][0][T][3][=]['][4][n][+]
+	INDUSTRIE       >       +[I][n][=][0][d][U][s][=]['][t][r][3][+]
+	KARTOFFEL       >       +[k][a][r][=]['][t][c][=][0][>][f][@][l][+]			/ # -
+	KARTOFFEL       >       +[k][a][r][=][0][t][c][=][0][>][f][@][l][+]
+	KONFERENZ       >       +[k][c][n][=][0][f][2][=][0][r][E][n][T][+]
+	LEISTUNGS       >       +[l][A][s][=][0][t][U][G][s][+]
+	LOSIGKEIT       >       +[l][4][=][0][z][I][x][=][0][k][A][t][+]
+	PFLANZUNG       >       +[P][l][a][n][=][0][T][U][G][+]
+; MGS 13mar2001 remove, doesn't break anything
+;	PFLICHTIG       >       +[P][l][I][x][=][0][t][I][g][+]						/ - [+voc]
+;	PFLICHTIG       >       +[P][l][I][x][=][0][t][I][x][+]
+	PRÄSIDENT       >       +[p][r][E][=][0][z][3][=][0][d][E][n][t][+]
+; add 1/22/96 Tony
+;       QUALITÄTS       >       +[k][v][a][=][0][l][3][=]['][t][7][T][+]
+	qALITÄTS        >       +[k][v][a][=][0][l][3][=]['][t][7][T][+]
+	REGIERUNG       >       +[r][2][=]['][g][3][=][0][r][U][G][+]
+;add 2/21/96
+; MGS 13mar2001 fix rule
+	RELIGIONS       >       +[r][2][=][l][3][=][g][3][=]['][4][n][s][+]
+	SCHICKSAL       >       +[S][I][>][k][=][0][z][1][l][+]
+	SCHLEUSEN       >       +[S][l][H][=][0][z][@][n][+]
+	SCHLIEßEN       >       +[S][l][3][=][0][s][@][n][+]
+	SCHLÜSSEL       >       +[S][l][Y][=][0][s][@][l][+]
+	SCHMERZEN       >       +[S][m][E][r][=][0][T][@][n][+]
+	SCHNALLEN       >       +[S][n][a][=][0][>][l][@][n][+]
+	SCHREIBEN       >       +[S][r][A][=][0][b][@][n][+]
+	SCHWELLEN       >       +[S][v][E][=][0][>][l][@][n][+]
+	SCHWEMMEN       >       +[S][v][E][=][0][>][m][@][n][+]
+	SCHWENKEN       >       +[S][v][E][G][=][0][k][@][n][+]
+	SCHWIMMEN       >       +[S][v][I][=][0][>][m][@][n][+]
+	SCHWISTER       >       +[S][v][I][s][=][0][t][@][r][+] 
+; add 1/22/96 Tony
+	STRAHLUNG       >       +[S][t][R][1][=][l][U][G][+]
+	URSPRUNGS       >       +[5][r][+][S][p][r][U][G][s][+]
+; add 1/22/96 Tony
+	WACHOLDER       >       +[v][a][=][0][X][c][l][=][0][d][@][R][+]
+	ZEICHNUNG       >       +[T][A][x][=][0][n][U][G][+]
+
+;
+; 8 Grapheme sets
+	AMERIKAN        >       +[a][=][0][m][2][=][0][r][3][=][0][k][a][n][+]
+	ARBEITEN        >       +[a][r][=][0][b][A][=][0][t][@][n][+]
+	ARBEITER        >       +[a][r][=][0][b][A][=][0][t][@][r][+]
+	ANFÄNGER        >       +[a][n][=][0][f][E][=][0][G][@][r]
+	AUFNAHME        >       +[W][f][=][0][n][1][=][0][m][@][+]
+; add 12/13/95
+	AUSLANDS        >       +[W][s][=][0][l][a][n][T][+]
+	AUSSCHUß        >       +[W][s][=][0][S][U][s][+]
+; add 1/22/96 Tony
+	ÄUßERUNG        >       +[H][=][0][s][@][=][0][r][U][G][+]
+	BEDINGEN        >       +[b][@][=]['][d][I][=][0][G][@][n][+]
+	BEHALTEN        >       +[b][@][=][0][h][a][l][=][0][t][@][n][+]
+	BEKOMMEN        >       +[b][@][=][0][k][c][=][0][>][m][@][n][+]
+	BESCHEID        >       +[b][@][=][0][S][A][t][+]
+	BEWEGUNG        >       +[b][@][=][0][v][2][=][0][g][U][G][+]
+	BRENNUNG        >       +[b][r][E][=][0][>][n][U][G][+]
+	CHRISTEN        >       +[k][r][I][s][=][0][t][@][n][+]
+	DARUNTER        >       +[d][a][=][0][r][U][n][=][0][t][@][R][+]
+; add 1/22/96 Tony
+	GESCHÄFT        >       +[g][@][=][0][S][E][f][t][+]
+	GLEICHEN        >       +[g][l][A][x][+][@][n][+]
+; add 1/22/96 Tony
+	GRÜNDUNG        >       +[g][r][Y][n][=][0][d][U][G][+]
+	EINANDER        >       +[A][n][=]['][a][n][=][0][d][@][r]
+; add 1/22/96 Tony
+	ENTGEGEN        >       +[E][n][t][=]['][g][2][=][0][g][@][n][+] 
+	ERSCHEIN        >       +[E][R][=][0][S][A][n][+]
+;       FAHRZEUG        >       +[f][1][r][=][0][T][H][g][+]				/ - [+voc]
+	FAHRZEUG        >       +[f][1][r][=][0][T][H][k][+]
+	FESTIGEN        >       +[f][E][s][=][0][t][I][=][0][g][@][n][+]
+	FEUCHTEN        >       +[f][H][x][=][0][t][@][n][+]
+	FLECHTEN        >       +[f][l][E][x][=][0][t][@][n][+]
+; MGS 13mar2001 remove breaks nothing
+;	FLÜCHTIG        >       +[f][l][Y][x][=][0][t][I][g][+]			/ - [+voc]
+;	FLÜCHTIG        >       +[f][l][Y][x][=][0][t][I][x][+]
+	FLUGZEUG        >       +[f][l][5][k][=][0][T][H][k][+] 
+	FORSCHER        >       +[f][c][r][=][0][S][@][r][+]
+	FREUNDEN        >       +[f][r][H][n][=][0][d][@][n][+]
+	FÄNGLICH        >       +[f][E][G][=][0][l][I][x]
+	GEBRACHT        >       +[g][@][=][0][b][r][a][X][t][+]
+	GEBUNDEN        >       +[g][@][=][0][b][U][n][=][0][d][@][n][+]
+	GEDEIHEN        >       +[g][@][=][0][d][A][=][0][@][n][+]
+	GEDENKEN        >       +[g][@][=][0][d][E][G][=][0][k][@][n][+]
+	GESCHICK        >       +[g][@][=][0][S][I][>][k][+]
+	GESPANNT        >       +[g][@][=][0][S][p][a][>][n][t][+]
+	GESTEHEN        >       +[g][@][=][0][S][t][2][=][0][@][n][+]
+	GESTELLT        >       +[g][@][=][0][S][t][E][>][l][t][+]
+;add 11/1/95
+	HERUNTER        >       +[h][E][=]['][r][U][n][=][t][@][R][+]
+	HANDLUNG        >       +[h][a][n][=][0][d][l][U][G][+]
+	HARMONIE        >       +[h][a][r][=][0][m][4][=]['][n][3][+]
+	HAUSHALT        >       +[h][W][s][=][0][h][a][l][t][+]
+	HEILIGEN        >       +[h][A][=][0][l][I][=][0][g][@][n][+]
+	HINUNTER        >       +[h][I][=]['][n][U][n][=][0][t][@][R][+]
+	INSTITUT        >       +[I][n][=][0][s][t][3][=][0][t][5][t][+]
+	INTENSIV        >       +[I][n][=][0][t][E][n][=]['][z][3][v][+]		/ - [+voc]
+	INTENSIV        >       +[I][n][=][0][t][E][n][=]['][z][3][f][+]
+	ISIERUNG        >       +[3][=]['][z][3][=][0][r][U][G][+]
+; add 1/22/96 Tony
+	KALENDER        >       +[k][a][=][0][l][E][n][=][0][d][@][R][+]
+	KARNEVAL        >       +[k][a][r][=][0][n][@][=][0][v][a][l][+]
+	KENNTNIS        >       +[k][E][>][n][t][=][0][n][I][s][+]
+	KLAMMERN        >       +[k][l][a][=][0][>][m][@][r][n][+]
+	KRAMPFEN        >       +[k][r][a][m][P][@][n][+]
+	KRIMINAL        >       +[k][R][3][=][0][m][3][=][0][n][1][l][+]
+	KRISTALL        >       +[k][r][I][s][=][0][t][a][>][l][+]
+;       LANSCHEN        >       +[l][a][n][=][0][S][@][n][+]
+	LEISTUNG        >       +[l][A][s][=][0][t][U][G][+]
+; add 10/30
+; mgs remove 8/3/01 No change
+;	LICHKEIT        >       +[l][I][x][=][k][A][t][+]						/ - #
+	MASCHINE        >       +[m][a][=][0][S][3][=][0][n][@]
+; add 1/22/96 Tony
+; MGS 13mar2001 fix rule [j]->[3]
+	MATERIAL        >       +[m][a][=][0][t][2][=][0][r][3][1][l][+]
+	MENSCHEN        >       +[m][E][n][=][0][S][@][n][+]
+	MÜNDIGEN        >       +[m][Y][n][=][0][d][I][=][0][g][@][n][+]
+; add 1/22/96 Tony
+; MGS 13mar2001 fix this rule [j]->[3]
+	NATIONAL        >       +[n][a][=][0][T][3][=][0][4][=]['][n][1][l][+]
+; add 1/22/96 Tony
+	OFFIZIER        >       +[c][>][f][3][=][0][T][3][R][+]
+	OLOGISCH        >       +[4][=]['][l][4][=][0][g][I][S][+]
+	OPPORTUN        >       +[c][=][0][>][p][c][R][=][0][t][5][n][+]
+	PARALLEL        >       +[p][a][=][0][r][a][=]['][>][l][2][l][+]   
+	PERSONAL        >       +[p][E][r][=][0][z][4][=]['][n][1][l][+]
+	PROGRAMM        >       +[p][R][4][=]['][g][R][a][>][m][+]
+; add 1/22/96 Tony
+;       QUALITÄT        >       +[k][v][a][=][0][l][3][=]['][t][7][t][+]
+;       qALITÄT >               +[k][v][a][=][0][l][3][=]['][t][7][t][+]
+; MGS 13mar2001 fix this rule [j]->[3]
+	RATIONAL        >       +[r][a][=][0][T][3][=][0][4][=][0][n][1][l][+]
+	REGISTER        >       +[r][2][=][0][g][I][s][=][0][t][@][r][+]
+; add 1/22/96 Tony
+	SAMMLUNG        >       +[z][a][>][m][=][0][l][U][G][+]
+	SCHAFFEN        >       +[S][a][=][0][>][f][@][n][+]
+;;;;;;;;;;;;;cb 14mar01
+	SCHAFTEN		>		+[S][a][f][t][@][n][+]
+	SCHATTEN        >       +[S][a][=][0][>][t][@][n][+]
+	SCHELLEN        >       +[S][E][=][0][>][l][@][n][+]
+	SCHIEFER        >       +[S][3][=][0][f][@][r][+]
+	SCHIEßEN        >       +[S][3][=][0][s][@][n][+]
+	SCHILDER        >       +[S][I][l][=][0][d][@][r][+]    
+	SCHLACHT        >       +[S][l][a][X][t][+]
+	SCHLEUSE        >       +[S][l][H][=][0][z][@][+]
+	SCHLICHT        >       +[S][l][I][x][t][+]
+	SCHRAUBE        >       +[S][r][W][=][0][b][@][+]
+	SCHÜTZEN        >       +[S][Y][=][0][T][@][n][+]
+	SCHWELLE        >       +[S][v][E][=][0][>][l][@][+]
+; add 1/22/96 Tony
+	SPRECHEN        >       +[S][p][R][E][=][0][x][@][n][+]
+	SPRECHER        >       +[S][p][r][E][=][0][x][@][r][+]
+;;;;;;;;;;;cb 14mar01
+	STARTSCH		>		+[S][t][a][R][t][+][S]							/ # -		
+	STELLUNG        >       +[S][t][E][=][0][>][l][U][G][+]
+	STIMMUNG        >       +[S][t][I][=][0][>][m][U][G][+]
+	STRECKEN        >       +[S][t][r][E][=][0][>][k][@][n][+]
+	SUCHUNGS        >       +['][z][5][=][0][X][U][G][s][+]
+	SÄTTIGEN        >       +[z][E][=][0][>][t][I][=][0][g][@][n][+]
+	TREIBUNG        >       +[t][r][A][=][0][b][U][G][+]
+	TRENNUNG        >       +[t][r][E][=][0][>][n][U][G][+]
+	TRUMPFEN        >       +[t][r][U][m][=][0][P][@][n][+]
+; add 1/22/96 Tony
+	TUERISCH        >       +[t][5][=][0][@][=][0][r][I][S][+]
+	URSPRUNG        >       +[5][r][=][0][S][p][r][U][G][+]
+;       VORSTAND        >       +[f][4][R][=][0][S][t][a][n][d][+]			/ - [+voc]
+;;;;;;;;;;;;cb 16mar01		
+	WIDMETEN		>		+[v][I][t][m][@][t][@][n][+]
+	VORSTAND        >       +[f][4][R][=][0][S][t][a][n][t][+]
+	WECHSELN        >       +[v][E][k][=][0][s][@][l][n][+]
+	WICKLUNG        >       +[v][I][=][0][>][k][l][U][G][+]
+	WIRKLICH        >       +[v][I][r][k][=][0][l][I][x][+]
+	ZAHLUNGS        >       +[T][1][=][0][l][U][G][s][+]
+	ZEICHNEN        >       +[T][A][x][=][0][n][@][n][+]
+	ZEICHNIS        >       +[T][A][x][=][0][n][I][s][+]
+; add 1/22/96 Tony
+	ZEITUNGS        >       +[T][A][=][t][U][G][s][+]
+	ZUSAMMEN        >       +[T][5][=]['][z][a][=][0][>][m][@][n][+]
+	ZWISCHEN        >       +[T][v][I][=][0][S][@][n][+]
+
+;
+; 7 Grapheme sets
+	ABDRUCK         >       +[a][p][=][0][d][r][U][>][k][+]
+	ACHTUNG         >       +[a][X][=][0][t][U][G][+]
+	ALKOHOL         >       +[a][l][=]['][k][4][=][0][h][4][l][+]
+	ANALYSE         >       +[a][=][0][n][a][=][0][l][6][=][0][z][@][+]
+	ANGEBOT         >       +[a][n][=][0][g][@][=][0][b][4][t][+]
+; add 1/22/96 Tony
+;       ANGRIFF         >       +[a][n][=][0][g][R][I][>][f][+]
+	ANKLAGE         >       +[a][n][=][0][k][l][1][=][0][g][@][+]
+	ANSTALT         >       +[a][n][=][0][S][t][a][l][t][+]
+	ANSTAND         >       +[a][n][=][0][S][t][a][n][d][+]					/ - [+voc]
+	ANSTAND         >       +[a][n][=][0][S][t][a][n][t][+]
+	ANZEIGE         >       +[a][n][=][0][T][A][=][0][g][@][+]
+	ARBEITS         >       +[a][r][=][0][b][A][T][+]
+; add 1/22/96 Tony
+;       ARTIKEL         >       +[a][R][=]['][t][3][=][0][k][@][l][+]		/ {P,#} -
+;       ARTIKEL         >       +[a][R][=][0][t][3][=][0][k][@][l][+]
+	AUFTRAG         >       +[W][f][=][0][t][r][1][g][+]					/ - [+voc]
+	AUFTRAG         >       +[W][f][=][0][t][r][1][k][+]
+	AUSGABE         >       +[W][s][=][0][g][1][=][0][b][@][+]
+	BARKEIT         >       +[b][1][r][=][0][k][A][t][+]
+	BEREICH         >       +[b][@][=][0][r][A][x][+]
+	BERUFEN         >       +[b][@][=][0][r][5][=][0][f][@][n][+]
+	BESSERN         >       +[b][E][=][0][s][@][r][n][+]
+	BESTAND         >       +[b][@][=][0][S][t][a][n][d][+]					/ - [+voc]
+	BESTAND         >       +[b][@][+][S][t][a][n][t][+]
+	BILDUNG         >       +[b][I][l][=][0][d][U][G][+]
+	BLEIBEN         >       +[b][l][A][=][0][b][@][n][+]
+	BLICKEN         >       +[b][l][I][=][0][>][k][@][n][+]
+	BLÖDUNG         >       +[b][l][q][=][0][d][U][G][+]
+	BRECHEN         >       +[b][r][E][=][0][x][@][n][+]
+	BREITEN         >       +[b][r][A][=][0][t][@][n][+]
+	BREMSEN         >       +[b][r][E][m][=][0][z][@][n][+]
+	BRENNEN         >       +[b][r][E][=][0][>][n][@][n][+]
+	BRINGEN         >       +[b][r][I][G][=][0][@][n][+]
+	BUDDELN         >       +[b][U][=][0][d][@][l][n][+]
+	DARÜBER         >       +[d][a][=]['][r][6][=][0][b][@][R][+]
+	DEUTSCH         >       +[d][H][C][+]
+	DRUCKEN         >       +[d][r][U][=][0][>][k][@][n][+]
+	DRÄNGEN         >       +[d][r][E][G][=][0][@][n][+]
+	DRÜCKEN         >       +[d][r][Y][=][0][>][k][@][n][+]
+	DUNSTEN         >       +[d][U][n][=][0][s][t][@][n][+]
+	DÜNSTEN         >       +[d][Y][n][=][0][s][t][@][n][+]
+	EINSATZ         >       +[A][n][=][0][z][a][T][+]
+; add 1/22/96 Tony
+	ELEMENT         >       +[2][=][0][l][2][=][0][m][E][n][t][+]
+	ENTLANG         >       +[E][n][t][=]['][l][a][G][+]
+;       ENDLICH         >       +['][E][n][t][=][0][l][I][x][+]
+; add 1/22/96 Tony
+	ERSTATT         >       +[E][R][=][S][t][a][>][t][+]
+; add 02/07/96
+	EXISTENZ        >       +[E][=][0][k][s][I][s][=]['][t][E][n][T]			/ # -
+	FECHTEN         >       +[f][E][x][=][0][t][@][n][+]
+	FENSTER         >       +[f][E][n][=][0][s][t][@][r][+]
+	FLAMMEN         >       +[f][l][a][=][0][>][m][@][n][+]
+	FLEISCH         >       +[f][l][A][S][+]
+	FLIEHEN         >       +[f][l][3][=][0][@][n][+]
+	FLIEGER         >       +[f][l][3][=][0][g][@][r][+]
+	FLIEGEN         >       +[f][l][3][=][0][g][@][n][+]
+; add 1/22/96 Tony
+;       FLÜGLER         >       +[f][l][6][=][0][g][l][@][R][+]
+	FORDERN         >       +[f][c][r][=][0][d][@][r][n][+]
+	FREqENZ         >       +[f][r][2][=]['][k][v][E][n][T][+]
+	FREMDEN         >       +[f][r][E][m][=][0][d][@][n][+]
+	FÜHRUNG         >       +[f][6][=][0][r][U][G][+]
+; add 1/22/96 Tony
+;       GARDINE         >       +[g][a][R][=]['][d][3][=][n][@][+]				/ # -
+;       GARDINE         >       +[g][a][R][=][0][d][3][=][n][@][+]
+	GEBOREN         >       +[g][@][=][0][b][4][=][0][r][@][n][+]
+	GEBURTS         >       +[g][@][=][0][b][5][r][T][+]
+	GEFÜHRT         >       +[g][@][=][0][f][6][r][t][+]
+	GEGEBEN         >       +[g][@][=][0][g][2][=][0][b][@][n][+]
+	GEHÖREN         >       +[g][@][=][0][h][q][=][0][r][@][n][+]
+	GEISTER         >       +[g][A][s][=][0][t][@][r][+]
+	GELEHRT         >       +[g][@][=][0][l][2][r][t][+]
+; add 1/22/96 Tony
+	GEMÄLDE         >       +[g][@][=][0][m][7][l][=][0][d][@][+]
+; add 02/07/96
+	GENERAL         >       +[g][2][=][0][n][@][=]['][r][1][l][+]				/ # -
+	GERECHT         >       +[g][@][=][0][r][E][x][=][0][t]
+	GARDINE         >       +[g][a][R][=][d][3][=][n][@][+]
+	GERICHT         >       +[g][@][=][0][r][I][x][=][0][t]
+	GESCHOß         >       +[g][@][=][0][S][c][s][+]
+	GESELLE         >       +[g][@][=][0][z][E][=][0][>][l][@][+]
+	GESETZT         >       +[g][@][=][0][z][E][T][t][+]
+	GESUCHT         >       +[g][@][=][0][z][5][X][t][+]
+	GEWANDT         >       +[g][@][=]['][v][a][n][t][+]
+	GEWICHT         >       +[g][@][=][0][v][I][x][t][+]
+	GLAUBEN         >       +[g][l][W][=][0][b][@][n][+]
+	GLEISEN         >       +['][g][l][A][=][0][z][@][n][+]
+	GLEITEN         >       +['][g][l][A][=][0][t][@][n][+]
+	GÖTTERN         >       +['][g][Q][=][0][>][t][@][r][n][+]
+;;;;;;;;;;;;cb 15mar01
+	GRANDIO			>		+[g][r][a][n][d][3]['][4]
+	GRAPHIE         >       +[g][r][a][=]['][f][3][+]
+;;;;;;;;;;;;cb 15mar01
+	GRAPHIT			>		+[g][r][a]['][f][3][t][+]
+	GRAULEN         >       +[g][r][W][=][0][l][@][n][+]
+	GREIFEN         >       +[g][r][A][=][0][f][@][n][+]
+	GREISEN         >       +[g][r][A][=][0][z][@][n][+]
+	GRIFFEN         >       +[g][r][I][=][0][>][f][@][n][+]
+	GRÖßERN         >       +[g][r][q][=][0][s][@][r][n][+]
+;       GRÜNDIG         >       +[g][r][Y][n][=][0][d][I][g][+]				/ - [+voc]
+; MGS 13mar2001 fix this
+;	GRÜNDIG         >       +[g][r][Y][n][=][0][d][I][x][+]
+	HALTSAM         >       +[h][a][l][t][=][0][z][1][m][+]
+	HALTUNG         >       +[h][a][l][=][0][t][U][G][+]
+	HEILIGE         >       +[h][A][=][0][l][I][=][0][g][@][+]
+;add 11/1/95
+	HINÜBER         >       +[h][3][=]['][n][6][=][b][@][R][+]
+	HÄNDLER         >       +[h][E][n][=][0][d][l][@][r][+]
+	HÄUFUNG         >       +[h][H][=][0][f][U][G][+]
+	IMPFUNG         >       +[I][m][=][0][P][U][G][+]
+; add 1/22/96 Tony
+; MGS 13mar2001 fix this rule [j]->[3]
+	ISATION         >       +[3][=][0][z][a][=][0][T][3][=]['][4][n][+]
+	ISIEREN         >       +[3][=]['][z][3][=][0][r][@][n][+]
+;;;;;;;;;;;;;; cb ok
+;	ISTISCH         >       +['][I][s][=][0][t][I][S][+]						/ - #
+; MGS 13mar2001 try this?
+	ISTISCH         >       +['][I][s][=][0][t][I][S][+]		
+; add 1/22/96 Tony
+	IZISMUS         >       +[3][=]['][T][I][s][=][0][m][U][s][+]
+	JUNKTUR         >       +[j][U][G][k][=]['][t][5][r][+]
+	KAMERAD         >       +[k][a][=][0][m][@][=]['][r][1][t][+]
+	KENNUNG         >       +[k][E][=][0][>][n][U][G][+]
+	KIRCHEN         >       +[k][I][r][=][0][x][@][n][+]
+	KLARUNG         >       +[k][l][1][=][0][r][U][G][+]
+	KLATSCH         >       +[k][l][a][t][S][+]									/ - [+voc]
+	KLATSCH         >       +[k][l][a][C][+]
+	KLEIDEN         >       +[k][l][A][=][0][d][@][n][+]
+	KLOSTER         >       +[k][l][4][s][=][0][t][@][r][+]
+	KRAUTEN         >       +[k][r][W][=][0][t][@][n][+]
+	KRÄFTEN         >       +[k][r][E][f][=][0][t][@][n][+]
+	LASSUNG         >       +[l][a][=][0][s][U][G][+]
+	LEDIGEN         >       +[l][2][=][0][d][I][=][0][g][@][n][+]
+;       LISCHEN         >       [l][I][S][@][G]
+	MACHUNG         >       +[m][a][=][0][X][U][G][+]
+	MÄRCHEN         >       +[m][7][r][=][0][x][@][n][+]
+	MEISTER         >       +[m][A][s][=][0][t][@][r][+]
+; add 1/22/96 Tony
+;       MEMBRAN         >       +[m][E][m][=]['][b][R][1][n][+]
+	METHODE         >       +[m][2][=][0][t][4][=][0][d][@][+]
+	MILITÄR         >       +[m][3][=][0][l][3][=]['][t][7][r][+]
+; add 1/22/96 Tony
+	MILLION         >       +[m][I][=][0][>][l][3][=]['][4][n][+]
+;add 2/22/96
+	MITTAGS         >       +[m][I][=][0][>][t][1][k][s][+]
+	MUTIGEN         >       +[m][5][=][0][t][I][=][0][g][@][n][+]
+	MÄDCHEN         >       +[m][7][t][=][0][x][@][n][+]
+	MÖGLICH         >       +[m][q][k][=][0][l][I][x]
+;;;;;;cb 17mar01
+	MONTAGS			>		+[m][4][n][t][1][k][s]
+	NÄCHSTE         >       +[n][7][x][=][s][t][@][+]
+; add 1/22/96 Tony
+	NACHBAR         >       +[n][a][x][=][0][b][1][R][+]
+	NEUTRAL         >       +[n][H][=][0][t][R][1][l][+]
+	NUTZUNG         >       +[n][U][=][0][T][U][G][+]
+	NÜTZUNG         >       +[n][Y][=][0][T][U][G][+]
+	ORDNUNG         >       +[c][R][=][0][d][n][U][G][+]
+; add 1/22/96 Tony
+	PERFEKT         >       +[p][E][R][=][0][f][E][k][t][+]
+	PFEFFER         >       +[P][E][=][0][>][f][@][r][+]
+	PFEIFEN         >       +[P][A][=][0][f][@][n][+]
+	PFLICHT         >       +[P][l][I][x][t][+]
+; add 1/22/96 Tony
+	PHANTAS         >       +[f][a][n][=][0][t][a][s][=]
+	PIGMENT         >       +[p][I][=]['][g][m][E][n][t][+]
+	POLITIK         >       +[p][4][=][0][l][3][=][0][t][3][k][+]   
+	POLIZEI         >       +[p][4][=][0][l][3][=][0][T][A][+]
+	PRINZIP         >       +[p][r][I][n][=]['][T][3][p][+]
+; add 11/29/95
+	PROBLEM         >       +[p][R][4][=]['][b][l][2][m][+]
+	PRODUKT         >       +[p][r][4][=]['][d][U][k][t][+]
+; add 1/22/96 Tony
+;       PROZENT         >       +[p][R][4][=][0][T][E][n][t][+]
+	REIBUNG         >       +[r][A][=][0][b][U][G][+]
+	REIZEND         >       +[r][A][=][0][T][@][n][d][+]					/ - [+voc]
+	REIZEND         >       +[r][A][=][0][T][@][n][t][+] 
+	RICHTER         >       +[r][I][x][=][0][t][@][r][+]
+; add 1/22/96 Tony
+	RÖNTGEN         >       +[r][Q][n][t][=][g][@][n][+]
+	SATZUNG         >       +[z][a][=][0][T][U][G][+]
+	SCHACHT         >       +[S][a][X][t][+]
+	SCHADEN         >       +[S][1][=][0][d][@][n][+]
+	SCHAUEN         >       +[S][W][=][0][@][n][+]
+	SCHICHT         >       +[S][I][x][t][+]
+	SCHIEDS         >       +[S][3][T][+]
+	SCHIFFS         >       +[S][I][>][f][s][+]
+	SCHÄRFE         >       +[S][E][r][=][0][f][@][+]
+	SCHLACK         >       +[S][l][a][>][k][+]
+	SCHLEIM         >       +[S][l][A][m][+]
+	SCHLEPP         >       +[S][l][E][>][p][+]
+	SCHLICH         >       +[S][l][I][x][+]
+	SCHLIEß         >       +[S][l][3][s][+]
+; add 1/22/96 Tony
+	SCHMELZ         >       +[S][m][E][l][=][T][+]
+	SCHMERZ         >       +[S][m][E][r][T][+]
+	SCHNELL         >       +[S][n][E][>][l][+]
+;;;;;;;;;;;;cb 15mar01
+	SCHNITT			>		+[=][S][n][I][t][+]					
+;	SCHNITT         >       +[+][S][n][I][>][t][+]
+	SCHRECK         >       +[S][r][E][>][k][+]
+	SCHRIFT         >       +[S][r][I][f][t][+]
+	SCHWIEG         >       +[S][v][3][g][+]
+	SCHWEIß         >       +[S][v][A][s][+]
+	SCHWENG         >       +[S][v][E][=][0][G][+]
+	SETZUNG         >       +[z][E][=][0][T][U][G][+]
+	SITZUNG         >       +[z][I][=][0][T][U][G][+]
+; add 1/22/96 Tony
+	SPAZIER         >       +[S][p][a][=]['][T][3][R][+]
+	SPRACHE         >       +[S][p][r][1][=][0][X][@][+]
+; add 12/6/95
+	SPAREND         >       +[p][1][=][0][r][@][n][d][+]			/ - [+voc]
+	SPAREND         >       +[p][1][=][0][r][@][n][t][+]
+;;;;;;;;;;;;cb 14mar01
+	SPRÄCHS			>		+[S][p][r][7][x][s][+]
+	STECHER         >       +[S][t][E][=][0][x][@][r][+]
+	STEHEND         >       +[S][t][2][=][0][@][n][t][+]
+	STELLEN         >       +[S][t][E][=][0][>][l][@][n][+]
+	STELLER         >       +[S][t][E][=][0][>][l][@][r][+]
+	STEMMEN         >       +[S][t][E][=][0][>][m][@][n][+]
+	STEMPEL         >       +[S][t][E][m][=][0][p][@][l][+]
+	STIEFEL         >       +[S][t][3][=][0][f][@][l][+]
+	STUNDEN         >       +[S][t][U][n][=][0][d][@][n][+]
+	STÄNDIG         >       +[S][t][E][n][=][0][d][I][g][+]			/ - [+voc]
+; MGS 13mar2001 fix this
+	STÄNDIG         >       +[S][t][E][n][=][0][d][I][x][+] 
+;;;;;;;;;;;;cb 15mar01
+	STÄTTEN			>		+[S][t][E][t][@][n][+]		
+	STÜCKEN         >       +[s][t][Y][=][0][>][k][@][n][+]
+	STRAßEN         >       +[S][t][r][1][=][0][s][@][n][+]
+	STREBEN         >       +[S][t][r][2][=][0][b][@][n][+]
+	STRECKE         >       +[S][t][r][E][=][0][>][k][@][+]
+	STREICH         >       +[S][t][r][A][x][+]
+	SUCHUNG         >       +[z][5][=][0][X][U][G][+]
+; MGS 13mar2001 fix these rules
+	SÜCHTIG         >       +[z][Y][x][=][0][t][I][g][+]			/ - [+voc]
+	SÜCHTIG         >       +[z][Y][x][=][0][t][I][x][+]    
+	TAUCHEN         >       +[t][W][=][0][X][@][n][+]
+	TAUSEND         >       +[t][W][=][0][z][@][n][t][+]
+; add 1/22/96 Tony
+	TECHNIK         >       +[t][E][x][=][0][n][I][k][+]
+	TEILUNG         >       +[t][A][=][0][l][U][G][+]
+; add 1/22/96 Tony
+; MGS 13mar2001 fix this rule [j]->[3]
+	TIONELL         >       +[T][3][=][0][4][=]['][n][E][>][l][+]      / - #
+	TRAGBAR         >       +[t][r][1][k][=][0][b][1][r][+]
+	TRAMPEL         >       +[t][r][a][m][=][0][p][@][l][+]
+	TREFFEN         >       +[t][r][E][=][0][>][f][@][n][+]
+	TREIBEN         >       +[t][r][A][=][0][b][@][n][+]
+	TRIEBEN         >       +[t][r][3][=][0][b][@][n][+]
+	TRUPPEN         >       +[t][r][U][=][0][>][p][@][n][+]
+	TÄGLICH         >       +[t][7][k][=][0][l][I][x][+]	
+; add 1/22/96 Tony
+	TÖCHTER         >       +[t][Q][x][=][0][t][@][R][+]
+	TÜMELEI         >       +[t][6][=][0][m][@][=]['][l][A][+]
+	UIERUNG         >       [5][=]['][3][=][0][r][U][G][+]
+; add 1/22/96 Tony
+; MGS 13mar2001 fix this rule [j]->[3]
+	ULATION         >       +[5][=][0][l][a][=][0][T][3][=]['][4][n][+]
+; MGS 13mar2001 fix this rule [j]->[3]
+	URATION         >       +[5][=][0][r][a][=][0][T][3][=]['][4][n][+]
+	VERKAUF         >       +[f][E][R][=]['][k][W][f][+]
+	VERKEHR         >       +[f][E][R][=]['][k][2][r][+]
+	VERSUCH         >       +[f][E][R][=]['][z][5][X][+]
+;       VERTRAG         >       +[f][E][R][=][0][t][R][1][g][+]				/ - [+voc]
+	VERTRAG         >       +[f][E][R][=][0][t][R][1][k][+]
+	VIERTEL         >       +[f][I][R][=][0][t][@][l][+]
+	VORGANG         >       +[f][4][R][=][0][g][a][G][+]
+;;;;;;;;;;;;cb 15mar01
+	VORTEIL         >       +[f][c][R][=][0][t][A][l][+]
+;	VORTEIL         >       +[f][4][R][=][0][t][A][l][+]
+;       VORTRAG         >       +[f][4][R][=][0][t][R][1][g][+]				/ - [+voc]
+	VORTRAG         >       +[f][4][R][=][0][t][R][1][k][+]
+	WACHSEN         >       +[v][a][k][=][0][s][@][n][+]
+; add 1/22/96 Tony
+	WANDLER         >       +[v][a][n][=][0][d][l][@][r][+]
+	WARTUNG         >       +[v][a][R][=][0][t][U][G][+]
+	WECHSEL         >       +[v][E][k][=][0][s][@][l][+]
+	WEISUNG         >       +[v][A][=][0][z][U][G][+]
+	WENDUNG         >       +[v][E][n][=][0][d][U][G][+]
+;;;;;;;;;;;;cb 16mar01		
+	WIDMETE			>		+[v][I][t][m][@][t][@][+]
+	WIRKUNG         >       +[v][I][r][=][0][k][U][G][+]
+	WISCHEN         >       +[v][I][=][0][S][@][n][+]
+	WIEGEND         >       +[v][3][=][0][g][@][n][d][+]					/ - [+voc]
+	WIEGEND         >       +[v][3][=][0][g][@][n][t][+] 
+	WILLENS         >       +[v][I][=][0][>][l][@][n][s][+]
+;;;;;;;;;;;;cb 16mar01
+	WILDERN			>		+[v][I][l][d][@][R][n][+]
+	WINTERN         >       +[v][I][n][=][0][t][@][r][n][+]
+	WITTERN         >       +[v][I][=][0][>][t][@][r][n][+]
+	WOHNUNG         >       +[v][4][=][0][n][U][G][+]
+	WUCHERN         >       +[v][5][=][0][X][@][r][n][+]
+	ZAHLUNG         >       +[T][1][=][0][l][U][G][+]
+	ZEICHEN         >       +[T][A][=][0][x][@][n][+]
+; add 1/22/96 Tony
+	ZEITUNG         >       +[T][A][=][t][U][G][+]
+	ZENTRAL         >       +[T][E][n][=]['][t][r][1][=][0][l][+]
+	ZIRKELN         >       +[T][I][r][=][0][k][@][l][n][+]
+	ZISCHEN         >       +[T][I][=][0][S][@][n][+]
+	ZUKUNFT         >       +[T][5][=][0][k][U][n][f][t][+]
+	ZURECHT         >       +[T][5][=]['][r][E][x][t][+]
+	ZÄHLUNG         >       +[T][7][=][0][l][U][G][+]	
+
+;
+; 6 Grapheme sets
+;;;;;;;;;;cb 15mar01
+	ABSCHN			>		+['][a][p][=][S][n]	
+;;;;;;;;;;cb 17mar01	
+	ÄCHELN          >       [E][=][0][x][@][l][n][+]
+;	ÄCHELN          >       [7][=][0][x][@][l][n][+]
+	AFFEKT          >       +[a][=][0][>][f][E][k][t][+]
+; add 1/22/96 Tony
+; MGS 13mar2001 fix this rule [j]->[3]
+	AKTION          >       +[a][k][=][0][T][3][=]['][4][n][+]
+	ALLEIN          >       +[a][=]['][>][l][A][n][+]
+;;;;;;;;;;;; cb 14mar01
+	ALTHER			>		+[a][l][t][=][h][2][r]
+	AMEISE          >       +[1][=][0][m][A][=][0][z][@][+]
+	ANERBE          >       +[a][n][=][0][E][r][=][0][b][@][=]
+	ARBEIT          >       +[a][r][=][0][b][A][t][+]
+; add 1/22/96 Tony
+	ARISCH          >       +['][1][r][I][S][+]
+	ARTUNG          >       +[1][r][=][0][t][U][G][+]
+;       AUSSEN          >       +[W][s][+][@][n][+]
+;?      AUSSER          >       +[W][s][+][@][r][+]
+	BACKEN          >       +[b][a][=][0][>][k][@][n][+]
+	BARSCH          >       +[b][a][r][S][+]
+	BEAMTE          >       +[b][@][=][0][a][m][=][0][t][@][+]
+	BECHER          >       +[b][E][=][0][x][@][r][+]
+; add 1/22/96 Tony
+;       BEDARF          >       +[b][@][=][0][d][a][R][f][+]
+	BEFEHL          >       +[b][@][=][0][f][2][l][+]
+	BEIßEN          >       +[b][A][=][0][s][@][n][+]
+	BEREIT          >       +[b][@][=][0][r][A][t][+] 
+	BERUFS          >       +[b][@][=][0][r][5][=][0][f][s][+]
+	BESITZ          >       +[b][@][=][0][z][I][T][+]
+	BESSER          >       +[b][E][=][0][s][@][r][+]
+	BESUCH          >       +[b][@][=][0][z][5][X][+]
+;       BETRAG          >       +[b][@][=][0][t][r][1][g][+]    / - [+voc]
+	BETRAG          >       +[b][@][=][0][t][r][1][k][+]
+	BEUGEN          >       +[b][H][=][0][g][@][n][+]
+	BEULEN          >       +[b][H][=][0][l][@][n][+]
+	BEUTEL          >       +[b][H][=][0][t][@][l][+]
+	BEUTER          >       +[b][H][=][0][t][@][r][+]
+	BIEGEN          >       +[b][3][=][0][g][@][n][+]
+	BIETEN          >       +[b][3][=][0][t][@][n][+]
+	BILDER          >       +[b][I][l][=][0][d][@][r][+]
+	BILDEN          >       +[b][I][l][=][0][d][@][n][+]
+	BINDEN          >       +[b][I][n][=][0][d][@][n][+]
+	BITTEN          >       +[b][I][=][0][>][t][@][n][+]
+	BITTER          >       +[b][I][=][0][>][t][@][r][+]
+	BLASEN          >       +[b][l][1][=][0][z][@][n][+]
+	BLEICH          >       +[b][l][A][x][+]
+; add 12/6/95
+	BLUMEN          >       +[b][l][5][=][0][m][@][n][+]
+	BLÜTEN          >       +[b][l][6][=][0][t][@][n][+]
+	BLUTEN          >       +[b][l][5][=][0][t][@][n][+]
+;;;;;;;;;;;cb 14mar01
+	BOOTEN			>		+[b][4][t][@][n][+]
+	BOHREN          >       +[b][4][=][0][r][@][n][+]
+	BOMBEN          >       +[b][c][m][=][0][b][@][n][+]
+	BOMBER          >       +[b][c][m][=][0][b][@][r][+]
+	BORGEN          >       +[b][c][r][=][0][g][@][n][+]
+	BÖRSEN          >       +[b][Q][r][=][0][z][@][n][+]
+; MGS 13mar2001 this rule needs to be blocked if the letter  before it is "A"
+;	BRATEN          >       +[b][r][1][=][0][t][@][n][+]
+	BRAUCH          >       +[b][r][W][X][+]
+	BRILLE          >       +[b][r][I][=][0][>][l][@][+]
+	BRUDER          >       +[b][r][5][=][0][d][@][r][+]
+;	BRÜCKE          >       +[b][r][Y][=][0][>][k][@][+]
+;eab above rule hits only the german spelling of my name I did not put this in
+; add 1/22/96 Tony
+;       BRÜDER          >       +[b][R][6][=][d][@][R][+]
+	BRÜTEN          >       +[b][r][6][=][0][t][@][n][+]
+	BUCHEN          >       +[b][5][=][0][X][@][n][+]
+	BUNDES          >       +[b][U][n][=][0][d][@][s][+]
+	BUTTER          >       +[b][U][=][0][>][t][@][r][+]
+	CHRIST          >       +[k][r][I][s][t][+]
+	DARAUF          >       +[d][a][=][0][r][W][f][+]
+	DARAUS          >       +[d][a][=][0][r][W][s][+]
+	DAREIN          >       +[d][a][=][0][r][A][n][+]
+	DASEIN          >       +[d][1][=][0][z][A][n][+]
+	DAUERN          >       +[d][W][=][0][@][r][n][+]
+	DEHNEN          >       +[d][2][=][0][n][@][n][+]
+	DENKEN          >       +[d][E][G][=][0][k][@][n][+]
+	DEUTEN          >       +[d][H][=][0][t][@][n][+]
+	DIENEN          >       +[d][3][=][0][n][@][n][+]
+	DIENST          >       +[d][3][n][s][t][+]
+	DOCKEN          >       +[d][c][=][0][>][k][@][n][+]
+	DORREN          >       +[d][c][=][0][r][@][n][+]
+	DOPPEL          >       +[d][c][=][0][>][p][@][l][+]
+	DUNKEL          >       +[d][U][G][=][0][k][@][l][+]
+	DÄMMEN          >       +[d][E][=][0][>][m][@][n][+]
+	DÖRREN          >       +[d][Q][=][0][r][@][n][+]
+	DÜNNEN          >       +[d][Y][=][0][n][@][n][+]
+;	DÜNNEN          >       +[d][Y][=][0][>][n][@][n][+]
+; MGS 13mar2001 remove should be d6rf@n
+;	DÜRFEN          >       +[d][Y][r][=][0][f][@][n][+]
+	DREHEN          >       +[d][r][2][=][0][@][n][+]
+	EFFEKT          >       +[E][=][0][>][f][E][k][t][+]
+; + MGS 13mar2001
+	ENERGE			>		[2][n][E][R][=]['][g][2]						/ # -
+;;;;;;;;;;;;cb 17mar01
+	EREICH          >       [@][+][r][A][x][+]
+	ERFOLG          >       +[E][R][=]['][f][c][l][g][+]					/ - [+voc]
+	ERFOLG          >       +[E][R][=]['][f][c][l][k][+]
+;;;;;;;;;;;;cb 14mar01
+	ERNSTH			>		+[E][R][n][s][t][h]
+	EXAMEN          >       +[E][=]['][k][s][1][=][0][m][@][n][+]
+	FARBEN          >       +[f][a][r][=][0][b][@][n][+]
+	FAHREN          >       +[f][1][=][0][r][@][n][+]
+	FAHRER          >       +[f][1][=][0][r][@][r][+]       
+	FAHRTS          >       +[f][1][R][T][+]
+	FALLEN          >       +[f][a][=][0][>][l][@][n][+]
+	FALTER          >       +[f][a][l][=][0][t][@][r][+]
+	FEHLEN          >       +[f][2][=][0][l][@][n][+]
+	FEHLER          >       +[f][2][=][0][l][@][r][+]
+;;;;;;;;;;cb 13mar01
+	FERTEN          >       +[f][@][R][t][@][n][+]
+; MGS 13mar2001 fix this rule
+	FERTIG          >       +[f][E][r][=][0][t][I][g][+]				/ - [+voc]
+	FERTIG          >       +[f][E][r][=][0][t][I][x][+]
+;;;;;;;;;;cb 17mar01
+	FESTAN			>		+[f][E][s][t][a][n][+]
+;;;;;;;;;;cb 17mar01
+	FESTEN			>		+[f][E][s][t][@][n][+]
+;;;;;;;;;;cb 17mar01
+	FESTER			>		+[f][E][s][t][@][R][+]
+	FETTEN          >       +[f][E][=][0][>][t][@][n][+]
+	FEUDAL          >       +[f][H][=][0][d][1][l][+]
+	FEUERN          >       +[f][H][=][0][@][r][n][+]
+	FINANZ          >       +[f][3][=]['][n][a][n][T][+]
+	FINDEN          >       +[f][I][n][=][0][d][@][n][+]
+	FLUTEN          >       +[f][l][5][=][0][t][@][n][+]
+	FOLTER          >       +[f][c][l][=][0][t][@][r][+]
+	FORMAL          >       +[f][c][r][=][0][m][1][l][+]
+	FORSCH          >       +[f][c][r][=][0][S][+]  
+	FÄRBEN          >       +[f][E][r][=][0][b][@][n][+]
+	FÜHRER          >       +[f][6][=][0][r][@][r][+]
+	FLECHT          >       +[f][l][E][x][t][+]
+	FLEGEL          >       +[f][l][2][=][0][g][@][l][+]
+	FLEHEN          >       +[f][l][2][=][0][@][n][+]
+	FLINTE          >       +[f][l][I][n][=][0][t][@][+]
+	FLUCHT          >       +[f][l][U][X][t][+]
+	FLÄCHE          >       +[f][l][E][=][0][x][@][+]
+	FLÜCHT          >       +[f][l][Y][x][=][0][t][+]
+	FRAGEN          >       +[f][r][1][=][0][g][@][n][+]
+	FRAUEN          >       +[f][r][W][=][0][@][n][+]
+	FUNKEN          >       +[f][U][G][=][0][k][@][n][+]
+; MGS 13mar2001 fix next rule
+	FÄLLIG          >       +[f][E][=][0][>][l][I][g][+]				/ - [+voc]
+	FÄLLIG          >       +[f][E][=][0][>][l][I][x][+]
+;;;;;;;;;;;;cb 14mar01
+	FEGERN			>		+[f][2][g][@][R][n][+]
+	FÖRDER          >       +[f][Q][r][=][0][d][@][r][+]
+; MGS 13mar2001 fix next rule and 
+	FÖRMIG          >       +[f][Q][r][=][0][m][I][g][+]				/ - [+voc]
+	FÖRMIG          >       +[f][Q][r][=][0][m][I][x][+]			
+	FÜHLEN          >       +[f][6][=][0][l][@][n][+]
+	FÜHREN          >       +[f][6][=][0][r][@][n][+]
+	FRUCHT          >       +[f][r][5][X][t][+]
+	GEBIET          >       +[g][@][=][0][b][3][t][+]
+	GEBUNG          >       +[g][2][=][0][b][U][G][+]
+	GEBURT          >       +[g][@][=][0][b][5][r][t][+]
+	GEBÜHR          >       +[g][@][=][0][b][6][r][+]
+	GEEHRT          >       +[g][@][=][0][2][r][t][+]
+	GEFAHR          >       +[g][@][=][0][f][1][r][+]
+	GEFÜHL          >       +[g][@][=][0][f][6][l][+]
+	GEHEIM          >       +[g][@][=]['][h][A][m][+]
+	GEHEUL          >       +[g][@][=]['][h][H][l][+]
+	GEHIRN          >       +[g][@][=]['][h][I][r][n][+]
+	GEIGER          >       +[g][A][=][0][g][@][r][+]
+;;;;;;;;;;;cb 17mar01
+	GELTEN          >       +[g][=][0][@][l][=][0][t][@][n][+]				/ - #
+;;;;;;;;;;; cb 13mar01
+	GELTEN          >       +[g][E][l][=][0][t][@][n][+]
+	GEMACH          >       +[g][@][=][0][m][a][X][+]
+	GEMAHL          >       +[g][@][=][0][m][1][l][+]
+	GEMEIN          >       +[g][@][=][0][m][A][n][+]
+; add 1/22/96 Tony
+;       GENIEß          >       +[g][@][=]['][n][3][s][+]
+;       GEPÄCK          >       +[g][@][=][p][E][>][k][+]
+;       GESANG          >       +[g][@][=][z][a][G][+]
+	GESELL          >       +[g][@][=][0][z][E][>][l][+]
+	GESETZ          >       +[g][@][=][0][z][E][T][+]
+	GESUND          >       +[g][@][=][0][z][U][n][d][+]				/ - [+voc]
+	GESUND          >       +[g][@][=][0][z][U][n][t][+]
+	GEWALT          >       +[g][@][=]['][v][a][l][t][+]
+	GEWAND          >       +[g][@][=]['][v][a][n][t][+]
+; add 1/22/96 Tony
+	GEWEBE          >       +[g][@][=][v][2][=][b][@][+]
+	GEWEHR          >       +[g][@][=][0][v][2][r][+]
+	GIFTEN          >       +[g][I][f][=][0][t][@][n][+]
+	GITTER          >       +[g][I][=][0][>][t][@][r][+]
+	GLAUBE          >       +[g][l][W][=][0][b][@][+]
+	GLEICH          >       +[g][l][A][x][+]
+; MGS 13mar2001 fix this rule
+	GÄNGIG          >       +[g][E][G][=][0][I][g][+]					/ - [+voc]
+	GÄNGIG          >       +[g][E][G][=][0][I][x][+]       
+; MGS 13mar2001 remove
+;	GRATEN          >       +[g][r][1][=][0][t][@][n][+]
+	GRÄTEN          >       +[g][r][7][=][0][t][@][n][+]
+; add 1/22/96 Tony
+;       GÜRTEL          >       +[g][Y][R][=][t][@][l][+]
+	HAAREN          >       +[h][1][=][0][r][@][n][+]
+; MGS 13mar2001 fix this rule
+	HAFTIG          >       +[h][a][f][=][0][t][I][g][+]				/ - [+voc]
+	HAFTIG          >       +[h][a][f][=][0][t][I][x][+]
+	HAHNEN          >       +[h][1][=][0][n][@][n][+]
+;       HALBER          >       +[h][a][l][=][0][b][@][R][+]
+;;;;;;;;;;;cb 14mar01
+	HALDEN			>		+[h][a][l][d][@][n]							/ - #
+;;;;;;;;;;;cb 14mar01
+	HÄLSEN			>		+[h][E][l][z][@][n][+]						/ - #
+; + MGS 13mar2001
+	HALTEN          >       H[=][a][l][=][0][t][@][n][=]				/ C -
+	HALTEN          >       [=][h][a][l][=][0][t][@][n][=]
+; MGS 13mar2001 fix next rule
+    HALTIG          >       +[h][a][l][=][0][t][I][g][+]				/ - [+voc]
+	HALTIG          >       +[h][a][l][=][0][t][I][x][+]    
+;;;;;;;;;;cb 15mar01
+	HARTGE			>		+[h][a][R][t][=][g][@][+]					/ # -
+;;;;;;;;;;;cb 14mar01
+	HAUFEN			>		+[h][W][f][@][n]							/ - #
+	HEFTEN          >       +[h][E][f][=][0][t][@][n][+]
+	HEIMAT          >       +[h][A][=][0][m][1][t][+]
+	HEIRAT          >       +[h][A][=][0][r][1][t][+]
+	HENKER          >       +[h][E][G][=][0][k][@][r][+]
+	HERBST          >       +[h][E][r][p][s][t][+]
+;add 10/30
+	HEREIN          >       +[h][E][=]['][r][A][n][+]					/ # -
+	HERAUS          >       +[h][E][=]['][r][W][s][+]					/ # -
+	HERVOR          >       +[h][E][R][=]['][f][4][R][+]				/ # -
+;add 11/1/95
+	HERAUF          >       +[h][E][=]['][r][W][f][+]
+	HERREN          >       +[h][E][=][0][r][@][n][+]       
+	HERZEN          >       +[h][E][r][=][0][T][@][n][+]
+	HINAUF          >       +[h][I][=]['][n][W][f]
+	HINAUS          >       +[h][I][=][0][n][W][s]
+;	HINAUS          >       +[h][I][=]['][n][W][s][+]       			/ # -
+;add 10/30
+	HINEIN          >       +[h][3][=]['][n][A][n][+]       			/ # -
+;;;;;;;;;;;cb 15mar01
+	HINGER			>		+[h][I][n][g][@][r][+]						/ # -
+	HOLUNG          >       +[h][4][=][0][l][U][G][+]
+	HUSTEN          >       +[h][5][s][=][0][t][@][n][+]
+	HÄLTER          >       +[h][E][l][=][0][t][@][r][+]
+	HÄRTEN          >       +[h][E][r][=][0][t][@][n][+]
+	HÄUTEN          >       +[h][H][=][0][t][@][n][+]
+	HÖCHST          >       +[h][q][x][s][t][+]
+	HÖHUNG          >       +[h][q][=][0][U][G][+]
+	;;;;;;;;; cb 13mar01
+	HOLTEN			>		+[h][4][l][t][@][n][+]	
+	HÜHNER          >       +[+][h][6][=][0][n][@][r][+]
+	HÜLLEN          >       +[h][Y][=][0][>][l][@][n][+]
+;;;;;;;;;;; cb 18feb01
+; MGS 13mar2001 have to check this rule might need ti do the I[] thing
+	ICHTEN	        >		[I][x][=][0][t][@][n]							/ - #
+;	ICHTEN	        >		[I][k][=][0][t][@][n]							/ - #	
+	ICKERN	        >		[I][k][=][0][@][r][n]							/ - #
+;;;;;;;;;;cb 15mar01
+	IENTEN			>		[3][n][=][0][t][@][n][+]						/ - +
+; add 11/29/95
+	IERTEN          >       ['][3][=][0][r][t][@][n][=]     				/ - #
+	IERUNG          >       +['][3][=][0][r][U][G][+]       				/ - #
+; MGS 13mar2001 check this rule probably breaks on eigkeit
+	IGKEIT          >       [I][x][=][0][k][A][t]
+; add 1/22/96 Tony
+	IMETER          >       +[3][=]['][m][2][=][t][@][R][+] 				/ - #
+	INHALT          >       +[I][n][=][0][h][a][l][t][+]
+;;;;;;;;;;;;cb 15mar01
+	INTERN			>		+[I][n][=][0][t][E][R][n][+]
+	ISCHEN          >       +[I][=][0][S][@][n][+]
+;;;;;;;;;;;;cb 15mar01
+	ISCHER			>		+[I][=][0][S][@][R][+]							/ - #
+	JAHRES          >       +[j][1][=][0][r][@][s][+]
+	JUSTIZ          >       +[j][U][s][=]['][t][3][T][+]
+	KAMERA          >       +[k][a][=][0][m][@][=][0][r][1][+]
+	KAMMER          >       +[k][a][=][0][>][m][@][r][+]
+	KASPER          >       +[k][a][s][=][0][p][@][r][+]
+	KIEFER          >       +[k][3][=][0][f][@][r][+]
+	KELLER          >       +[k][E][=][0][>][l][@][r][+]
+	KERNEN          >       +[k][E][r][=][0][n][@][n][+]
+	KINDER          >       +[k][I][n][=][0][d][@][r][+]
+	KIRCHE          >       +[k][I][r][=][0][x][@][+]
+	KLEBEN          >       +[k][l][2][=][0][b][@][n][+]
+	KNOTEN          >       +[k][n][4][=][0][t][@][n][+]
+	KOHLEN          >       +[k][4][=][0][l][@][n][+]       
+	KOMMEN          >       +[k][c][=][0][>][m][@][n][+]
+	KORKEN          >       +[k][c][r][=][0][k][@][n][+]
+	KÖRPER          >       +[k][Q][r][=][0][p][@][r][+]
+	KRAMPF          >       +[k][r][a][m][P][+]
+	KREDIT          >       +[k][R][2][=]['][d][3][t][+]
+	KRIEGS          >       +[k][r][3][k][s][+]
+	KUCHEN          >       +[k][5][=][0][X][@][n][+]
+	KULTUR          >       +[k][U][l][=]['][t][5][r][+]
+	KUNDEN          >       +[k][U][n][d][@][n][+]					/ - #
+	KUNFTS          >       +[k][U][n][f][t][T][+]
+	KÜCHEN          >       +[k][Y][=][0][x][@][n][+]
+	LANDES          >       +[l][a][n][=][0][d][@][s][+]
+	LARVEN          >       +[l][a][r][=][0][v][@][n][+]
+	LASSEN          >       +[l][a][=][0][s][@][n][+]
+	LASTEN          >       +[l][a][s][=][0][t][@][n][+]
+	LAUFEN          >       +[l][W][=][0][f][@][n][+]
+	LAUSEN          >       +[l][W][=][0][z][@][n][+]
+	LEEREN          >       +[l][2][=][0][r][@][n][+]
+	LEGBAR          >       +[l][2][k][=][0][b][1][r][+]
+	LEGUNG          >       +[l][2][=][0][g][U][G][+]
+	LEHNEN          >       +[l][2][=][0][n][@][n][+]
+	LEIBEN          >       +[l][A][=][0][b][@][n][+]       
+	LEICHT          >       +[l][A][x][t][+]
+	LEIHEN          >       +[l][A][=][0][@][n][+]  
+;       LEINEN          >       +['][l][A][=][0][n][@][n][+]			/ # -
+	LEINEN          >       +[l][A][=][0][n][@][n][+]       
+	LEITER          >       +[l][A][=][0][t][@][r][+]
+	LERNEN          >       +[l][E][r][=][0][n][@][n][+]    
+	LESUNG          >       +[l][2][=][0][z][U][G][+]
+	LICHEN          >       +[l][I][=][0][x][@][n][+]
+	LIEBES          >       +[l][3][=][0][b][@][s][+]
+	LIEGEN          >       +[l][3][=][0][g][@][n][+] 
+	LOCKEN          >       +[l][c][=][0][>][k][@][n][+]
+	LOHNEN          >       +[l][4][=][0][n][@][n][+]
+	LÄUFER          >       +[l][H][=][0][f][@][r][+]
+; MGS 13mar2001 fix this rule
+	LÄUFIG          >       +[l][H][=][0][f][I][g][+]					/ - [+voc]
+	LÄUFIG          >       +[l][H][=][0][f][I][x][+]
+	LÄNDER          >       +[l][E][n][=][0][d][@][r][+]
+	LÜFTEN          >       +[l][Y][f][=][0][t][@][n][+]
+	MACHEN          >       +[m][a][=][0][X][@][n][+]
+	MACHER          >       +[m][a][=][0][X][@][r][+]
+	MANNEN          >       +[m][a][=][0][>][n][@][n][+]
+; add 1/22/96 Tony
+;       MANTEL          >       +[m][2][=][0][t][a][l][+]
+	MARSCH          >       +[m][a][r][S][+]
+; add 1/22/96 Tony
+;       MECHAN          >       +[m][2][=][0][x][1][n][+]
+	MEERES          >       +[m][2][=][0][r][@][s][+]
+	MEHREN          >       +[m][2][=][0][r][@][n][+]
+	MENSCH          >       +[m][E][n][S][+]
+	METALL          >       +[m][2][=]['][t][a][>][l][+]					/ # -
+	METALL          >       +[m][2][=][0][t][a][>][l][+]
+; add 1/22/96 Tony
+;       MIETER          >       +[m][3][=][0][t][@][R][+]
+	MISTEN          >       +[m][I][s][=][0][t][@][n][+]
+	MITTAG          >       +[m][I][=][0][>][t][1][k][+]
+	MITTEL          >       +[m][I][=][0][>][t][@][l][+]
+	MODERN          >       +[m][4][=][0][d][E][r][n][+]
+;;;;;;cb 17mar01
+	MONTAG			>		+[m][4][n][t][1][k]					
+	MORGEN          >       +[m][c][r][=][0][g][@][n][+]
+	MUTTER          >       +[m][U][=][0][>][t][@][r][+]
+; MGS 13mar2001 added this rule for myst*** words
+	MYSTER			>		+[m][Y][s][+][t][2][r]							/ # -
+	MÖRDER          >       +[m][Q][r][=][0][d][@][r][+]
+	NAGELN          >       +[n][1][=][0][g][@][l][n][+]
+	NEHMEN          >       +[n][2][=][0][m][@][n][+]
+	NEHMER          >       +[n][2][=][0][m][@][r][+]
+	NERVEN          >       +[n][E][r][=][0][v][@][n][+]
+;;;;;;;;;;cb 18mar01
+	NGEREN			>		[G][@][r][@][n][+]							/ [+voc] - #
+	NGSTEN			>		[G][s][t][@][n][+]							/ [+voc] - #
+	NICHTS          >       +[n][I][x][T][+]
+	NIEDER          >       +['][n][3][=][0][d][@][r][+]
+; add 1/22/96 Tony
+	NIEREN          >       +[=]['][n][3][=][0][r][@][n][+]
+	NIEßER          >       +[n][3][=][0][s][@][r][+]
+	NOVELL          >       +[n][4][=][0][v][E][>][l][+]
+	NUMMER          >       +[n][U][=][0][>][m][@][r][+]
+	NÄCHST          >       +[n][7][x][s][t][+]
+	OBJEKT          >       +[c][p][=][0][j][E][k][t][+]
+; add 1/22/96 Tony
+	OFFIZI          >       +[c][=][0][>][f][3][=][0][T][3][+]
+	OGENIE          >       +[4][=][0][g][2][=]['][n][3][+]
+	ONIKER          >       +[4][=][0][n][3][=][0][k][@][R][+]
+	ORDENT          >       +[c][R][=][0][d][@][n][t][+]
+	ORIENT          >       +[4][=][0][r][3][=][0][E][n][t][+]
+	OLOGIE          >       +[4][=][0][l][4][=]['][g][3][+] 
+	ORDNEN          >       +[c][R][=][0][d][n][@][n][+]
+	ÖCHERN          >       [Q][=][0][x][@][r][n][+]
+	ÖFFNER          >       +[Q][>][f][=][0][n][@][r][+] 
+	PAPIER          >       +[p][a][=][0][p][3][r][+]
+	PARTIE          >       +[p][a][r][=]['][t][3][+]
+;add 2/21/96
+	PATENT          >       +[p][a][=]['][t][E][n][t][+]
+	PATRON          >       +[p][a][t][=]['][r][4][n][+]
+; add 1/22/96 Tony
+	PERIOD          >       +[p][2][=][0][r][3][=][0][4][d][+]
+	PERSON          >       +[p][E][r][=]['][z][4][n][+]
+	PFEIFE          >       +[P][A][=][0][f][@][+]
+;add 2/21/96
+	PFLEGE          >       +[P][l][2][=][g][@]
+; add 1/22/96 Tony
+	PLASMA          >       +[p][l][a][s][=][m][1][+]
+	PLASTI          >       +[p][l][a][s][=][0][t][I][+]
+	PLATTE          >       +[p][l][a][=][0][>][t][@][+]
+;add 2/21/96
+	PRIVAT          >       +[p][R][3][=]['][v][1][t][+]
+; add 1/22/96 Tony
+	PROZEß          >       +[p][R][4][=][0][T][E][s][+]
+	PULVER          >       +[p][U][l][=][0][f][@][r][+]
+; add 1/22/96 Tony
+;       PUPPEN          >       +[p][U][=][0][>][p][@][n][+]
+	RAFFIN          >       +[r][a][=][0][>][f][3][n][+]
+	qADRAT          >       +[k][v][a][=]['][d][R][1][t][+]
+;add 1/21/96
+	RASIER          >       +[r][a][=]['][z][3][R][=]
+	RATTEN          >       +[r][a][=][0][>][t][@][n][+]
+; add 1/22/96 Tony
+;       REBELL          >       +[r][2][=][b][E][>][l][+]
+	RECHEN          >       +[r][E][=][0][x][@][n][+]
+;;;;;;;;;;;cb 14mar01
+	RECHTH			>		+[r][E][x][t][h]
+;add 2/21/96
+	RECHTS          >       +['][r][E][x][T][+]
+	REDNER          >       +[r][2][=][0][d][n][@][r][+]
+	REDUNG          >       +[r][2][=][0][d][U][G][+]
+;       REKORD          >       +[r][2][=]['][k][c][R][d][+]			/ - [+voc]
+	REKORD          >       +[r][2][=][0][k][c][R][t][+]				/ - #
+	REKORD          >       +[r][2][=]['][k][c][R][t][+]
+	REIZEN          >       +[r][A][=][0][T][@][n][+] 
+	REIßEN          >       +[r][A][=][0][s][@][n][+]
+	RENNEN          >       +[r][E][=][0][>][n][@][n][+]
+	RENTEN          >       +[r][E][n][=][0][t][@][n]
+; + MGS 13mar2001 remove leading +
+	REVIER          >       [r][2][=][0][v][3][r][+]
+	RIEGEL          >       +[r][3][=][0][g][@][l][+]
+	RIEMEN          >       +[r][3][=][0][m][@][n][+]
+	ROLLEN          >       +[r][c][=][0][>][l][@][n][+]
+	RÜCKEN          >       +[r][Y][=][0][>][k][@][n][+]
+;;;;;;;;;;;cb 17mar01
+	RUNDEN			>		+[r][U][n][d][@][n][+]
+	SAISON          >       +[z][E][=]['][z][%][+]
+	SAMMEL          >       +[z][a][=][0][>][m][@][l][+]
+;;;;;;;;;;;cb 17mar01
+	SAMMEN			>		+[z][a][m][@][n][+]
+	SAUGEN          >       +[z][W][=][0][g][@][n][+]
+	SÄNGER          >       +[z][E][=][0][G][@][r][+]
+	SÄUERN          >       +[z][H][=][0][@][R][n][+]
+	SCHACH          >       +[S][a][X][+]
+	SCHAFF          >       +[S][a][=][0][>][f][+]     
+;;;;;;;;;;;cb 14mar01
+	SCHAFT			>		+[S][a][f]							/ - {SUR}
+	SCHAFT			>		+[S][a][f][t]						/ - {#, +, [+voc]}
+; add 1/22/96 Tony
+;	SCHAFT          >       +[S][a][f][t][+]
+	SCHALE          >       +[S][1][=][0][l][@][+]
+	SCHALL          >       +[S][a][>][l][+]
+; add 1/22/96 Tony
+	SCHALT          >       +[S][a][l][t][+]
+	SCHANK          >       +[S][a][G][k][+]
+	SCHARF          >       +[S][a][r][f][+]
+; add 1/22/96 Tony
+	SCHATZ          >       +[S][a][T][+]
+	SCHAUM          >       +[S][W][m][+]
+	SCHEIN          >       +[S][A][n][+]
+	SCHELM          >       +[S][@][l][m][+]
+; add 1/22/96 Tony
+	SCHERE          >       +[S][2][=][0][r][@][+]
+	SCHICK          >       +[S][I][>][k][+]
+; add 1/22/96 Tony
+	SCHIEB          >       +[S][3][b][+]							/ - [+voc]
+	SCHIEB          >       +[S][3][p][+]
+	SCHIED          >       +[S][3][d][+]							/ - [+voc]
+	SCHIED          >       +[S][3][t][+]
+	SCHIEF          >       +[S][3][f][+]
+	SCHIEß          >       +[S][3][s][+]
+	SCHIFF          >       +[S][I][>][f][+]
+	SCHILD          >       +[S][I][l][d][+]						/ - [+voc]
+	SCHILD          >       +[S][I][l][t][+]
+	SCHIRM          >       +[S][I][r][m][+]
+	SCHLAG          >       +[S][l][1][g][+]						/ - [+voc]
+	SCHLAG          >       +[S][l][1][k][+]
+	SCHLAF          >       +[S][l][1][f][+]
+;       SCHLOß          >       +[S][l][4][s][+]					/ # -
+	SCHLOß          >       +[S][l][c][s][+]
+	SCHLUß          >       +[S][l][U][s][+]
+	SCHLÄG          >       +[S][l][7][g][+]
+	SCHNEE          >       +[S][n][2][+]
+	SCHNÜR          >       +[S][n][6][r][+]
+;;;;;;;;;;;cb 14mar01
+	SCHORN			>		+[S][c][R][n][+]						/ # -
+;;;;;;;;;; cb 14mar01
+	SCHREI			>		+[S][r][A]								/ # -
+	SCHULD          >       +[S][U][l][d][+]						/ - [+voc]
+	SCHULD          >       +[S][U][l][t][+]
+	SCHULE          >       +[S][5][=][0][l][@][+]
+	SCHULT          >       +[S][U][l][t][+]
+;;;;;;;;;;;cb 14mar01
+	SCHUTT			>		+[S][U][t][+]							/ + -
+	SCHUTZ          >       +[S][U][T][+]
+	SCHÜTZ          >       +[S][Y][T][+]
+	SCHWER          >       +[S][v][2][r][+]
+;;;;;;;;;;;cb 14mar01
+	SEITEN			>		+[z][A][t][@][n][+]
+	SELBST          >       +[z][E][l][p][s][t][+]
+	SENDER          >       +[z][E][n][=][0][d][@][r][+]
+	SESSEL          >       +[z][E][=][0][s][@][l][+]
+	SETZEN          >       +[z][E][=][0][T][@][n][+]
+;add 2/21/96
+;       SEXUAL          >       +[z][E][=][k][s][5][=]['][1][l][+]
+; add 1/22/96 Tony
+	SIGNAL          >       +[z][I][=]['][g][n][1][l][+]
+; MGS 13mar2001 fix this rule
+    SINNIG          >       +[z][I][=][0][>][n][I][g][+]				/ - [+voc]
+	SINNIG          >       +[z][I][=][0][>][n][I][x][+]
+	SITZEN          >       +[z][I][=][0][T][@][n][+]
+	SONDER          >       +[z][c][n][=][0][d][@][r][+]
+	SONNEN          >       +[z][c][=][0][>][n][@][n][+]
+; MGS 13mar2001 fix rule [j]->[3]
+	SOZIAL          >       [z][4][=][0][T][3][=]['][1][l]				/ # -
+	SOZIAL          >       +[z][4][=][0][T][3][=][0][1][l][+]
+	SPANEN          >       +[S][p][1][=][0][n][@][n][+]
+;;;;;;;;;;;cb 15mar01
+	SPIRAL			>		+[S][p][3]['][r][1][l][+]
+	SPITZE          >       +[S][p][I][=][0][T][@][+]
+;;;;;;;;;;;cb 14mar01
+	SPORTH			>		+[S][p][c][R][t][+][h]						/ # -
+;add 2/21/96
+	SPRACH          >       +[S][p][R][1][x][+]
+	SPRENG          >       +[S][p][R][E][G]
+	SPRECH          >       +[S][p][r][E][x][+]
+	SPRING          >       +[S][p][r][I][G][+]
+; MGS 13mar2001 remove 
+;	SREICH          >       [s][=][0][r][A][x]
+	STAATS          >       +[S][t][1][T][+]
+; add 1/22/96 Tony
+	STABIL          >       +[S][t][a][=][0][b][3][l][+]
+;;;;;;;;;;;cb 17mar01
+	STANGE			>		[s][t][a][n][g][@][+]						/ FE -
+	STANGE          >       +[S][t][a][=][0][G][@][+]
+;;;;;;;;;;;cb 14mar01
+	STARTH			>		+[S][t][a][R][t][+][h]						/ # -
+;;;;;;;;;;;;cb 15mar01
+	STÄTTE			>		+[S][t][E][t][@][+]	
+	STEHEN          >       +[S][t][2][=][0][@][n][+]
+	STEHER          >       +[S][t][2][=][0][@][r][+]
+	STEIGE          >       +[S][t][A][g][@][+]
+;;;;;;;;;;;cb 15mar01
+	STEINE          >       +[S][t][A][n][@][+]
+	STELLE          >       +[S][t][E][=][0][>][l][@][+]
+	STEUER          >       +[S][t][H][=][0][@][r][+]
+	SPRACH			>		+[S][p][r][1][x][+]
+	STRAFE          >       +[S][t][r][1][=][0][f][@][+]
+; add 1/22/96 Tony
+	STRAHL          >       +[S][t][R][1][l][+]
+	STRAND          >       +[S][t][r][a][n][d][+]						/ - [+voc]
+	STRAND          >       +[S][t][r][a][n][t][+]
+	STRAßE          >       +[S][t][r][1][=][0][s][@][+]
+	STREIT          >       +[S][t][r][A][t][+]
+	STRICH          >       +[S][t][r][I][x][+]
+	STUNDE          >       +[S][t][U][n][=][0][d][@][+]
+; add 1/22/96 Tony
+;       STÜTZE          >       +[S][t][Y][=][0][T][@][+]
+	STÄRKE          >       +[S][t][E][r][=][0][k][@][+]
+	SYSTEM          >       +[z][Y][s][=][0][t][2][m][+]
+	TASCHE          >       +[t][a][=][0][S][@][+]
+	TUEREI          >       +[t][5][=][0][@][=][0][r][A][+]
+	TELLER          >       +[t][E][=][0][>][l][@][r][+]
+	TEMPEL          >       +[t][E][m][=][0][p][@][l][+]
+	TEUERN          >       [=][0][t][H][=][0][@][r][n][=]
+; add 1/22/96 Tony
+	TÖPFER          >       +[t][Q][=][0][P][f][@][R][+]
+	TRACHT          >       +[t][r][a][X][t][+]
+	TRAUEN          >       +[t][r][W][=][0][@][n][+]
+	TRAUER          >       +[t][r][W][=][0][@][r][+]
+	TRAGEN          >       +[t][r][1][=][0][g][@][n][+]
+	TRETEN          >       +[t][r][2][=][0][t][@][n][+]
+	TRUPPE          >       +[t][r][U][=][0][>][p][@][+]
+; add 1/22/96 Tony
+	TRÄGER          >       +[t][R][7][=][g][@][R][+]
+	TSCHEN          >       [t][=][0][S][@][n][+]
+;;;;;;;;;cb 15mar01
+	ÜBERBE          >       +[0][6][=][0][b][@][r][b][@][+]				/ # -
+;;;;;;;;;cb 15mar01
+	ÜBERST          >       +[0][6][=][0][b][@][r][+][S][t]				/ # -
+; add 1/22/96 Tony
+	URLAUB          >       +[5][R][=][0][l][W][p][+]
+	UNÜBER          >       +[U][n][=][0][6][=][0][b][@][r][+]
+	URTEIL          >       +[U][r][=][0][t][A][l][+]
+; add 1/22/96 Tony
+	ÖFFENT          >       +[Q][=][0][>][f][@][n][t][+]
+;       ÜBUNGS          >       +[6][=][b][U][G][s][+]
+
+	VENTIL          >       +[v][E][n][=][0][t][3][l][+]
+	VERBOT          >       +[f][E][R][=][0][b][4][t][+]
+	VERLAG          >       +[f][E][R][=][0][l][1][g][+]				/ - [+voc]
+	VERLAG          >       +[f][E][R][=][0][l][1][k][+]
+	VORAUF          >       +[f][4][R][=]['][W][f][+]
+	VORAUS          >       +[f][4][R][=]['][W][s][+]
+; + MGS 13mar2001 fix rule, this should probably have the short version, but....
+	VORBEI          >       +[f][4][R][=]['][b][A][+]
+	VORDER          >       +[f][c][R][=][0][d][@][R][+]
+	VORHER          >       +[f][4][R][=][0][h][2][R][+]
+;;;;;;;;;;;;cb 15mar01
+	VULKAN			>		+[v][U][l][k][a][n][+]						/ - I
+	VULKAN			>		+[v][U][l][k][1][n]							/ # -
+	WACHEN          >       +[v][a][=][0][X][@][n][+]
+	WALLEN          >       +[v][a][=][0][>][l][@][n][+]
+	WALZEN          >       +[v][a][l][=][0][T][@][n][+]
+	WASSER          >       +[v][a][=][0][s][@][r][+]
+	WELLEN          >       +[v][E][=][0][>][l][@][n][+]
+;;;;;;;;;;;cb 17mar01
+	WENDEN			>		+[v][E][n][d][@][n][+]						/ - #
+	WERFEN          >       +[v][E][R][=][0][f][@][n][+]
+	WERTEN          >       +[v][2][R][=][0][t][@][n][+]
+	WEISEN          >       +[v][A][=][0][z][@][n][+]
+	WEIßEN          >       +[v][A][=][0][s][@][n][+]
+; MGS 13mar2001 fix these rules
+	WERTIG          >       +[v][2][R][=][0][t][I][g][+]				/ - [+voc]
+	WERTIG          >       +[v][2][R][=][0][t][I][x][+]
+	WESSEN          >       +[v][E][=][0][s][@][n][+]
+	WETTER          >       +[v][E][=][0][>][t][@][r][+]
+; add 1/22/96 Tony
+; MGS 13mar2001 fix these rules
+	WIDRIG          >       +[v][3][=][0][d][R][I][g][+]				/ - [+voc]
+	WIDRIG          >       +[v][3][=][0][d][R][I][x][+]
+	WIEDER          >       +[v][3][=][0][d][@][r][+]					/ # -
+	WIEGEN          >       +[v][3][=][0][g][@][n][+]
+	WEITER          >       +[v][A][=][0][t][@][r]
+;;;;;;;;;;;;cb 16mar01		
+	WIDMET			>		+[v][I][t][m][@][t][+]
+	WILLEN          >       +[v][I][=][0][>][l][@][n][+]
+; MGS 13mar2001 fix these rules
+	WILLIG          >       +[v][I][=][0][>][l][I][g][+]				/ - [+voc]
+	WILLIG          >       +[v][I][=][0][>][l][I][x][+]
+	WINDEN          >       +[v][I][n][=][0][d][@][n][+]
+	WIRKEN          >       +[v][I][r][=][0][k][@][n][+]
+	WISSEN          >       +[v][I][=][0][s][@][n][+]
+	WUNDER          >       +[v][U][n][=][0][d][@][R][+]
+	WUNSCH          >       +[v][U][n][S][+]
+	WÄHLEN          >       +[v][7][=][0][l][@][n]
+	WÄLZEN          >       +[v][E][l][=][0][T][@][n][+]
+	WÄRTER          >       +[v][E][R][=][0][t][@][R][+]
+; MGS 13mar2001 fix these rules
+	WÄRTIG          >       +[v][E][R][=][0][t][I][g][+]				/ - [+voc]
+	WÄRTIG          >       +[v][E][R][=][0][t][I][x][+]
+	WÄSCHE          >       +[v][E][=][0][S][@][+]
+	WÖLBEN          >       +[v][Q][l][=][0][b][@][n][+]
+;       WÖRDER          >       +[v][Q][R][=][0][d][@][R][+]
+	ZAHLEN          >       +[T][1][=][0][l][@][n][+]
+; add 1/22/96 Tony
+;       ZAUBER          >       +[T][W][=][b][@][R][+]
+	ZEHREN          >       +[T][2][=][0][r][@][n][+]
+; MGS 13mar2001 fix  these rules
+	ZEITIG          >       +[T][A][=][0][t][I][k][+]					/ - [+voc]
+	ZEITIG          >       +[T][A][=][0][t][I][x][+]
+	ZELLEN          >       +[T][E][=][0][>][l][@][n][+]
+; add 1/22/96 Tony
+	ZEMENT          >       +[T][2][=][m][E][n][t][+]
+	ZEUGEN          >       +[T][H][=][0][g][@][n][+]
+	ZIEHEN          >       +[T][3][=][0][@][n][+]
+	ZIMMER          >       +[T][I][=][0][>][m][@][r][+]
+	ZIRKUM          >       +[T][I][r][=][0][k][U][m][+]
+; add 1/22/96 Tony
+	ZUCKER          >       +[T][U][=][0][>][k][@][R][+]
+	ZUFUHR          >       +[T][5][=][0][f][5][r][+]
+	ZUPFEN          >       +[T][U][=][0][P][@][n][+]
+	ZURÜCK          >       +[T][5][=]['][r][Y][>][k][+]
+	ZÄHLEN          >       +[T][7][=][0][l][@][n][+]
+; MGS 13mar2001 fix these rules
+	ZÄHLIG          >       +[T][7][=][0][l][I][g][+]						/ - [+voc]
+	ZÄHLIG          >       +[T][7][=][0][l][I][x][+] 
+	ZÜGLER          >       +[T][6][k][=][0][l][@][r][+]
+
+;
+; 5 Grapheme strings
+; add 1/23/96 Tony
+;       ÄLTES           >       +[E][l][=][0][t][@][s][+]               
+;       BÖRSE           >       +[b][Q][R][=][0][z][@][+]
+
+	ABBAU           >       +[a][p][=][0][b][W][+]
+;       ABEND           >       +[1][=][0][b][@][n][d][+]			/ - [+voc]
+	ABEND           >       +[1][=][0][b][@][n][t][+]
+	ABZUG           >       +[a][p][=][0][T][5][g][+]				/ - [+voc]
+	ABZUG           >       +[a][p][=][0][T][5][k]
+	ADLER           >       +[1][=][0][d][l][@][r][+]
+; add 1/23/96 Tony
+	AKTIV           >       +[a][k][=]['][t][3][v][+]					/ - [+voc]
+	AKTIV           >       +[a][k][=]['][t][3][f][+]
+	ALLER           >       +[a][=][0][>][l][@][r][+]
+	ALLES           >       +[a][=][0][>][l][@][s][+]
+	ALLZU           >       +[a][>][l][=][0][T][5][+]
+	AMPHI           >       +[a][m][=][0][f][3][+]
+	ANDER           >       +[a][n][=][0][d][@][r]
+	ANGEL           >       +[a][G][@][l][+]
+	ANGER           >       [a][=][0][G][@][r][+]
+; add 1/23/96 Tony
+	ANGST           >       +[a][G][s][t][+]
+	ANZUG           >       +[a][n][=][0][T][5][k][+]
+	APFEL           >       +[a][=][0][P][@][l][+]
+;       ARTEN           >       +[1][r][=][0][t][@][n][+]
+; add 1/23/96 Tony
+; MGS 13mar2001 fix this
+	ARTIG           >       +[1][R][=][0][t][I][g][+]					/ - [+voc]
+	ARTIG           >       +[1][R][=][0][t][I][x][+]
+	ATMEN           >       +[1][t][=][0][m][@][n][+]
+; add 2/14/96
+	AUFST           >       ['][W][f][=][0][S][t]						/ # -
+	AUGEN           >       +[W][=][0][g][@][n][+]
+	AUSER           >       +[W][=][0][s][E][r][+]
+;;;;;;;;;;;cb 16mar01
+	AUSGE			>		+[W][s][=][0][g][@][+]						/ # -
+; add 2/14/96
+	AUSSP           >       ['][W][s][=][0][S][p]						/ # -
+	AUSST           >       ['][W][s][=][0][S][t]						/ # -
+	AUßER           >       +[W][=][0][s][@][R][+]
+	AUßEN           >       +[W][=][0][s][@][n][+]
+; add 10/30
+	ASTRO           >       +[a][s][=][t][R][4][+]						/ # -
+	ÄNGER           >       [E][=][0][G][@][r][+]
+	ÄUSCH           >       [H][S]
+	BADEN           >       +[b][1][=][0][d][@][n][+]
+; add 1/23/96 Tony
+	BAKEN           >       +[b][1][=][0][k][@][n][+]
+;       BAKEN           >       +[b][1][=][0][k][@][n][+]
+;;;;;;;;;cb 18mar01	
+	BANDS			>		+[b][a][n][T]								/ # - #
+;;;;;;;;;;;cb 15mar01
+	BAREN			>		+[b][1][=][0][r][@][n][+]					/ - #
+	BARER			>		+[b][1][=][0][r][@][R][+]					/ - #
+	BAUCH           >       +[b][W][X][+]
+	BAUEN           >       +[b][W][=][0][@][n][+]
+	BEEIN           >       +[b][@][+]['][A][n][+]						/ # -
+	BESEN           >       +[b][2][=][0][z][@][n][+]
+; add 1/23/96 Tony
+;       GÄRIG           >       +[g][7][=][0][r][I][k][+]
+	BINDE           >       +[b][I][n][=][0][d][@][+]
+	BITTE           >       +[b][I][=][0][>][t][@][+]
+	BÄREN           >       +[b][7][=][0][r][@][n][+]
+	BLATT           >       +[b][l][a][>][t][+]
+	BLASE           >       +[b][l][1][=][0][z][@][+]
+	BLECH           >       +[b][l][E][x][+]
+; add 06/12/1998 GL        
+	BLEIB           >       ['][b][l][A][=][0][b]						/ # -	
+	BLEND           >       +[b][l][E][n][d][+]							/ - [+voc]
+	BLEND           >       +[b][l][E][n][t][+]
+	BLICK           >       +[b][l][I][>][k][+]
+	BLIND           >       +[b][l][I][n][t][+]
+	BLOCK           >       +[b][l][c][>][k][+]
+	BLOND           >       +[b][l][c][n][t][+]
+	BLUME           >       +[b][l][5][=][0][m][@][+]
+	BLÜTE           >       +[b][l][6][=][0][t][@][+]
+	BODEN           >       +[b][4][=][0][d][@][n][+]
+	BOGEN           >       +[b][4][=][0][g][@][n][+]
+;;;;;;;;;;;cb 14mar01
+	BOOTE			>		+[b][4][t][@][+]
+	BRAUN           >       +[b][r][W][n][+]
+	BRAUT           >       +[b][r][W][t][+]
+	BREIT           >       +[b][r][A][=][0][t][+]
+	BRETT           >       +[b][r][E][>][t][+]
+	BRIEF           >       +[b][r][3][f][+]
+	BRUCH           >       +[b][r][U][X][+]
+	BRÜHE           >       +[b][r][6][=][0][@]
+; add 1/23/96 Tony
+	BUNGS           >       +[b][U][G][s][+]
+	BUSEN           >       +[b][5][=][0][z][@][n][+]
+; MGS 13mar2001 fix this
+	BUSIG           >       +[b][5][=][0][z][I][g][+]						/ - [+voc]
+	BUSIG           >       +[b][5][=][0][z][I][x][+]
+	DABEI           >       +[d][a][=][0][b][A][+]
+	DACHT           >       +[d][a][X][t][+]
+; MGS 13mar2001 remove
+;	DAFÜR           >       +[d][a][+][f][6][r][+]
+	DAMPF           >       +[d][a][m][P][+]
+	DARUM           >       +[d][a][=][0][r][U][m][+]
+	DATEN           >       +[d][1][=][0][t][@][n][+]
+;;;;;;;;;;cb 15mar01
+	DETEN			>		+[=][0][d][@][=][0][t][@][n][+]					/ - #
+;;;;;;;;;;cb 15mar01
+	DIGEN			>		[d][3][g][@][n][+]								/ R - #
+	DINGS           >       [d][I][G][s]
+;;;;;;;;;;cb 14mar01
+	DORTH			>		+[d][c][R][t][=][h]								/ # -
+	DRANG           >       +[d][r][a][G][+]
+;;;;;;;;;;;cb 17mar01
+	DRUCK           >       +[d][r][U][k]
+;	DRUCK           >       +[d][r][U][>][k]
+	DRÜCK           >       +[d][r][Y][>][k][+]
+;;;;;;;;;;;cb 15mar01
+	DURCH			>		[=][0][d][U][R][x][+]							/ + -
+;	DURCH           >       +[d][U][R][x][+]
+;;;;;;;;;;cb 18mar01
+	EICHT			>		[A][x][t][+]									/ R -
+	EIGEN           >       +[A][=][0][g][@][n][+]
+;;;;;;;;;;cb 17mar01
+	EIGER			>		+[A][=][g][@][R][+]								/ - #
+;;;;;;;;;;cb 15mar01
+	EITÄT			>		[2][3]['][t][7][t][+]							/ - #
+	EHREN           >       +[2][=][0][r][@][n][+]
+; add 1/23/96 Tony
+	EMENT           >       +[@][=]['][m][8][+]								/ - #
+; add 2/14/96
+;       ENTST           >       +[E][n][t][=]['][S][t]						/ # -
+	ENKEL           >       +[E][G][=][0][k][@][l][+]
+;;;;;;;;;;cb 15mar01
+	ENTEN			>		['][E][n][=][0][t][@][n][+]						/ - +
+	ERNTE           >       +[E][r][n][=][0][t][@][+]
+; add 11/15/95
+	ERIEN           >       +['][2][=][0][r][3][=][0][@][n][+]
+	ESTEN           >       +[@][s][=][0][t][@][n][+]
+;;;;;;;;;;;cb 15mar01
+	ESTER			>		+[@][s][=][0][t][@][R][+]
+; add 1/23/96 Tony
+;       ETEST           >       [@][t][@][s][t]								/ - #
+; add 2/14/96
+;       EINST           >       ['][A][n][=][0][S][t]						/ # -
+	EUNER           >       [H][=][0][n][@][r][=]
+	FADEN           >       +[f][1][=][0][d][@][n][+]
+; MGS 13mar2001 fix these rules
+	FÄHIG           >       +[f][7][=][0][I][g][+]							/ - [+voc]
+	FÄHIG           >       +[f][7][=][0][I][x][+]
+	FAHRT           >       +[f][1][r][t][+]
+	FALLS           >       +[f][a][>][l][s][+]        
+	FARBE           >       +[f][a][r][=][0][b][@][+]
+	FAUST           >       +[f][W][s][t][+]
+	FEDER           >       +[f][2][=][0][d][@][r][+]
+;;;;;;;;;;cb 14mar01
+	FEGER			>		+[f][2][g][@][r][+]
+	FEIND           >       +[f][A][n][d][+]								/ - [+voc]
+	FEIND           >       +[f][A][n][t][+]
+;;;;;;;;;;cb 13mar01
+	FERTE           >       +[f][@][r][t][@][+]
+;;;;;;;;;;cb 17mar01
+	FESTE			>		+[f][E][s][t][@][+]
+	FEUER           >       +[f][H][=][0][@][r][+]
+;;;;;;;;;;cb 14mar01
+	FFART			>		[f][a][R][t][+]									/ - #
+; MGS 13mar2001 moved [+]
+	FIGUR           >       +[f][3][=][0][g][5][+][r]
+	FISCH           >       +[f][I][S][+]
+	FLECK           >       +[f][l][E][>][k][+]
+	FLICH           >       +[f][l][I][x][+]
+	FLÖTE           >       +[f][l][q][=][0][t][@][+]
+	FOLGE           >       +[f][c][l][=][0][g][@][+]
+	FORST           >       +[f][c][r][s][t][+]
+	FRAGE           >       +[f][r][1][=][0][g][@][+]
+;;;;;;;;;;cb 17mar01
+	FREIH			>		+[f][r][A][h]
+	FREMD           >       +[f][r][E][m][d][+]								/ - [+voc]
+	FREMD           >       +[f][r][E][m][t][+]
+	FRIST           >       +[f][r][I][s][t][+]
+;;;;;;;;;;;cb 15mar01
+	FRUCH			>		+[f][r][5][X][+]								/ {#, GE}
+	FUCHS           >       +[f][U][k][s][+]
+	FÜGEN           >       +[f][6][=][0][g][@][n]
+	FÜLLT           >       +[f][Y][>][l][t][+]
+; MGS 13mar2001 remove
+;	FÜRST           >       +[f][Y][r][s][t][+]
+	GARDE           >       +[g][a][r][=][0][d][@][+]
+	GÄNSE           >       +[g][E][n][=][0][z][@][+]
+	GEBEN           >       +[g][2][=][0][b][@][n][+]
+	GEBER           >       +[g][2][=][0][b][@][r][+]
+	GEFÄß           >       +[g][@][=][0][f][7][s][+]
+; add 1/23/96 Tony
+	GEBET           >       +[g][@][=]['][b][2][t][+]						/ # -
+	GEBET           >       +[g][@][=][0][b][2][t][+]
+	GEBOT           >       +[g][@][=]['][b][4][t][+]						/ # -
+	GEBOT           >       +[g][@][=][0][b][4][t][+]
+	GEGEN           >       +[g][2][=][0][g][@][n][+]
+	GEHEN           >       +[g][2][=][0][@][n][+]
+	GEIST           >       +[g][A][s][t][+]
+	GEMÄß           >       +[g][@][=][0][m][7][s][+]
+	GERÄT           >       +[g][@][=][0][r][7][t][+]
+; add 1/23/96 Tony
+	GENIE           >       +[g][2][=]['][n][3][+]							/ - #
+	GENIE           >       +[Z][2][=]['][n][3][+]
+	GETAN           >       +[g][@][=][0][t][1][n][+]
+; add 1/23/96 Tony
+; MGS 13mar2001 try remove
+;	GISCH           >       [=][0][g][I][S][+]
+	GLANZ           >       +[g][l][a][n][T][+]
+;;;;;;;;;;;cb 16mar01
+	GNEST			>		+[g][n][@][s][t][+]								/ - #
+;;;;;;;;;;;cb 15mar01
+	GOUDA			>		+[g][W][d][1][+]								/ # - #
+;;;;;;;;;cb 15mar01
+	GRABS			>		+[g][r][1][p][s][+]		
+	GREIF           >       +[g][r][A][f][+]
+	GRENZ           >       +[g][r][E][n][T][+]
+	GRIEß           >       +[g][r][3][s][+]
+; add 1/23/96 Tony
+;       GROSS           >       +[g][r][c][s][+]
+	GRUBE           >       +[g][r][5][=][0][b][@][+]
+	GRUND           >       +[g][r][U][n][d][+]								/ - [+voc]
+	GRUND           >       +[g][r][U][n][t][+]     
+	GUMMI           >       +[g][U][=][0][>][m][3][+]
+	GÜTER           >       +[g][6][=][0][t][@][r][+]
+; add 11/15/95 
+	HABEN           >       +[h][1][=][0][b][@][n][+]
+	HAFEN           >       +[h][1][=][0][f][@][n][+]
+;;;;;;;;;;;cb 14mar01  
+	HÄHNE			>		+[h][7][n][@][+]								/ - #
+	HAKEN           >       +[h][1][=][0][k][@][n][+]
+;;;;;;;;;;;cb 14mar01
+	HÄLSE			>		+[h][E][l][z][@][+]
+;;;;;;;;;;;cb 15mar01
+	HAUCH			>		+[h][W][x][+]							/ # - {D, +D, '}
+	HAUEN           >       +[h][W][=][0][@][n][+]
+	HAUPT           >       +[h][W][p][t][+]
+; add 1/23/96 Tony
+;       HEBEL           >       +[h][2][=][0][b][@][l][+]
+	HEBEN           >       +[h][2][=][0][b][@][n][+]
+;;;;;;;;;;cb 14mar01
+	HEITS           >       +[h][A][T][+]
+	HERZU			>		[h][E][R][=][0][T][5]
+;add 10/30
+	HERAB			>		+[h][E][=]['][r][a][p][+]       				/ # -
+	HERAN			>		+[h][E][=]['][r][a][n][+]       				/ # -
+;;;;;;;;;;cb 16mar01
+	HERBE           >       +[h][E][r][=][0][b][E][+]						/ BE - R
+	HERUM			>		+[h][E][=]['][r][U][m][+]       				/ # -
+;;;;;;;;;;cb 14mar01
+	HILFE			>		+[h][I][l][f][@]								/ - #
+	HINAB           >       +[h][I][=]['][n][a][p][+]
+	HOBEL           >       +[h][4][=][0][b][@][l][+]
+	HOLEN           >       +[h][4][=][0][l][@][n][+]
+; add 1/23/96 Tony
+	MÖGEN           >       +[m][q][=][0][g][@][n][+]
+;;;;;;;;;;; cb 18feb01
+	ICHTS		    >		[I][x][t][s]									/ - #
+;	ICHTS		    >		[I][k][t][s]									/ - #		
+	ICKEN		    >		[I][=][0][k][@][n]								/ - #
+	IDEEN           >       +[3][=]['][d][2][=][0][@][n][+]
+;;;;;;;;;;;; cb 18feb01
+; MGS 13mar2001 remove
+;	IELLE	          >		[i]['][E][l]									/ - #
+;;;;;;;;;;;;cb 16mar01
+	IENER			>		[3][n][@][R]									/ - #
+	IEREN           >       ['][3][=][0][r][@][n][=]						/ - #
+; add 11/29/95
+	IERTE           >       ['][3][R][=][0][t][@][=]     					/ - #
+	IEBEN           >       +[3][=][0][b][@][n][+]
+;;;;;;;;;;; cb 28feb01
+	IEGEN           >       +[3][=][0][g][@][n][+]
+;;;;;;;;;;cb 1mar01
+	IKERN			>		[3][=][0][k][@][R][n][+]
+	INGER           >       [I][=][0][G][@][r][+]
+	INNEN           >       +[I][=][0][>][n][@][n][+]    					/ - #
+	INNER           >       +[I][=][0][>][n][@][r][+]
+	INSEL           >       +[I][n][=][0][z][@][l][+]
+	INTER           >       +[I][n][=][0][t][@][r][+]
+;;;;;;;;;;;;cb 15mar01
+;	ISEUR			>		+[I][
+;;;;;;;;;;;; cb ok
+	ISMUS           >       +['][I][s][=][0][m][U][s][+]					/ - #
+	ISTIK           >       +['][I][s][=][0][t][I][k][+]					/ - #
+;	ISTIK           >       +['][I][s][=][0][t][I][k][+]    
+	ISTIN           >       +['][I][s][=][0][t][I][n][+]					/ - #
+; add 1/23/96 Tony
+; MGS 13mar2001 fix this rule [j]->[3]
+	ITION           >       +[3][=][0][T][3][=]['][4][n][+]
+	JUNGE           >       +[j][U][=][0][G][@][+]
+	JÄGER           >       +[j][7][=][0][g][@][r][+]
+;;;;;;;;;cb 17mar01
+	KAMEN			>		+[k][1][m][@][n]								/ - #
+; add 1/23/96 Tony
+	KANON           >       +[k][a][=]['][n][4][n][+]
+	KERZE           >       +[k][E][R][=][0][T][@][+]
+	KLIMA           >       +[k][l][3][=][0][m][1][+]
+	KONTR           >       [k][c][n][=][t][R]
+	KABEL           >       +[k][1][=][0][b][@][l][+]
+	KAMPF           >       +[k][a][m][P][+]
+	KANTE           >       +[k][a][n][=][0][t][@][+]
+	KAPER           >       +[k][1][=][0][p][@][r][+]
+	KAPPE           >       +[k][a][=][0][>][p][@][+]
+	KASKO           >       +[k][a][s][=][0][k][4][+]
+	KEITS           >       +[k][A][T][+]
+	KELLE           >       +[k][E][=][0][>][l][@][+]
+	KENNT           >       +[k][E][>][n][t][+]
+	KLEID           >       +[k][l][A][d][+]							/ - [+voc]
+	KLEID           >       +[k][l][A][t][+]        
+	KLEIN           >       +[k][l][A][n][+]
+	KOREN           >       +[k][4][=][0][r][@][n][+]
+; MGS 13mar2001 fix these rules
+	KÖNIG           >       +[k][q][=][0][n][I][g][+]					/ - [+voc]
+	KÖNIG           >       +[k][q][=][0][n][I][k][+]					/ - {[+liq], +[+liq]}
+	KÖNIG           >       +[k][q][=][0][n][I][x][+]
+	KRAFT           >       +[k][r][a][f][t][+]
+	KRAUT           >       +[k][r][W][t][+]
+; add 1/23/96 Tony
+	KREBS           >       +[k][R][2][p][s][+]
+	KREIS           >       +[k][r][A][s][+]
+	KRIEG           >       +[k][r][3][g][+]								/ - [+voc]
+	KRIEG           >       +[k][r][3][k][+]
+	KUNDE           >       +[k][U][n][=][0][d][@][+]
+	KUNFT           >       +[k][U][n][f][t][+]
+	KUNST           >       +[k][U][n][s][t][+]
+	KÜSTE           >       +[k][Y][s][=][0][t][@][+]
+	LABOR           >       +[l][a][=][0][b][4][r][+]
+	LADEN           >       +[l][1][=][0][d][@][n][+]
+	LEBEN           >       +[l][2][=][0][b][@][n][+]
+	LEBER           >       +[l][2][=][0][b][@][r][+]
+; MGS 13mar2001 fix this
+	LEBIG           >       +[l][2][=][0][b][I][g][+]						/ - [+voc]
+	LEBIG           >       +[l][2][=][0][b][I][x][+]
+	LEDER           >       +[l][2][=][0][d][@][r][+]
+	LEGEN           >       +[l][2][=][0][g][@][n][+]
+	LEGER           >       +[l][2][=][0][g][@][r][+]
+	LEHRE           >       +[l][2][=][0][r][@][+]
+	LESEN           >       +[l][2][=][0][z][@][n][+]
+	LESER           >       +[l][2][=][0][z][@][r][+]
+	LICHT           >       +[l][I][x][t][+]
+	LIEBT           >       +[l][3][p][t][+]
+	LINGS           >       [l][I][G][s]
+	LINKS           >       +[l][I][G][k][s][+]
+	LISCH           >       +[l][I][S][+]
+	LOBEN           >       +[l][4][=][0][b][@][n][+]
+; add 1/23/96 Tony
+	LOGIE           >       +[l][4][=]['][g][3][+]  
+	LOKAL           >       +[l][4][=][0][k][1][l][+]
+	LUXUS           >       +[l][U][=][0][k][s][U][s][+]
+	LYMPH           >       +[l][Y][m][f][+]
+	LÖSCH           >       +[l][Q][S][+]
+	MACHT           >       +[m][a][X][t][+]
+	MARKE           >       [m][a][r][=][0][k][@][+]
+; add 1/23/96 Tony
+	MASER           >       +[m][1][=][0][z][@][R][+]
+	MASKE           >       +[m][a][s][=][0][k][@][+]
+	MAUER           >       +[m][W][=][0][@][r][+]
+; add 1/23/96 Tony
+	MAXIM           >       +[m][a][=][0][k][s][3][m][+]
+	MEISE           >       +[m][A][=][0][z][@][+]
+; add 1/23/96 Tony
+	MELDE           >       +[m][E][l][=][0][d][@][+]
+	METER           >       +['][m][2][=][0][t][@][r][+]
+; add 1/23/96 Tony
+	METRO           >       +[m][2][=][0][t][R][4][+]						/ # -
+	MILCH           >       +[m][I][l][x][+]
+	MINUS           >       +[m][3][=][0][n][U][s][+]
+;;;;;;;;;;cb 14mar01
+	MOBIL			>		+[m][4][b][3][l][+]								/ # -
+	MOTOR           >       +[m][4][=][0][t][c][r][+]
+	MUSIK           >       +[m][5][=]['][z][3][k][+]						/ # -
+	MUSIK           >       +[m][5][=][0][z][3][k][+]
+	MUTEN           >       +[m][5][=][0][t][@][n][+]
+	MÄßIG           >       +[m][7][=][0][s][I][g][+]						/ - [+voc]
+	MÄßIG           >       +[m][7][=][0][s][I][x][+]
+	MUTIG           >       +[m][5][=][0][t][I][g][+]						/ - [+voc]
+	MUTIG           >       +[m][5][=][0][t][I][x][+]
+	MÜTIG           >       +[m][6][=][0][t][I][g][+]						/ - [+voc]
+	MÜTIG           >       +[m][6][=][0][t][I][k][+]
+	MÜTZE           >       +[m][Y][=][0][T][@][+]
+	NABEL           >       +[n][1][=][0][b][@][l][+]
+; + MGS 13mar2001 add better nacht rule
+	NACHT           >       +[n][1][x][t][+]					/ - {EI, IS, RA, RÄ}
+	NACHT           >       +[n][a][X][t][+]
+	NADEL           >       +[n][1][=][0][d][@][l][+]
+	NASEN           >       +[n][1][=][0][z][@][n][+]
+	NATUR           >       +[n][a][=]['][t][5][r][+]
+; add 1/23/96 Tony
+	NEBEL           >       +[n][2][=][0][b][@][l][+]
+	NEBEN           >       +[n][2][=][0][b][@][n][+]
+; add 1/23/96 Tony
+	NEGER           >       +[n][2][=][0][g][@][r][+]
+;;;;;;;;;;cb 14mar01
+	NETEN			>		+[n][@][t][@][n][+]						/ - #
+	NETTO           >       +[n][E][=][0][>][t][4][+]  
+;;;;;;;;;;cb 18mar01
+	NGERE			>		[G][@][r][@][+]							/ [+voc] - #
+	NICHT           >       +[n][I][x][t][+]        
+	NUDEL           >       +[n][5][=][0][d][@][l][+]
+	NÄHEN           >       +[n][7][=][0][@][n][+]
+;;;;;;;;;;cb 14mar01
+	NGERN			>		[G][@][R][n][+]							/ - #
+; add 1/23/96 Tony
+	OHREN           >       +[4][=][0][r][@][n][+]
+	OPFER           >       +[c][=][0][P][@][r][+]
+; add 1/23/96 Tony
+	ORIUM           >       +['][4][=][0][r][3][=][0][U][m][+]					/ - #
+	OSTER           >       +[4][s][=][t][@][R][+]								/ # -
+; add 1/23/96 Tony
+	PERLE           >       +[p][E][R][=][l][@][+]
+	PETER           >       +[p][2][=][t][@][R][+]
+	PFAND           >       +[P][a][n][d][+]							/ - [+voc]
+	PFAND           >       +[P][a][n][t][+]
+	PFEIL           >       +[P][A][l][+]
+	PFERD           >       [P][2][r][=][d]										/ # -
+	PFERD           >       +[P][2][r][t][+]
+	PHASE           >       +[f][1][=][0][z][@][+]
+; add 1/23/96 Tony
+	PHONO           >       +[f][4][n][4][+]									/ # -
+;add 2/21/96
+	PHOTO           >       +[f][4][=][t][4][+]
+	PHYSI           >       +[f][6][=]['][z][3][+]
+	PLATT           >       +[p][l][a][>][t][+]
+	PLATZ           >       +[p][l][a][T][+]
+;add 2/21/96
+	POLAR           >       +[p][4][=]['][l][1][R][+]
+	PROBE           >       +[p][R][4][=][0][b][@][+]
+	PREIS           >       +[p][r][A][s][+]
+	PRINZ           >       +[p][r][I][n][T][+]
+; + MGS 13mar2001
+	PRÄGN			>		[p][r][E][=]['][g][n]								/ # -
+; add 1/23/96 Tony
+	PUDER           >       +[p][5][=][0][d][@][R][+]
+	PUNKT           >       +[p][U][G][k][t][+]
+; add 1/23/96 Tony
+	VÄTER           >       +[f][7][=][0][t][@][r][+]
+	qART            >       +[k][v][a][R][t][+]
+;;;;;;;;;;cb 15mar01
+	qERT			>		+[k][v][2][R][t][+]									/ - #
+	RADAU           >       +[r][a][=]['][d][W][+]
+; add 1/23/96 Tony
+;       RADIO           >       +[r][1][=][0][d][3][=][0][4][+]
+; MGS 13mar2001 remove???
+	RATEN           >       [r][1][=][0][t][@][n][+]
+	RECHT           >       +[r][E][x][t][+]
+	REDEN           >       +[r][2][=][0][d][@][n][+]
+	REGEL           >       +[r][2][=][0][g][@][l][+]
+;;;;;;;;;;cb 18mar01
+	REGEN			>		+[r][2][g][2][n]				/ # - E
+; add 1/23/96 Tony
+	REGEN           >       +[r][2][=][0][g][@][n][+]
+	REICH           >       +[r][A][x][+]
+; add 1/23/96 Tony
+	REIFE           >       +[r][A][=][0][f][@][+]
+; add 4/5/96
+	REIST           >       +[r][A][s][t][+]
+	RENTE           >       +[r][E][n][=][0][t][@][+]
+	REISE           >       +[r][A][=][0][z][@][+]
+	RICHT           >       +[r][I][x][t][+]
+	ROMAN           >       +[r][4][=]['][m][1][n][+]
+	ROSEN           >       +[r][4][=][0][z][@][n][+]
+	RÖMER           >       +[r][q][=][0][m][@][r][+]
+	RÜBEN           >      +[r][6][=][0][b][@][n][+]
+	SACHE           >       +[z][a][=][0][X][@][+]
+	SAGEN           >       +[z][1][=][0][g][@][n][+]
+	SALAT           >       +[z][a][=]['][l][1][t][+]
+	SÄGEN           >       +[z][7][=][0][g][@][n][+]
+	SAHNE           >       +[z][1][=][0][n][@][+]
+	SAMEN           >       +[z][1][=][0][m][@][n][+]
+	SAUER           >       +[z][W][=][0][@][r][+]
+	SÄURE           >       +[z][H][=][0][r][@][+]
+	SCHAD           >       +[S][1][d][+]									/ - [+voc]
+	SCHAD           >       +[S][1][t][+]
+	SCHAF           >       +[S][1][f][+]
+; + MGS 13mar2001
+	SCHAL           >       +[S][a][l][+]									/ - T
+	SCHAL           >       +[S][1][l][+]
+; add 1/23/96 Tony
+	SCHAM           >       +[S][1][m][+]
+	SCHAU           >       +[S][W][+]
+;       SCHEN           >       [=][0][S][@][n][=]
+	SCHEU           >       +[S][H][+]
+	SCHON           >       +[S][4][n][+]
+	SCHUB           >       +[S][5][b][+]									/ - [+voc]
+	SCHUB           >       +[S][5][p][+]
+	SCHUH           >       +[S][5][+]
+	SCHUL           >       +[S][5][l][+]
+;;;;;;;;;;cb 14mar01
+	SCHUT			>		+[S][U]											/ + - Z
+	SCHUT			>		+[S][U][t]
+	SEGEL           >       +[z][2][=][0][g][@][l][+]
+	SECHS           >       +[z][E][k][s][+]
+	SEHEN           >       +[z][2][=][0][@][n][=]
+	SEHER           >       +[z][2][=][0][@][r][+]
+;;;;;;;;;;cb 14mar01
+	SEITE			>		+[z][A][t][@][+]
+	SEITH			>		+[z][A][t][+][h]
+	SEITS           >       +[z][A][T][+]
+	SICHT           >       +[z][I][x][t][+]
+	SILBE           >       +[z][I][l][=][0][b][@][+]
+; + MGS 13mar2001
+	SIVER			>		[=]['][s][3][=][0][v][@][R][+]				/ S - #
+	SIVER			>		+[=]['][z][3][=][0][v][@][R][+]				/ - #
+	SORGE           >       +[z][c][r][=][0][g][@][+]
+	SPERR           >       +[S][p][E][r][+]
+;;;;;;;;;;cb 15mar01
+	SPEKU			>		+[S][p][2][k][5][+]
+	SPHÄR           >       +[s][f][7][r][+]
+	SPIEL           >       +[S][p][3][l][+]
+;;;;;;;;;;cb 15mar01
+	SPINS			>		+[s][p][I][n][s][+]							/ # - #
+	SPOTS			>		+[s][p][c][T][+]							/ # - #
+;;;;;;;;;;cb 14mar01
+	SPORT			>		+[S][p][c][R][t][+]							/ {#, +} -
+	SPORT			>		+[S][p][c][R][t][+]							/ - LER
+;	SPORT           >       +[S][p][c][r][t][+]
+	SPURT           >       +[S][p][U][r][t][+]
+;;;;;;;;;cb 17mar01
+	SSEND			>		[s][@][n][t][+]								/ - #
+	SSHIU           >       +['][k][c][p][3][+]
+; MGS 13mar2001 fix ssion rule [j]->[3]
+	SSION           >       [=][0][s][3][=]['][4][n]
+	STAAT           >       +[S][t][1][t][+]
+	STADT           >       +[S][t][a][t][+]
+	STALL           >       +[S][t][a][>][l][+]
+	STAMM           >       +[S][t][a][>][m][+]
+	STAND           >       +[S][t][a][n][d][+]							/ - [+voc]
+	STAND           >       +[S][t][a][n][t][+]     
+;;;;;;;;;;;cb 14mar01
+	STAPF			>		+[S][t][1][P][+]
+	START			>		+[S][t][a][R][t][+]								/ # -
+	STAUB           >       +[S][t][W][b][+]								/ - [+voc]
+	STAUB           >       +[S][t][W][p][+]        
+	STECK           >       +[S][t][E][>][k][+]
+	STEIF           >       +[S][t][A][f][+]
+; MGS 13mar2001 fix this
+	STEIG           >       +[S][t][A][g][+]								/ - [+voc]
+	STEIG           >       +[S][t][A][x][+]
+	STEIN           >       +[S][t][A][n][+]
+;;;;;;;;;;;cb 15mar01
+	STELL			>		+[S][t][=][0][E][l][+]
+	STIEF           >       +[S][t][3][f][+]
+; add 1/23/96 Tony
+;       STIER           >       +[S][t][3][R][+]							/ # -
+	STIRN           >       +[S][t][I][r][n][+]
+	STICH           >       +[S][t][I][x][+]
+	STIFT           >       +[S][t][I][f][t][+]
+	STILL           >       +[S][t][I][>][l][+]
+	STIMM           >       +[S][t][I][>][m][+]
+	STOCK           >       +[S][t][c][>][k][+]
+	STOFF           >       +[S][t][c][>][f][+]
+	STOPF           >       +[S][t][c][P][+]
+	STOPP           >       +[S][t][c][>][p][+]
+;;;;;;;;;;;cb 14mar01
+	STROM			>		+[S][t][R][4][m][+]
+	STREU           >       +[S][t][r][H][+]
+; add 1/23/96 Tony
+	STÜBE           >       +[S][t][6][=][0][b][@][+]
+; + MGS 13mar2001
+	STÜCK           >       +[s][t][Y][>][k][+]								/ H -
+	STÜCK           >       +[S][t][Y][>][k][+]
+	STUHL           >       +[S][t][5][l][+]
+; add 1/23/96 Tony
+	STUMM           >       +[S][t][U][>][m][+]
+	STURM           >       +[S][t][U][r][m][+]
+	STÄND           >       +[S][t][E][n][d][+]							/ - [+voc]
+	STÄND           >       +[S][t][E][n][t][+]
+	STÄDT           >       +[S][t][E][t][+]
+	SUPPE           >       +[z][U][=][0][>][p][@][+]
+; add 1/23/96 Tony
+;       SVOLL           >       [T][=][0][f][c][>][l]					/ {T,D,H} - #
+	SVOLL           >       [s][=][0][f][c][>][l]						/ - #
+	SWERT           >       +[s][v][2][R][t][+]							/ - #
+	TABAK           >       +[t][1][=][0][b][a][k][+]
+; add 1/23/96 Tony
+	TAFEL           >       +[t][1][=][0][f][@][l][+]
+	TAGES           >       +[t][1][=][0][g][@][s][+]					/ # -
+	TAKEL           >       +[t][1][=][0][k][@][l][+]
+; add 1/23/96 Tony
+	TANER           >       +['][t][1][=][0][n][@][r][+]				/ - #
+	TARIF           >       +[t][a][=][0][r][3][f][+]
+	TATEN           >       +[t][1][=][0][t][@][n][+]
+	TAUCH           >       +[t][W][X][+]
+;;;;;;;;;;cb 18mar01
+	TERRA			>		+[t][E][r][a]								/ # -
+;;;;;;;;;;;cb 14mar01
+	THÄLT			>		[t][+][h][E][l][t]							/ - #
+;;;;;;;;;;;cb 14mar01
+	THEAT			>		+[t][2][1][t][+]
+	THRON           >       +[t][r][4][n][+]
+; add 1/23/96 Tony
+; MGS 13mar2001 fix rule [j]->[3]
+	TIELL           >       +[T][3][=]['][E][>][l][+]
+; + MGS 13mar2001 add this rule  when tiger is preceded by f the i goes to [I]
+;;;;;;;;;;;;cb 15mar01 - or by ZEI
+	TIGER           >       +[t][I][=][0][g][@][r][+]				 / {ZEI, F, S} -
+	TIGER           >       +[t][3][=][0][g][@][r][+]
+; MGS 13mar2001 try remove, this was breaking things
+;	TISCH           >       +[t][I][S][+]
+; add 1/23/96 Tony
+	TITEL           >       +[t][3][=][0][t][@][l][+]
+;;;;;;;;;;;;cb 14mar01
+	TITIA			>		+[t][3][T][3][1][+]							/ - #
+; + MGS 13mar2001
+	TIVER			>		[=]['][t][3][=][0][v][@][R][+]				/ - #
+	TOTEN           >       +[t][4][=][0][t][@][n][+]
+; add 1/23/96 Tony
+	TRAIN           >       +[t][R][7][n][+]
+	TRAKT           >       +[t][R][a][k][t][+]
+;;;;;;;;;;;
+	TRAMP           >       +[t][r][E][m][p][+]
+;	TRAMP           >       +[t][r][a][m][p][+]
+	TREIB           >       +[t][r][A][=][0][b][+]						/ - [+voc]
+	TREIB           >       +[t][r][A][=][0][p][+]
+	TRIEB           >       +[t][r][3][b][+]							/ - [+voc]
+	TRIEB           >       +[t][r][3][p][+]        
+	TRINK           >       +[t][r][I][G][k][+]
+	TRITT           >       +[t][r][I][>][t][+]
+; add 1/23/96 Tony
+	TUSCH           >       +[t][U][S][+]
+;;;;;;;;;;cb 17mar01
+	TZELT			>		[T][@][l][t][+]								/ - #
+	UNTEN           >       +[U][n][=][0][t][@][n][+]
+	UNTER           >       +[U][n][=][0][t][@][R][+]
+	ÜBRIG           >       +[6][=][0][b][r][I][g][+]					/ - [+voc]
+	ÜBRIG           >       +[6][=][0][b][r][I][x][+]
+	ÜBUNG           >       +[6][=][0][b][U][G][+]
+; add 2/20/96
+	UNGEH           >       [U][n][=][0][g][@][=][0][h]					/ # -
+; add 1/23/96 Tony
+	UNVER           >       +[U][n][=][0][f][E][r][+]
+	VATER           >       +[f][1][=][0][t][@][r][+]
+	VERST           >       +[f][E][R][=]['][S][t][+]					/ # -
+; add 1/23/96 Tony
+;       VERST           >       +[f][E][R][=][S][t][+]
+	VOGEL           >       +[f][4][=][0][g][@][l][+]
+	VOLKS           >       +[f][c][l][k][s][+]
+	VORAN           >       +[f][4][r][=][0][a][n][+]
+	WACHE           >       +[v][a][=][0][X][@][+]
+	WACHT           >       +[v][a][X][t][+]
+	WAFFE           >       +[v][a][=][0][>][f][@][+]
+	WAGEN           >       +[v][1][=][0][g][@][n][+]
+	WANDT           >       +[v][a][n][t][+]
+	WASCH           >       +[v][a][S][+]
+; add 1/23/96 Tony
+	WEBEN           >       +[v][2][=][0][b][@][n][+]
+	WEBER           >       +[v][2][=][0][b][@][r][+]
+	WEISE           >       +[v][A][=][0][z][@][+]							/ - #   
+	WEISS           >       +[v][A][s][=][z][+]
+;;;;;;;;;cb 17mar01
+	WEIST			>		+[v][A][s][t][+]								/ # - #
+;;;;;;;;;cb 14mar01
+	WEITH			>		+[v][A][t][+][h]								/ # -
+	WELLE           >       +[v][E][=][0][>][l][@][+]
+; add 1/23/96 Tony
+	WENDE           >       +[v][E][n][=][d][@][+]
+	WESEN           >       +[v][2][=][0][z][@][n][+]
+	WIDER           >       +[v][3][=][0][d][@][r][+]
+	WISCH           >       +[v][I][S][+] 
+; add 1/23/96 Tony
+	WOCHE           >       +[v][c][=][0][X][@][+]
+	WOLLE           >       +[v][c][=][0][>][l][@][+]
+	WOHER           >       +[v][4][=]['][h][2][R][+]						/ - #
+	WUCHS           >       +[v][5][k][s][+]
+	WUNDE           >       +[v][U][n][=][0][d][@][+]
+	WURST           >       +[v][U][r][s][t][+]
+	WÄGEN           >       +[v][7][=][0][g][@][n][+]
+	WÄHLT           >       +[v][7][=][0][l][t][+]
+	WÄRME           >       +[v][E][r][=][0][m][@][+]
+	WÄRTS           >       +[v][E][r][T][+]
+	WÄSCH           >       +[v][E][S][+]
+	WÜSTE           >       +[v][6][s][=][0][t][@][+]
+	ZELLE           >       +[T][E][=][0][>][l][@][+]
+; + MGS 13mar2001
+	ZERST            >       +[T][E][R][=]['][S][t]						/ # -
+	ZUCHT           >       +[T][U][X][t][+]
+
+
+; 4 Grapheme strings
+;;;;;;;;;cb 16mar01
+	AART			>		[1][R][t][+]								/ - +
+	ABEL            >       +[1][=][0][b][@][l][+]						/ - #
+	ABER            >       +['][1][=][0][b][@][r][+]       
+;;;;;;;;;cb 15mar01
+	ABGE			>		+['][a][p][=][0][g][@][+]					/ # -
+; MGS 13mar2001
+	ABST            >       [a][p][=][0][s][t]							/ # - {RA, IN}   
+	ABST            >       [a][p][=][0][S][t]							/ # -
+;;;;;;;;;cb 15mar01
+	ÄLER			>		[7][l][@][R]				   
+	AMBI            >       +[a][m][=][0][b][3][+]
+	AMTS            >       +['][a][m][T][+]							/ # -
+	ANER            >       [=]['][a][n][=][0][E][r][+]					/ # -
+; add 2/14/96
+	ANST            >       ['][a][n][=][0][S][t]						/ # -
+;;;;;;;;;cb 18mar01
+	ÄREM			>		[+][7][r][@][m][+]							/ - #
+;;;;;;;;;cb 18mar01
+	AREN			>		[+][1][r][@][n][+]							/ - #
+	ÄREN			>		[+][7][r][@][n][+]							/ - #
+	ARZT            >       [=][0][1][R][T][t][=]
+;;;;;;;;cb 15mar01
+	ASSE			>		[+][7][z][@][+]								/ # - #
+; add 12/13/95
+	ATEM            >       [=][0][1][=][0][t][@][m][=]
+	ATOM            >       [=][0][a][=]['][t][4][m][=]
+	ATTE            >       [a][=][0][>][t][@]							/ - #
+	AUER            >       [W][=][0][@][r]
+	AUSE            >       [W][=][z][@]								/ - #
+	AUGE            >       +[W][=][0][g][@][+]
+;;;;;;;;;cb 17mar01
+	AUNG			>		[W][n][g]									/ - [+voc]
+;;;;;;;;;cb 16mar01
+	AUSS			>		+[W][s][z]									/ # -
+	AUTO            >       +[W][=][0][t][4][+]
+; add 1/23/96 Tony
+	BÄCK            >       +[b][E][>][k][+]
+	BACK            >       +[b][a][>][k][+]
+	BAHN            >       [=][0][b][1][n][=]
+	BAHR            >       +[b][1][r][+]
+	BALL            >       [=][0][b][a][>][l][=]
+;;;;;;;;;cb 18mar01	
+	BAND			>		+['][b][a][n][t]							/ # - #
+	BAND			>		+[b][a][n][d][+]							/ - [+voc]
+	BAND            >       +[b][a][n][t][+]
+	BANN            >       +[b][a][>][n][+]
+	BART            >       +[b][1][r][t][+]
+	BAUM            >       +[b][W][m][+]
+	BEIN            >       +[b][A][n][+]
+;       BERG            >       +[b][E][r][g][+]						/ - [+voc]
+;       BERG            >       +[b][E][r][k][+]
+; add 2/14/96
+	BEST            >       [b][@][=]['][S][t]							/ # -
+; = MGS 13mar2001
+	BETA			>		+[b][2][t][a][+]							/ I -
+;;;;;;;;;;;cb 15mar01
+	BETT			>		+['][b][E][t][+]							/ # -
+;	BETT            >       +[b][E][>][t][+]
+; add 1/23/96 Tony
+	BILD            >       +[b][I][l][d][+]							/ - [+voc]
+	BILD            >       +[b][I][l][t][+]
+	BIND            >       +[b][I][n][d]								/ - [+voc]
+; add 1/23/96 Tony
+	BIND            >       +[b][I][n][t]
+	BLAU            >       +[b][l][W][+]
+	BLUT            >       +[b][l][5][t][+]
+; add 1/23/96 Tony
+	BRÖT            >       +[b][R][q][t][+]
+	BOCK            >       +[b][c][>][k][+]
+	BOJE            >       +[b][4][=][0][j][@][+]
+	BOOT            >       +[b][4][t][+]
+	BORD            >       +[b][c][r][d][+]							/ - [+voc]
+	BORD            >       +[b][c][r][t][+]
+	BREI            >       +[b][r][A][+]								/ - #
+	BROT            >       +[b][r][4][t][+]
+	BRUT            >       +[b][r][5][t][+]
+	BUCH            >       +[b][5][X][+]
+; add 1/23/96 Tony
+	BUDE            >       +[b][5][=][0][d][@][+]						/ - #
+	BUND            >       +[b][U][n][d][+]							/ - [+voc]
+	BUND            >       +[b][U][n][t][+]
+	BURG            >       +[b][U][r][g][+]							/ - [+voc]
+	BURG            >       +[b][U][r][k][+]
+	BLÖD            >       +[b][l][q][t][+]
+; MGS 13mar2001 this next rule causes the allophonic rule [g] > [k] / - {#, =} to fire 
+	BÜRG            >       +[b][Y][r][g][+]
+; next rule needs ichlaut-achlaut variation.
+; MGS 13mar2001 without the next rule büro would go to 'b6rc not 'b6r4
+	BÜRO            >       +[b][6][=][0][r][4][+]
+;;;;;;;;;cb 17mar01
+	CHEN            >       [=][x][@][n][=]								/ - {#, +}
+	CHOR            >       +[k][4][r][+]
+	DACH            >       +[d][a][X][+]
+	DANK            >       +[d][a][G][k][+]
+	DANT            >       +['][d][a][n][t][+]     					/ - #
+	DECK            >       +[d][E][>][k][+]
+	DENK            >       +[d][E][G][k][+]
+	DENN            >       +[d][E][>][n][+]    						/ #  -
+	DORF            >       +[d][c][r][f][+]
+	DOSE            >       +[d][4][=][0][z][@][+]
+	EBEN            >       [2][=][0][b][@][n]
+	EIER            >       [A][=][0][@][r]
+; add 11/15/95
+	EINE            >       [A][=][0][n][@]
+; + MGS 13mar2001 -- 145 words
+	EING			>		[=]['][A][n][=][0][g]
+;	EIGT            >       +[A][k][t][+]
+;;;;;;;;;;cb 15mar01
+	EITÄ			>		[2][3]['][t][7][+]							/ - +[+cons]
+	ELEI            >       [@][=][0][l][A]
+;;;;;;;;;;; cb 17feb01
+	ELLT            >       ['][E][l][t]              					/ - #
+	ELLE            >       ['][E][=][0][>][l][@]						/ - #
+;;;;;;;;;;; cb 17feb01
+	ELND		    >		[@] [l] [n] [d]								/ - #
+; + MGS 13mar2001
+	ENER			>		[2][=]['][n][E][R]							/ # - GI
+;;;;;;;;;cb 15mar01
+	ENER			>		[@][n][@][r][+]								/ - #
+; add 1/23/96 Tony
+; MGS 13mar2001 add
+	ENTE            >       E[n][=][t][@][+]     						/ I - #
+	ENTE            >       +[E][n][=][t][@][+]     					/ - #
+;;;;;;;;;cb 17mar01
+	ERBE            >       +[@][r][=][0][b][@][+]						/ WEIT -
+	ERBE            >       +[E][r][=][0][b][@][+]
+; add 1/23/96 Tony
+	ERDE            >       +[2][r][=][0][d][@][+]
+	EREI            >       [@][=][0][r][A][=]
+;;;;;;;;;;;cb 16mar01
+	ERGT			>		[E][R][k][t][+]								/ - #
+;;;;;;;;;;; cb 17feb01
+	ERND		    >		+[@][r][n][t]								/ - #
+;;;;;;;;;;cb 8mar01
+	ERNS			>		+[E][R][n][s][+]							/ [+cons] - T
+	ERST            >       +[E][r][S][t][+]  							/ # -
+;;;;;;;;;;; cb 17feb01
+	ERST            >       +[@][r][s][t][+]        					/ - #
+;	ERST            >       +[@][r][s][t][+]        					/ - #
+	ERST            >       +[@][r][S][t][+]
+	ESIE            >       +[2][=]['][z][3][+]     					/ - #
+	ESSE            >       [E][=][0][s][@]         					/ - #
+; add 1/23/96 Tony - cb restored
+    ESTE            >       +[@][s][=][0][t][@][+]
+; + MGS 13mar2001 add to fix tet
+	ETEN            >       [@][=][t][@][n]         					/ T - #
+	ETEN            >       [2][=][t][@][n]         					/ - #
+	ETET            >       [@][t][@][t]            					/ - #
+	ETTE            >       [E][=][0][>][t][@]         					/ - #
+	EUER            >       [H][=][0][@][r]
+	EUSE            >       [H][=][0][z][@]         					/ [-syl] -
+; add 1/23/96 Tony
+;       EUSE            >       [q][=][0][z][@]         				/ - #
+	FACH            >       +[f][a][X][+]
+	FALL            >       +[f][a][>][l][+] 
+	FARB            >       [=][0][f][a][r][b][=]						/ - [+voc]
+	FARB            >       [=][0][f][a][r][p][=]
+	FARN            >       [=][0][f][a][r][n][=]
+;;;;;;;;;cb 14mar01
+	FART			>		+[f][a][R][t][+]							/ - #
+	FAUL            >       +[f][W][l][+]
+	FÄHR            >       +[f][7][r][+]
+	FEHL            >       +[f][2][l][+]
+; add 1/23/96 Tony
+    FELD            >       +[f][E][l][d][+]						/ - [+voc]
+	FELD            >       +[f][E][l][t][+]
+	FELL            >       +[f][E][>][l][+]
+	FEIN            >       +[f][A][n][+]
+;;;;;;;;;cb 13mar01
+	FERN            >       +[f][E][r][n][+]							/ # -
+	FERN            >       +[f][@][r][n][+]
+;;;;;;;;;;cb 17mar01
+	FEST			>		+[f][E][s][t][+]							/ # -
+	FEST            >       [=][0][f][E][s][t][=]
+	FILM            >       +[f][I][l][m][+]
+	FORM            >       +[f][c][r][m][+]
+	FORT            >       +[f][c][r][t][+]
+	FLUG            >       +[f][l][5][g][=]							/ - [+voc]
+	FLUG            >       +[f][l][5][k][=]
+	FLUß            >       +[f][l][U][s][+]
+	FRAU            >       +[f][r][W][+]
+	FREI            >       +[f][r][A]
+	FRÜH            >       +[f][r][6][+]
+; add 1/23/96 Tony
+;       FUCH            >       +[f][U][k][+]
+	FUHR            >       [=][0][f][5][r][=]
+	FUNK            >       +[f][U][G][k][+]
+	FÜNF            >       +[f][Y][n][f][+]
+	GABE            >       +[g][1][=][0][b][@][+]
+	GANG            >       +[g][a][G][+]
+	GANZ            >       +[g][a][n][T][+]
+	GARN            >       +[g][a][r][n][+]
+	GAST            >       +[g][a][s][t][+]
+;;;;;;;;;cb 15mar01
+	GEHE			>		+[g][@]['][h][E]							/ # -
+	GEIZ            >       +[g][A][T][+]
+; add 1/23/96 Tony
+	GELB            >       +[g][E][l][p][+]
+
+	GELD            >       +[g][E][l][d][+]							/ - [+voc]
+	GELD            >       +[g][E][l][t][+]
+; add 2/14/96
+;       GESP            >       [g][@][=]['][S][p]						/ # -
+	GEST            >       [g][@][=]['][S][t]							/ # -
+; MGS 13mar2001 fix rule [j] -> [3]
+	GION            >       [=][0][g][3][=]['][4][n]
+	GLAS            >       +[g][l][1][s][+]
+	GÖTT            >       +[g][Q][>][t][+]
+;;;;;;;;;cb 15mar01
+	GRAB			>		+[g][r][1][p][+]							/ - +[+cons]
+	GRAB			>		+[g][r][1][b][+]							/ - [+voc]
+;;;;;;;;;cb 15mar01
+	GRAS			>		+[g][r][1][s][+]							/ # -
+	GRÄß			>		+[g][r][E][s][+]							/ # -
+	GROB            >       +[g][r][4][b][+]							/ - [+voc]
+	GROB            >       +[g][r][4][p][+]
+	GROß            >       +[g][r][4][s][+]
+; MGS 13mar2001 try remove
+;	GRÜN            >       +[g][r][6][n][+]
+	GUCK            >       +[g][U][>][k][+]
+;       GUNG            >       +[g][U][G][+]							/ - #
+	HAAR            >       +[h][1][r][+]
+	HAFT            >       +[h][a][f][t][+]
+	HAHN            >       +[h][1][=][0][n][+]
+	HALB            >       +[h][a][l][b][+]							/ - [+voc]
+	HALB            >       +[h][a][l][p][+]     
+;;;;;;;;;;cb 14mar01
+	HALS			>		+[h][a][l][s]								/ - #   
+	HALT            >       +[h][a][l][t][+]
+; ++ MGS 13mar2001
+	HACK			>		+[h][a][k]									/ - [+CONS]
+	HAND            >       +[h][a][n][d][+]							/ - [+voc]
+	HAND            >       +[h][a][n][t][+]
+	HANG            >       +[h][a][G][+]
+;;;;;;;;;;cb 15mar01
+	HART			>		+[h][a][R][t][+]							/ # -	
+	HÄRT			>		+[h][E][R][t][+]							/ # -					
+	HASE            >       +[h][1][=][0][z][@][+]
+	HAUS            >       +[h][W][s][+]
+; add 1/23/96 Tony
+;       HAUT            >       +[h][W][t][+]
+; add 2/21/96
+	HEFT            >       +[h][E][f][t][+]
+	HEIM            >       +[h][A][m][+]
+	HEIT            >       +[h][A][t][+]
+	HELL            >       +[h][E][=][0][>][l][+]
+	HELM            >       +[h][E][l][m][+]
+	HEMD            >       +[h][E][m][t][+]
+	HEMM            >       +[h][E][>][m][+]
+	HERR            >       +[h][E][r][+]
+	HERZ            >       +[h][E][r][T][+]
+; add 1/23/96 Tony
+	HIEB            >       +[h][3][b][+]   							/ - [+voc]
+	HIEB            >       +[h][3][p][+]
+; add 2/14/96
+	HOCH            >       +[h][c][X][+]   							/ - ZE
+	HOCH            >       +[h][4][X][+]
+	HOFF            >       +[h][c][>][f][+]
+;;;;;;;;; cb 13mar01
+	HOLT			>		+[h][4][l][t][+]								
+	HOLZ            >       +[h][c][l][T][+]
+	HOSE            >       +[h][4][=][0][z][@][+]
+	HÖHL            >       +[h][q][l][+]
+	HÖLL            >       +[h][Q][>][l][+]
+	HUND            >       +[h][U][n][t][+]							/ - #
+	HUND            >       +[h][U][n][=][d][+]
+	HÜFT            >       +[h][Y][f][t][+]
+	HÜHN            >       +[h][6][n][+]
+; add 2/22/96
+; MGS 13mar2001 fix rule [j]->[3]
+	IANT            >       [3][=]['][a][n][t]							/ - #
+	IBEL            >       +[3][=][0][b][@][l][+]						/ - #
+;;;;;;;;;;; cb 18feb01
+	ICHT		    >		[I][x][t]									/ - +	
+;	ICHT		    >		[I][k][t]									/ - +	
+	ICKT		    >		[I][k][t]									/ - +
+; add 1/23/96 Tony
+	IDEE            >       +[3][=][0][d][2][+]
+; MGS 13mar2001 add here
+	IEGT             >       [3][k][t][+]
+;;;;;;;;;;; cb 28feb01
+; MGS 13mar2001 fix rule after testing others [3][E][l]
+	IELL		    >		[3][l][l]								/ - {O, I, EI}
+	IELL		    >		[3]['][E][l]								
+;	IELL		    >		[i]['][E][l]								/ - #
+;	IELL            >       [j][=]['][E][>][l]  						/ - #
+	IEME		    >		[i]['][e][m][@]								/ - #
+	IENE		    >		['][3][n][@]								/ - #
+; add 11/29/95
+	IERE            >       [3][=][0][r][@][=]							/ {L, M, N} - #
+;;;;;;;;;;; cb 19feb01
+    IERE		    >		[3][r][@]									/ - #
+;	IERE            >       ['][2][=][0][r][@][=]						/ - #
+	IERT            >       ['][3][r][t][=]								/ - #
+;	IERT            >       ['][3][R][t][=]								/ - #
+;;;;;;;;;;;cb 15mar01
+	IGEM			>		[I][=][0][g][@][m][+]						/ - #
+	IGEN            >       [I][=][0][g][@][n][+]						/ - #
+	IGER			>		[I][=][0][g][@][R][+]						/ - #
+	IGES			>		[I][=][0][g][@][s][+]						/ - #
+; + MGS 13mar2001
+	IGHT			>		[A][t]										/ [+Cons] -
+	IKER            >       +[3][=][0][k][@][r][+]
+;;;;;;;;;;; cb 28feb01
+	ISCH            >       [I][S]										/ - +
+	ITÄT            >       [3][=]['][t][7][t] 
+	IVUM            >       [3][=][0][v][U][m]							/ - #
+	JAGD            >       +[j][1][k][t][+]
+	JAHR            >       +[j][1][r][+]
+	JUNG            >       +[j][U][G][+]
+	JÄHR            >       +[j][7][r][+]
+	KALT            >       +[k][a][l][t][+]
+	KAMM            >       +[k][a][>][m][+]
+	KANZ            >       +[k][a][n][T][+]
+	KART            >       +[k][a][r][t][+]
+	KAUF            >       [=][0][k][W][f][=]
+	KEHR            >       [=][0][k][2][r][=]
+	KEIT            >       +[k][A][t][+]
+	KERN            >       [=][0][k][@][R][n][=]						/ - #
+	KERN            >       [=][0][k][E][R][n][=]
+	KERL            >       +[k][E][r][l][+]
+	KERN            >       +[k][E][r][n][+]
+	KIND            >       +[k][I][n][d][+]							/ - [+voc] 
+	KIND            >       +[k][I][n][t][+]
+	KLAR            >       +[k][l][1][r][+]
+	KOHL            >       +[k][4][l][+]
+	KOPF            >       +[k][c][P][+]
+	KORB            >       +[k][c][r][b][+]							/ - [+voc] 
+	KORB            >       +[k][c][r][p][+]
+	KOST            >       +[k][c][s][t][+]
+;;;;;;;;;cb 18mar01			
+	KUND            >       +[k][Y][n][d][+]						/ - [+voc] 
+	KUND            >       +[k][U][n][t][+]
+	KURZ            >       [=][0][k][U][r][T][=]
+	KÄSE            >       +[k][7][=][0][z][@][+]
+	LAGE            >       +[l][1][=][0][g][@][+]
+	LAKE            >       +[l][1][=][0][k][@][+]
+	LAND            >       +[l][a][n][d][+]							/ - [+voc]
+	LAND            >       +[l][a][n][t][+]
+	LANG            >       [=][0][l][a][G][=]
+	LAUF            >       [=][0][l][W][f][=]
+	LAUT            >       +[l][W][t][+]
+	LEHN            >       [=][0][l][2][n][=]
+	LEHR            >       +[l][2][r][+]
+	LEIB            >       +[l][A][b][+]								/ - [+voc]
+	LEIB            >       +[l][A][p][+]
+	LEIN            >       +[l][A][n][+]
+	LERN            >       [l][@][r][n]								/ - #
+	LERN            >       +[l][E][r][n][+]
+	LESE            >       +[l][2][=][0][z][@][+]
+	LICH            >       +[l][I][x][+]
+	LIEB            >       [l][3][b][+]								/ - [+voc]
+	LIEB            >       [l][3][p][+]
+;;;;;;;;;cb 17mar01
+	LIEF			>		[l][3][f][+]								/ - #
+	LING            >       [l][I][G]
+	LOCH            >       [=][0][l][c][X][=]
+	LOCK            >       [=][0][l][c][>][k][=]
+	LOHN            >       +[l][4][n][+]
+	LUFT            >       +[l][U][f][t][+]
+	LUST            >       +[l][U][s][t][+]
+	LÖCH            >       +[l][Q][x][+]
+	LÖWE            >       +[l][q][=][0][v][@][+]
+	LSCH            >       [l][S]
+;       LUNG            >       [l][U][G]
+	LÄNG            >       +[l][E][G][+]
+	LÄUF            >       +[l][H][f][+]
+	LÜGE            >       +[l][6][=][0][g][@][+]
+	MALS            >       +[m][1][l][s][+]
+;;;;;;;;;cb 13mar01
+	MALT            >       +[m][1][l][t][+]
+;	MALT            >       +[m][a][l][t][+]
+;	MANN            >       +[m][a][n][+]
+	MANN            >       +[m][a][>][n][+]
+	MART            >       +[m][a][r][t][+]								/ # -
+	MAUL            >       +[m][W][l][+]
+; add 1/23/96 Tony
+	MEER            >       +[m][2][r][+]
+	MEHL            >       +[m][2][l][+]
+	MEHR            >       +[m][2][=][0][r][+]
+	MELD            >       +[m][E][l][d][+]
+	MENT            >       +['][m][E][n][t][+]								/ - #
+	MENT            >       +[m][E][n][t][+]                
+	MERK            >       +[m][E][r][k][+]
+;add 2/21/96
+	META            >       +[m][2][=][0][t][a][=][']						/ # -
+;;;;;;;;;;cb 17mar01
+	METE			>		+[m][@][t][@][+]								/ - #
+	MIET            >       +[m][3][t][+]
+; add 1/23/96 Tony
+	MOND            >       +[m][4][n][t][+]
+	MOOR            >       +[m][4][r][+]
+	MONO            >       +[m][4][=][0][n][4][+]  
+	MORD            >       +[m][c][r][t][+]
+	MOST            >       +[m][c][s][t][+]
+;;;;;;;;cb 14mar01
+	MPFT			>		[m][P][t]						
+	MUND            >       +[m][U][n][t][+]
+;	MÄNN            >       +[m][E][n][+]
+	MÄNN            >       +[m][E][>][n][+]
+	MÄUS            >       +[m][H][s][+]
+	MÜHL            >       +[m][6][l][+]
+;	MÜLL            >       +[m][Y][l][+]
+	MÜLL            >       +[m][Y][>][l][+]
+	MÜNZ            >       +[m][Y][n][T][+]
+	NACH            >       +[n][1][X][+]
+	NAHE            >       +[n][1][=][0][@][+]
+	NAME            >       +[n][1][=][0][m][@][+]
+; add 1/23/96 Tony
+	RÖTE            >       +[r][q][=][t][@][+]
+; add 1/23/96 Tony
+	RÜBE            >       +[r][6][=][b][@][+]
+	RÜHR            >       +[r][6][R][+]
+	NECK            >       +[n][E][k][+]
+;	NECK            >       +[n][E][>][k][+]
+	NENT            >       [=]['][n][E][n][t][=]							/ - #           
+	NENZ            >       [=]['][n][E][n][T][=]							/ - #    
+;;;;;;;;;cb 16mar01       
+	NEST            >       [=][0][n][@][s][t][=]							/ G - #
+	NEST            >       [=][0][n][E][s][t][=]	
+;;;;;;;;;cb 14mar01
+	NETE			>		[n][@][t][@][+]									/ - #
+	NETZ            >       +[n][E][T][+]
+;;;;;;;;;cb 18mar01
+	NGEM			>		[G][@][m][+]									/ [+voc] -
+;;;;;;;;;cb 14mar01
+	NGER			>		[G][@][R][+]									/ - #
+	NIEß            >       +[n][3][s][+]
+;;;;;;;;;cb 18mar01
+	NORD			>		+[n][c][R][d][+]								/ # - I
+; add 11/28/95
+	NORD            >       +[n][c][R][t][+]								/ # -
+	NUTZ            >       +[n][U][T][+]
+	OBEN            >       +[4][=][0][b][@][n][+]
+	OBER            >       +[4][=][0][b][@][r][+]
+	OBST            >       +[4][p][s][t][+]
+; add 1/23/96 Tony
+	ODIE            >       +[4][=]['][d][3][+]								/ - #
+	OFEN            >       +[4][=][0][f][@][n][+]
+; add 10/30
+	ODEN            >       +[4][=][0][d][@][n][+]
+; add 1/23/96 Tony
+	OMIE            >       +[4][=]['][m][3][+]
+	ONIE            >       +[4][=]['][n][3][+]
+
+	OPER            >       +[4][=][0][p][@][r][+]
+; add 1/23/96 Tony
+	OPTI            >       +[c][p][=][0][t][3][+]
+	PAZI            >       +[p][a][=]['][T][3][+]
+; MGS 13mar2001 remove
+;	TÜRK            >       +[t][Y][r][=][0][k][+]
+	PELZ            >       +[p][E][l][T][+]
+	PEND            >       +[p][E][n][d][+]
+	PERL            >       +[p][E][r][l][+]
+	PFAD            >       +[P][1][d][+]								/ - [+voc] 
+	PFAD            >       +[P][1][t][+]
+; add 1/23/96 Tony
+	PHON            >       +[f][4][n][+]								/ # -
+	PLAN            >       +[p][l][1][n][+]
+	PLUS            >       +[p][l][U][s][+]
+;add 2/21/96
+	POLY            >       +[p][4][=][0][l][6][=][']
+	PORT            >       +['][p][c][r][t][+]							/ - #
+	POST            >       +[p][c][s][t][+]
+	PUTZ            >       +[p][U][T][+]
+; add 1/23/96 Tony
+;	QUAD            >       +[k][v][a][d][+]
+;	QUER            >       +[k][v][2][r][+]
+	VÖLK            >       +[f][Q][l][k][+]
+	RASE            >       +[r][1][=][0][z][@][+]
+	RAUB            >       [=][0][r][W][=][0][b]						/ - [+voc]
+	RAUB            >       [=][0][r][W][p][=]
+	RAUM            >       +[r][W][m][+]
+; add 1/23/96 Tony
+	REAL            >       +[r][2][=][0][a][l][+]
+	REBE            >       +[r][2][=][b][@][+]
+	REDE            >       +[r][2][=][0][d][@][+]
+	REIF            >       +[r][A][f][+]
+	REIß            >       +[r][A][s][+]
+	REIZ            >       +[r][A][T][+]
+;	RETT            >       +[r][E][t][+]
+	RETT            >       +[r][E][>][t][+]
+	RECH            >       [r][E][x]
+;add 2/21/96
+;	RENN            >       [r][E][n]
+	RENN            >       [r][E][>][n]
+	RICH            >       [r][I][x]									/ - #
+	ROHR            >       +[r][4][r][+]
+	ROSE            >       +[r][4][=][0][z][@][+]
+; + MGS 13mar2001
+	ROST            >       [r][4][s][t][+]							/ {T, P} -
+	ROST            >       +[r][c][s][t][+]
+	RUND            >       +[r][U][n][d][+]						/ - [+voc] 
+	RUND            >       +[r][U][n][t][+]	
+;	RÜCK            >       +[r][Y][k][=]
+	RÜCK            >       +[r][Y][>][k][=]
+	SAAL            >       +[z][1][l][+]
+;	SACK            >       +[z][a][k][+]
+	SACK            >       +[z][a][>][k][+]   
+;	SACH            >       +[z][a][k][+]	   
+	SACH            >       +[z][a][>][k][+]							/ {[+voc], #} - S
+	SACH            >       +[z][a][X][+]   
+	SÄGE            >       +[z][7][=][0][g][@][+]
+;;;;;;;;;cb 16mar01
+	SAGT			>		+[z][1][k][t][+]								/ - #
+	SALZ            >       +[z][a][l][T][+]
+	SARG            >       +[z][a][r][g][+]							/ - [+voc]
+	SARG            >       +[z][a][r][k][+]
+;;;;;;;;;cb 15mar01
+	SÄTE			>		+[z][7][t][@][+]							/ - #
+	SATZ            >       +[z][a][T][+]
+	SAUF            >       +[z][W][f][+]
+	SAUG            >       +[z][W][k][+]
+;;;;;;;;;;cb 15mar01
+	SCHN			>		+['][S][n]									
+; add 10/30
+	SCHR            >       [S][R]
+	SECH            >       +[z][E][k][+]
+	SEIN            >       +[z][A][n][+]
+	SEIT            >       +[z][A][=][0][t][+]
+;;;;;;;;;cb 17mar01
+	SEND			>		[z][@][n][t][+]								/ - #
+	SEND            >       +[z][E][n][d][+]							/ - [+voc]
+	SEND            >       +[z][E][n][t][+]
+;add 2/21/96
+; MGS 13mar2001 fix rule
+	SENK            >       [z][@][n][=][0][k]							/ {E, I, S, O, R} - {I, A, Ä, O, R}  
+	SENK            >       [z][@][n][=][0][k]							/ {RAS, BÖR, N} - U
+	SENK            >       [z][E][G][=][0][k]
+	SINN            >       +[z][I][n][+]
+	SINN            >       +[z][I][>][n][+]
+; MGS 13mar2001 fix sion rule [j]->[3]
+	SION            >       [=][0][z][3][=]['][4][n]
+	SITZ            >       +[z][I][T][+]
+;;;;;;;;;;cb 15mar01
+	SPER			>		+[S][p][E][R][+]
+;;;;;;;;;;cb 15mar01
+	SPIN			>		+[s][p][I][n][+]							/ # - #
+	SPOR			>		+[S][p][4][R][+]							/ # - #
+	SPOT			>		+[s][p][c][t][+]							/ # - #
+	SPUR            >       +[S][p][5][r][+]
+; add 11/18/95
+	SPÄT            >       ['][S][p][7][t]
+; add 1/23/96 Tony
+	STAB            >       +[S][t][1][p][+]
+;;;;;;;;;cb 16mar01
+	STAN			>		+[S][t][a][n]
+;;;;;;;;;cb 14mar01
+	STAP			>		[s][t][1][p][+]
+	STOß            >       [=][0][S][t][4][s][=]
+;;;;;;;;;cb 17mar01
+	SPRA			>		[=][S][p][r][1]								/ - CH
+;;;;;;;;;cb 14mar01
+	SUCH			>		+[z][5][x]
+; add 1/23/96 Tony
+	TAGE            >       +[t][1][=][0][g][@][+]
+	TAGS            >       [=][0][t][1][k][s]
+; add 1/23/96 Tony
+	TALG            >       +[t][a][l][g][+]						/ - [+voc]
+	TALG            >       +[t][a][l][k][+]
+	TANZ            >       +[t][a][n][T][+]
+	TARN            >       +[t][a][r][n][+]
+	TAUB            >       +[t][W][b][+]							/ - [+voc]
+	TAUB            >       +[t][W][p][+]
+	TEIL            >       +[t][A][l][+]
+;;;;;;;;;cb 18mar01
+	TEMP			>		+[t][E][m][p][+]						/ # -
+	TEST            >       [t][@][s][t]							/ - #
+; add 1/23/96 Tony
+; MGS 13mar2001 fix [j]->[3]
+	TIAL            >       [t][3][=]['][1][l][+]					/ S - 
+	TIAL            >       [T][3][=]['][1][l][+]				
+	TIEF            >       [=][0][t][3][f][=]
+; GL/OG 04/22/1998  add
+;	TIEN            >       [T][=][0][3][@][n]						/ - #
+	TIGT            >       [=][0][t][I][x][t][=]					/ - #
+; MGS 13mar2001
+	TIER            >       [=][0][t][3][R][=]						/ - RE
+	TIER            >       [=][0][t][3][r][=]
+; MGS 13mar2001 fix this rule....  [j] -> [3]
+	TION            >       [=][0][T][3][=]['][4][n]
+	THEK            >       [=][0][t][2][k][=]
+;	TOLL            >       [t][c][l]
+	TOLL            >       [t][c][>][l]
+	TOUR            >       [t][5][r]
+	TORF            >       +[t][c][r][f][+]
+	TÖLP            >       [=][0][t][Q][l][p][=]
+	TRAG            >       [=][0][t][r][1][g]						/ - [+voc]
+	TRAG            >       [=][0][t][r][1][k]
+	TRET            >       +[t][r][2][t][+]
+	TREU            >       [=][0][t][r][H][=]
+	TRÜB            >       [=][0][t][r][6][b][=]					/ - [+voc]
+	TRÜB            >       [=][0][t][r][6][p][=]
+;;;;;;;;;;cb 14mar01
+	TRUT			>		+[t][r][5][t][=]						/ # -
+;       TSCH            >       [C]									/ - #
+;       TSCH            >       [C]									/ # -
+;;;;;;;;;;cb 18feb01
+	TSCH			>		[t]['][S]								/ #EN -
+	TSCH            >       [C]     
+;;;;;;;;;;cb 15mar01
+	TTEN			>		[=][0][t][@][n][+]						/ - #			
+	TUCH            >       +[t][5][X][+]
+;;;;;;;;;cb 14mar01
+	TUMS			>		[t][5][m][s][+]							/ - #
+; add 1/23/96 Tony
+	TURN            >       +[t][U][r][n][+]
+;;;;;;;;;cb 15mar01
+	ÜBER            >       +[0][6][=][0][b][@][r][+]				/ # -
+;	ÜBER            >       +[6][=][0][b][@][r][+]
+	UNER            >       [=][0][U][n][=][0][E][r][=]				/ # -
+;;;;;;;;;cb 14mar01
+	UNGE			>		+[U][n][g][@][+]						/ # -
+	UNGS            >       [U][G][s]
+;;;;;;;;;cb 15mar01
+	VERN			>		+[0][f][E][R][=][n]						/ # -
+	VIEH            >       +[f][3][+]
+	VIEL            >       +[f][3][l][+]
+	VIER            >       [=][0][f][3][r][=]
+;;;;;;;;;; cb 28feb01
+	VIET	        >		+[v][i][E][t]							/ - [+cons]
+	VOLK            >       +[f][c][l][k][+]
+;	VOLL            >       +[f][c][l][+]
+	VOLL            >       +[f][c][>][l][+]
+	WAAG            >       +[v][1][g][+]							/ - [+voc]
+; add 1/23/96 Tony
+	WAAG            >       +[v][1][k][+]
+;;;;;;;;;;cb 15mar01
+	WACH			>		+['][v][a][x][=]						/ # - [+voc]
+	WACH			>		+['][v][a][X][=]						/ # - S[+voc]
+	WACH			>		+['][v][a][k][=]						/ # - S[+cons]
+	WAHL            >       [=][0][v][1][l][=]
+	WAHN            >       [=][0][v][1][n][=]
+	WAHR            >       [=][0][v][1][r][=]
+	WALD            >       +[v][a][l][d][+]						/ - [+voc]
+	WALD            >       +[v][a][l][t][+]
+;;;;;;;;;cb 15mar01
+	WÄLD			>		+[v][E][l][t][=]
+;	WALL            >       +[v][a][l][+]
+	WALL            >       +[v][a][>][l][+]
+;       WAND            >       +[v][a][n][d][+]					/ # -
+;       WAND            >       +[v][a][n][d][+]					/ - [+voc]
+;       WAND            >       +[v][a][n][d][+]					/ - [+liq]
+	WAND            >       [v][a][n][t]							/ - {#, T}
+	WAND            >       [v][a][n][d]
+	WARE            >       +[v][1][=][0][r][@][+]
+	WART            >       +[v][a][r][t][+]
+; add 1/23/96 Tony
+	WEBE            >       +[v][2][=][0][b][@][+]
+	WECH            >       +[v][E][k][+]   
+;	WECK            >       +[v][E][k][+]
+	WECK            >       +[v][E][>][k][+]
+	WEHR            >       [=][0][v][2][r][=]
+	WEIB            >       +[v][A][b][=]							/ - [+voc]
+	WEIB            >       +[v][A][p][=]
+;;;;;;;;;cb 17mar01
+	WEIS			>		+[v][A][s][+]							/ # - #
+	WEIß            >       +[v][A][s][+]
+	WELT            >       [=][0][v][E][l][t][=]
+	WEND            >       +[v][E][n][d][+]						/ - [+voc]
+	WEND            >       +[v][E][n][t][+]
+	WERF            >       +[v][E][r][f][+]
+	WERK            >       [=][0][v][E][r][k][=]
+	WERT            >       [=][0][v][2][r][t][=]
+;	WETT            >       [=][0][v][E][t][=]
+	WETT            >       [=][0][v][E][>][t][=]
+;;;;;;;;;cb 17mar01
+	WICH			>		[=][v][I][k][=]							/ # - S
+;;;;;;;;;cb 17mar01
+	WIES			>		[=]['][v][3][s][+]						/ # - #
+;	WILL            >       [=][0][v][I][l][=]
+	WILL            >       [=][0][v][I][>][l][=]
+;;;;;;;;;cb 17mar01
+	WILD			>		+[v][I][l][t][+]						/ # -
+	WIND            >       +[v][I][n][d][+]						/ - [+voc]
+	WIND            >       +[v][I][n][t][+]
+	WIRK            >       [=][0][v][I][r][k][=]
+	WIRT            >       [=][0][v][I][r][t][=]
+	WOHL            >       +[v][4][l][+]
+	WOHN            >       +[v][4][n][+]
+;	WOLL            >       +[v][c][=][0][l][+]
+	WOLL            >       +[v][c][=][0][>][l][+]
+	WORT            >       +[v][c][r][t][+]
+	WÄHL            >       +[v][7][l][+]
+	WÄHR            >       +[v][7][r][+]
+;	WÄNN            >       +[v][E][n][+]
+	WÄNN            >       +[v][E][>][n][+]
+	WÄRT            >       +[v][E][r][t][+]
+	ZÄHL            >       +[T][7][l][+]
+	ZAHL            >       [=][0][T][1][l][=]
+	ZAHN            >       +[T][1][n][+]
+	ZART            >       +[T][1][r][t][+]
+	ZEIT            >       +[T][A][t][+]
+; add 1/23/96 Tony
+	ZELT            >       +[T][E][l][t][+]
+	ZENT            >       +[T][E][n][t]
+	ZEUG            >       [=][0][T][H][g][=]							/ - [+voc]
+	ZEUG            >       [=][0][T][H][k][=]     
+;;;;;;;;;;cb 15mar01
+	ZIAL			>		+[T][3]['][1][l][+] 
+; MGS 13mar2001 fix after testing
+;	ZIAL            >       +[T][j][=]['][1][l][+]						/ - #
+	ZIEH            >       +[T][3][+]
+	ZIEL            >       +[T][3][l][+]
+	ZION            >       [=][0][T][3][=][0][c][=][0][n]				/ - #
+	ZION            >       [=][0][T][3][=][0][4][=]['][n]
+;	ZOLL            >       +[T][c][l][+]
+	ZOLL            >       +[T][c][>][l][+]
+; add 1/23/96 Tony
+	ZORN            >       +[T][c][r][n][+]
+;	ZOTT            >       +[T][c][t][+]								/ # -
+	ZOTT            >       +[T][c][>][t][+]							/ # -
+	ZUCH            >       +[T][U][X][+]								/ # -
+	ZUER            >       +[T][5][+][E][r][+]							/ # -
+	ZÜND            >       +[T][Y][n][d][+]							/ - [+voc]
+	ZÜND            >       +[T][Y][n][t][+]
+	ZWEI            >       +[T][v][A][+]
+	ZWIE            >       +[T][v][3][+]
+; add 1/23/96 Tony
+	ZYTO            >       +[T][6][=][t][4][+]
+
+;
+; 3 Grapheme strings
+
+;	ADE             >       +[1][d][@][+]								/ - #
+;;;;;;;;cb 17mar01
+	AHE				>		[1][@][+]								/ - #
+;	ALM             >       +[a][l][m][+]
+;	ALT             >       +[a][l][t][+]
+;	AMT             >       +[a][m][t][+]
+	AND             >       [a][n][=][d]								/ # -
+	AND             >       [=][0][a][n][d][=]							/ - [+voc]
+	AND             >       [a][n][t]   
+;;;;;;;;cb 17mar01
+	ANT				>		[1][n][t][+]								/ SP - #           
+	ANT             >       +[a][n][t][+]								/ - #
+	ANZ             >       +['][a][n][T][+]							/ - #
+	ARE             >       [1][=][0][r][@]								/ - #
+; add 1/23/96 Tony
+	ARM             >       +[a][r][m][+]								/ - #
+	ARS             >       [a][r][s]									/ - #
+	ART             >       [a][R][=][t]								/ # -
+	ART				>		[1][R][t][+]								/ - {#, EN}
+;;;;;;;;;cb 18mar01
+	ÄRT				>		[E][R][t]									/ H - 	
+;;;;;;;;;cb 13mar01
+	ÄRT				>		[7][R][t]							
+	ATE             >       [1][=][0][t][@]								/ - #
+; add 11/1/95
+	ATM             >       [1][=][t][m]
+;;;;;;;;;; cb 17feb01
+;diphthong version	
+	AUF             >       [=][W][f][+]								/ # -
+;	AUF             >       [=][a][U][f][+]								/ # -
+;	AUF             >       [=][0][W][f][=]
+	AUH             >       [W]
+;;;;;;;;;; cb 17feb01
+;diphthong version
+	AUS             >       +[W][s][+]									/ # -
+	AUS             >       +[W][s][+]									/ - #
+;	AUS             >       +[a][U][s][+]								/ # -
+;	AUS             >       +[W][s][+]									/ + -
+;	AXI             >       +[a][k][s][3]     							/ # -
+;	ÄRS             >       [7][r][s]									/ - #
+;	BAD             >       [=][0][b][1][d][=]							/ - [+voc]
+;	BAD             >       [=][0][b][1][t][=]
+;	BAR             >       [=][0][b][1][R][=]
+;	BAU             >       [=][0][b][W][=]
+;	BEI             >       [=][0][b][A][=]
+;;;;;;;;;cb 16mar01
+;	BER				>		[=][b][E][R][=]					/ HER - {GE, +GE}
+;;;;;;;;;cb 15mar01
+	BET				>		+[b][E]							/ {#, GE} - {+, TEN, TET}
+; add 11/1/95
+;	BEU             >       +[0][b][@][+]								/ # - {R, N}
+;	BEU             >       +[0][b][H][+]								/ # -
+;	BÄR             >       +[b][7][r][+]
+;	BÖS             >       [=][0][b][q][s][=]
+	CHR             >       [k][r]										/ # -
+; trying stuff on this one.
+	CHS             >       [k][=][0][s]					/ {WU, WA, FU, SE, WÄ} - #
+	CHS             >       [k][=][0][s]							/ - {E#, EN, EL}
+;;;;;;;;cb 16mar01
+	CHS				>		[X][s][+]								/ U - {#, +}
+; MGS 13mar2001 the CHS rules seem to be broken
+;	CHS             >       [k][=][0][s]							/ {A, E, I, OU, Ü} -
+;	CHS             >       [k][=][0][s]							/ {A, E, OU, Ü} -
+;	CHS             >       [x][=][0][s]
+;;;;;;;;cb 16mar01
+	DEH				>		[=][d][@][h]							/ - [+voc]
+;;;;;;;;cb 14mar01
+	DEN				>		[d][@][n][+]							/ - #
+	DER             >       [d][2][r]								/ # -
+	DER             >       [=][d][@][r][=]							/ - #
+;;;;;;;;cb 17mar01
+	EEI				>		[@][A]									/ {B, D, G} -
+	EEI				>		[2][I]									/ - [+cons]
+;;;;;;;;cb 15mar01
+	EEN				>		[3][n][+]								/ - #
+	EIH             >       [A]
+; + MGS 13mar2001
+;	EIG             >       [A][g] 									/ - [+voc]
+;	EIG             >       [A][k] 									/ - {#, +, T}
+;;;;;;;;cb 18mar01
+	EIK				>		[A][k]									/ [+cons] -
+	EIN             >       +[A][n][+]
+	EKT             >       ['][E][k][t][+]							/ # [+syl] - #
+;Eab ege wbound 
+	EGE             >       E[g][@]									/ I - #
+	EGE             >       [2][g][@]								/ - #
+; MGS 13mar2001 add  IEGT rule above
+	EGT             >       +[2][k][t][+]
+;EAB 1/31/01 ehe combo goes to eh ex
+	EHE             >       E[@]									/ I -
+	EHE             >       ['][2][@] 
+;;;;;;;;;;cb 15mar01
+	EIE				>		[A][@][+]								/ - {#, [+cons]}
+;;;;;;;;;; cb 17feb01  
+;	ELL             >       ['][E][l]								/ - #          
+	ELL             >       ['][E][>][l]							/ - #
+;;;;;;;;;; cb ok
+	ELN             >       [@][l][n]								/ - #
+;;;;;;;;;; cb 17feb01
+; MGS 13mar2001 add I rule
+	ELT             >       E[l][t]									/ I - #
+	ELT             >       [@][l][t]								/ - #
+	EMP             >       [E][m][=]['][p]							/ # -
+;      END             >       +[E][n][d][=]   						/ - [+voc]
+;;;;;;;;;;;; cb ok
+; MGS 13mar2001 try this
+    END             >       [@][n][t][=]   							/ - #
+;    END             >       +[@][n][t][=]   						/ - #
+;    END             >       +[E][n][t][=]
+;;;;;;;;;;;;cb 15mar01
+	ENG				>		+[E][G][=]								/ {#, EN}
+; MGS 13mar2001
+	ENT             >       E[n][t][=]								/ DI -
+	ENT             >       [E][n][t][=]    
+	ENZ             >       ['][E][n][T][+] 						/ - #
+; add 02/07/96
+	ERD             >       [E][R][=]['][d]    						/ # - {IC, OL, RO, UL}
+	ERD             >       [2][R][t]       						/ # -
+;;;;;;;;;;cb ok
+;	ERN             >       E[@][r][n][=]    						/ I - {#, +}
+	ERN             >       [@][r][n][=]    						/ - {#, +}
+;	ERN             >       [@r][n][=]    							/ - {#, +}
+;;;;;;;;;;cb ok
+	ERT             >       [@][r][t]       						/ - #
+	ERZ             >       [E][r][T]       						/ # -
+;       ESE             >       +[2][=][0][z][@][+]  				/ [+cons] - #
+;;;;;;;;;;cb 17feb01
+; MGS 13mar2001
+	EST				>		[s] [t]									/ I - #
+	EST				>		[@] [s] [t]								/ - #
+;;;;;;;;;;cb 15mar01
+	ETT             >       ['][E][t][+]    						/ - #
+;	ETT             >       ['][E][>][t][+]    						/ - #
+	EUE             >       [H][=][0][@]    						/ - #
+	EUR             >       ['][q][R]       						/ - #
+	FAß             >       +[f][a][s][+]
+	FÄß             >       +[f][7][s][+]
+	FEL             >       +[f][@][l][+]
+; MGS 13mar2001 remove
+;	FÜR             >       +['][f][6][r][+]
+	FUß             >       [=][0][f][5][s][=]
+; add 10/30
+	GEI             >       [g][A]
+	GAR             >       [=][0][g][1][r][=]
+;;;;;;;;;cb 13mar01 special for MANAGER
+	GER				>		[J][@][R]								/ MANA - {+, N, S}
+	GRÄ             >       +[g][r][7][+]							/ # -
+	GUT             >       [=][0][g][5][t][=]
+	GUß             >       +[g][U][s][+]
+	GÜT             >       +[g][6][t][+]
+	GYM             >       +[g][Y][m][=]							/ # -
+;;;;;;;;;cb 15mar01
+	HAR				>		+[h][1][R][+]							/ # - Z
+; add 1/23/96 Tony
+	HAß             >       +[h][a][s][+]
+; add 11/29/95, take care of one very common word.
+	HAT             >       [h][a][t]								/ # - #
+	HEB             >       +[h][2][b][+]							/ - [+voc]
+	HEB             >       +[h][2][p][+]
+;;;;;;;;;;cb 18mar01
+	HEL				>		+[h][E][l]								/ # -
+;;;;;;;;;;cb 14mar01
+	HEN				>		[@][n]									/ [+voc] - #
+; + MGS 13mar2001
+;;;;;;;;;;cb 16mar01
+	HER				>		[=][h][E][R][=]				/ BE - B
+	HER             >       [=][0][h][2][R][=]			/ # - {K, O ,D ,RIC, RÜ, G }
+	HER             >       [=][0][h][2][R][=]			/ # - {L, S, ZU, ZI, F}
+;;;;;;;;cb 16mar01	
+	HER				>		[=][0][h][2][R][=]			/ DER - +{ST}
+	HER             >       [=][0][h][E][r][=]						/ # -
+;;;;;;;;cb 14mar01
+	HIN             >       +[h][I][n][+]							/ - #
+	HIN             >       +[h][I][n][+]							/ + -
+	HOF             >       +[h][4][f][+]
+	HUT             >       +[h][5][t][+]
+	HÖF             >       +[h][q][f][+]
+; MGS 13mar2001
+	HÖR             >		[q][r][+]								/ C -
+	HÖR             >       [h][Q][r][+]							/ - N
+	HÖR             >       +[h][q][r][+]							
+;       IAL             >       [j][=]['][1][l]						/ - #
+; MGS 13mar2001 ial rule is broken....
+; there are more 31l than 3al so the 3's have it.
+; will try to get some 3al rules
+	IAL             >       [3][=]['][1][l]
+;;;;;;;;;;;cb 14mar01
+	IAN				>		[3][1][n][+]							/ - #
+; MGS 13mar2001 fixed [j]->[3]
+	IAT             >       [3][=]['][1][t]							/ - #
+;;;;;;;;;;;cb 18feb01  
+; MGS 13mar2001 try remove of context
+	ICH		        >		I[x]									/ E - 	
+	ICH		        >		[I][x]										
+;	ICH		        >		[I][k]									/ - +	
+; MGS 13mar2001 remove context, may break 2 words
+	ICK		        >		[I][k]									
+; MGS 13mar2001
+	IEA             >       [3][=][0][a]
+;;;;;;;;;;cb mar1701
+	IEF		        >		[3][f]									/ R - #
+	IEF		        >		[i][f]									/ - #
+	IEH             >       [3]
+;;;;;;;;;;;cb 18feb01
+	IEL	            >		[3][l]									/ - {#, +}
+; ++ MGS 13mar2001 fix this rule ...
+	IEN		        >		[@][n]									/ CHR - #
+	IEN		        >		I[@][n]									/ [+voc] - #
+	IEN		        >		[3][@][n]								/ [+cons]- #
+;	IEN		        >		[I][@][n]								/ - #
+;	IEN             >       [A][=][0][@][n]							/ [+voc] - #
+;	IEN             >       [3][n]									/ CH - #
+;	IEN             >       [j][=][0][@][n]							/ - #
+; add 1/23/96 Tony - cb ok
+	IER             >       [3][R]									/ - #
+;;;;;;;;;;cb 18feb01
+	IET             >       [3][t]									/ - #
+	IFF		        >		[I][f]									/ - #
+	IFT		        >		[I][f][t]								/ - #
+	IGE		        >		[I][g][@]								/ - #
+;;;;;;;;;;
+; + MGS 13mar2001 add after test
+	IGH				>		[A]										/ [+Cons] - T
+; MGS 13mar2001 add plus to rule and {...
+	INE             >       [3][=][{][n][@]
+;	INE             >       [3][=][n][@]							/ - {#, +}
+; + MGS 13mar2001
+	ING             >       [I][G]									/ - {#, E#, EN#, S}
+;;;;;;;;;cb 17mar01
+	ING				>		[I][G][g]								/ S - U
+	ING             >       [I][n][g]								/ {H, #} -
+	ING             >       [3][n][g]								/ M -
+; add 1/23/96 Tony
+; MGS 13mar2001 removed
+	ING             >       [I][G][+]
+;;;;;;;;;;cb 25feb01
+	ION             >       [3][=]['][c][n]							/ D - 
+	ION             >       [3][=]['][4][n]	
+; MGS 13mar2001 check after testing
+;	ION             >       [j][=]['][4][n]							/ - #
+	IRR             >       +[I][r][+] 
+;;;;;;;;;;cb 28feb01
+	IST             >       [=]['][I][s][t][=]						/ - +
+;	IST             >       [=]['][I][s][t][=]						/ - #
+	ITT             >       [=]['][I][t][=]							/ - #
+	IUM             >       [=][0][3][=][0][U][m]
+	IOS             >       [I][=]['][4][s]							/ - #
+	IUS             >       [3][=][0][U][s]							/ - #
+	IVA             >       [3][=][0][v][@]							/ - #
+;;;;;;;;;cb ok
+	IVE             >       [3][=][0][v][@]							/ - #
+;;;;;;;;;cb 16mar01
+	JAH				>		['][j][1][+]							/ BE -
+;;;;;;;;;cb 17mar01
+	KAM				>		+[k][1][m]								/ - #
+	KUR             >       +[k][5][R][+]							/ - #
+	KUR             >       +[k][U][R][+]
+	LAR             >       +['][l][1][R][+]						/ - #
+	LAß             >       +[l][a][s][+]
+;add 2/21/96
+; MGS 13mar2001 add
+	LEB             >       [l][2][p]								/ - {T, S, H, L, N ,K}
+	LEB             >       [l][2][b]
+	LEI             >       [=]['][l][A]							/ - #
+	LEI             >       [l][A]
+;add 2/21/96
+	LOB             >       [l][4][p]
+	LOS             >       [=][0][l][4][s][=]						/ - #
+	LOS             >       [=][0][l][4][=][0][z]
+	LST             >       [l][s][t]								/ - #
+	LÖS             >       +[l][q][z][+]							/ - [+voc]
+	LÖS             >       +[l][q][s][+]
+	MAL             >       +[m][1][l][+]
+;;;;;;;; cb 13mar01
+	MAN				>		+[m][E][n][+]							/ # - A					
+; add 11/15/95
+	MAN             >       +[m][a][n][+]
+	MAß             >       +[m][1][s][+]
+;;;;;;;;cb 17mar01
+	MEN				>		+[m][E][n][+]							/ # -
+;;;;;;;;cb 17mar01
+	MER				>		+[@][R][+]								/ M - TE
+	MEß             >       +[m][E][s][+]
+	MIß             >       +[m][I][s][+]
+	MIT             >       +[m][I][t][+]
+	MUS             >       [=][0][m][U][s][=]
+	MUT             >       [=][0][m][5][=][0][t]
+; MGS 13mar2001 added this rule for myst*** words
+	MYS				>		+[m][Y][s][+]							/ # -
+	MÄß             >       +[m][7][s][+]
+	MÜT             >       +[m][6][t][+]
+	NÄH             >       [=][0][n][7][=]							/ # -
+; add 1/23/96 Tony
+	NAß             >       +[n][a][s][+]
+	NAS             >       +[n][1][s][=]							/ # -
+;;;;;;;;cb 16mar01
+	NDS				>		[n][T][+]								/ - +
+;;;;;;;;cb 18mar01
+	NGE				>		[G][@]									/ - REM
+;;;;;;;;cb 17mar01
+	NGE				>		[n][=][g][@]							/ [+voc] - [+cons]
+;;;;;;;;cb 15mar01
+	NGE				>		[G][@][+]								/ - {#, [+cons]}
+	NGO				>		[G][g][4][+]							/ - #
+;;;;;;;;cb 18mar01
+	NGS				>		[G][s]									/ - T
+; ++ MGS 13mar2001 add suffix type rule
+	NGT				>		[G][t]									/ - #
+	RÜS             >       +[r][Y][s][=]							/ # -
+	NEO             >       +[n][2][4][+]
+	NEU             >       +[n][H][+]
+; MGS 13mar2001 add +cons
+	NIS             >       [=][0][n][I][s][=]						/ - [+cons]
+	NOM             >       [n][4][m]								/ - #
+; add 1/23/96 Tony
+	NON             >       +[n][c][n][+]							/ # -
+	NOT             >       +[n][4][t][+]							/ # -
+	NOT             >       +[n][4][t][+]							/ - #
+	OGE             >       [4][=][0][g][@]							/ - #
+	OID             >       +[4]['][3][t][+]						/ - #
+; add 1/23/96 Tony
+	OND             >       +[4][n][t][+]							/ - #
+	OST             >       +[c][s][t][+]							/ # -
+	PAß             >       +[p][a][s][+]
+	PER             >       +[p][E][R][+]							/ # -
+	POL             >       +[p][4][l][+]							/ - #
+;;;;;;;;cb 14mar01
+	PSE				>		[p][s][@][+]							/ - #
+	qAD             >       +[k][v][a][d][+]
+	qER             >       [=][0][k][v][2][r][=]   
+; add 1/23/96 Tony
+;	QUÄ             >       +[k][v][7]								/ # -
+;	QUE             >       +[k][v][E]								/ # -
+;	QUI             >       +[k][v][I]								/ # -
+;	QUO             >       +[k][v][4]								/ # -
+	ROT             >       +[r][4][t][+]
+	RUF             >       +[r][5][f][+]
+	RUß             >       +[r][5][s][+]
+	RÖT             >       +[r][q][t][+]
+	RÖß             >       +[r][Q][s][+]
+	SAL             >       [=][0][z][1][l][=]
+	SAM             >       [=][0][z][1][m][=]
+;;;;;;;;;cb 15mar01
+	SÄT				>		+['][z][7][t][+]						/ - #
+	SAU             >       +[z][W][+]
+	SCH             >       [S]
+	SEE             >       [=][0][z][2][=]
+	SEL             >       [=][0][z][@][l][=]						/ {[+nas], [+liq]} -
+; + MGS 13mar2001 next 2
+	SEL             >       [=][0][z][2][l][=]						/ # - [+voc]
+	SEL             >       [=][0][z][E][l][=]						/ # -
+;;;;;;;;;cb 17mar01
+	SEL             >       [=][0][z][2][l][=]						/ ZI -
+	SEL             >       [=][0][s][@][l][=]            
+;;;;;;;;cb 13mar01
+	SEN				>		+[0][s][@][n]							/ RK - #  
+;;;;;;;;cb 17mar01
+	SER				>		+[z][E][R][=]							/ # -
+	SIE             >       [=]['][z][3]							/ - #
+	SPE				>		[+][S][p][2]							/ - {Z, +Z}
+	SPH             >       [s][f]									/ # -
+	STR				>		[S][t][r]								/ # -
+	SÜD             >       +['][z][6][t][+]						/ # -
+;;;;;;;;cb 14mar01
+	SUR				>		[T][5][R][+]							/ FT - +
+	TÄF             >       +[t][7][f][+]							/ # -
+; add 1/23/96 Tony
+	TAG             >       +[t][1][g]								/ - [+voc]
+	TAG             >       +[t][1][k][+]
+	TAK             >       [=][0][t][a][k][=]
+; add 1/23/96 Tony
+	TAL             >       +[t][a][l][+]							/ # -
+	TAT             >       +[t][1][t][+]							/ # -
+	TEL             >       [=][0][t][@][l][=]
+;;;;;;;;cb 15mar01
+	TEN				>		+[=][0][t][@][n]						/ - #
+;	TEN             >       [t][@][n]								/ - #
+;;;;;;;;cb 18mar01	
+	TER				>		+[t][E][R]								/ # -
+;;;;;;;;cb 15mar01
+	TET				>		+[=][0][t][@][t]						/ - #
+;	TET             >       [t][@][t]								/ - #
+	THR             >       [t][r]
+	TIV             >       [t][3][f]								/ - #
+	TIV             >       [t][3][v]
+	TIK             >       [=][0][t][I][k][=]						/ - #
+	TIK             >       [t][3][=][0][k]
+;   TOD             >       +[t][4][=][d][+]						/ - [+voc]
+	TOD             >       +[t][4][t][+]
+	TON             >       +[t][4][n][+]							/ - #
+;;;;;;;;cb 17mar01
+	TOR				>		+[t][c][R]								/ - #
+	TOT             >       +[t][4][t][+]
+;;;;;;;;cb 18mar01
+	TRI				>		+[t][r][3][+]							/ # - B
+;;;;;;;;cb 14mar01
+	TTS				>		[T][+]									/ - #
+	TUM             >       [=][0][t][5][m][=]						/ - {#, +}
+	TUN             >       +[t][5][n][+]							/ - #
+	TÄT             >       [=][0][t][7][t]
+	TÜM             >       [=][0][t][6][m][=]
+; MGS 13mar2001 try remove, no change when removed...
+;	TÜR             >       [=][0][t][6][r][=]
+; add 1/23/96 Tony
+	TUR             >       +['][t][5][r][+]						/ [+syl]<1-2> - #
+	UNG             >       [U][G]
+	USE             >       [5][=][z][@]							/ - #
+	VAT             >       [f][1][=][t]							/ # -
+	VIE             >       +[f][I][R][+]							/ # -
+;;;;;;;;;cb 15mar01
+	VER				>		[+][0][f][E][r][+]						/ # -
+; MGS 13mar2001 ?
+;	VER             >       +[f][E][r][+]							/ # -
+	VER             >       [v][2][r][+]							/ E - E
+	VER             >       [v][@][r][+]							/ {A, I, Ä} - E
+	VER				>		+[v][@][R][+]							/ - #
+	VER				>		[v][@][r][+]							/ - E#
+	VER             >       [f][E][r][+]							/ - E
+	VER				>		[f][@][R][+]							/ P{U, Ü}L -
+	VER				>		+[=][0][v][E][R][=][']					/ NI - S
+	VER				>		+[=]['][v][E][R]						/ [+voc] - S
+	VER             >       +[f][E][R][+]							
+	VOR             >       +[f][4][r][+]
+; MGS 13mar2001
+	VUL				>		+[v][U][l][=][']						/ # -
+	WEB             >       +[v][2][b][+]							/ - [+voc]
+; add 1/23/96 Tony
+	WEB             >       +[v][2][p][+]
+;;;;;;;;cb 17mar01
+	WEG				>		+[v][E][k][+]							/ # - +{T, Z}
+	WEG				>		+[v][E][k][+]							/ # - {T, Z}
+;       WEG             >       [=][0][v][2][g][=]					/ - [+voc]
+	WAS             >       +[v][a][s][+]							/ - #
+;;;;;;;;cb 17mar01
+	WEG				>		+[v][E][k][+]			/ # - +{D, F, G, K, L, R, S, W}
+	WEG				>		+[v][E][k][+]			/ # - {D, F, G, K, L, R, S, W}
+	WEG             >       +[v][2][k][+]   
+;;;;;;;;cb 17mar01
+;	WER             >       +[v][2][r][+]			/ - {#, T, +TET}
+	WER             >       +[v][2][r][+]			/ - {#, T}
+	WER             >       +[v][E][r][+]
+	WUT             >       +[v][5][t][+]
+; MGS 13mar2001 remove
+;	WÜR             >       +['][v][Y][r][+]						/ # -
+;;;;;;;;;cb 17mar01
+	YEN				>		+['][j][E][n][+]							/ # - #
+	ZER             >       +[T][E][r][+]							/ # -
+;	ZER             >       +[T][E][r][+]							/ # -
+;;;;;;;;;cb 16mar01
+	ZIN				>		+[T][3][n][+]							/ - #
+;       ZUG             >       +[T][5][g][+]						/ - [+voc]
+;       ZUG             >       +[T][5][k][+]
+	ZÜG             >       +[T][6][g][+]							/ - [+voc]
+	ZÜG             >       +[T][6][k][+]   
+;;;;;;;;;cb 14mar01
+	ZUM				>		+[T][U][m][+]							/ T - {+SCH}
+	ZUM				>		+[T][5][m][+]							/ {#, B, F, N, S, T, EI, U} -
+	
+;
+; 2 Grapheme strings
+
+; add 1/23/96 Tony
+	ÄD              >       +[7][d][=]						/ # -
+	ÖF              >       +[Q][f][+]						/ # -
+;       AB              >       [a][b]						/ - [+voc]
+; + MGS 13mar2001
+	AB              >       [1][p][+]						/ {G, ST, GR, H, TR} - #
+;;;;;;;cb 13mar01,15mar01
+	AB				>		[=][0][a][b]		/ {PH, #AR, DI, #T, IR, #} - {E, O, R}
+;;;;;;;cb 15mar01
+	AB				>		+['][a][p][+]					/ # - 
+;	AB              >       +[a][p][+]						/ # -
+	AB				>		[1][b]							/ - E
+	AB				>		[a][b]							/ H - {I, A}
+	AB				>		[1][p]							/ H - T
+;;;;;;;;;cb ok
+	AB              >       +[a][p][+]      
+; add 1/23/96 Tony
+; MGS 13mar2001
+	AE              >       [a][2]							/ - {R, +R, D, L}
+	AE              >       [E]
+; MGS 13mar2001
+	AH              >       [a][h]							/ {#, T, R} - I
+	AH              >       [1][h]							/ - I
+	AH              >       [1]
+	AN              >       +[a][n][+]						/ # -
+	AR              >       +[1][R][+]						/ - #
+	AR              >       [a][R]							/ # -
+;;;;;;cb 15mar01
+	AR				>		[a][R]							/ W - {TEN, +TEN}
+	AR				>		[1][R]							/ - {TEN, +TEN}
+;;;;;;cb 18mar01
+	AR				>		[1][r]							/ STELL - 
+	ÄH              >       [7]
+; GL/OG, 3/26/98 add
+	AI              >       [A]
+	AL              >       [1][l]							/ - #
+;;;;;;;cb 15mar01
+	AS				>		[+]['][7][s][+]					/ # - #
+	ÄU              >       [H]
+	AV              >       ['][1][f][+]					/ - #
+; EAB 1/31/01
+;	BA				>		[b][a]
+;;;;;;;;; cb13mar01
+	BB				>		[p]								/ - T
+;;;;;;;;;cb 16mar01
+	BE				>		[b][2]					/ {# , GE} - B{T, END}
+;;;;;;;;; cb ok
+	BE              >       [b][@][=]				/ {#, +} -
+	CH              >       [x]						/ {E, I, EI, EU, Ö, Ä, Ü, ÄU} - ST
+;;;;;;;;;cb 18mar01
+	CH				>		[x]						/ {E, I}
+	CH              >       [k]						/ [+voc] - S
+	CH              >       [x]			/ {E, I, HAU, EI, EU, Ö, Ä, Ü, ÄU, [+cons]} -
+	CH              >       [X]						/ {A, O, U, AU} -
+;       CH              >       [C]					/ # - {E, I}
+;	CH              >       [k]						/ # - {L, R, O, U}
+;	CH              >       [S]						/ # - {A, E, I, AU}
+	CH              >       [k]						/ # - 
+	CK              >       [k]
+;;;;;;;;cb 17mar01
+	CR				>		[k][r]					/ - [+voc]
+; + MGS 13mar2001
+	DA				>		[d][1]					/ # - ME
+	DA				>		[d][1]					/ - {TE, ME#}
+; EAB 1/31/01
+	DA				>		[d][a]
+	DE              >       [=][d][@][=]			/ - #
+	DE              >       [d][2]					/ # -
+	DÄ              >       [d][7]					/ # - [+cons][+voc]
+	DÄ              >       [d][E]
+;;;;;;;cb 16mar01
+	DI				>		[d][3]					/ - ZIN
+;;;;;;;cb 17mar01
+	DS				>		[T]						/ - #
+	DT              >       [t]
+;;;;;;; cb 13mar01
+	EE				>		[@][E]					/ G - BB
+	EH              >       [2]						/ - T
+	EH              >       [@][=]['][h]			/ # {G, B} -
+	EH              >       [2][h]					/ {R, E, NS, ST} - A
+	EH              >       [@][h]					/ - A
+	EH              >       [2]   
+;;;;;;;;;cb 17feb01,15mar01
+	EL              >       [@][l]         			/ - {#, +}
+	EL				>		+[@][l]					/ - TEN
+;	EL              >       [@][l]          		/ - #
+	EM              >       [@][m]          		/ - #
+	EN              >       [E][n]          		/ # -
+;;;;;;;;;cb 13mar01 
+	EN              >       +[@][n][+][=]       	/ - #
+	ER              >       [=][0][E][R][+][=] 		/ N - R+
+	ER              >       [=][0][E][R][+][=]['] 	/ # - R
+;;;;;;;;;cb 17mar01
+	ER				>		[E][R]					/ ZEIT - SP
+	ER              >       [=][0][E][R][=] 		/ # -
+; MGS 13mar2001
+	ER				>		[@]						/ ST - RE
+	ER				>		[@][R]					/ S - RE
+	ER				>		[E][R]					/ UN - RE
+;;;;;;;;;cb 17feb01
+	ER				>		[E][R]					/ N - +
+;;;;;;;;;cb 16mar01
+	ER				>		[E][R]					/ DER - {O, Ö}
+	ER              >       [=][@][r]    			/ - #
+;	ER              >       [=][0][@][R]    		/ - #
+; next rule might be too risky 
+;       ER              >       [=][0][E][r][=]
+	ES              >       [@][s]          		/ - #
+; MGS 13mar2001 add [+cons]
+	Eß              >       +[E][s][+]				/ [+cons] -
+
+; + MGS 13mar2001
+	ET              >       [2][t]          		/ {AB, THL, PHL} - #	
+;;;;;;;;;cb ok
+	ET              >       [@][t]          		/ - #
+	EX              >       [E][k][s]       		/ # -
+;;;;;;;;cb 15mar01
+	FE				>		+[f][2]					/ - D
+	GD              >       [k][t]          		/ - #
+;;;;;;;;;cb 18feb01
+	GE              >       +[g][2][+]      		/ # {ER, BE} -
+	GE				>		+[g][@][+]				/ # - H
+;;;;;;;;;cb 15mar01
+	GE              >       +[g][@][+]				/ {#, AB, ÜBER} - 
+;	GE              >       +[g][@][+]
+	GÜ              >       +[g][Y]         		/ - {[+liq], [+nas]}
+;;;;;;;;;;cb 14mar01
+	HE				>		[@]						/ [+voc] - #
+; MGS 13mar2001 changed bad rule
+;	IG              >       [=][0][I][g][=] 		/ - E
+;	IG              >       [=][0][I][g][=] 		/ - [+voc]	
+; MGS 13mar2001
+;	IG              >       I[k] 					/ E - {#, + ,T, S, L, H}
+;	IG              >       I[g] 					/ E - 
+	IG				>		[3][g]					/ #F -
+	IG				>		[=][0][I][g]			/ [+cons] - [+voc]
+	IG				>		[=][0][I][x]			/ [+cons] -
+;	IG              >       [=][0][I][g] 		/ [+cons,-liq] - {[+liq], +[+liq]}
+;	IG              >       [=][0][I][x] 			/ - {#, +, T}
+;;;;;;;;;cb 28feb01
+;;;;;;;;; [k] must be unaspirated
+;	IG              >       [=][0][I][k][=] 		/ - +
+	IH              >       [3]
+	IK              >       [3][k]          		/ # -
+	IK              >       [3][k]          		/ - [+voc]
+;;;;;;;;;cb 28feb01
+	IK              >       [I][k]					/ - +
+	IN              >       [I][n]          		/ - #
+; MGS 13mar2001
+	IS				>		I[s]					/ {E, A} - +
+	IS				>		[3][s]					/ M - +
+;;;;;;;;;cb 28feb01
+;	IS		        > 		[I][s]					/ [+cons] - +
+;;;;;;;;;cb 28feb01
+	IV              >       ['][3][f]       		/ - #
+	IV              >       ['][3][v]       		/ - [+voc]
+; add 11/15/95
+	JE              >       [j][2]          		/ # - {#, D, G, H, M, N, S, W}
+; EAB 1/31/01
+; MGS 13mar2001 remove
+;	MA				>		[m][a]
+;;;;;;;;;cb 15mar01
+	MM				>		[m]						/ - {#, +}
+	NE              >       +[n][2][=]      		/ # -
+; ++ MGS 13mar2001 try this change to the rule?
+;  this rule could be used anywhere, except if the syllable boundry
+; is in the middle of the n and g (in a compound word)
+;;;;;;;; cb, 14mar01 -- or simply between 2 syllable, "ungezügelt", "un-" and "-ge"
+	NG              >       [G]             		/ - {#, +}
+	NG              >       [G]             		/ {#, +} -
+;reich
+;;;;;;;;cb 16mar01
+	NG              >       [G]             		/ A - {RE, EN, TE}
+;;;;;;;;cb 16mar01
+	NG              >       [G]             		/ Ä - {EN, TE, ST}
+;;;;;;;;cb 18mar01
+	NG				>		[G]					/ E - {EN, ES, EREM, STE, STES, ERE}
+;;;;;;;;cb 15mar01
+	NG				>		[G]						/ - IG
+;;;;;;;;cb 14mar01
+	NG				>		[n][=][g]				/ U - [+voc]
+;lich
+;	NG              >       [G]             		/ {Ä, Ö, Ü} - LIC
+;	NG              >       [G]             		/ - {#, +}
+;;;;;;;;cb 13mar01
+	NK              >       [G][k]          		/ - {#, +, T, EN}
+	NK              >       [n][k]          		/ {EI, E, N, R, H} -
+	NK              >       [n][k]          		/ # {EI, A, E, I, O, U} -
+	NK              >       [G][k]
+	NX              >       [G][k][s]       		/ - #
+	OH              >       [4]
+	ÖH              >       [q]
+;;;;;;;;; cb 13mar01
+	OP			    >		+[c][p][=]				/ # - [+cons]
+; add 1/23/96 Tony
+;	OP              >       +[4][p][=]      		/ # -
+	OW              >       [4]             		/ - #
+; EAB 1/31/01
+	PA              >       [p][a]					/ S - {NG, NN, RGE, RR, RT, TZ}
+	PA              >       [p][1]					/ S - N
+	PA              >       [p][1]					/ - NI [+cons]
+	PA              >       [p][1]					/ A - NE
+	PA              >       [p][a]					/ A - N#
+	PA              >       [p][1]					/ - N#
+	PA              >       [p][1]					/ # - G
+	PA              >       [p][a]					/ - {G, N}
+	PA              >       [p][a]					/ # -
+; add 1/23/96 Tony
+	PÄ              >       +[p][7][=]      		/ # - {P, R}  
+	PÄ              >       +[p][E][=]      		/ # -   
+	PÖ              >       +[p][q][=]      		/ # -
+;;;;;;;16mar01
+	PF				>		[P]						/ - #
+	PH              >       [f]
+	PS              >       [p][s]          		/ # -
+; MGS 13mar2001 move here
+	qÄ				>       +[k][v][7]				/ - {L, K}
+	qE				>       +[k][v][2]				/ - {R, M}
+;	QU              >       [k][v]
+;;;;;;;;cb 15mar01
+	RE				>		+[r][2]					/ R - +D
+; GL/OG, 4/22/98 change # to {#, GE} eabno; 15mar01 - cb - change back to just #
+	RE              >       [r][2]          		/ {#} -
+; add 1/23/96 Tony
+	RH              >       [R]             		/ # -
+;;;;;;;;cb 17mar01
+	RR				>		[R]						/ - [+cons]
+;;;;;;;;cb 18mar01
+	SE				>		[z][2][+]				/ # - KUND
+	SP              >       [S][p]  				/ {#, +} -
+; + MGS 13mar2001 ass new SS rule for compound words??
+	SS				>		S+[S]					/ T - {T, C, P}
+	SS				>		[s][+][S]				/ - {T, C, P}
+	SS              >       [>][s]
+	ST              >       [S][t]  				/ {#, +} -
+;;;;;;;;cb 15mar01
+	ST              >       [S][t]  				/ - Ü
+	ST              >       [s][t]  				/ - #
+; add 1/23/96 Tony
+	SV              >       [s][f]
+;EAB 1/31/01
+;	TA				>		[t][a]
+	TE              >       [t][@]  				/ - #
+;;;;;;;;cb 14mar01
+	TH				>		[t]		/ {#, +, [+voc], [+nas], [+liq], S} - {#, +, [+voc], [+nas], [+liq]}
+; MGS 13mar2001 try this
+	TS              >       [T][+] 					/ - {#, +}
+	TS				>		[t][z]					/ - {Ä, Ö, Ü, I}
+;;;;;;;cb 17mar01
+	TS				>		[t][S]					/ - P
+	TS              >       [T]						/ {E, H, Ä, I, O, F, L, U, R} -
+	TS              >       [T]						/ - {B, D, F, H, K, [+liq]}
+	TS              >       [T]						/ - {[+nas], R, S, V, W, Z}
+;;;;;;;cb 14mar01
+	TT				>		[t][+]					/ - #
+; add 1/23/96 Tony
+	TY              >       +[t][6] 				/ # -
+; MGS 13mar2001
+	TZ              >       T[T]					/ S -
+	TZ              >       [T]
+	UH              >       [5]
+	UN              >       +[U][n][+]      		/ # -
+	UM              >       +[U][m][+]      		/ # -
+	UR              >       +[5][R][+]      		/ # -
+	UR              >       +[5][R][+]      		/ - {#, +}
+	US              >       [U][s]          		/ - #
+	VA              >       [v][a]          		/ # -
+	ÜH              >       [6]
+;;;;;;;cb 17mar01
+	WE				>		[v][E][+]				/ # -
+	WW              >       [v]
+;;;;;;;cb 14mar01
+	YS				>		[3][s][+]				/ - #
+; add 1/23/96 Tony
+; GL/OG, 3/26/98 change to [1] eabno
+;   ZA              >       +[T][a] 				/ # -
+;	ZE              >       +[T][2] 				/ # -
+;	ZU              >       +[T][5][+]
+	AA              >       [1]
+	AI              >       [A]
+	AO              >       [a][=][0][c]    		/ # -
+;;;;;;;;;cb 19feb01
+	AO		        >		[1][W]					/ - S # 
+;Chaos
+;	AO              >       [1][=][0][c]    		/ - S #
+	AO				>		[a][4]					/ - # 
+; kakao
+	AO              >       [a][=][0][4]   ; this rule needs to be refined
+	AU              >       [W]
+;       AT              >       [1][t]				/ - #
+;       EA              >       [2][@]
+	EA              >       [@][=]['][a]    		/ # {B, G} -
+	EA              >       [2][=][0][a]
+; + MGS 13mar2001
+	EE				>		[3]						/ {K, J} - P
+	EE				>		[@][=]['][E]			/ #B - {N, RB}
+	EE				>		[2][=]['][E]			/ {#B, R} - L
+	EE				>		[2]						/ #B - REN
+	EE				>		[@][=]['][2]			/ #B - R
+	EE				>		[E][@]					/ L - N
+	EE              >       [2]
+	EI              >       [=]['][A]       		/ - #
+	EI              >       [A]
+;;;;;;;;cb 17mar01
+	EO				>		[@][+][c]				/ {B, G} - [+cons]
+	EO              >       [2][=][0][4]
+;;;;;;;cb 18mar01
+	EU				>		[q]						/ T - R
+	EU              >       [H]
+	IA              >       [3][=][0][1]			/ - #
+;;;;;;;;cb ok
+	IA              >       [3][=][0][a]
+	IE              >       [3]
+;	IE              >       ['][3]					/ - #
+;;;;;;;;;cb 28feb01
+	II			    >		[3][I]					/ - [+cons]
+;;;;;;;;;cb 28feb01
+	IO              >       [3][=][0][o]			/ - #
+;;;;;;;;;cb 18mar01
+	IO				>		[3][=][0][4]			/ T - {+N, N}
+	IO			    >		[I][=][o]					
+;	IO              >       [3][=][0][4]		; see allophonic rules
+;;;;;;;;cb ok
+	IÖ              >       [3][=]['][q]
+;;;;;;;;cb 28feb01
+	IU			    >		[I][=][0][U]
+;	IU              >       [3][=][0][U]
+;;;;;;;;cb ok
+	OA              >       [4][=][0][a]
+;;;;;;;;cb 28feb01
+	OE			    >		[o][=][E]
+	OE              >       [4][=][0][2][=]				/ # {N, P, S} - 
+	OI				>		[W][Y]
+;	OI              >       [H]
+	OO              >       [4]						/ # [+cons]<1-n> - [+cons]<1-n> #
+	OO				>		[o]
+;	OO              >       [4][=][0][c]
+;;;;;;;cb ok
+	OU              >       [5]					; seems to exist in loanwords only
+;;;;;;;cb 28feb01
+	UA				>		[u][=][1]				
+;	UA              >       [5][=][0][a]
+; + MGS 13mar2001
+	UE              >       [5][=]['][E]				/ - LL
+; Next rule is rare by itself; instead, it occurs in larger morphemes such
+; as EUER, AUER, and in loanwords.
+	UE              >       [5][=][0][@]				/ R -
+	UI              >       [5][=][0][3]
+;;;;;;;;cb 28feb01
+	UO				>		[5][=][W]
+;	UO              >       [5][=][0][4]
+;;;;;;;;cb ok
+	UU              >       [5][=][0][U]		; rare by itself
+	WO              >       ['][v][4]					/ - #
+;;;;;;;cb 17mar01
+	B				>		['][b][2]					/ # - #
+	B               >       [b]							/ # -
+; MGS 13mar2001 add +[+voc]
+	B               >       [b]							/ - {[+voc], +[+voc]}
+	B               >       [p]							/ - {#, +}
+; MGS 13mar2001 added Z l and r to the next rule
+	B               >       [p]						/ {[+voc], R, L} - {D, S, T, Z}
+	B               >       [b]     
+;;;;;;;cb 17mar01
+	C				>		['][s][2]					/ # - #
+	C               >       [k]							/ - {A, O, U, #}
+; MGS 13mar2001 this next rule is caused by the HÖR rule
+	C               >       [k]							/ - HÖ
+;;;;;;;;;;cb 19mar01
+	C				>		[C]							/ # - E
+; this c rule may need to refine. it can't cover many words
+	C               >       [k]							/ # -
+;;;;;;;cb 17mar01
+	D				>		['][d][2]					/ # - #
+; MGS 13mar2001 add +[+voc]
+	D               >       [d]							/ - {[+voc], +[+voc]}
+	D               >       [t]							/ - {#, +}
+; MGS 13mar2001 + for reich
+	D				>		[d]							/ LL - RE
+;reich
+	D				>		[t]							/ L - RE
+;lich
+;	D				>		[t]							/ {IN, I} - LIC
+	D               >       [d] 
+;;;;;;;cb 17mar01
+	F				>		[E][f]						/ # - #
+	F               >       [f]
+;;;;;;;cb 16mar01
+	G               >       [g]							/ E - NEST
+;;;;;;;cb 16mar01
+	G				>		[k]							/ L - T
+;;;;;;;cb 16mar01
+	G				>		[k]							/ R - W
+	G               >       [k]							/ [+voc] - {D, S, T}
+; MGS 13mar2001
+;lich
+	G				>		[k]							/ [+voc] - LIC
+; MGS 13mar2001 add +[+voc]
+	G               >       [g]							/ - {[+voc], +[+voc]}
+;       G               >       [k]						/ - {#, +}
+	G               >       [k]							/ - #
+	G               >       [g]
+; MGS 13mar2001 add; cb 17mar01
+	H				>		[h]							/ EI - {Ä, EI}
+	H               >       [ ]							/ [+voc] - [+voc]
+	H               >       [ ]							/ - #
+	H               >       [x]							/ C -
+	H               >       [h]
+	J               >       [j]
+;;;;;;;cb 17mar01
+	K				>		[k][1]						/ # - #
+	K               >       [k]
+;;;;;;;cb 17mar01
+	L				>		[E][l]						/ # - #
+	L               >       [l]
+;;;;;;;cb 17mar01
+	M				>		[E][m]						/ # - #
+	M               >       [m]
+;;;;;;;cb 17mar01
+	N				>		[E][n]						/ # - #
+; + MGS 13mar2001 ?ank except rank
+	N				>		[G]							/ FRA - K
+	N				>		[n]							/ RA - K
+	N				>		[G]							/ [+Seg]A - K
+	N               >       [@][n]						/ {P, B, T, D, K, G} - #
+	N               >       [n] ; see the comment on nasalized vowels
+;;;;;;;cb 17mar01
+	P				>		['][p][2]					/ # - #
+	P               >       [p]
+;;;;;;cb 17mar01
+	R				>		[E][R]						/ # - #
+	R               >       [r]							/ {#, +, G} -
+;;;;;;;cb 17mar01
+	R				>		[r]							/ AB - +[+voc]
+	R               >       [r]							/ - {E, I} #
+;;;;;;;cb 16mar01
+	R				>		[R]							/ ST - 
+;;;;;;;cb 17mar01
+	R				>		[r]							/ F - 
+;;;;;;;cb 17mar01
+	R				>		[R]							/ - R
+	R               >       [R]
+	Q               >       [k][5]
+	q               >       [k][v]
+;;;;;;;cb 17mar01
+	S				>		[E][s]						/ # - #
+	S               >       [s]							/ # - {K, L, M, N, CA, T#}
+	S				>		[s]							/ I - PO
+	S               >       [S]					/ {[+cons], GE, BE, ZU, ZWEI} - TIE
+; MGS 13mar2001 added P
+	S               >       [S]							/ # - {T, CH, P, +T, +P, +CH}
+; MGS 13mar2001 add
+	S               >       [s]							/ NER - T{E, #, L, A}
+	S               >       [s]							/ ER - T{E, #, L}
+	S               >       [S]							/ ER - {T, CH}
+;;;;;;cb 17mar01
+	S				>		[S]							/ [+voc] - TR
+	S               >       [s]							/ - SCH
+;;;;;;;cb 17mar01
+	S				>		[s]							/ P - [+voc]
+	S               >       [z]							/ D - [+voc]
+	S               >       [z]							/ {#, +} -
+	S               >       [z]							/ [+voc] - {[+voc], +[+voc]}
+	S               >       [z]							/ {[+nas], [+liq]} - [+voc] 
+	S               >       [z]							/ - [+voc]
+;;;;;;;cb 17mar01
+	S				>		[s]							/ ORRE - POND
+	S               >       [S]							/ - P
+	S               >       [s]
+	ß               >       [s]
+;;;;;;;cb 17mar01
+	T				>		['][t][2]					/ # - #
+;;;;;;;cb 18mar01
+	T				>		[T]							/ - IO
+	T               >       [t]
+;;;;;;;cb 17mar01
+	V				>		['][v][2]						/ # - #
+	V               >       [v]							/ - {ÄS, OLT, OLU}
+	V               >       [f]							/ - {Ä, Ö}
+	V				>		[v]							/ - IS
+;;;;;;;cb 17mar01
+	V				>		[f]							/ E - E
+	V               >       [f]							/ # -
+	V               >       [v]							/ - [+voc] 
+	V               >       [v]
+;;;;;;;;cb 17mar01
+	X				>		['][I][k][s]				/ # - #
+	X               >       [k][s]
+;;;;;;;cb 15mar01
+	W				>		['][v][2]					/ # - #
+	W               >       [f]							/ - [+cons, -voice]
+	W               >       [f]							/ - #
+	W               >       [v]
+;;;;;;;cb 17mar01
+	Z				>		['][z][2]					/ # - #
+	Z               >       [T]
+
+; vowels
+
+	A               >       [1]							/ - {#, +}
+;;;;;;; cb moved to after specific rules
+;	A               >       [1]							/ - [+cons] #
+; + MGS 13mar2001
+	A				>		[1]							/ G - {SM, SH, SE, S#}
+;;;;;;;cb 15mar01
+	A				>		[1]							/ K - {N+, NIS, S#}
+	A				>		[1]							/ G - N
+	A				>		[1]							/ {G, F} - R {T, #, E#, EN#}
+;;;;;;cb 17mar01
+	A				>		[a]							/ #WEGR - D
+;;;;;;;cb 18mar01
+	A				>		[1]							/ BAN - {NA, NE, N+E}
+	A				>		[1]							/ N - T{S, #, E#, EN#, M}
+; MGS 13mar2001 bar
+	A				>		[a]							/ B - R {ET, G{O, #, EN}, RI }
+	A				>		[1]							/ B - R {#, I, F, E, T, H, K, G, Z, R}
+	A				>		[1]							/ T - R{#, E, ISC, L, IA, IE ,IU} 
+	A				>		[1]							/ R - TISC
+	A				>		[a]							/ R - T{EG, ESS, EU, Z}
+	A				>		[a]							/ R - T{I, UR, UL, A, T}
+;;;;;;cb 15mar01
+	A				>		[a]							/ R - {PHO, PH+O}
+	A				>		[1]							/ R - PH
+;;;;;;cb 18mar01
+	A				>		[1]							/ R - {B, F, SEND, T}
+	A				>		[a]							/ #q - T
+	A				>		[1]							/ q - T
+	A				>		[1]							/ SK - {U, D, T, B}
+;       A               >       [1]						/ [+cons]<2-n> - ß
+;       A               >       [1]						/ - {[+cons][+voice]}
+	A               >       [a]							/ - [+cons][+cons,+gem]
+	A               >       [a]							/ - {SCH, PF, TZ, X}
+;       A               >       [1]						/ - [+cons]<1-2> [+liq]
+	A				>		[1]							/ # - D{AM, E, L, RI}
+	A				>		[a]							/ # - {D, G}
+;;;;;;; cb 13mar01 special for MANAGER
+	A				>		[I]							/ MAN - GER
+	A               >       [1]							/ - {D,G,#}
+;;;;;;; cb moved from above
+	A               >       [1]							/ - [+cons] #
+	A               >       [a]
+
+	E               >       [E]							/ # - {FF,CK,CH,K,X,N,R,S}
+	E               >       [2]							/ # -
+; add 11/15/95
+	E               >       [2]							/ - {GTE,BTE}
+;   E               >       [E]							/ - [+cons] #
+; + MGS 13mar2001 rules for bEt*
+	E				>		[2]							/ B - T{I, E, B, S#}
+	E				>		[2]							/ {AB, EB} - T#
+	E				>		[2]							/ {A, O}M - RI 
+	E				>		[E]							/ B - {TT}
+	E				>		[E]							/ IB - T
+;;;;;;cb 16mar01
+	E				>		[@]							/ {B, D} - T
+;;;;;;cb 18mar01
+	E				>		[2]							/ CH - M
+;;;;;;cb 13mar01
+	E				>		[E]							/ F - {RT, RSE, S}
+;;;;;;cb 16mar01
+	E				>		[2]							/ F - G
+;;;;;;cb 18mar01	
+	E				>		[2]							/ REF -
+;;;;;;cb 17mar01
+	E				>		[E]							/ FR - M
+	E				>		[2]							/ FR - V
+;;;;;;cb 16mar01
+	E				>		[@]							/ G - {SP, ST}
+	E				>		[E]							/ L - K
+;;;;;;cb 16mar01
+	E				>		[2]							/ L - G
+; + MGS 13mar2001 lEt*
+	E				>		[@]							/ L - TO
+	E               >       [E]							/ L - [+cons][+cons,+gem]
+	E				>		[E]							/ L - {TZ, TS, TT}
+;;;;;;;cb 15mar01
+	E				>		[2]							/ {L, P, TH} - T
+	E				>		[2]							/ L - {V, G, K, D, S, P, F}[+voc]
+; MGS 13mar2001
+	E				>		[2]							/ L - M{AT, E, I, O, U}
+;;;;;;;;cb 16mar01
+	E				>		[2]							/ M - D
+	E				>		[2]							/ G - {BE#, BEN}
+;;;;;;;;;cb 15mar01
+	E				>		[2]							/ {QU, SK} - R
+;;;;;;;;;cb 17mar01
+	E				>		[2]							/ R - {B, G}
+	E				>		[2]							/ T - R{EO, ALE, ATA, AN#, ANE}
+	E				>		[@]							/ {ß, I, K, L, T, M, Ö}T - NT
+	E				>		[@]							/ T - NT{U, Ü, H, A}
+	E				>		[E]							/ T - NT
+;;;;;;;;cb 18mar01
+	E				>		[2]							/ T - G
+	E				>		[2]							/ #SK - L
+; + MGS 13mar2001
+	E               >       [E][=][']					/ XZ - LLE
+	E               >       [E]							/ {q, Z, ZK, RK, NK, AP} - LLE
+	E               >       ['][E]							/ - LLE
+	E               >       [E]							/ - [+cons][+cons,+gem]
+;   E               >       [E]							/ - [+voc]
+; MGS 13mar2001 Esch Epf 
+;;;;;;cb 17mar01
+	E				>		[2]							/ R - GIONAL
+;;;;;; cb 13mar01,17mar01 -- Emst
+	E               >       [E]							/ {R, P} - {SCH, MST}
+;;;;;;cb 15mar01
+	E				>		[2]							/ R - D
+;;;;;;cb 18mar01
+	E				>		[E]							/ {STR, #T} - N
+;;;;;;cb 18mar01
+	E				>		[E]							/ Z - N
+	E               >       [3]							/ I - SCH
+	E               >       [2]							/ E - SCH
+;;;;;;;cb 17mar01
+	E				>		[2]							/ #Z - {B, D, H}
+	E				>		[E]							/ #Z - {N [+cons], LT}
+	E				>		[2]							/ #Z - {L, N} [+voc]
+	E               >       [@]							/ [+cons] - SCH
+	E               >       [@]							/ [+cons] - PF
+	E               >       [E]							/ - {SCH, PF, TZ, X, ß, NK}
+	E               >       [@]							/ - [+cons]<1-2> [+liq]
+	E               >       [@]							/ - [+cons, +voice]
+; if a stem ends in -d or -t, it adds a [@], z.b. antwortete. Also if the
+; the stem ends in -m or -n and is preceded by [+cons][-liq], it adds [@].
+	E               >       [@]							/ - { +, F }
+	E               >       [@]							/ - #
+; + MGS 13mar2001 add rule for tet
+	E				>		[@]							/ T - T
+; + MGS 13mar2001
+	E				>		[@][+]						/ HG - S
+	E               >       [E]
+
+;;;;;;; cb ok
+	I               >       [3]							/ - {#, +}
+;;;;;;;cb 18mar01
+	I				>		[3]							/ CH - R
+;;;;;;; cb 13mar01
+	I				>		[3]							/ F - {G, Z}
+; MGS 13mar2001
+;	I				>		[3]							/ #F - G
+;;;;;;; cb 13mar01
+	I				>		[3]							/ L - F
+	I				>		[3]							/ N - S[+voc]
+	I               >       [3]							/ [+cons] - #
+	I               >       [3]							/ [+cons] - [+voc]
+	I				>		[I]							/ #SCH - {N, E}
+	I				>		[3]							/ SCH - {N, E}
+	I				>		[I]							/ {H, #} - N[+voc]
+	I				>		[I]							/ {S, L, M} - TE
+;;;;;;;cb 17mar01
+	I				>		[I]							/ #YPS - L
+	I				>		[I]							/ L - MI
+	I				>		[I]							/ O - LE
+	I				>		[3]							/ - {N, D, B, P, S, T, M, L}[+voc]
+	I               >       [I]							/ - [+cons] #
+	I               >       [I]							/ - [+cons][+cons,+gem]         
+	I               >       [I]							/ - {SCH, PF, TZ, X, ß}
+	I				>		[I]							/ ZW - E
+	I				>		[3]							/ W - {D, E, K}
+; + MGS 13mar2001
+	I				>		[3]							/ #G - G
+	I				>		[3]							/ T - T
+	I				>		[3]							/ M - S[+voc]
+	I				>		[3]							/ R - G{I, A, O}
+;;;;;;cb 18mar01
+	I				>		[3]							/ R - Z
+;       I               >       [3]						/ - [+cons]<1-2> [+liq]
+	I               >       [I]     
+
+	O               >       [4]							/ - {#, +}
+	O               >       [4]							/ - G
+	O               >       [c]							/ R - B{B, O}
+	O               >       [4]							/ R - B
+; MGS 13mar2001
+	O				>		[4]							/ - {[+cons]}[+voc]
+	O				>		[4]							/ - Z
+; MGS 13mar2001 rOs
+	O				>		[c]							/ {B, F}R - S
+	O				>		[c]							/ {D, P, G, #}R - S{S, C}
+	O				>		[c]							/ {T, E}R - S#
+;;;;;;;;cb 17mar01
+	O				>		[4]							/ T - NT#
+
+	O				>		[c]							/ {#R, RR} - ST
+	O				>		[4]							/ R - S
+; + MGS 13mar2001 some loan words use it this way
+	O				>		[c]							/ {#, J, B} - B#
+; + MGS 13mar2001
+	O				>		[4]							/ - B#
+	O               >       [c]							/ - [+cons] #
+	O               >       [c]							/ - [+cons][+cons,+gem]
+	O               >       [c]							/ - {SCH, PF, TZ, X}
+; + MGS 13mar2001
+	O				>		[c]							/ K - {M, N}[+cons]
+	O				>		[4]							/ K - {M, N}[+voc]
+
+	O               >       [4]							/ - [+cons]<1-2> [+liq]
+;       O               >       [4]						/ [+cons]<2-n> - ß
+	O               >       [c]
+
+	U               >       [5]							/ - {#, +, G}
+	U               >       [5]							/ [+cons] - #
+; + MGS 13mar2001
+	U				>		[5]							/ J - {B, T}
+; + MGS 13mar2001 the next 2 together got 534 words
+	U				>		[U]							/ Z - {CK, CH, NG, PFT}
+	U				>		[5]							/ Z -
+	U				>		[5]							/ G - R{[+voc], #}
+	U				>		[U]							/ G - R
+;;;;;;cb 18mar01
+	U				>		[Y]							/ K - NDT
+	U				>		[U]							/ K - ND
+	U				>		[Y]							/ K - N
+	U               >       [U]							/ - [+cons] #
+	U               >       [U]							/ - [+cons][+cons,+gem]
+	U               >       [U]							/ - {SCH, PF, TZ, X}
+	U               >       [5]							/ - [+cons]<1-2> [+liq]
+;       U               >       [5]						/ [+cons]<2-n> - ß
+	U				>		[5]							/ D - B
+;;;;;;cb 13mar01
+	U				>		[5]							/ S - CH
+;;;;;;cb 18mar01
+	U				>		[5]							/ ST - {B, D, P[+voc]}
+	U				>		[U]							/ ST - T
+	U				>		[5]							/ T - {T, URE}
+;;;;;;;cb 14mar01
+	U				>		[U]							/ TZ - M
+	U				>		[U]							/ #L - T
+	U				>		[5]							/ #L - K
+	U				>		[U]							/ {D, L} - S{T, +T}
+	U				>		[5]							/ L - {T, D, G, P, S}
+	U               >       [U]
+
+;;;;;;;;cb 17mar01
+	Y				>		[j]							/ - [+voc]
+	Y				>		[Y]							/ # - [+cons]
+	Y               >       [3]							/ [+cons] - #
+	Y               >       [Y]							/ - [+cons][+cons,+gem]
+	Y               >       [Y]							/ - {SCH, PF, TZ, X}
+	Y               >       [6]							/ - [+cons] #
+;       Y               >       [6]						/ [+cons]<2-n> - ß
+	Y               >       [6]							/ - {#, +}
+;;;;;;;cb 28feb01
+;	Y               >       [y]
+; MGS 13mar2001 there are no [y]'s in the celex dictionary -- just the letter Y - cb
+	Y               >       ['][Y][p][s][3][l][c][n]	/ # - #
+	Y				>		[6]
+
+; umlauted vowels
+	Ä               >       [7]							/ - H
+;	Ä               >       [7]							/ [+cons]<2-n> - ß
+	Ä               >       [7]							/ - {#, +}
+; + MGS 13mar2001 add these 2 rules
+	Ä               >       [E]							/ PR - GN
+	Ä               >       [E]							/ T - TT
+	Ä               >       [E]							/ #T - TS
+	Ä               >       [7]							/ T - {G, T}
+	Ä               >       [E]							/ G - {RTC, RM}
+	Ä               >       [7]							/ G - {B, H, I, R}
+	Ä               >       [E]							/ G - 
+;;;;;;;;cb 14mar01
+	Ä               >       [7]							/ GL - S
+;;;;;;;;cb 17mar01
+	Ä               >       [7]							/ GR - M
+;;;;;;;;cb 18mar01
+	Ä               >       [E]							/ H - R
+	Ä               >       [7]							/ BL - 
+;;;;;;;;cb 18mar01
+;	Ä               >       [a]							/ #B - NDER
+;;;;;;;;cb 17mar01
+	Ä               >       [E]							/ L - CH
+	Ä               >       [7]							/ R - {G, D, T, RZ, RE}
+	Ä				>		[E]							/ N - {CHT, LT, MI, MT, P}
+	Ä				>		[E]							/ N - {SCH, ST, ß, SS, RR}
+	Ä               >       [7]							/ N - 
+;;;;;;;;;cb 14mar01
+	Ä               >       [7]							/ #SCHW - {B, CHUNG, G, NE, RE}
+	Ä               >       [E]							/ #SCHW - {CH, N, RM, RZ}
+	Ä               >       [E]							/ - [+cons][+cons,+gem]
+;       Ä               >       [7]						/ - [+cons]<1-2> [+liq]
+	Ä               >       [E]							/ - {SCH, PF, TZ, X}
+; GL/OG 04/16/1998  change default rule for [E]gf to [V] eabno
+	Ä               >       [E]
+
+	Ö               >       [Q]							/ - [+voc]
+; + MGS 13mar2001 fix the next rule
+	Ö               >       [q]							/ - {L#, LE, LT, LS}
+; + MGS 13mar2001 added ÖR rules
+	Ö               >       [q]							/ N - RE
+	Ö               >       [q]							/ W - {RE, RT#, RU}
+	Ö               >       [Q]							/ T - {RC, P}
+	Ö               >       [Q]							/ H - RN
+	Ö               >       [q]							/ H - R
+	Ö               >       [q]							/ {P, L, T, H, IK} - R
+;	Ö               >       [Q]							/ - R
+; + MGS 13mar2001 the next rule is only true if any of the above conditions are false
+	Ö               >       [Q]							/ - [+liq]
+	Ö               >       [Q]							/ - [+cons][+cons,+gem]
+	Ö               >       [Q]							/ - {SCH, PF, TZ, X, R, CK}
+;       Ö               >       [q]						/ [+cons]<2-n> - ß
+	Ö               >       [Q]							/ K - S
+;;;;;;;cb 14mar01
+	Ö               >       [Q]							/ #M - PS
+	Ö               >       [q]							/ - {#, +}
+	Ö               >       [q]
+
+
+; + MGS 13mar2001 fix these
+	Ü               >       [Y]							/ - [+cons][+cons,+gem]
+	Ü               >       [6]							/ - [+cons][+voc]
+;       Ü               >       [6]						/ [+cons]<1-n> - ß
+	Ü               >       [U]							/ D - RST
+	Ü               >       [Y]							/ F - {RC, RST}
+; MGS 13mar2001 ÜN 
+	Ü               >       [Y]							/ F - N
+	Ü               >       [Y]							/ K - RZ
+;;;;;;cb 15mar01
+	Ü               >       [Y]							/ ST - M
+	Ü               >       [6]							/ IG - R
+	Ü               >       [6]							/ B - RO
+	Ü               >       [6]							/ P - L
+	Ü               >       [6]							/ F - {G, K}
+	Ü               >       [6]							/ H - {RT, RE}
+	Ü               >       [Y]							/ T - {RZ, RM, RB, RK, RT}
+	Ü               >       [6]							/ {K, N, F, T, P} - R
+	Ü               >       [6]							/ L - RE
+;;;;;;;cb 15mar01
+	Ü               >       [6]							/ R - F
+	Ü               >       [6]							/ W - {RE, R#, RS#}
+;;;;;;;cb 14mar01
+	Ü               >       [6]							/ T - T
+	Ü               >       [Y]							/ - NF{T, +T}
+	Ü               >       [6]							/ - N{#, E, T, +, A, F, S#}
+	Ü               >       [Y]							/ - N
+;;;;;;;cb 16mar01
+	Ü               >       [6]							/ N - GT
+	Ü               >       [Y]							/ - R
+	Ü               >       [6]							/ - {#, +}
+	Ü               >       [Y]
+
+	+               >       [+]

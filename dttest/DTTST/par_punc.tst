@@ -1,0 +1,1 @@
+dttest "par_punc.txt" "run"

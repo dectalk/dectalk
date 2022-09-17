@@ -1,0 +1,2 @@
+dttest "punct.txt" "run"
+

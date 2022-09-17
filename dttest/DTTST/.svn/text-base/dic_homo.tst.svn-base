@@ -1,0 +1,1 @@
+dttest "dic_homo.txt" "run"

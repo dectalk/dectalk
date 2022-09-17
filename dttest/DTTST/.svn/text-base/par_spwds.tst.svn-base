@@ -1,0 +1,1 @@
+dttest "par_spwds.txt" "run"
