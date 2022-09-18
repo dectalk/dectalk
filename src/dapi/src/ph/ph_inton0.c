@@ -1827,8 +1827,8 @@ void phinton (LPTTS_HANDLE_T phTTS)
 						/* Phrase-final stressed vowel followed by comma */
 #if defined ENGLISH_US || defined GERMAN
 						delayf0 += NF20MS;
-						make_f0_command (pDph_t, 4, 171, delayf0,0, &cumdur);
-						make_f0_command (pDph_t, 4, 201, pDph_t->allodurs[nphon],0, &cumdur);
+						make_f0_command (pDph_t, 4, 71, delayf0,0, &cumdur);
+						make_f0_command (pDph_t, 4, 101, pDph_t->allodurs[nphon],0, &cumdur);
 #endif
 #ifdef SPANISH
 						pDph_t->delta_special = -50;
