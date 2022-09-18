@@ -56,7 +56,13 @@
 
 #include "p_fr_rom.c"
 #include "p_gr_rom.c"
+#if defined(VOICE_ROM_1997)
+#include "p_us_rom_1997.c"
+#elif defined(VOICE_ROM_1996)
+#include "p_us_rom_1996.c"
+#else
 #include "p_us_rom.c"
+#endif
 #include "p_uk_rom.c"
 #include "p_sp_rom.c"
 #include "p_la_rom.c" 
