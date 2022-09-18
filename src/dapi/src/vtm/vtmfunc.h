@@ -117,7 +117,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-  if ( frequency > 4950 || bandwidth > 4950 ) {
+  if ( frequency > 4500 || bandwidth > 4500 ) {
     zap = 1;
   }
 #endif
@@ -145,7 +145,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-  if ( zap || frequency > 4950 || bandwidth > 4950 ) {
+  if ( zap || frequency > 4500 || bandwidth > 4500 ) {
     *bcoef = 0;
     *ccoef = 0;
   } else
@@ -217,7 +217,7 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /********************************************************************/
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
-  if ( frequency > 4950 || bandwidth > 4950 ) {
+  if ( frequency > 4500 || bandwidth > 4500 ) {
     zap = 1;
   }
 
@@ -243,7 +243,7 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /********************************************************************/
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
-  if ( zap || frequency > 4950 || bandwidth > 4950 ) {
+  if ( zap || frequency > 4500 || bandwidth > 4500 ) {
     frequency = 10000 >> 1;
     bandwidth = 10000 >> 2;
   }
@@ -311,7 +311,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-  if ( frequency > 4950 || bandwidth > 4950 ) {
+  if ( frequency > 4500 || bandwidth > 4500 ) {
     zap = 1;
   }
 #endif
@@ -339,7 +339,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-  if ( zap || frequency > 4950 || bandwidth > 4950 ) {
+  if ( zap || frequency > 4500 || bandwidth > 4500 ) {
     *bcoef = 0;
     *ccoef = 0;
     acoef = 0;
