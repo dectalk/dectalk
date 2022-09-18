@@ -239,8 +239,14 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 #define PARSER_HACK_FOR_OLD_SONGS
 //#define OLD_VDF
 #define VTM1
-//try to find/revert various code changes after v4.3, breaks different functionality but fixes other :-/
+// try to find/revert various code changes after v4.3, breaks different functionality but fixes other :-/
 //#define CHANGES_AFTER_V43
+
+// Use old intonation and timing code, still work in progress
+#define OLD_INTONATION_AND_TIMING
+
+// Use old implementation of setting old target value for us-english, wip
+//#define OLD_SETTAR
 
 // Which voice to use (default when not defined is 4.3)
 // VDF_DECTALKEXPRESS_42 -> DECtalk Express 4.2a

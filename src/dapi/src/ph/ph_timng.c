@@ -268,7 +268,11 @@ else if(pKsd_t->lang_curr == LANG_french)
 		if (pDphsettar->sprat0 >= 180)
 		{
 			temp3 = 220;
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 			temp2 = 400 - pDphsettar->sprat0;
+#else
+			temp2 = 425 - pDphsettar->sprat0;
+#endif
 		}
 		else
 		{

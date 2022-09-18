@@ -36,7 +36,11 @@
  *  006 CAB		10/18/2000		Changed copyright info
  */                            
  
+#if defined(OLD_INTONATION_AND_TIMING)
+#include "p_us_tim0.c"
+#else
 #include "p_us_tim.c"
+#endif
 #include "p_uk_tim.c"
 #include "p_sp_tim.c"
 #include "p_la_tim.c"

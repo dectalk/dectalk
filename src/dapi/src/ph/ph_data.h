@@ -415,6 +415,7 @@ typedef struct phsettar_static_tag
 	short                   nrises_sofar;
 	short                   hatsize;
 	short                   hat_loc_re_baseline;
+	short			lastbound;
 	short					delayed_pulse;
 	short					numstresses; /* 4/2/97 EAB new phones needed later in code merge*/
 	short					creek;

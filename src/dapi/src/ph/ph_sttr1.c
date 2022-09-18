@@ -40,7 +40,11 @@
 #ifdef NEW_NASAL
 #include "p_us_st2.c"
 #else
+#if defined(ENGLISH_US) && defined(OLD_SETTAR)
+#include "p_us_st0.c"
+#else
 #include "p_us_st1.c"
+#endif
 #endif //NEW_NASAL
 
 #ifdef NEW_NASAL

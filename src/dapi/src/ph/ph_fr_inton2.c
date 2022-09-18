@@ -52,7 +52,7 @@ char*  phprint (short c);
 #endif
 
 
-static void make_f0_command (LPTTS_HANDLE_T phTTS,short type, short rulenumber, 
+static void make_f0_command_fr (LPTTS_HANDLE_T phTTS,short type, short rulenumber, 
                      short tar, short delay, short length, short *psCumdur, short nphon);
 
 // Number of vowels in the word from nphon included
@@ -172,7 +172,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
         (pDph_t->f0mode == SINGING)) {
       if (pDph_t->user_f0 [nphon] != 0) {
         regle (phocur, "f0 SINGING");
-        make_f0_command (phTTS, USER, 0, (short)(2000 + pDph_t->user_f0 [nphon]), 
+        make_f0_command_fr (phTTS, USER, 0, (short)(2000 + pDph_t->user_f0 [nphon]), 
                          0, 0, &cumdur, nphon);
       }
 
@@ -193,7 +193,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
             delayf0 = 0;
             if (Syll_Synt_Restantes == 1) delayf0 =  -NF80MS;
             regle (phocur, "AT_BOTTOM_OF_HAT + NORMAL : step of hatsize");
-            make_f0_command (phTTS, STEP, 1, pDphsettar->hatsize, 
+            make_f0_command_fr (phTTS, STEP, 1, pDphsettar->hatsize, 
                              delayf0, 20, &cumdur, nphon);
 
           } else if (pDph_t->f0mode == HAT_F0_SIZES_SPECIFIED) {
@@ -207,7 +207,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
             mf0++;
             // Make hat rise occur at user_dur ms re vowel onset
             regle (phocur, "AT_BOTTOM_OF_HAT + HAT_F0_SIZES_SPECIFIED : step of hatsize");
-            make_f0_command (phTTS, STEP, 1, pDphsettar->hatsize, 
+            make_f0_command_fr (phTTS, STEP, 1, pDphsettar->hatsize, 
                              delayf0, 20, &cumdur, nphon);
           } // pDph_t->f0mode == NORMAL 
 
@@ -234,7 +234,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
           // Scale by speaker def parameter SR, unless emphasized
           pDph_t->arg1 = pDph_t->scale_str_rise;  // 32 for Paul
           targf0 = muldv (pDph_t->arg1, targf0, 32);
-          make_f0_command (phTTS, IMPULSE, 2, targf0, delayf0, 20, &cumdur, nphon);
+          make_f0_command_fr (phTTS, IMPULSE, 2, targf0, delayf0, 20, &cumdur, nphon);
 
         } else if ((Syll_Synt_Restantes > 1) ) {
         // Calculate targf0 : the value of the impulse and delayf0 : time of impulse
@@ -255,7 +255,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
           // Scale by speaker def parameter SR, unless emphasized
           pDph_t->arg1 = pDph_t->scale_str_rise;  // 32 for Paul
           targf0 = muldv (pDph_t->arg1, targf0, 32);
-          make_f0_command (phTTS, IMPULSE, 2, targf0, delayf0, 10, &cumdur, nphon); 
+          make_f0_command_fr (phTTS, IMPULSE, 2, targf0, delayf0, 10, &cumdur, nphon); 
           // MD : was 20
         }
 
@@ -294,7 +294,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
             // Total fall is hatsize + f0fall below baseline
             f0fall += pDphsettar->hatsize;
             regle (phocur, "Return to base : last stressed vowel of the clause");
-            make_f0_command (phTTS, STEP, 3, (short) -f0fall, delayf0, 
+            make_f0_command_fr (phTTS, STEP, 3, (short) -f0fall, delayf0, 
                              20, &cumdur, nphon);
           
           } else if (pDph_t->f0mode == HAT_F0_SIZES_SPECIFIED ) {
@@ -306,7 +306,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
             delayf0 = mstofr(pDph_t->user_offset[mf0]);
             mf0++;
           regle (phocur, "Return to base : last stressed vowel of the clause");
-          make_f0_command (phTTS, STEP, 3, (short) -f0fall , delayf0, 
+          make_f0_command_fr (phTTS, STEP, 3, (short) -f0fall , delayf0, 
                            20, &cumdur, nphon);
           }
         } // Syll_Synt_Restantes == 1 && pDph_t->hatpos == AT_TOP_OF_HAT
@@ -315,7 +315,7 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
       } else if (feacur & FSYLL) {   // unstressed vowel
         delayf0 = pDph_t->allodurs [nphon] >> 2;
         targf0  = f0_stress_level [FNOSTRESS]; 
-        make_f0_command (phTTS, IMPULSE, 2, targf0, delayf0, 20, &cumdur, nphon);
+        make_f0_command_fr (phTTS, IMPULSE, 2, targf0, delayf0, 20, &cumdur, nphon);
         regle (phocur, "Unstressed word");
       } // feacur & FSYLL && Mot_Accentue
 
@@ -398,52 +398,50 @@ void fr_phinton (LPTTS_HANDLE_T phTTS) {
 
 } // phinton
 
-#ifdef now_in_PHINTON2
 // Description: put an f0 command into f0tar and f0tim arrays
-static void make_f0_command (LPTTS_HANDLE_T phTTS, short type, short rulenumber, 
-			     short tar, short delay, short length, short* psCumdur, short nphon) {
-  PKSD_T  pKsd_t = phTTS->pKernelShareData;
-  PDPH_T  pDph_t = phTTS->pPHThreadData;
-
-  // Cumdur reflects time (in frames) since last f0 command
-  // Cumdur+delay should never be less than zero
-  // static short prpholas, temp; *//* MVP : Never Used,comment it out
-  // If requested time is earlier than last f0 command, zero offset
-
-  if ((delay + *psCumdur) < 0) delay = -(*psCumdur);
-
-  // Save commands
-  pDph_t->f0tim [pDph_t->nf0tot] = *psCumdur + delay;
-  pDph_t->f0tar [pDph_t->nf0tot] = tar;
-  pDph_t->f0type[pDph_t->nf0tot] = type;
-  // eab 1/10/98 We need to be able to specifiy the length of the event 
-  // instead of having only one choice. Initally some commands will ignore length
-  pDph_t->f0length[pDph_t->nf0tot] = length;
- 
-#ifdef DEBUGFRENCH
-  if (1) {
-    if ((nphon%10) == 0) {
-      printf ("make_f0_command (type rulenumber tar delay length *psCumdur nphon phon");
-      printf ("     (nf0tot f0tim f0tar f0type)\n");
-    }
-
-    printf ("make_f0_command  %4s %2d %2d %4d %4d %2d %4d %2d\n",
-       phprint (pDph_t->allophons [nphon]),
-       type, rulenumber, tar, delay, length, *psCumdur, nphon);
-
-    printf ("     %2d %4d, %4d, %4d, %4d\n", pDph_t->nf0tot, 
-	    pDph_t->f0tim [pDph_t->nf0tot], 
-	    pDph_t->f0tar [pDph_t->nf0tot],
-       pDph_t->f0type  [pDph_t->nf0tot],
-       pDph_t->f0length[pDph_t->nf0tot]);
-  }
+static void make_f0_command_fr (LPTTS_HANDLE_T phTTS, short type, short rulenumber, short tar,
+				 			 short delay, short length, short *psCumdur, short nphon)
+{
+#ifdef PH_DEBUG
+	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
 #endif
+	PDPH_T                  pDph_t = phTTS->pPHThreadData;
+	
+	
 
-  // "Zero" counter of time since last command
-  *psCumdur = (-delay);
+	/* Cudur reflects time (in frames) since last f0 command        */
+	/* Cumdur+delay should never be less than zero                  */
 
-  // Increment counter of number of f0 commands issued
-  if (pDph_t->nf0tot < NPHON_MAX - 1) pDph_t->nf0tot++;
+	/* static short prpholas, temp; *//* MVP : Never Used,comment it out */
+	/* If requested time is earlier than last f0 command, zero offset */
 
-} // make_f0_command
+		
+#ifdef PH_DEBUG
+#ifndef UNDER_CE	//CAB 03/15/00 WINprintf not supported under Windows CE
+	if (DT_DBG(PH_DBG,0x010))
+		WINprintf("phon %d nphon %d rule %d type %d , tar %d delay %d length %d  \n",(pDph_t->allophons[nphon] & PVALUE), nphon, rulenumber,type, tar, delay, length);
 #endif
+#endif
+	if ((delay + *psCumdur) < 0)
+	{
+			delay = -(*psCumdur);
+	}
+	/* Save commands */	
+	pDph_t->f0tim[pDph_t->nf0tot] = *psCumdur + delay;
+	pDph_t->f0tar[pDph_t->nf0tot] = tar;
+	pDph_t->f0type[pDph_t->nf0tot] = type;
+	/* eab 1/10/98 We need to be able to specifiy the length
+	of the event instead of having only
+	one choice. Initally some commands will ignore length*/
+	pDph_t->f0length[pDph_t->nf0tot] = length;
+
+	/* "Zero" counter of time since last command */
+	*psCumdur = (-delay);
+
+	/* Increment counter of number of f0 commands issued */
+	if (pDph_t->nf0tot < NPHON_MAX - 1)
+	{
+		pDph_t->nf0tot++;
+	}
+
+}

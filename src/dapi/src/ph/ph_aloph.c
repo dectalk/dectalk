@@ -823,15 +823,18 @@ void phalloph (LPTTS_HANDLE_T phTTS)
 
 		if (((curr_instruc & (FSTRESS | FWINITC)) IS_MINUS) && n>0
 			&& ((phone_feature(pDph_t,pDph_t->phonemes[n - 1]) & FVOWEL) IS_PLUS)
-#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
-			&& ((phone_feature(pDph_t,pDph_t->phonemes[n + 1]) & FVOWEL) IS_MINUS)
-#endif
+//#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
+//			&& ((phone_feature(pDph_t,pDph_t->phonemes[n + 1]) & FVOWEL) IS_MINUS)
+//#endif
 			)
 		{
 #if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 			if (curr_inph == USP_LL
 				&& pDph_t->phonemes[n - 1] == USP_AY)
 	  		curr_outph = USP_LY;
+#else
+			if (curr_inph == USP_LL)
+				curr_outph = USP_LX;
 #endif
 
 			/* See if one of the special vowel + R combinations */

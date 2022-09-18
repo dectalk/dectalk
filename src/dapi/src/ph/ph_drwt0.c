@@ -41,7 +41,11 @@
 
 
 
+#if defined(ENGLISH_US) && defined(OLD_INTONATION_AND_TIMING)
+#include "ph_drwt01.c"
+#else
 #include "ph_drwt02.c"
+#endif
 
 
 

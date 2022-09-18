@@ -380,6 +380,7 @@ SetEvent (phTTS->hMallocSuccessEvent);	/* Malloc s are success,set the event */
 	pDphsettar_st->breathytilt = 0;
 	pDphsettar_st->nrises_sofar = 0;
 	pDphsettar_st->hatsize = 0;    
+	pDphsettar_st->lastbound = 0;    
 	pDphsettar_st->tarbas=0;
 	pDphsettar_st->hat_loc_re_baseline = 0;
 	pDphsettar_st->initsw = 0;		   	/* MVP :03/19/96 */
