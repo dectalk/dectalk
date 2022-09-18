@@ -894,8 +894,21 @@ short us_ptram[] = {
       0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
       0,    0,    0,    0,    0,  193,    0,    1,   25,   49,
       73,   97,  121,  145,  169,  193,  217,  241,  265,  289,
-      313,    0,  265,    0,  337,  361, 0
-      };
+      313,    0,  265,    0,  337,  361, 0,
+      541,   // TZ
+      571,   // CZ
+      0,     // LY
+      0,     // RE
+      0,     // X1
+      0,     // X2
+      0,     // X3
+      0,     // X4
+      0,     // X5
+      0,     // X6
+      0,     // X7
+      0,     // X8
+      0,     // X9
+      0 };   // Z1
 
 /* Pointers to locus, percent, and duration for formant         */
 /* transitions for 56 phones before three types of vowels       */
