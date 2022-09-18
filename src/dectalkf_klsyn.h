@@ -261,8 +261,10 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 //#define VOICE_ROM_1997
 #define VOICE_ROM_1996
 
+#if defined(VOICE_ROM_1997) || defined(VOICE_ROM_1996)
 // Use old implementation of setting old target value for us-english, wip, use with 1996/7 voice roms, wip
 //#define OLD_SETTAR
+#endif
 
 // Disable limit cycle rampdown code.
 // This squelches filter-output in passages without speech (originally
