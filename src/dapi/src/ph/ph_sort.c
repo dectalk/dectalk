@@ -1269,6 +1269,7 @@ if(pKsd_t->lang_curr == LANG_spanish
 
 		/* Switch on the current input symbol */
 				
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 		/* added wordclass info for AD */
 		
 		// CAB Removed warnings by typecast
@@ -1291,6 +1292,7 @@ if(pKsd_t->lang_curr == LANG_spanish
 			}
 			while (*cp != -1);
 		}
+#endif
 	
 		if (curr_in_sym < MAX_PHONES)
 		{							   /* A real phoneme */
