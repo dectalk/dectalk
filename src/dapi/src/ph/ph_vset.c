@@ -729,6 +729,7 @@ void setspdef (LPTTS_HANDLE_T phTTS)
    (*spdef).afgain += KS.CurrentVolumeDB;	
    (*spdef).apgain += KS.CurrentVolumeDB;
 #endif /*SW_VOLUME*/
+
 	spdef->rnpgain = pDph_t->curspdef[SPD_GN];	/* GN -> GN             */
 #ifdef LOWCOMPUTE
 	spdef->rnpgain = pDph_t->curspdef[SPD_GN];	/* GN -> GN             */
@@ -762,6 +763,11 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 
 #endif
 
+#ifdef SOFTWARE_VOLUME
+	(*spdef).r1ca += pKsd_t->iSwVolume;
+	(*spdef).afgain += pKsd_t->iSwVolume;
+	(*spdef).apgain += pKsd_t->iSwVolume;
+#endif
 
 
 

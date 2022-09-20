@@ -285,4 +285,9 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 // except if diagnosing cut-off problems.
 // #define NO_LIMIT_CYCLE_RAMPDOWN
 
+// Enable software volume control by reducing g5, gh and gf
+// hardware volume control is not implemented, so use this implementation
+// which is based on the one found in DECtalk Express.
+#define SOFTWARE_VOLUME
+
 #endif // _DECTALK_H_

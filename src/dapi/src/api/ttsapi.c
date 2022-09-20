@@ -2047,6 +2047,9 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	pKsd_t->loaded_languages = NULL;           //MVP:05/10/96 Fixed an exception(When DECtalk runs on a machine without audio card)
 	pKsd_t->volume=100; //set volume to 100;
 	pKsd_t->vol_att=100; //set volume to 100;
+#ifdef SOFTWARE_VOLUME
+	pKsd_t->iSwVolume = 0; //max is 0
+#endif
 	/********************************************************************/
 	/*  Create the TTS handle.                                          */
 	/********************************************************************/

@@ -767,6 +767,11 @@ volatile int mtone_running; /* flag to hold flushes until we see them */
 	U32             uiSampleRate;		/* used by vtm,ph,cmd*/
 	double          SamplePeriod;		/*Used by VTM,SYNC threads*/
 #endif // MSDOS
+
+#ifdef SOFTWARE_VOLUME
+volatile int iSwVolume;
+#endif
+
 /*
  *  async change flags ...
  */
