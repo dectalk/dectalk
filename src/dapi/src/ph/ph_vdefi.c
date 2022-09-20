@@ -63,7 +63,7 @@
 #include "p_us_vdf1.c"
 #endif
 #else
-#ifdef OLD_VDF
+#ifdef VDF_BETA5
 #include "p_us_vdf.c"
 #else
 #ifdef CHANGES_AFTER_V43

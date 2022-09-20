@@ -237,7 +237,6 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 /* Try to make the parser compatible with older songs,
  * prevents 'command error in phoneme' when encountering 'l' instead of 'll' */
 #define PARSER_HACK_FOR_OLD_SONGS
-//#define OLD_VDF
 #define VTM1
 // try to find/revert various code changes after v4.3, breaks different functionality but fixes other :-/
 //#define CHANGES_AFTER_V43
@@ -252,10 +251,12 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 // VDF_DECTALKEXPRESS_42 -> DECtalk Express 4.2a
 // VDF_DECTALKEXPRESS_42CD -> DECtalk Express 4.2cd
 // VDF_DECTALK_44 -> DECtalk speak window 4.4
+// VDF_BETA5 -> VDF for non-hlsyn included in beta 5
 // nothing -> DECtalk speak window 4.3 (exactly the same as DEC ALPHA 4.2)
 //#define VDF_DECTALKEXPRESS_42
 //#define VDF_DECTALKEXPRESS_42CD
 //#define VDF_DECTALK_44
+//#define VDF_BETA5
 
 // Which voice rom to use
 // VOICE_ROM_1997 -> voice rom from around 1997, probably 4.60
@@ -268,7 +269,7 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 // Decrease /s, z/ amplification in VOICE_ROM_1996/7
 #define DEC_SZ 3
 
-// Use old implementation of setting target value for us-english, wip, use with 1996/7 voice roms, wip
+// Use old implementation of setting target value for us-english, use with 1996/7 voice roms, wip
 #define OLD_SETTAR
 #endif
 
