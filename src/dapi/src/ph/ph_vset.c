@@ -676,7 +676,7 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 #if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	if (spdef->r5cb > (phTTS->pKernelShareData->uiSampleRate>>1))
 #else
-	if (spdef->r5cb > 4095)
+	if (spdef->r5cb > 4950)
 #endif
 	{
 		spdef->r5cb = ZAPF;			   		/* F5 too big, zap it   */

@@ -111,30 +111,20 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
                  S16 gain )
 {
   S16 acoef;
-  S16 zap = 0;
-
-  /********************************************************************/
-  /*  Zap resonator if center frequency above maximum frequency.      */ 
-  /********************************************************************/
-#ifndef HLSYN
-  if ( frequency > 4500 || bandwidth > 4500 ) {
-    zap = 1;
-  }
-#endif
 
   /********************************************************************/
   /*  Scale the frequency and bandwidth if the sample rate is not     */
   /*  10 KHz.                                                         */
   /********************************************************************/
 
-  if ( !zap && pVtm_t->uiSampleRateChange == SAMPLE_RATE_DECREASE )
+  if ( pVtm_t->uiSampleRateChange == SAMPLE_RATE_DECREASE )
   {
     frequency = frac1mul( pVtm_t->inv_rate_scale, frequency ) << 1;
     bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth ) << 1;
   }
   else
   {
-    if ( !zap && pVtm_t->uiSampleRateChange == SAMPLE_RATE_INCREASE )
+    if ( pVtm_t->uiSampleRateChange == SAMPLE_RATE_INCREASE )
     {
       frequency = frac1mul( pVtm_t->inv_rate_scale, frequency );
       bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth );
@@ -145,7 +135,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-  if ( zap || frequency > 4500 || bandwidth > 4500 ) {
+  if ( frequency > 4500 || bandwidth > 4950 ) {
     *bcoef = 0;
     *ccoef = 0;
   } else
@@ -212,28 +202,20 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
                   S16 gain )
 {
   S32 acoef;
-  S16 zap = 0;
-
-  /********************************************************************/
-  /*  Zap resonator if center frequency above maximum frequency.      */ 
-  /********************************************************************/
-  if ( frequency > 4500 || bandwidth > 4500 ) {
-    zap = 1;
-  }
 
   /********************************************************************/
   /*  Scale the frequency and bandwidth if the sample rate is not     */
   /*  10 KHz.                                                         */
   /********************************************************************/
 
-  if ( !zap && pVtm_t->uiSampleRateChange == SAMPLE_RATE_DECREASE )
+  if ( pVtm_t->uiSampleRateChange == SAMPLE_RATE_DECREASE )
   {
 	  frequency = frac1mul( pVtm_t->inv_rate_scale, frequency ) << 1;
 	  bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth ) << 1;
   }
   else
   {
-	  if ( !zap && pVtm_t->uiSampleRateChange == SAMPLE_RATE_INCREASE )
+	  if ( pVtm_t->uiSampleRateChange == SAMPLE_RATE_INCREASE )
 	  {
 		  frequency = frac1mul( pVtm_t->inv_rate_scale, frequency );
 		  bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth );
@@ -243,7 +225,7 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /********************************************************************/
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
-  if ( zap || frequency > 4500 || bandwidth > 4500 ) {
+  if ( frequency > 4500 || bandwidth > 4950 ) {
     frequency = 10000 >> 1;
     bandwidth = 10000 >> 2;
   }
@@ -305,30 +287,20 @@ S16 d2pole_pf( PVTM_T pVtm_t,
                S16 gain )
 {
   S16 acoef;
-  S16 zap = 0;
-
-  /********************************************************************/
-  /*  Zap resonator if center frequency above maximum frequency.      */ 
-  /********************************************************************/
-#ifndef HLSYN
-  if ( frequency > 4500 || bandwidth > 4500 ) {
-    zap = 1;
-  }
-#endif
 
   /********************************************************************/
   /*  Scale the frequency and bandwidth if the sample rate is not     */
   /*  10 KHz.                                                         */
   /********************************************************************/
 
-  if ( !zap && pVtm_t->uiSampleRateChange == SAMPLE_RATE_DECREASE )
+  if ( pVtm_t->uiSampleRateChange == SAMPLE_RATE_DECREASE )
   {
     frequency = frac1mul( pVtm_t->inv_rate_scale, frequency ) << 1;
     bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth ) << 1;
   }
   else
   {
-    if ( !zap && pVtm_t->uiSampleRateChange == SAMPLE_RATE_INCREASE )
+    if ( pVtm_t->uiSampleRateChange == SAMPLE_RATE_INCREASE )
     {
       frequency = frac1mul( pVtm_t->inv_rate_scale, frequency );
       bandwidth = frac1mul( pVtm_t->inv_rate_scale, bandwidth );
@@ -339,7 +311,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-  if ( zap || frequency > 4500 || bandwidth > 4500 ) {
+  if ( frequency > 4500 || bandwidth > 4950 ) {
     *bcoef = 0;
     *ccoef = 0;
     acoef = 0;
