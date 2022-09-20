@@ -1118,6 +1118,10 @@ int DBtable[100]= {
 	0	/*100*/
 	};
 
+#ifdef SOFTWARE_VOLUME
+void ph_loop(LPTTS_HANDLE_T phTTS,unsigned short *input);
+#endif
+
 /**********************************************************************/
 /**********************************************************************/
 /*  Function: StereoVolumeControl                                     */
@@ -1258,11 +1262,20 @@ void StereoVolumeControl( LPTTS_HANDLE_T phTTS,
 #else
   {
     PKSD_T pKsd_t = phTTS->pKernelShareData;
+    unsigned short LastVoice[2];
     int vol = DecodeDectalkVolume((dwRightChannelVolume+dwLeftChannelVolume+1)/2);
 
     if (vol < 0) { vol = 0; }
     if (vol > 99) { vol = 99; }
     pKsd_t->iSwVolume = DBtable[vol];
+
+    LastVoice[0]=LAST_VOICE;
+    LastVoice[1]=SYNC;
+#ifndef SINGLE_THREADED
+    write_pipe( pKsd_t->ph_pipe, &LastVoice, 2 );
+#else
+    ph_loop(phTTS,LastVoice);
+#endif
   }
 #endif
 #endif
