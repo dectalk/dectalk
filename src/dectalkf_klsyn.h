@@ -237,7 +237,7 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 /* Try to make the parser compatible with older songs,
  * prevents 'command error in phoneme' when encountering 'l' instead of 'll' */
 #define PARSER_HACK_FOR_OLD_SONGS
-#define VTM1
+
 // try to find/revert various code changes after v4.3, breaks different functionality but fixes other :-/
 //#define CHANGES_AFTER_V43
 
@@ -246,6 +246,12 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 
 // Use old intonation and timing code, still work in progress
 #define OLD_INTONATION_AND_TIMING
+
+// Voice tract model
+// VTM1 -> original integer based voice tract model
+// FP_VTM -> floating point based voice tract model
+#define VTM1
+//#define FP_VTM
 
 // Which voice to use (default when not defined is 4.3)
 // VDF_DECTALKEXPRESS_42 -> DECtalk Express 4.2a

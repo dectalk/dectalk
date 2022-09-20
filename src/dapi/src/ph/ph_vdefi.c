@@ -102,7 +102,11 @@
 #include "p_la_vdf_tuneint.c"
 #include "p_gr_vdf_tuneint.c"
 #else
+#ifdef FP_VTM
+#include "p_us_vdf_oldtune_float.c"
+#else
 #include "p_us_vdf_oldtune.c"
+#endif
 #endif
 
 

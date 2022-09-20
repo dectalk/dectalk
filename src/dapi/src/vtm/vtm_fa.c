@@ -94,6 +94,7 @@
 /**********************************************************************/
 
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include "port.h"
 /* changed case of TTS.H to tts.h for __osf__ */
@@ -259,8 +260,8 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 //all variables seem to get re-initialized but it might as well be correct
 #define SWG_INIT_VALUE 0 //(12345)
                  /*  Current loc in voicing period at 4 * Fs       */
- // int nsr4;  /*  Counter of 4 samples in glottal source loop   */
- // int Index;
+  int nsr4;  /*  Counter of 4 samples in glottal source loop   */
+  int Index;
   unsigned int uiNs;	// position within frame
   // local variables from the speech packet
   S32_T AVinDB;     /*  Amp of voicing in dB,        0 to   70 */
@@ -384,7 +385,9 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 
   T0inS4 =variabpars[OUT_T0];
   FZinHZ = variabpars[OUT_FZ];
+#ifdef NEW_VTM
   FNPinHZ=(variabpars[OUT_FNP]);
+#endif
 
   switch( pVtm_t->uiSampleRateChange )
   {
@@ -392,14 +395,18 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 
     T0inS4 = frac1mul( pVtm_t->rate_scale, T0inS4 ) << 1;
     FZinHZ = frac1mul( pVtm_t->inv_rate_scale, FZinHZ );
+#ifdef NEW_VTM
     FNPinHZ = frac1mul( pVtm_t->inv_rate_scale, FNPinHZ );
+#endif
     break;
 
   case SAMPLE_RATE_DECREASE:
 
     T0inS4 = frac1mul( pVtm_t->rate_scale, T0inS4 );
     FZinHZ = frac1mul( pVtm_t->inv_rate_scale, FZinHZ ) << 1;
+#ifdef NEW_VTM
     FNPinHZ = frac1mul( pVtm_t->inv_rate_scale, FNPinHZ ) << 1;
+#endif
     break;
 
   case NO_SAMPLE_RATE_CHANGE:
@@ -454,7 +461,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   A6inDB = variabpars[OUT_A6];
   ABinDB = variabpars[OUT_AB];
 //why low tilts?? helpme
-  TiltInDB = variabpars[OUT_TLT]; //- 12;    /*  Tilt in dB at 3 kHz     */
+  TiltInDB = variabpars[OUT_TLT] - 12; //- 12;    /*  Tilt in dB at 3 kHz     */
   
   if (TiltInDB<2)
 	  TiltInDB =2;
@@ -827,13 +834,13 @@ if(uiNs == nopen)
         /*  Set coeficients of the nasal zero anti-resonator by table */
         /*  lookup.                                                   */
         /**************************************************************/
-#ifdef OLD_CALC
+#ifndef NEW_VTM
         Index = (int)( 0.125 * FZinHZ );
 
         pVtm_t->Nasal_b0 = Nasal_b0_Table[Index];
         pVtm_t->Nasal_b1 = Nasal_b1_Table[Index];
         pVtm_t->Nasal_b2 = Nasal_b2_Table[Index];
-#endif
+#else
 
   DESIGN_TWO_POLE_FILTER( pVtm_t->NasalResonator_a1,
                           pVtm_t->NasalResonator_a2,
@@ -865,6 +872,7 @@ if(uiNs == nopen)
 	pVtm_t->Nasal_b0 = ( ( (FLTPNT_T)1.0 )/ pVtm_t->Nasal_b0);
 	pVtm_t->Nasal_b1 = -(pVtm_t->Nasal_b1/Radius);
 	pVtm_t->Nasal_b2 = -(pVtm_t->Nasal_b2/Radius);
+#endif
 
 	
 	
@@ -1034,8 +1042,7 @@ if(uiNs == nopen)
                              pVtm_t->c2_Delay_1,
                              pVtm_t->c2_Delay_2,
                              pVtm_t->c2_a1,
-                             pVtm_t->c2_a2,
-							 );
+                             pVtm_t->c2_a2 );
 
 			  /******************************************************************/
     /*  First Formant of Cascade Vocal Tract                          */

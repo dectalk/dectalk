@@ -32,6 +32,8 @@
 #include "vtm1.c"
 #elif defined(VTM2)
 #include "vtm2.c"
+#elif defined(FP_VTM)
+#include "vtm_fa.c"
 #else
 #include "vtm3.c"
 #endif
