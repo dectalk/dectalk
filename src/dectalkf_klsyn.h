@@ -242,6 +242,9 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 // try to find/revert various code changes after v4.3, breaks different functionality but fixes other :-/
 //#define CHANGES_AFTER_V43
 
+// changes which make it sound more like 4.4 (only works when CHANGES_AFTER_43 is not defined!)
+//#define CHANGES_FOR_V44
+
 // Use old intonation and timing code, still work in progress
 #define OLD_INTONATION_AND_TIMING
 

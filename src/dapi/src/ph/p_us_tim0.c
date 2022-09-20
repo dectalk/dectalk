@@ -546,6 +546,10 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 
 							arg1 = N70PRCNT;
 						}
+#ifdef CHANGES_FOR_V44
+						/* This sounds more like 4.4 In terms of the lengths of vowels
+						 * according to Jake
+						 */
 						if ((strucstresscur == FSTRESS_1) &&
 							((phocur != USP_AE) || ((struccur & FTYPESYL) == FMONOSYL)))
 						{
@@ -556,6 +560,7 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 							/* this was commented out why?*/
 							 prcnt = mlsh1(arg1,arg2); 
 						}
+#endif
 					}
 					/* Postvocalic segment is voiced */
 					else
