@@ -1,6 +1,7 @@
 /*
  * Extracted from: SPEAK43.EXE
  */
+
 const short paul_8[SPDEF] =
 {
 	MALE,				/* SEX */
@@ -40,9 +41,7 @@ const short paul_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* PAUL_8 */
 
 const short betty_8[SPDEF] =
@@ -84,9 +83,7 @@ const short betty_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* BETTY_8 */
 
 const short harry_8[SPDEF] =
@@ -128,9 +125,7 @@ const short harry_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* HARRY_8 */
 
 const short frank_8[SPDEF] =
@@ -172,9 +167,7 @@ const short frank_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* FRANK_8 */
 
 const short kit_8[SPDEF] =
@@ -216,9 +209,7 @@ const short kit_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* KIT_8 */
 
 const short ursula_8[SPDEF] =
@@ -260,9 +251,7 @@ const short ursula_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* URSULA_8 */
 
 const short rita_8[SPDEF] =
@@ -304,9 +293,7 @@ const short rita_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* RITA_8 */
 
 const short wendy_8[SPDEF] =
@@ -348,9 +335,7 @@ const short wendy_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* WENDY_8 */
 
 const short dennis_8[SPDEF] =
@@ -392,9 +377,7 @@ const short dennis_8[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* DENNIS_8 */
 
 const short paul[SPDEF] =
@@ -436,9 +419,7 @@ const short paul[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* PAUL */
 
 const short betty[SPDEF] =
@@ -480,9 +461,7 @@ const short betty[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* BETTY */
 
 const short harry[SPDEF] =
@@ -524,9 +503,7 @@ const short harry[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* HARRY */
 
 const short frank[SPDEF] =
@@ -568,9 +545,7 @@ const short frank[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* FRANK */
 
 const short kit[SPDEF] =
@@ -612,9 +587,7 @@ const short kit[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* KIT */
 
 const short ursula[SPDEF] =
@@ -656,9 +629,7 @@ const short ursula[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* URSULA */
 
 const short rita[SPDEF] =
@@ -700,9 +671,7 @@ const short rita[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* RITA */
 
 const short wendy[SPDEF] =
@@ -744,9 +713,7 @@ const short wendy[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* WENDY */
 
 const short dennis[SPDEF] =
@@ -788,8 +755,6 @@ const short dennis[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-#ifndef FP_VTM
-	-1,				/* Output gain multiplier  */
-#endif
+	0,				/* Output gain multiplier  */
 }; /* DENNIS */
 

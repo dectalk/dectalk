@@ -33,11 +33,7 @@
 #elif defined(VTM2)
 #include "vtm2.c"
 #elif defined(FP_VTM)
-#ifdef HLSYN
 #include "vtm_fa.c"
-#else
-#include "vtm_fa0.c"
-#endif
 #else
 #include "vtm3.c"
 #endif

@@ -1617,7 +1617,7 @@ MMRESULT GetSpeakerParams(LPTTS_HANDLE_T phTTS, UINT uiIndex, SPDEFS **ppspCur,
 
 
 #if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_) && !defined (i386)
-	(*ppspCur)->output_gain_mult   = pDph_t->curspdef[SPD_OS];
+	(*ppspCur)->output_gain_mult   = pDph_t->curspdef[SPD_OS] - (pDph_t->tunedef[voice][SPD_OS]);
 #endif
 
 	/* Fill low limits for speaker parameters */
@@ -1844,7 +1844,7 @@ MMRESULT SetSpeakerParams(LPTTS_HANDLE_T phTTS, SPDEFS *pspSet)
 	pDph_t->curspdef[SPD_OQ]  = pspSet->open_quo	 +	(pDph_t->tunedef[voice][SPD_OQ]);
 
 #if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_) && !defined (i386)
-	pDph_t->curspdef[SPD_OS]  = pspSet->output_gain_mult;
+	pDph_t->curspdef[SPD_OS]  = pspSet->output_gain_mult + (pDph_t->tunedef[voice][SPD_OS]);;
 #endif
 
 	pDph_t->loadspdef = TRUE; /* inform PH to reload the VTM on the next utterance */

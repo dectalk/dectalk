@@ -117,7 +117,7 @@
 // in order to make the actual parameters in the filter macros
 // somewhat independent, we'll paper over them with what is the
 // REAL definition within this file..
-#if 1
+#ifdef HLSYN
 #define SampleRateScale (pVtm_t->fSampleRateScale)
 #define FormantScale (pVtm_t->fFormantScale)
 #define InverseSampleRateScale (pVtm_t->inv_rate_scale)
@@ -428,6 +428,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   /*  performed if F1inHZ or F2inHZ is relatively low.                */
   /********************************************************************/
 
+#ifdef HLSYN
   F1inHZ = variabpars[OUT_F1];
   F1inHZ = frac4mul( F1inHZ, FormantScale ) + ((4096 - (S32)FormantScale ) >> 4);
   F2inHZ = variabpars[OUT_F2];
@@ -435,7 +436,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   F3inHZ = variabpars[OUT_F3];
   F3inHZ = frac4mul( F3inHZ, FormantScale );
 
-#if 0
+#else
   F1inHZ = FormantScale * (FLTPNT_T)variabpars[OUT_F1]
     + ( 256.0 - 256.0 * FormantScale );
 
@@ -460,14 +461,20 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   A5inDB = variabpars[OUT_A5];
   A6inDB = variabpars[OUT_A6];
   ABinDB = variabpars[OUT_AB];
+#ifdef HLSYN
 //why low tilts?? helpme
+  TiltInDB = variabpars[OUT_TLT] ; //- 12;    /*  Tilt in dB at 3 kHz     */
+#else
   TiltInDB = variabpars[OUT_TLT] - 12; //- 12;    /*  Tilt in dB at 3 kHz     */
+#endif
   
+#ifdef HLSYN
   if (TiltInDB<2)
 	  TiltInDB =2;
 //FUTURE Fix the tilt filter for now just don't let it get too big.
 	if(TiltInDB >= 12)
 		TiltInDB =8;
+#endif
 	
  
 
@@ -560,22 +567,23 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 	
 
 
-#ifdef OLDANDNOWOUT
+#ifndef HLSYN
 
     /******************************************************************/
     /*  Filter with Pi-rotated anti-resonator. (This is the same as   */
     /*  an ordinary anti-resonator except for the b1 coefficient has  */
     /*  it's sign flipped). Frequency = 3500, Bandwidth = 1600.       */
     /******************************************************************/
-according to notes this doesn;t work right unless inpout and output var 
-are diff
-    MINIMUM_TWO_ZERO_FILTER( Noise,
+//according to notes this doesn;t work right unless inpout and output var 
+//are diff
+    MINIMUM_TWO_ZERO_FILTER( NoiseOutput,
                              Noise,
                              pVtm_t->NoiseDelay_1,
                              pVtm_t->NoiseDelay_2,
                              Noise_b1,
                              Noise_b2 );
     
+    Noise = NoiseOutput;
 #endif
 
 
@@ -590,6 +598,7 @@ are diff
     if ( pVtm_t->uiVoicePeriodSampleNumber < pVtm_t->uiPositionToStartNoiseModulation )
       Noise = (FLTPNT_T)0.5 * Noise;
 	
+#ifdef HLSYN
 	Noiseb = Noise - noblast;		/* BREATHINESS NOISE */
 	noblast = Noise;
 
@@ -598,6 +607,7 @@ are diff
 	// the amp_imp*50000 will always equal 0 because amp_imp is always 0
 //	Frics = pVtm_t->SpeakerFricationGain*Noise+amp_imp*50000*(uiNs==0);
 	Frics = pVtm_t->SpeakerFricationGain*Noise;
+#endif
 
     /******************************************************************/
 #ifdef ACI_LICENSE
@@ -805,6 +815,7 @@ if(uiNs == nopen)
         if ( pVtm_t->iNumOpenSamples >= ((((S32)pVtm_t->T0) *3) >>2) ) 
           pVtm_t->iNumOpenSamples = ((((S32)pVtm_t->T0) *3) >>2);
 
+
 			//Future add in double pulsing of glottal source on every other pulse
 
         /**************************************************************/
@@ -927,7 +938,11 @@ if(uiNs == nopen)
     /*  Add breathiness to voicing.                                   */
     /******************************************************************/
 
+#ifdef HLSYN
     pVtm_t->DifferentiatedVoicing += pVtm_t->SpeakerBreathinessPitchSyncGain * Noiseb;
+#else
+    pVtm_t->DifferentiatedVoicing += pVtm_t->SpeakerBreathinessPitchSyncGain * Noise;
+#endif
 
     /******************************************************************/
     /*  Apply the variable gain to the breathy voicing.               */
@@ -939,8 +954,11 @@ if(uiNs == nopen)
     /*  Add aspiration to the voicing.                                */
     /******************************************************************/
 
-    //pVtm_t->DifferentiatedVoicing += AsperationGain * Noise;
+#ifndef HLSYN
+    pVtm_t->DifferentiatedVoicing += AsperationGain * Noise;
+#else
 	Output = pVtm_t->DifferentiatedVoicing;
+#endif
 	
     /******************************************************************/
     /******************************************************************/
@@ -1548,7 +1566,11 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   /*  Scale factor for variable formants F1inHZ, F2inHZ, and F3inHZ.  */
   /********************************************************************/
 
+#ifdef HLSYN
   FormantScale = pSpeakerDefinition->fnscale;
+#else
+  FormantScale = (Q12_INVERSE_SCALE) * (FLTPNT_T) pSpeakerDefinition->fnscale;
+#endif
                                         /*  18                        */
 
   /********************************************************************/
@@ -1599,8 +1621,13 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   /*                                                                  */
   /********************************************************************/
 
+#ifdef HLSYN
   pVtm_t->PartialCascadePathGain = (FLTPNT_T)32264.0 * c1_gain * c2_gain * c3_gain
     * pVtm_t->c4_b0 * pVtm_t->c5_b0 * pVtm_t->NasalResonator_b0;
+#else
+  pVtm_t->PartialCascadePathGain = (FLTPNT_T)11264.0 * c1_gain * c2_gain * c3_gain
+    * pVtm_t->c4_b0 * pVtm_t->c5_b0 * pVtm_t->NasalResonator_b0;
+#endif
 
   /********************************************************************/
   /*  Overall gain of the voicing source relative to other sources.   */

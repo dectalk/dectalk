@@ -72,9 +72,7 @@ void print_voice(char *name, unsigned short *voice, int zapf, int zapb, FILE *ou
 	fprintf(out, "\t%d,\t\t\t\t/* unvow */\n", 0);
 	fprintf(out, "\t%d,\t\t\t\t/* chink area */\n", 0);
 	fprintf(out, "\t%d,\t\t\t\t/* open quotient*/\n", 0);
-	fprintf(out, "#ifndef FP_VTM\n");
-	fprintf(out, "\t%d,\t\t\t\t/* Output gain multiplier  */\n", -1);
-	fprintf(out, "#endif\n");
+	fprintf(out, "\t%d,\t\t\t\t/* Output gain multiplier  */\n", 0);
 
 	pn = n;
 	pname = name;
@@ -203,7 +201,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "ZAPF: %d\n", zapf);
 	fprintf(stderr, "ZAPB: %d\n", zapb);
 
-	fprintf(out, "/*\n * Extracted from: %s\n */\n", argv[1]);
+	fprintf(out, "/*\n * Extracted from: %s\n */\n\n", argv[1]);
 
 	print_voice("paul_8", voices, zapf, zapb, out); voices += (voice_length/2);
 	print_voice("betty_8", voices, zapf, zapb, out); voices += (voice_length/2);
