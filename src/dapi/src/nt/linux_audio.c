@@ -1694,7 +1694,9 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	ERR2("Can't set sample_rate to %lu (%d)\n", 
 	    wwo->format.wf.nSamplesPerSec, sample_rate);
 #endif
-#if defined(_SPARC_SOLARIS_) || defined(USE_PULSEAUDIO)
+#if defined(USE_PULSEAUDIO)
+    wwo->dwFragmentSize = 4096; /* set this to a useful value */
+#elif defined(_SPARC_SOLARIS_)
     wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #else
     /* even if we set fragment size above, read it again, just in case */
