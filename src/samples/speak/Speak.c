@@ -2,8 +2,8 @@
 /*                                                                    */
 /*  COPYRIGHT NOTICE                                                  */
 /*                                                                    */
-/*	Copyright © 2002 Fonix Corporation. All rights reserved			  */
-/*  Copyright © 2000, 2001 Force Computers, Inc., a solectron Company. all rights reserved. */
+/*	Copyright ï¿½ 2002 Fonix Corporation. All rights reserved			  */
+/*  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a solectron Company. all rights reserved. */
 /*  Copyright (c) Digital Equipment Corporation, 1998                 */
 /*																	  */
 /*  All Rights reserved. Unpublished rights reserved under the        */
@@ -956,15 +956,15 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					hWnd,  NULL, NULL, NULL);
 				
 				// subclass buttons
-				opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC);
-				SetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+				opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[y*3+x].hWnd, GWLP_WNDPROC);
+				SetWindowLong (odButton[y*3+x].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
 			}
-			opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC);
-			SetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+			opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[x + PLAY].hWnd, GWLP_WNDPROC);
+			SetWindowLong (odButton[x + PLAY].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
 		}
 #ifdef _DEBUG
-		opVoiceControls = (WNDPROC)GetWindowLong (odButton[12].hWnd, GWL_WNDPROC);
-		SetWindowLong (odButton[12].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+		opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[12].hWnd, GWLP_WNDPROC);
+		SetWindowLong (odButton[12].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
 #endif
 		
 		usePalette(hWnd,"SPEAKPAL");
@@ -1453,7 +1453,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					{
 					case IDM_SPANISH :
 					case IDM_ITALIAN:
-					case IDM_LATIN :	strcpy(WHAT_STRING,"qué?"); break;
+					case IDM_LATIN :	strcpy(WHAT_STRING,"quï¿½?"); break;
 					case IDM_GERMAN :	strcpy(WHAT_STRING,"wie bitte?"); break;
 					case IDM_FRENCH :   strcpy(WHAT_STRING,"ce qui?"); break;
 					case IDM_ENGLISH :
@@ -2139,7 +2139,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "OpenWaveOutFile µLaw",
+						  "OpenWaveOutFile ï¿½Law",
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -4847,8 +4847,8 @@ BOOL APIENTRY AboutTypingProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lPar
 	{
 	case WM_INITDIALOG:
 		hDlgItem = GetDlgItem(hWnd, IDC_EDIT1);
-		OldTypingDlgProc = GetWindowLong(hDlgItem, GWL_WNDPROC);
-		SetWindowLong(hDlgItem, GWL_WNDPROC, (LONG) TypingDlgProc);
+		OldTypingDlgProc = GetWindowLongPtr(hDlgItem, GWLP_WNDPROC);
+		SetWindowLong(hDlgItem, GWLP_WNDPROC, (LONG) TypingDlgProc);
 		
 //		TextToSpeechShutdown(phTTS[tts_select]);
 //		TextToSpeechSelectLang(NULL, tts_select);

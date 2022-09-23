@@ -406,11 +406,11 @@ int         iBitsPixel,iPlanes = 0;
 							   hWnd,  NULL, NULL, NULL);
 
 			   // subclass buttons
-			   opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC);
-			   SetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+			   opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWLP_WNDPROC);
+			   SetWindowLongPtr (odButton[y*3+x].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
 			 }
-			 opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC);
-			 SetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+			 opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWLP_WNDPROC);
+			 SetWindowLongPtr (odButton[x + PLAY].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
 		   }
 
 		   
@@ -2903,7 +2903,7 @@ MMRESULT CreateTTSObject(char *pszInstanceName,PDWORD pdwInstanceID,
 
 	*pdwInstanceID = (DWORD)phTTSInst;	
 
-	SetWindowLong(*phWndTTS,GWL_USERDATA,(LONG)phTTSInst);
+	SetWindowLongPtr(*phWndTTS,GWLP_USERDATA,(LONG)phTTSInst);
 	return (mmStatus);
 }
 
@@ -2960,7 +2960,7 @@ LONG APIENTRY TTSWave16WndProc(HWND hWndTTS,
 	LPTTS_HANDLE_T phTTSWaveInst16 = NULL;
 	MMRESULT mmStatus = MMSYSERR_NOERROR;
 
-	phTTSWaveInst16 = (LPTTS_HANDLE_T)GetWindowLong(hWndTTS,GWL_USERDATA);
+	phTTSWaveInst16 = (LPTTS_HANDLE_T)GetWindowLongPtr(hWndTTS,GWLP_USERDATA);
 
 
 	switch(uiMessage)
