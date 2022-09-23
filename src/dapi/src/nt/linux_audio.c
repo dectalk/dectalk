@@ -1751,6 +1751,9 @@ static DWORD wodClose(WORD wDevID)
 {
     DWORD		ret = MMSYSERR_NOERROR;
     WINE_WAVEOUT*	wwo;
+#ifdef USE_PULSEAUDIO
+    int err;
+#endif
 
 	TRACE("(%u);\n", wDevID);
     
@@ -1783,6 +1786,7 @@ static DWORD wodClose(WORD wDevID)
 	close(wwo->unixdev);
 	wwo->unixdev = -1;
 #else
+	pa_simple_drain(wwo->pa_conn, &err);
 	pa_simple_free(wwo->pa_conn);
 	wwo->pa_conn = NULL;
 #endif
