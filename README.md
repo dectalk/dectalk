@@ -5,7 +5,7 @@ These files were shared by their original developer [late Edward Bruckert](https
 ## Branches of Interest
 
 - `master` Literally just the source code dumped into the `/src` folder.
-- `linux-compile` Working Linux binaries with i386, x64_64 and aarch64 builds working.
+- `develop` Working Linux/Windows binaries with i386, x64_64 and aarch64 builds working.
 
 ## Building
 
