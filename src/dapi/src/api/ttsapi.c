@@ -9507,7 +9507,7 @@ static HWND InitTextToSpeechWindow( LPTTS_HANDLE_T phTTS )
 		return( NULL );
 	
 	/*MVP : Store phTTS in Window extra memory for later use in Wndproc */
-	SetWindowLong(hWnd,GWL_USERDATA,(LONG)phTTS);
+	SetWindowLongPtr(hWnd, GWLP_USERDATA,(LONG)phTTS);
 	
 	ShowWindow( hWnd, SW_HIDE );
 	
@@ -9537,7 +9537,7 @@ LPTTS_HANDLE_T phTTS;                    /* MVP : Avoided static behaviour throu
 										 from window extra memory,which was set
 when window was created */
 
-phTTS = (LPTTS_HANDLE_T)GetWindowLong(hWnd,GWL_USERDATA);
+phTTS = (LPTTS_HANDLE_T)GetWindowLongPtr(hWnd,GWLP_USERDATA);
 
 switch( message )
 {
