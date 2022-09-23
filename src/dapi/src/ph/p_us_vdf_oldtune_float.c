@@ -40,7 +40,7 @@ const short paul_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-33,				/* Output gain multiplier  */
 }; /* PAUL_8 */
 
 const short betty_8_tune[SPDEF] =
@@ -82,7 +82,7 @@ const short betty_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-24,				/* Output gain multiplier  */
 }; /* BETTY_8 */
 
 const short harry_8_tune[SPDEF] =
@@ -124,7 +124,7 @@ const short harry_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-30,				/* Output gain multiplier  */
 }; /* HARRY_8 */
 
 const short frank_8_tune[SPDEF] =
@@ -166,7 +166,7 @@ const short frank_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-33,				/* Output gain multiplier  */
 }; /* FRANK_8 */
 
 const short kit_8_tune[SPDEF] =
@@ -208,7 +208,7 @@ const short kit_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-9,				/* Output gain multiplier  */
 }; /* KIT_8 */
 
 const short ursula_8_tune[SPDEF] =
@@ -250,7 +250,7 @@ const short ursula_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-24,				/* Output gain multiplier  */
 }; /* URSULA_8 */
 
 const short rita_8_tune[SPDEF] =
@@ -292,7 +292,7 @@ const short rita_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-27,				/* Output gain multiplier  */
 }; /* RITA_8 */
 
 const short wendy_8_tune[SPDEF] =
@@ -334,7 +334,7 @@ const short wendy_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-12,				/* Output gain multiplier  */
 }; /* WENDY_8 */
 
 const short dennis_8_tune[SPDEF] =
@@ -376,7 +376,7 @@ const short dennis_8_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-27,				/* Output gain multiplier  */
 }; /* DENNIS_8 */
 
 const short paul_tune[SPDEF] =
@@ -418,7 +418,7 @@ const short paul_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-1,				/* Output gain multiplier  */
 }; /* PAUL */
 
 const short betty_tune[SPDEF] =
@@ -460,7 +460,7 @@ const short betty_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-1,				/* Output gain multiplier  */
 }; /* BETTY */
 
 const short harry_tune[SPDEF] =
@@ -502,7 +502,7 @@ const short harry_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-3,				/* Output gain multiplier  */
 }; /* HARRY */
 
 const short frank_tune[SPDEF] =
@@ -544,7 +544,7 @@ const short frank_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	3,				/* Output gain multiplier  */
 }; /* FRANK */
 
 const short kit_tune[SPDEF] =
@@ -586,7 +586,7 @@ const short kit_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-1,				/* Output gain multiplier  */
 }; /* KIT */
 
 const short ursula_tune[SPDEF] =
@@ -670,7 +670,7 @@ const short rita_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-3,				/* Output gain multiplier  */
 }; /* RITA */
 
 const short wendy_tune[SPDEF] =
@@ -712,7 +712,7 @@ const short wendy_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	10,				/* Output gain multiplier  */
+	6,				/* Output gain multiplier  */
 }; /* WENDY */
 
 const short dennis_tune[SPDEF] =
@@ -754,6 +754,6 @@ const short dennis_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
-	0,				/* Output gain multiplier  */
+	-3,				/* Output gain multiplier  */
 }; /* DENNIS */
 
