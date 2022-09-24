@@ -493,7 +493,11 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   }
   else
   {
+#ifdef HLSYN
     p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 13];
+#else
+    p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 12];
+#endif
     p3_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A3inDB + 10];
     p4_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A4inDB + 7];
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 6];
