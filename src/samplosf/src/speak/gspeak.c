@@ -49,6 +49,11 @@ TODO:
 ***************************************************************************/
 #include <dtk/dtmmedefs.h>
 #include <dtk/ttsapi.h>     
+#ifdef HAVE_ICONV
+#include <langinfo.h>
+#include <iconv.h>
+#include <locale.h>
+#endif
 
 #define ZERO            0
 #define SPEAKING_VOICES 9
@@ -113,6 +118,9 @@ void TextWidgetModified(GtkTextBuffer *, gpointer);
 void RateScaleModified(GtkAdjustment *);
 char *strip_filename (gchar *);
 void ERROR(char *);
+#ifdef HAVE_ICONV
+char *convert_string_for_dapi(char *in, size_t inlen);
+#endif
 
 /***************************************************************************
 ** Miscellaneous Globals 
@@ -147,6 +155,10 @@ gint modified_id;
 unsigned int TTS_us=NUM_LANGS+1, TTS_sp=NUM_LANGS+1, TTS_gr=NUM_LANGS+1;
 unsigned int  TTS_la=NUM_LANGS+1, TTS_uk=NUM_LANGS+1, TTS_fr=NUM_LANGS+1;
 int us_on=0, sp_on=0, gr_on=0, la_on=0, uk_on=0, fr_on=0;
+
+#ifdef HAVE_ICONV
+iconv_t cd;
+#endif
 
 /***************************************************************************
 * DECtalk speaker names 
@@ -413,6 +425,21 @@ int main (int argc, char *argv[])
   
   /* initialize GTK catching any GTK arguments. */
   gtk_init (&argc, &argv);
+
+#ifdef HAVE_ICONV
+  setlocale(LC_CTYPE, "");
+  cd = iconv_open("Windows-1252//TRANSLIT//IGNORE", nl_langinfo(CODESET));
+  if ((long)cd == -1) {
+    cd = iconv_open("ISO-8859-15//TRANSLIT//IGNORE", nl_langinfo(CODESET));
+    if ((long)cd == -1) {
+      cd = iconv_open("ISO-8859-1//TRANSLIT//IGNORE", nl_langinfo(CODESET));
+      if ((long)cd == -1) {
+        perror("iconv_open");
+        exit(EXIT_FAILURE);
+      }
+    }
+  }
+#endif
   
   /* create a new window */
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -1056,6 +1083,7 @@ int PlaySome()
   unsigned int identifier; 
   unsigned int items_in_pipe;
   long dwFlags;
+  char *tmpBuffer;
  
   /* wait until input buffer is empty before sending the next line */
   identifier = INPUT_CHARACTER_COUNT;
@@ -1079,7 +1107,14 @@ int PlaySome()
 #endif
       /* play the text                */
       dwFlags = TTS_FORCE;
-      TextToSpeechSpeak( ttsHandle[current_language], playBuffer, dwFlags );
+      tmpBuffer = playBuffer;
+#ifdef HAVE_ICONV
+      tmpBuffer = convert_string_for_dapi(tmpBuffer, strlen(tmpBuffer));
+#endif
+      TextToSpeechSpeak( ttsHandle[current_language], tmpBuffer, dwFlags );
+#ifdef HAVE_ICONV
+      free(tmpBuffer);
+#endif
       
       gtk_text_view_set_editable (GTK_TEXT_VIEW(text_entry), TRUE);
     }
@@ -1443,7 +1478,6 @@ void FileSaveWaveOkCallback(GtkWidget *w, gpointer fs)
   DWORD dwDevOptions;
   MMRESULT mmStatus;
   char buf[4096];
-  int FilePos = 0;
   int nbytes = 0;
   
   char WaveFileName[PATH_MAX];
@@ -1496,13 +1530,18 @@ void FileSaveWaveOkCallback(GtkWidget *w, gpointer fs)
    sText = gtk_text_buffer_get_text(GTK_TEXT_BUFFER(text_buffer), &start, &end, FALSE);
    sLength = strlen( sText );
    
-   while ( FilePos < sLength )
    {
-      strncpy( buf, &sText[FilePos], 4000);
-      nbytes = strlen( buf );
-      mmStatus = TextToSpeechSpeak( ttsHandle[current_language], buf,
+      char *tmpBuffer;
+      nbytes = strlen( sText );
+      tmpBuffer = sText;
+#ifdef HAVE_ICONV
+      tmpBuffer = convert_string_for_dapi(tmpBuffer, strlen(tmpBuffer));
+#endif
+      mmStatus = TextToSpeechSpeak( ttsHandle[current_language], tmpBuffer,
 				    dwFlags );
-      FilePos += nbytes;
+#ifdef HAVE_ICONV
+      free(tmpBuffer);
+#endif
 
       if ( mmStatus != MMSYSERR_NOERROR )
 	{
@@ -2295,3 +2334,54 @@ void index_callback(long param1, long param2, long user_defined, UINT uiMsg)
     }
   }
 }
+
+#ifdef HAVE_ICONV
+#define REALLOC_SIZE 4096
+char *convert_string_for_dapi(char *in, size_t inlen)
+{
+	char *out, *outp;
+	size_t outsize = REALLOC_SIZE;
+	size_t outleft = 0;
+	size_t inleft = inlen;
+	size_t r;
+	size_t offset;
+
+	out = malloc(outsize + 1);
+	if (out == NULL) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+	outleft = outsize;
+	outp = out;
+
+	do {
+		memset(outp, 0, outleft + 1);
+		errno = 0;
+		r = iconv(cd, &in, &inleft, &outp, &outleft);
+		if (r == -1 && errno == E2BIG) {
+			offset = outp - out;
+			outsize += REALLOC_SIZE;
+			out = realloc(out, outsize + 1);
+			if (out == NULL) {
+				perror("realloc");
+				exit(EXIT_FAILURE);
+			}
+			outleft += REALLOC_SIZE;
+			outp = out + offset;
+		} else if (r == -1) {
+			if (inleft > 0) {
+				/* Skip */
+				in++;
+				inleft--;
+			} else {
+				perror("iconv");
+				exit(EXIT_FAILURE);
+			}
+		}
+	} while (inleft > 0);
+
+	iconv(cd, NULL, NULL, NULL, NULL);
+
+	return out;
+}
+#endif

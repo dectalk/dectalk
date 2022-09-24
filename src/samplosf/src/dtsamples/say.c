@@ -146,6 +146,8 @@
  /*
   * Standard header files
   */
+#include "config.h"
+
 #if defined __sparc
 #include <pthread.h>
 #endif
@@ -160,6 +162,11 @@
 #include <mme/mmsystem.h>
 #endif
 #include <dtk/ttsapi.h>
+#ifdef HAVE_ICONV
+#include <langinfo.h>
+#include <iconv.h>
+#include <locale.h>
+#endif
 
  /*
   * Global variables
@@ -170,6 +177,10 @@ DWORD devEncoding[3] = {
                           WAVE_FORMAT_1M08,
                           WAVE_FORMAT_08M08
                        };
+#ifdef HAVE_ICONV
+iconv_t cd;
+#endif
+
  /*
   * Forward references 
   */
@@ -177,6 +188,9 @@ MMRESULT OpenOutputWaveFile( char * fname, int encoding );
 MMRESULT CloseOutputWaveFile( );
 #if defined __linux__ || defined _SPARC_SOLARIS_
 int play_file( char *file_name, int isAPipe );
+#endif
+#ifdef HAVE_ICONV
+char *convert_string_for_dapi(char *in, size_t inlen);
 #endif
 
 /*******************************************************************************
@@ -477,6 +491,21 @@ int main( int argc, char *argv[] )
     /* wait for user to type text followed by a CR.*/
     /***********************************************/
 
+#ifdef HAVE_ICONV
+    setlocale(LC_CTYPE, "");
+    cd = iconv_open("Windows-1252//TRANSLIT//IGNORE", nl_langinfo(CODESET));
+    if ((long)cd == -1) {
+      cd = iconv_open("ISO-8859-15//TRANSLIT//IGNORE", nl_langinfo(CODESET));
+      if ((long)cd == -1) {
+        cd = iconv_open("ISO-8859-1//TRANSLIT//IGNORE", nl_langinfo(CODESET));
+        if ((long)cd == -1) {
+          perror("iconv_open");
+          exit(EXIT_FAILURE);
+        }
+      }
+    }
+#endif
+
     /**********************************************/
     /* Get text from stdin                        */
     /**********************************************/
@@ -497,21 +526,28 @@ int main( int argc, char *argv[] )
 	memset(buf, 0, sizeof(buf));
 	while ( fgets(buf,sizeof(buf)-1,stdin))
 	{
-	    text_len = strlen( buf );
+	    char *play_buf = buf;
+#ifdef HAVE_ICONV
+	    play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
+#endif
+	    text_len = strlen( play_buf );
 	    if (text_len==2)
 		{
-			TextToSpeechTyping(ttsHandle,buf[0]);
+			TextToSpeechTyping(ttsHandle,play_buf[0]);
 		}
 		else
 		{
 	    		TextToSpeechReset(ttsHandle,FALSE);
-	    if (TextToSpeechSpeak(ttsHandle, buf, dwFlags) != MMSYSERR_NOERROR )
+	    if (TextToSpeechSpeak(ttsHandle, play_buf, dwFlags) != MMSYSERR_NOERROR )
 	    {
 		fprintf(stderr,"Error writing %d bytes to TextToSpeech.\n",
                                      text_len);
 		break;
 	    }
 	    memset(buf, 0, sizeof(buf));
+#ifdef HAVE_ICONV
+	    free(play_buf);
+#endif
 	}
     }
     }
@@ -527,13 +563,20 @@ int main( int argc, char *argv[] )
         /*********************************************************/
 	if ( cli_len != 0 ) 
         {
+          char *play_buf = cli_text;
+#ifdef HAVE_ICONV
+          play_buf = convert_string_for_dapi(play_buf, strlen(cli_text));
+#endif
           dwFlags = TTS_FORCE;
-          TextToSpeechSpeak( ttsHandle, cli_text, dwFlags );
+          TextToSpeechSpeak( ttsHandle, play_buf, dwFlags );
 
           /******************************************************/
           /* Let's make sure that all the text has been spoken. */
           /******************************************************/
           TextToSpeechSync( ttsHandle );
+#ifdef HAVE_ICONV
+          free(play_buf);
+#endif
         }
 
         /**********************************************/
@@ -593,6 +636,7 @@ int play_file( char *file_name, int isAPipe )
     int  text_len;
 	int value;
     DWORD dwFlags = TTS_FORCE;
+    char *play_buf;
 
     buf = malloc(REALLOC_SIZE*sizeof(char));
     if (buf == NULL) {
@@ -608,15 +652,22 @@ int play_file( char *file_name, int isAPipe )
     {
        while( fgets( buf, buf_len-1, stdin )  )
        {
-          text_len = strlen( buf );
+          play_buf = buf;
+#ifdef HAVE_ICONV
+          play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
+#endif
+          text_len = strlen( play_buf );
 
-          if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
+          if ((value=TextToSpeechSpeak( ttsHandle, play_buf, dwFlags)) != MMSYSERR_NOERROR  )
           {
              fprintf(stderr,"Error writing %d bytes to TextToSpeech 1 with code %d.\n",text_len,value);
              break;
           }
           total_bytes += text_len;
           memset(buf, 0, buf_len);
+#ifdef HAVE_ICONV
+          free(play_buf);
+#endif
        }
        /******************************************************/
        /* Let's make sure that all the text has been spoken. */
@@ -659,12 +710,19 @@ int play_file( char *file_name, int isAPipe )
 
 	memset(buf + total_bytes, 0, buf_len-total_bytes);
     }
-    text_len = strlen( buf );
-    if ((value=TextToSpeechSpeak( ttsHandle, buf, dwFlags)) != MMSYSERR_NOERROR  )
+    play_buf = buf;
+#ifdef HAVE_ICONV
+    play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
+#endif
+    text_len = strlen( play_buf );
+    if ((value=TextToSpeechSpeak( ttsHandle, play_buf, dwFlags)) != MMSYSERR_NOERROR  )
     {
       fprintf(stderr,"Error writing %d bytes to TextToSpeech 2 with code %d.\n",text_len,value);
     }
     free(buf);
+#ifdef HAVE_ICONV
+    free(play_buf);
+#endif
 
     /******************************************************/
     /* Let's make sure that all the text has been spoken. */
@@ -741,4 +799,52 @@ MMRESULT CloseOutputWaveFile( )
    return ( mmStatus );
 }
 
+#ifdef HAVE_ICONV
+char *convert_string_for_dapi(char *in, size_t inlen)
+{
+	char *out, *outp;
+	size_t outsize = REALLOC_SIZE;
+	size_t outleft = 0;
+	size_t inleft = inlen;
+	size_t r;
+	size_t offset;
 
+	out = malloc(outsize + 1);
+	if (out == NULL) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+	outleft = outsize;
+	outp = out;
+
+	do {
+		memset(outp, 0, outleft + 1);
+		errno = 0;
+		r = iconv(cd, &in, &inleft, &outp, &outleft);
+		if (r == -1 && errno == E2BIG) {
+			offset = outp - out;
+			outsize += REALLOC_SIZE;
+			out = realloc(out, outsize + 1);
+			if (out == NULL) {
+				perror("realloc");
+				exit(EXIT_FAILURE);
+			}
+			outleft += REALLOC_SIZE;
+			outp = out + offset;
+		} else if (r == -1) {
+			if (inleft > 0) {
+				/* Skip */
+				in++;
+				inleft--;
+			} else {
+				perror("iconv");
+				exit(EXIT_FAILURE);
+			}
+		}
+	} while (inleft > 0);
+
+	iconv(cd, NULL, NULL, NULL, NULL);
+
+	return out;
+}
+#endif

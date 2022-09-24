@@ -584,5 +584,12 @@ fi
 AC_SUBST(AUDIO_DEFINES)dnl
 AC_SUBST(AUDIO_LIBS)dnl
 
+AM_ICONV
+ICONV_LIBS=""
+if test "${am_cv_lib_iconv}" = "yes"; then
+	ICONV_LIBS=-liconv
+fi
+AC_SUBST(ICONV_LIBS)dnl
+
 AC_OUTPUT(Makefile Makefile.sub dapi/src/Makefile dapi/src/Makefile.sub dapi/src/api/Makefile dapi/src/cmd/Makefile dapi/src/dic/Makefile dapi/src/kernel/Makefile dapi/src/lts/Makefile dapi/src/nt/Makefile dapi/src/osf/Makefile dapi/src/ph/Makefile dapi/src/vtm/Makefile dapi/src/hlsyn/Makefile dtalkml/src/Makefile samplosf/src/speak/Makefile samplosf/src/windict/Makefile samplosf/src/dtsamples/Makefile licunix/src/Makefile udicunix/src/Makefile)
 dnl AC_OUTPUT always has to be last
