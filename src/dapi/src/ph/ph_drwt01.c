@@ -2077,7 +2077,7 @@ static void set_tglst(PDPH_T pDph_t)
 #ifdef GERMAN
 		
 			/* Rule 1a: The word "der" the r is an allophonic glottal stop before an unstressed syllable */
-			if ((pDph_t->allophons[pDphsettar->npg] == RR)
+			if ((pDph_t->allophons[pDphsettar->npg] == GRP_RR)
 				&& ((phone_feature( pDph_t,pDph_t->allophons[pDphsettar->npg + 1]) & FVOWEL) IS_PLUS))
 			{
 				pDphsettar->tglstn = pDphsettar->segdrg;
@@ -3160,7 +3160,7 @@ static void set_tglst (PDPH_T pDph_t)
 			}
 #ifdef GERMAN
 			/* Rule 1a: The word "der" the r is an allophonic glottal stop before an unstressed syllable */
-			if ((pDph_t->allophons[pDphsettar->npg] == RR)
+			if ((pDph_t->allophons[pDphsettar->npg] == GRP_RR)
 				&& ((phone_feature( pDph_t,pDph_t->allophons[pDphsettar->npg + 1]) & FVOWEL) IS_PLUS))
 			{
 				pDphsettar->tglstn = pDphsettar->segdrg;

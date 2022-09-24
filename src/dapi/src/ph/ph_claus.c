@@ -595,6 +595,14 @@ void init_phclause (PDPH_T pDph_t) {
 	pDph_t->user_durs = &(pDph_t->allodurs[SAFETY]);
 	pDph_t->user_f0 = &(pDph_t->f0tar[SAFETY]);
 	pDph_t->user_offset = &(pDph_t->f0tim[SAFETY]);
+#ifdef GERMAN
+	/* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ */
+
+	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+	/* initializiation of special german variables           */
+	/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+	pDph_t->new_sentence = TRUE;			   /* for sentence intonation */
+#endif
 
 
 }
@@ -648,6 +656,16 @@ static int exit_if_done (PDPH_T pDph_t)
 			pDph_t->user_offset[n] = 0;
 		}
    
+#ifdef GERMAN
+		if ((pDph_t->allofeats[pDph_t->nallotot - 1] & FPERNEXT) != 0)
+		{
+			pDph_t->new_sentence = TRUE;
+		}
+		else
+		{
+			pDph_t->new_sentence = FALSE;
+		}
+#endif		
 
 		return (TRUE);
 	}

@@ -1250,6 +1250,10 @@ void logscrewup (short phocur, short *inputscrewup)
 
 #endif
 
+#ifndef F0_QBOUND_PULSE
+#define   F0_QBOUND_PULSE   1000
+#endif
+
 /* 
  * Duration of the "dummy vowel" inserted after a clause-final stop.
  */

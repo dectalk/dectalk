@@ -409,6 +409,14 @@ SetEvent (phTTS->hMallocSuccessEvent);	/* Malloc s are success,set the event */
 
 
 #endif  // WITHOUT_CALLOC
+#ifdef GERMAN
+		pDph_t->new_sentence=0;  	/* for german sentence intonation 		*/
+		pDph_t->nstep=0;
+		pDph_t->gain=0;
+		pDph_t->tarold=0;
+		pDph_t->dur1=0;
+		pDph_t->oldval=0;
+#endif
 
 	/* MVP : Initialize the speaker param arrays voidef,voidef_8 here */
 	/* NAL : Initialize the speaker param arrays tunedef,tunedef_8 here */

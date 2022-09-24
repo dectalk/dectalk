@@ -676,6 +676,14 @@ typedef struct DPH_TAG
 	short				gettar_count;
 	short               delta_special;
 	short               special_phrase;
+#ifdef GERMAN
+		short					new_sentence;  /* for german sentence intonation */
+		short            		nstep;
+		short					gain;
+		short					tarold;
+		short					dur1; 
+		short					oldval;
+#endif  /* #ifdef GERMAN */
 	short               th_to_s;           /* From ph_setar.c */
 	short               lastf0;
 	short               evryoth;

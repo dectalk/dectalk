@@ -44,7 +44,7 @@
 #ifdef HLSYN
 #include "ph_inton2.c"
 #else
-#if defined(ENGLISH_US) && defined(OLD_INTONATION_AND_TIMING)
+#if (defined(ENGLISH_US) || defined(GERMAN) || defined(SPANISH)) && defined(OLD_INTONATION_AND_TIMING)
 #include "ph_inton0.c"
 #else
 #include "ph_inton1.c"
