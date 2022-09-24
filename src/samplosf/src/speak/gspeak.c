@@ -42,6 +42,7 @@ TODO:
 #include <unistd.h>   
 #include <strings.h>
 #include <libgen.h>
+#include <errno.h>
 #include <gtk/gtk.h>
 //#include <gtk/gtkenums.h>
 /***************************************************************************
