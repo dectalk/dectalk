@@ -444,7 +444,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	wndclass.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE( ICON_APP ));
 	wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW) ;
 	wndclass.hbrBackground = GetStockObject (BLACK_BRUSH) ;
-	wndclass.lpszMenuName  = "SPEAK_MENU" ;
+	wndclass.lpszMenuName  = TEXT("SPEAK_MENU");
 	wndclass.lpszClassName = szAppName ;
 	
 	if ( ! RegisterClass( &wndclass ))
@@ -681,7 +681,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		menu_item.hbmpChecked = NULL;
 		menu_item.hbmpUnchecked = NULL;
 		menu_item.dwItemData = IDM_HIGHLIGHT;
-		menu_item.dwTypeData = "&Highlighting";
+		menu_item.dwTypeData = TEXT("&Highlighting");
 		menu_item.cch = strlen(menu_item.dwTypeData);
 		InsertMenuItem(sub_menu, 99, 1, &menu_item);
 	}
@@ -696,7 +696,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		menu_item.hbmpChecked = NULL;
 		menu_item.hbmpUnchecked = NULL;
 		menu_item.dwItemData = IDM_TYPING;
-		menu_item.dwTypeData = "&Typing Demo";
+		menu_item.dwTypeData = TEXT("&Typing Demo");
 		menu_item.cch = strlen(menu_item.dwTypeData);
 		InsertMenuItem(sub_menu, 99, 1, &menu_item);
 	}
@@ -711,7 +711,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		menu_item.hbmpChecked = NULL;
 		menu_item.hbmpUnchecked = NULL;
 		menu_item.dwItemData = ID_CPANEL;
-		menu_item.dwTypeData = "&Control Panel";
+		menu_item.dwTypeData = TEXT("&Control Panel");
 		menu_item.cch = strlen(menu_item.dwTypeData);
 		
 		main_menu = GetMenu(hWnd);
@@ -726,10 +726,10 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		if ( mmStatus )
 		{
 			if (mmStatus == MMSYSERR_ERROR)
-				MessageBox( hWnd, "Illegal dictionary format", "Load User Dictionary",
+				MessageBox( hWnd, TEXT("Illegal dictionary format"), TEXT("Load User Dictionary"),
 				MB_OK | MB_ICONSTOP );
 			else
-				MessageBox( hWnd, "Error in TTS Load Dictionary", "ERROR",
+				MessageBox( hWnd, TEXT("Error in TTS Load Dictionary"), TEXT("ERROR"),
 				MB_OK | MB_ICONSTOP );
 		}
 	}
@@ -861,10 +861,10 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		//MVP:06/20/96 Gray out Find Menu Item for W95.
 		
-		uiID_Error_Msg = RegisterWindowMessage("DECtalkErrorMessage");
-		uiMessage_Find_Replace = RegisterWindowMessage( "commdlg_FindReplace" );
+		uiID_Error_Msg = RegisterWindowMessage(TEXT("DECtalkErrorMessage"));
+		uiMessage_Find_Replace = RegisterWindowMessage(TEXT("commdlg_FindReplace"));
 		GetClientRect(hWnd, &lprc);
-		hSpeakText = CreateWindow("EDIT", "",
+		hSpeakText = CreateWindow(TEXT("EDIT"), "",
 			WS_CHILD |WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | WS_BORDER | ES_LEFT |
 			ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_NOHIDESEL,
 			border * 2, border * 2 + fbHeight,
@@ -875,7 +875,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		
 		DECtalkSpeakWin = hSpeakText;
 		
-		hRate = CreateWindow("SCROLLBAR", "",
+		hRate = CreateWindow(TEXT("SCROLLBAR"), "",
 			WS_CHILD | WS_VISIBLE | SBS_HORZ,
 			border + slWidth,
 			lprc.bottom - (2 * border + sbHeight + 10),
@@ -888,7 +888,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		current_rate = SPEAK_RATE;
 		
 		sprintf(srate, "%d WPM",SPEAK_RATE);
-		hstRate = CreateWindow("STATIC", srate,
+		hstRate = CreateWindow(TEXT("STATIC"), srate,
 			WS_CHILD | WS_VISIBLE | SS_CENTER | WS_BORDER,
 			slWidth + border + sbWidth,
 			lprc.bottom - (2 * border + sbHeight + 10) ,
@@ -897,7 +897,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		
 		
 		
-		hstRateLabel = CreateWindow("STATIC", "Speaking Rate",
+		hstRateLabel = CreateWindow(TEXT("STATIC"), TEXT("Speaking Rate"),
 			WS_CHILD | WS_VISIBLE | SS_CENTER,
 			lprc.left + border ,
 			lprc.bottom - (2 * border + sbHeight + 10),
@@ -907,7 +907,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		for (x=9; x<12; x++){
 			odButton[x].lpbfNormalDib   = findHdib(2000 + x);
 			odButton[x].lpbfSelectedDib = findHdib(2100 + x);
-			odButton[x].hWnd = CreateWindow("BUTTON", "",
+			odButton[x].hWnd = CreateWindow(TEXT("BUTTON"), "",
 				WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
 				(488 + ((x-9) * pbWidth)),
 				lprc.bottom -( pbHeight + border * 2),
@@ -919,7 +919,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		/* Reload button */
 		odButton[12].lpbfNormalDib   = findHdib(2000 + x);
 		odButton[12].lpbfSelectedDib = findHdib(2100 + x);
-		odButton[12].hWnd = CreateWindow("BUTTON", "",
+		odButton[12].hWnd = CreateWindow(TEXT("BUTTON"), "",
 			WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
 			448, lprc.bottom -( pbHeight + border * 2),
 			pbWidth ,pbHeight ,
@@ -949,7 +949,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				uiStatus = LoadString(NULL,1100+y*3+x,odButton[y*3+x].szTest,80);
 				
 				// create the owner draw buttons for the odButtons
-				odButton[y*3+x].hWnd = CreateWindow("BUTTON"," ",
+				odButton[y*3+x].hWnd = CreateWindow(TEXT("BUTTON"), " ",
 					WS_CHILD | WS_VISIBLE | BS_OWNERDRAW  ,
 					(y*3+x) * fbWidth + 10 ,  border, //x * fbWidth + border , y * fbHeight + border,
 					fbWidth ,fbHeight ,
@@ -984,7 +984,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		// #ifdef ML // we are now using ML stuff as standard setting - NCS 16sept97
 		if(TextToSpeechEnumLangs(&languageINFO) == 0) 
 		{
-			MessageBox(NULL,"Unable to allocate Memory","Error",MB_OK);
+			MessageBox(NULL, TEXT("Unable to allocate Memory"), TEXT("Error"), MB_OK);
 			exit(-1);
 		}
 		
@@ -1029,7 +1029,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				current_language=IDM_ITALIAN;
 			}
 			else {
-				MessageBox(NULL,"UNIDENTIFIED DLL\nCan not continue with this program","Error",MB_OK);
+				MessageBox(NULL, TEXT("UNIDENTIFIED DLL\nCan not continue with this program"), TEXT("Error"), MB_OK);
 				exit(1);
 			}
 			menu_info.cbSize=sizeof(menu_info);
@@ -1103,7 +1103,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		
 		/* GL 10/02/1997 add UK english support */
 		if (us_on == FALSE && uk_on == FALSE && sp_on == FALSE && la_on == FALSE && gr_on == FALSE && fr_on == FALSE && it_on==FALSE) {
-			MessageBox(NULL,"No languages available","Error",MB_OK);
+			MessageBox(NULL, TEXT("No languages available"), TEXT("Error"), MB_OK);
 			exit(1);
 		}
 		if (la_on) {
@@ -1200,23 +1200,23 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		
 		if ((mmStatus == MMSYSERR_NODRIVER) || (mmStatus == WAVERR_BADFORMAT))
 		{
-			MessageBox( hWnd, "No compatible wave device present \n You can continue but only to write wave files", "Warning", MB_OK );
+			MessageBox(hWnd, TEXT("No compatible wave device present \n You can continue but only to write wave files"), TEXT("Warning"), MB_OK);
 			mmStatus = TextToSpeechStartup(hWnd, &phTTS[tts_select], 0, DO_NOT_USE_AUDIO_DEVICE );
 			if ( mmStatus == MMSYSERR_ERROR)
 			{
 #ifdef DEMO
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "DTDEMO ERROR", MB_OK );				
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("DTDEMO ERROR"), MB_OK);
 #else		
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "SPEAK ERROR", MB_OK );		
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("SPEAK ERROR"), MB_OK);
 #endif	
 				return( -1 );
 			}
 			else if ( mmStatus != MMSYSERR_NOERROR)
 			{
 #ifdef DEMO
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "DTDEMO ERROR", MB_OK );				
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("DTDEMO ERROR"), MB_OK);
 #else		
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "SPEAK ERROR", MB_OK );		
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("SPEAK ERROR"), MB_OK);
 #endif	
 				return( -1 );
 			}
@@ -1225,11 +1225,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 			{
 				sprintf( szError, "Error = %d", mmStatus );
 				
-				MessageBox(hWnd, szError, "TTS startup with no audio device",
+				MessageBox(hWnd, szError, TEXT("TTS startup with no audio device"),
 					MB_OK | MB_ICONSTOP );
-				
-				//MessageBox( hWnd, "Error starting up Text to Speech system",
-				//"Error", MB_OK );
 			}
 		}
 		
@@ -1241,7 +1238,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				mmStatus );
 			// ncs 06oct97 - error out of application if TextToSpeechStartUp Fails
 			// (actually changing the message of the error messageBox)
-			MessageBox(NULL, szError, "Speak cannot be started.",
+			MessageBox(NULL, szError, TEXT("Speak cannot be started."),
 				MB_OK | MB_ICONSTOP);
 			
 			
@@ -1249,7 +1246,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 			return( -1 );
 		} 
 		else if (mmStatus == 11) {
-			MessageBox(NULL, "Dictionary not found", "TTS startup failed",
+			MessageBox(NULL, TEXT("Dictionary not found"), TEXT("TTS startup failed"),
 				MB_OK | MB_ICONSTOP);
 			DestroyWindow(hWnd);
 			return( -1 );
@@ -1307,8 +1304,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 			if ( mmStatus )
 				
 				MessageBox( hWnd,
-				"Error in TTS Reset" ,
-				"ERROR",
+				TEXT("Error in TTS Reset") ,
+				TEXT("ERROR"),
 				MB_OK | MB_ICONSTOP );
 				/*bPaused = FALSE;
 				Infostruct.hwndItem = odButton[PAUSE].hWnd;
@@ -1427,8 +1424,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				if ( mmStatus )
 					
 					MessageBox( hWnd,
-					"Error Setting Rate" ,
-					"ERROR",
+					TEXT("Error Setting Rate") ,
+					TEXT("ERROR"),
 					MB_OK | MB_ICONSTOP );
 				return FALSE;
 			}
@@ -1462,11 +1459,10 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 						
 					}
 					mmStatus = TextToSpeechSpeak(phTTS[tts_select], WHAT_STRING, TTS_FORCE);
-					//MessageBox( hWnd, "No data selected", NULL, MB_OK );
 					if ( mmStatus )
 						MessageBox( hWnd,
-						"Error in TTS Speak" ,
-						"ERROR",
+						TEXT("Error in TTS Speak") ,
+						TEXT("ERROR"),
 						MB_OK | MB_ICONSTOP );
 					break;
 				}
@@ -1481,8 +1477,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					mmStatus = TextToSpeechSpeak(phTTS[tts_select], lpSelBuf, TTS_FORCE);
 					if ( mmStatus )
 						MessageBox( hWnd,
-						"Error in TTS Speak" ,
-						"ERROR",
+						TEXT("Error in TTS Speak") ,
+						TEXT("ERROR"),
 						MB_OK | MB_ICONSTOP );
 					free (lpSelBuf);
 					free (lpEditText);
@@ -1500,49 +1496,49 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				{
 					
 				case ERROR_IN_AUDIO_WRITE:
-					MessageBox(hWnd, "Error in Writing Audio", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error in Writing Audio"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_OPENING_WAVE_OUTPUT_DEVICE:
 					MessageBox(hWnd,
-						"The wave device is in use by another application \n DECtalk will wait until the device is free.",
-						"Warning",MB_OK | MB_ICONSTOP);
+						TEXT("The wave device is in use by another application \n DECtalk will wait until the device is free."),
+						TEXT("Warning"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_GETTING_DEVICE_CAPABILITIES:
-					MessageBox(hWnd, "Error Getting Audio Device Caps", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Getting Audio Device Caps"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_READING_DICTIONARY:
-					MessageBox(hWnd, "Error Reading Dictionary File \n dectalk.dic", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Reading Dictionary File \n dectalk.dic"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_WRITING_FILE:
-					MessageBox(hWnd, "Error Writing File", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Writing File"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_ALLOCATING_INDEX_MARK_MEMORY:
-					MessageBox(hWnd, "Error allocating Index Mark Memory", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error allocating Index Mark Memory"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_OPENING_WAVE_FILE:
-					MessageBox(hWnd, "Error ", "Error Opening Wave File",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Opening Wave File"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_BAD_WAVE_FILE_FORMAT:
-					MessageBox(hWnd, "Error ", "Error Bad Wave File Format",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Bad Wave File Format"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_UNSUPPORTED_WAVE_FILE_FORMAT:
-					MessageBox(hWnd, "Error ", "Error Unsupported Wave File Format",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Unsupported Wave File Format"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_UNSUPPORTED_WAVE_AUDIO_FORMAT:
-					MessageBox(hWnd, "Error Unsupported Wave Audio Format", "",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Unsupported Wave Audio Format"), TEXT(""), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_READING_WAVE_FILE:
-					MessageBox(hWnd, "Error ", "Error Reading Wave File",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Reading Wave File"), MB_OK | MB_ICONSTOP);
 					break;
 				}
 			}
@@ -1562,7 +1558,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 						if( !FindSearchString( hSpeakText, &dwOffset, lpfrText ))
 						{
 							sprintf( szError, "Search string \"%s\" was not found.", lpfrText->lpstrFindWhat );
-							MessageBox( hWnd, szError, "Find Error", MB_OK | MB_ICONEXCLAMATION );
+							MessageBox( hWnd, szError, TEXT("Find Error"), MB_OK | MB_ICONEXCLAMATION);
 						}
 						
 						return( 0 );
@@ -1592,14 +1588,14 @@ LPVOID findHdib(INT id)
 	HRSRC hDibRes, hDibResInfo;
 	
 	// find our DIB in the resource
-	hDibResInfo = FindResource(NULL, MAKEINTRESOURCE(id), "DIB");
+	hDibResInfo = FindResource(NULL, MAKEINTRESOURCE(id), TEXT("DIB"));
 	if (hDibResInfo == NULL)
-		return (LPVOID)ErrMsg("Line %d Error = %d\nFindResource",__LINE__-2,GetLastError());
+		return (LPVOID)ErrMsg(TEXT("Line %d Error = %d\nFindResource"), __LINE__ - 2, GetLastError());
 	
 	// get a handle to the DIB
 	hDibRes = LoadResource(NULL, hDibResInfo);
 	if (hDibRes == NULL)
-		return (LPVOID)ErrMsg("Line %d Error = %d\nLoadResource",__LINE__,GetLastError());
+		return (LPVOID)ErrMsg(TEXT("Line %d Error = %d\nLoadResource"), __LINE__, GetLastError());
 	return (LockResource(hDibRes));
 }
 
@@ -1632,8 +1628,8 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	RECT lprc;
 	MMRESULT mmStatus;
 	CHAR szError[132];
-	LPCTSTR lpszHelpFile = DTALK_HELP_FILE_NAME;
-	LPCTSTR lpszHelpTopic = "Speak applet, overview";
+	LPCTSTR lpszHelpFile = TEXT(DTALK_HELP_FILE_NAME);
+	LPCTSTR lpszHelpTopic = TEXT("Speak applet, overview");
 	HCURSOR hCursor ;
 	DWORD dwStart, dwEnd, dwTextLen;
 	LPSTR lpEditText;
@@ -2071,7 +2067,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "OpenWaveOutFile 16 bit linear",
+						  TEXT("OpenWaveOutFile 16 bit linear"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2081,7 +2077,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if ( mmStatus )
 					  
 					  MessageBox( hWnd,
-					  "Error in TTS Close Wave File" ,
+					  TEXT("Error in TTS Close Wave File") ,
 					  "ERROR",
 					  MB_OK | MB_ICONSTOP );
 				  ShowCursor  (FALSE) ;
@@ -2092,7 +2088,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "CloseWaveOutFile",
+						  TEXT("CloseWaveOutFile"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 			  }
@@ -2110,7 +2106,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "OpenWaveOutFile 8 bit Linear",
+						  TEXT("OpenWaveOutFile 8 bit Linear"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2120,7 +2116,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if ( mmStatus )
 					  
 					  MessageBox( hWnd,
-					  "Error in TTS Close Wave File" ,
+					  TEXT("Error in TTS Close Wave File") ,
 					  "ERROR",
 					  MB_OK | MB_ICONSTOP );
 				  
@@ -2139,7 +2135,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "OpenWaveOutFile �Law",
+						  TEXT("OpenWaveOutFile �Law"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2149,7 +2145,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if ( mmStatus )
 					  
 					  MessageBox( hWnd,
-					  "Error in TTS Close Wave File" ,
+					  TEXT("Error in TTS Close Wave File") ,
 					  "ERROR",
 					  MB_OK | MB_ICONSTOP );
 				  ShowCursor  (FALSE) ;
@@ -2254,7 +2250,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk English US", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk English US"), "SPEAK ERROR", MB_OK );		
 					  return(-1);
 				  }
 				  
@@ -2296,7 +2292,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk English UK", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk English UK"), "SPEAK ERROR", MB_OK );		
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2331,7 +2327,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk Spanish", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk Spanish"), "SPEAK ERROR", MB_OK );		
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2367,7 +2363,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk Latin American", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk Latin American"), "SPEAK ERROR", MB_OK );		
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2402,7 +2398,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk German", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk German"), "SPEAK ERROR", MB_OK );		
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2437,7 +2433,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk French", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk French"), "SPEAK ERROR", MB_OK );		
 					  return(-1);
 				  }
 				  
@@ -2477,7 +2473,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk French", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk French"), "SPEAK ERROR", MB_OK );		
 					  return(-1);
 				  }
 				  
@@ -2505,7 +2501,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  mmStatus = TextToSpeechSpeak(phTTS[tts_select], odButton[i].szSelVoice,TTS_NORMAL);
 					  if ( mmStatus )
 						  MessageBox( hWnd,
-						  "Error in TTS Speak" ,
+						  TEXT("Error in TTS Speak") ,
 						  "ERROR",
 						  MB_OK | MB_ICONSTOP );
 					  mmStatus = TextToSpeechSpeak(phTTS[tts_select], odButton[i].szTest,TTS_FORCE);	  
@@ -2515,12 +2511,12 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  if ( mmStatus )
 #ifdef DEMO
 						  MessageBox( hWnd,
-						  "Error in DTdemo" ,
+						  TEXT("Error in DTdemo") ,
 						  "ERROR",
 						  MB_OK | MB_ICONSTOP );
 #else
 					  MessageBox( hWnd,
-						  "Error in Speak" ,
+						  TEXT("Error in Speak") ,
 						  "ERROR",
 						  MB_OK | MB_ICONSTOP );
 #endif	
@@ -3300,14 +3296,25 @@ BOOL APIENTRY AboutDlgProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam 
  *      Comments:
  *
  * *****************************************************************/
-INT ErrMsg(PSTR sz, ...)
+#ifdef UNICODE
+INT ErrMsg(PWSTR sz, ...)
 {
 	CHAR ach[128];
 	
-	//    wvsprintf (ach, sz, (LPSTR)(&sz+1));   /* Format the string */
+	wvsprintf (ach, sz, (LPWSTR)(&sz+1));   /* Format the string */
 	MessageBox (NULL, ach, NULL, MB_OK|MB_ICONEXCLAMATION|MB_APPLMODAL);
 	return FALSE;
 }
+#else
+INT ErrMsg(PSTR sz, ...)
+{
+	CHAR ach[128];
+
+	wvsprintf(ach, sz, (LPSTR)(&sz + 1));   /* Format the string */
+	MessageBox(NULL, ach, NULL, MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL);
+	return FALSE;
+}
+#endif
 
 /* *******************************************************************
  *      Function Name: usePalette()
@@ -3331,28 +3338,28 @@ INT usePalette(HWND hWnd, CHAR *szPalResName)
 	//         myHdc = GetDC(hWnd);
 		  hPalRes = FindResource(hInst, szPalResName, "MYPALETTE");
 		  if (hPalRes == NULL)
-			  return ErrMsg("Line %d Error = %d\nFindResource",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nFindResource"), __LINE__, GetLastError());
 		  
 		  hPalData = LoadResource(NULL, hPalRes);
 		  if (hPalData == NULL)
-			  return ErrMsg("Line %d Error = %d\nLoadResource",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nLoadResource"), __LINE__, GetLastError());
 		  
 		  pPalData = (LPVOID)((CHAR*)LockResource(hPalData) + 0x14);
 		  
 		  hPalLogical = CreatePalette(pPalData);
 		  
 		  if (hPalLogical == NULL)
-			  return ErrMsg("Line %d Error = %d\nCreatePalette",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nCreatePalette"), __LINE__, GetLastError());
 		  
 		  //  Select our palette into the Device DC
 		  hPalOld = SelectPalette (myHdc, hPalLogical, FALSE);
 		  if (hPalOld == FALSE)
-			  return ErrMsg ("Line %d Error = %d\nSelectPalette",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nSelectPalette"), __LINE__, GetLastError());
 		  
 		  // Activate palette
 		  uiStatus = RealizePalette (myHdc);
 		  if (uiStatus == GDI_ERROR)
-			  return ErrMsg ("Line %d Error = %d\nRealizePalette",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nRealizePalette"), __LINE__, GetLastError());
 		  return(0);
 }
 
