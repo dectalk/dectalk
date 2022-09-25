@@ -192,6 +192,7 @@ int play_file( char *file_name, int isAPipe );
 #ifdef HAVE_ICONV
 char *convert_string_for_dapi(char *in, size_t inlen);
 #endif
+LANG_ENUM *dt_langs;
 
 /*******************************************************************************
 **
@@ -231,6 +232,8 @@ static void usage(char *progname)
     fprintf(stderr,"          -r  #      Speaking rate ( 75 - 600 )\n");
     fprintf(stderr,"          -s  #      Speaker number (1-9)\n");
     fprintf(stderr,"          -fi file   Speak from a specified text file\n");
+    if (dt_langs!=NULL && dt_langs->MultiLang==TRUE)
+        fprintf(stderr,"          -l lang    Use specific language (us,uk,gr,sp,la,fr)\n");
     exit(-1);
 }
 
@@ -284,7 +287,9 @@ int main( int argc, char *argv[] )
     DWORD encoding = 0;
     FILE * OutputFilePtr;
     char   OutputFileName[100] = "dtmemory.wav";
+    char *lang = NULL;
     int  specifiedOutputFile = -1;
+    unsigned int TTS_lang = 0;
 
     /***********************************************/
     /* Set defaults				   */
@@ -293,6 +298,7 @@ int main( int argc, char *argv[] )
     cli_len = 0;
     file_arg_index = (-1);
 
+    TextToSpeechEnumLangs(&dt_langs);
     /***********************************************/
     /* Process arguments			   */
     /***********************************************/
@@ -400,12 +406,43 @@ int main( int argc, char *argv[] )
                usage( argv[0] );
             if ( strcmp("-fo",argv[i+1]) == 0 )
                usage( argv[0] );
+            if ( strcmp("-l",argv[i+1]) == 0 )
+               usage( argv[0] );
 
 	    i++;
 	    if ( cli_len > 0 && cli_text[ cli_len - 1 ] != ' ' )
 		strcat(cli_text," ");
 	    strcat(cli_text,argv[i]);
 	    cli_len = strlen(cli_text);
+	}
+
+        /********************************************************/
+        /* Switch '-l' specifies a language code                */
+        /********************************************************/
+	else if ( strcmp("-l", argv[i]) == 0 )
+	{
+            if (dt_langs==NULL || dt_langs->MultiLang==FALSE)
+                usage( argv[0] );
+
+            /*
+             * check if there is an argument after -l
+             */
+            if ( argc <= i+1)
+               usage( argv[0] );
+            if ( strlen (argv[i+1]) <= 0 )
+               usage( argv[0] );
+
+	    if ( lang != NULL )
+	    {
+		fprintf(stderr,"Sorry, only one language can be processed.\n");
+                usage( argv[0] );
+	    }
+
+	    i++;
+	    lang = argv[i];
+	    if (strcmp(lang, "de") == 0) {
+		lang = "gr";
+	    }
 	}
 
         /************************************************/
@@ -438,6 +475,27 @@ int main( int argc, char *argv[] )
 #else
      devOptions |= WAVE_OPEN_SHAREABLE;
 #endif
+
+    if (lang) {
+      TTS_lang = TextToSpeechStartLang(lang);
+      if ( TTS_lang & TTS_LANG_ERROR ) {
+        if (TTS_lang == TTS_NOT_SUPPORTED) {
+          fprintf(stderr,"DECtalk ML %s not supported.\n", lang);
+          exit(EXIT_FAILURE);
+	} else if (TTS_lang == TTS_NOT_AVAILABLE){
+          fprintf(stderr,"%s is not currently installed.\n", lang);
+          exit(EXIT_FAILURE);
+        }
+        else {
+          fprintf(stderr,"Unknown error whilst attempting to start %s.\n", lang);
+          exit(EXIT_FAILURE);
+        }
+      }
+      else // success
+      {
+        TextToSpeechSelectLang(NULL,TTS_lang);
+      }
+    }
 
     status = TextToSpeechStartup( &ttsHandle,devNo, devOptions, NULL, (long)NULL );
 
