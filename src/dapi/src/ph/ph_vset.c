@@ -767,6 +767,9 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 	(*spdef).r1ca += pKsd_t->iSwVolume;
 	(*spdef).afgain += pKsd_t->iSwVolume;
 	(*spdef).apgain += pKsd_t->iSwVolume;
+	if ((*spdef).r1ca < 0) { (*spdef).r1ca = 0; }
+	if ((*spdef).afgain < 0) { (*spdef).afgain = 0; }
+	if ((*spdef).apgain < 0) { (*spdef).apgain = 0; }
 #endif
 
 
