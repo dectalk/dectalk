@@ -1424,6 +1424,7 @@ void SelectSpeaker(GtkWidget *w, gpointer data)
     fprintf(stderr,"Lang=%d\n handle=0x%d\n",
 	    (int)current_language,(int)ttsHandle[current_language]);
 #endif
+    TextToSpeechSetRate ( ttsHandle[current_language], SpeakingRate );
     TextToSpeechSpeak( ttsHandle[current_language], speaker_names[current_language][CurrentSpeaker].name, TTS_FORCE );
 			   
 }
@@ -1538,6 +1539,7 @@ void FileSaveWaveOkCallback(GtkWidget *w, gpointer fs)
 #ifdef HAVE_ICONV
       tmpBuffer = convert_string_for_dapi(tmpBuffer, strlen(tmpBuffer));
 #endif
+      TextToSpeechSetRate ( ttsHandle[current_language], SpeakingRate );
       mmStatus = TextToSpeechSpeak( ttsHandle[current_language], tmpBuffer,
 				    dwFlags );
 #ifdef HAVE_ICONV
