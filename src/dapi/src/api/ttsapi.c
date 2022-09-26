@@ -5540,7 +5540,7 @@ MMRESULT TextToSpeechCloseWaveOutFile( LPTTS_HANDLE_T phTTS )
 	pWaveFileHdr->dwRiffChunkSize =
 		SWAP_32_LITTLE(dwLengthInBytes + RIFF_HEADER_OFFSET);
 	}
-	else if (phTTS->bisau==AUDIO_OUT_AU)
+	else if (phTTS->bisau==AUDIO_OUT_AU || phTTS->bisau==AUDIO_OUT_AU_STDOUT)
 	{
 	pAuFileHdr = (AU_FILE_HDR_T *)phTTS->pAuFileHdr;
 	pAuFileHdr->data_size=SWAP_32_BIG(dwLengthInBytes);
