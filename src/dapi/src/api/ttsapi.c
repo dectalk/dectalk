@@ -9884,8 +9884,13 @@ MMRESULT WriteAudioToFile( LPTTS_HANDLE_T phTTS,
 		pSource = pBuffer;
 		pByteDest = (unsigned char *)pBuffer;
 		
-		for ( i = 0; i < uiLength; i++ )
-			*pByteDest++ = ((unsigned char)((*pSource++) >> 8)) ^ 0x80;
+		if (phTTS->bisau == AUDIO_OUT_AU || phTTS->bisau == AUDIO_OUT_AU_STDOUT) {
+			for ( i = 0; i < uiLength; i++ )
+				*pByteDest++ = ((unsigned char)((*pSource++) >> 8));
+		} else {
+			for ( i = 0; i < uiLength; i++ )
+				*pByteDest++ = ((unsigned char)((*pSource++) >> 8)) ^ 0x80;
+		}
 		
 		Size = sizeof( unsigned char );
 		
