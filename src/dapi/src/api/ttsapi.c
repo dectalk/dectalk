@@ -5339,6 +5339,8 @@ MMRESULT TextToSpeechOpenWaveOutFile( LPTTS_HANDLE_T phTTS,
 		pAuFileHdr->sample_rate = SWAP_32_BIG(MULAW_SAMPLE_RATE);
 		
 		SetSampleRate( phTTS, MULAW_SAMPLE_RATE );
+
+		break;
 		
 	default:
 		
@@ -5403,6 +5405,7 @@ MMRESULT TextToSpeechOpenWaveOutFile( LPTTS_HANDLE_T phTTS,
 			case WAVE_FORMAT_08M08:
 			case WAVE_FORMAT_08M16:
 				SetSampleRate( phTTS, MULAW_SAMPLE_RATE );
+				break;
 
 			default:
 				return( MMSYSERR_INVALPARAM );
