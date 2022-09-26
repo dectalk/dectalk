@@ -5031,6 +5031,11 @@ MMRESULT TextToSpeechResume( LPTTS_HANDLE_T phTTS )
 	return( mmStatus );
 }
 
+#define AUDIO_OUT_WAV		0
+#define AUDIO_OUT_AU		1
+#define AUDIO_OUT_AU_STDOUT	2
+#define AUDIO_OUT_RAW_STDOUT	3
+
 /**********************************************************************/
 /**********************************************************************/
 /*                                                                    */
@@ -5124,16 +5129,21 @@ MMRESULT TextToSpeechOpenWaveOutFile( LPTTS_HANDLE_T phTTS,
 	if ( mmStatus )
 		return( mmStatus );
 	
-	if (strcmp((pszFileName+(strlen(pszFileName)-3)),".au")==0)
-		phTTS->bisau=1;
-	else
-		phTTS->bisau=0;
+	if (strcmp((pszFileName+(strlen(pszFileName)-3)),".au")==0) {
+		phTTS->bisau=AUDIO_OUT_AU;
+	} else if (strcmp(pszFileName, "stdout:au") == 0) {
+		phTTS->bisau=AUDIO_OUT_AU_STDOUT;
+	} else if (strcmp(pszFileName, "stdout:raw") == 0) {
+		phTTS->bisau=AUDIO_OUT_RAW_STDOUT;
+	} else {
+		phTTS->bisau=AUDIO_OUT_WAV;
+	}
 
 	
 	/********************************************************************/
 	/*  Create the header for the output file                           */
 	/********************************************************************/
-	if (phTTS->bisau==0)
+	if (phTTS->bisau==AUDIO_OUT_WAV)
 	{
 	
 	pWaveFileHdr = (WAVE_FILE_HDR_T *) malloc( sizeof(WAVE_FILE_HDR_T));
@@ -5264,7 +5274,7 @@ MMRESULT TextToSpeechOpenWaveOutFile( LPTTS_HANDLE_T phTTS,
 	}
 	phTTS->pWaveFileHdr = pWaveFileHdr;
 	}
-	else
+	else if (phTTS->bisau==AUDIO_OUT_AU || phTTS->bisau==AUDIO_OUT_AU_STDOUT)
 	{
 	/* for au files */
 	pAuFileHdr = (AU_FILE_HDR_T *) malloc( sizeof(AU_FILE_HDR_T));
@@ -5277,7 +5287,11 @@ MMRESULT TextToSpeechOpenWaveOutFile( LPTTS_HANDLE_T phTTS,
 	pAuFileHdr->magic[2]='n';
 	pAuFileHdr->magic[3]='d';
 	pAuFileHdr->hdr_size=SWAP_32_BIG(AU_HEADER_OFFSET);
-	pAuFileHdr->data_size=0;
+	if (phTTS->bisau == AUDIO_OUT_AU_STDOUT) {
+		pAuFileHdr->data_size=0xffffffff; //unknown
+	} else {
+		pAuFileHdr->data_size=0;
+	}
 	pAuFileHdr->channels=SWAP_32_BIG(1);
 	pAuFileHdr->comment[0]='D';
 	pAuFileHdr->comment[1]='E';
@@ -5342,7 +5356,13 @@ MMRESULT TextToSpeechOpenWaveOutFile( LPTTS_HANDLE_T phTTS,
 #ifdef UNDER_CE //mfgce
   if((phTTS->pWaveFile = CreateFile(pszFileName, GENERIC_WRITE, FILE_SHARE_WRITE,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL))==NULL)
 #else
-  if (( phTTS->pWaveFile = fopen(pszFileName, "wb" )) == NULL )
+  if (phTTS->bisau == AUDIO_OUT_AU_STDOUT)
+  {
+    phTTS->pWaveFile = stdout;
+  } else {
+    phTTS->pWaveFile = fopen(pszFileName, "wb" );
+  }
+  if ( phTTS->pWaveFile == NULL )
 #endif
 	{
 		free( pAuFileHdr );
@@ -5371,6 +5391,24 @@ MMRESULT TextToSpeechOpenWaveOutFile( LPTTS_HANDLE_T phTTS,
 	phTTS->pAuFileHdr = pAuFileHdr;
 	
 
+	} else {
+		phTTS->pWaveFile = stdout;
+		switch( dwFormat )
+		{
+			case WAVE_FORMAT_1M16:
+			case WAVE_FORMAT_1M08:
+				SetSampleRate( phTTS, PC_SAMPLE_RATE );
+				break;
+
+			case WAVE_FORMAT_08M08:
+			case WAVE_FORMAT_08M16:
+				SetSampleRate( phTTS, MULAW_SAMPLE_RATE );
+
+			default:
+				return( MMSYSERR_INVALPARAM );
+		}
+
+		phTTS->dwFormat = dwFormat;
 	}
 
 	/********************************************************************/
@@ -5492,7 +5530,7 @@ MMRESULT TextToSpeechCloseWaveOutFile( LPTTS_HANDLE_T phTTS )
 		
 		return( MMSYSERR_INVALPARAM );
 	}
-	if (phTTS->bisau==0)
+	if (phTTS->bisau==AUDIO_OUT_WAV)
 	{
 	
 	pWaveFileHdr = (WAVE_FILE_HDR_T *)phTTS->pWaveFileHdr;
@@ -5502,7 +5540,7 @@ MMRESULT TextToSpeechCloseWaveOutFile( LPTTS_HANDLE_T phTTS )
 	pWaveFileHdr->dwRiffChunkSize =
 		SWAP_32_LITTLE(dwLengthInBytes + RIFF_HEADER_OFFSET);
 	}
-	else
+	else if (phTTS->bisau==AUDIO_OUT_AU)
 	{
 	pAuFileHdr = (AU_FILE_HDR_T *)phTTS->pAuFileHdr;
 	pAuFileHdr->data_size=SWAP_32_BIG(dwLengthInBytes);
@@ -5518,13 +5556,16 @@ MMRESULT TextToSpeechCloseWaveOutFile( LPTTS_HANDLE_T phTTS )
    pWaveFile = (FILE *)phTTS->pWaveFile;
 #endif
 
+  if (phTTS->bisau != AUDIO_OUT_AU_STDOUT && phTTS->bisau != AUDIO_OUT_RAW_STDOUT) // not stdout
+  {
+
 #ifdef UNDER_CE //mfgce fix return value
   if( SetFilePointer(pWaveFile, 0L, NULL, FILE_BEGIN) == -1 )
 #else
   if ( fseek( pWaveFile, 0L, SEEK_SET ) )
 #endif // UNDER_CE
   {
-	if (phTTS->bisau)
+	if (phTTS->bisau == AUDIO_OUT_AU)
 		free(pAuFileHdr);
 	else
 		free( pWaveFileHdr );
@@ -5540,7 +5581,7 @@ MMRESULT TextToSpeechCloseWaveOutFile( LPTTS_HANDLE_T phTTS )
 	/********************************************************************/
 	/*  Write the header to the output file.                            */
 	/********************************************************************/
-	if (phTTS->bisau)	
+	if (phTTS->bisau == AUDIO_OUT_AU)	
 	{
 #ifdef UNDER_CE
   if(WriteFile( phTTS->pWaveFile,pAuFileHdr,sizeof( AU_FILE_HDR_T ), &dwRW, NULL)==0)
@@ -5575,14 +5616,15 @@ MMRESULT TextToSpeechCloseWaveOutFile( LPTTS_HANDLE_T phTTS )
 		return( MMSYSERR_ERROR );
 	}
 	}
+  }//stdout
 	
 	/********************************************************************/
 	/*  Free the wave file header.                                      */
 	/********************************************************************/
 	
-	if (phTTS->bisau)
+	if (phTTS->bisau == AUDIO_OUT_AU || phTTS->bisau == AUDIO_OUT_AU_STDOUT)
 		free(pAuFileHdr);
-	else
+	else if (phTTS->bisau == AUDIO_OUT_WAV)
 	free( pWaveFileHdr );
 	
 	/********************************************************************/
@@ -5597,7 +5639,7 @@ MMRESULT TextToSpeechCloseWaveOutFile( LPTTS_HANDLE_T phTTS )
 	else
 		phTTS->dwOutputState = STATE_OUTPUT_NULL;
 	
-	phTTS->bisau=0;
+	phTTS->bisau=AUDIO_OUT_WAV;
 	
 	/********************************************************************/
 	/*  Close the wave file.                                            */
@@ -9813,18 +9855,22 @@ MMRESULT WriteAudioToFile( LPTTS_HANDLE_T phTTS,
 		
 		Size = sizeof( short );
 #ifdef _BIGENDIAN_
-		if (phTTS->bisau==0)
+		if (phTTS->bisau==AUDIO_OUT_WAV)
 		{
 			for (i=0;i<uiLength;i++)
 				pBuffer[i]=SWAP_16_LITTLE(pBuffer[i]);
 		}
 #else
-		if (phTTS->bisau==1)
+		if (phTTS->bisau==AUDIO_OUT_AU || phTTS->bisau==AUDIO_OUT_AU_STDOUT)
 		{
+#if 0
 			printf("pBuffer=0x%0x",pBuffer[0]);
+#endif
 			for (i=0;i<uiLength;i++)
 				pBuffer[i]=SWAP_16_BIG(pBuffer[i]);
+#if 0
 			printf("pBuffer=0x%0x\n",pBuffer[0]);
+#endif
 		}
 #endif
 		
@@ -9858,18 +9904,22 @@ MMRESULT WriteAudioToFile( LPTTS_HANDLE_T phTTS,
 
 		Size = sizeof( short );
 #ifdef _BIGENDIAN_
-		if (phTTS->bisau==0)
+		if (phTTS->bisau==AUDIO_OUT_WAV)
 		{
 			for (i=0;i<uiLength;i++)
 				pBuffer[i]=SWAP_16_LITTLE(pBuffer[i]);
 		}
 #else
-		if (phTTS->bisau==1)
+		if (phTTS->bisau==AUDIO_OUT_AU || phTTS->bisau==AUDIO_OUT_AU_STDOUT)
 		{
+#if 0
 			printf("pBuffer=0x%0x",pBuffer[0]);
+#endif
 			for (i=0;i<uiLength;i++)
 				pBuffer[i]=SWAP_16_BIG(pBuffer[i]);
+#if 0
 			printf("pBuffer=0x%0x\n",pBuffer[0]);
+#endif
 		}
 #endif
 	default:

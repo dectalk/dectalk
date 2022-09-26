@@ -484,6 +484,9 @@ void OutputHelp( void )
     PutStdOut( "\n" );
     PutStdOut( "    -w outFile        = Convert text into specified wave file instead of\n" );
     PutStdOut( "                        speaking to the sound device.\n" );
+    PutStdOut("                         Also supports Sun .au and two virtual stdout streams:\n");
+    PutStdOut("                         stdout:au Sun au with unknown length\n");
+    PutStdOut("                         stdout:raw Raw PCM or MULAW samples in host byte order\n");
     PutStdOut( "\n" );
     PutStdOut( "    -l[t] outFile     = Turn on text logging, which logs all input text\n" );
     PutStdOut( "                        to a file.  This text includes any pre and post\n" );

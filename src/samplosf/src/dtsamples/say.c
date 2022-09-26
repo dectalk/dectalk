@@ -228,6 +228,9 @@ static void usage(char *progname)
     fprintf(stderr,"                       2   for PCM,  8 bit Mono 11KHz format\n");
     fprintf(stderr,"                       3   for MULAW 8 bit Mono  8KHz format\n");
     fprintf(stderr,"          -fo file  Output wave file name, default: dtmemory.wav\n");
+    fprintf(stderr,"                    Also supports Sun .au and two virtual stdout streams:\n");
+    fprintf(stderr,"                    stdout:au Sun au with unknown length\n");
+    fprintf(stderr,"                    stdout:raw Raw PCM or MULAW samples in host byte order\n");
     fprintf(stderr,"          -h        This help message\n");
     fprintf(stderr,"          -r  #      Speaking rate ( 75 - 600 )\n");
     fprintf(stderr,"          -s  #      Speaker number (1-9)\n");
