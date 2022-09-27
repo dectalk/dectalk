@@ -11057,7 +11057,9 @@ unsigned long TextToSpeechReserved1(unsigned char *voices, U8 voice, BOOL bEight
 			case 7:	sdef = (short *)rita_8;		break;
 			case 8:	sdef = (short *)wendy_8;	break;
 #ifdef ENGLISH_US
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 			case 9:	sdef = (short *)chris_8;	break;
+#endif
 #endif
 			default:	return 0;
 		}

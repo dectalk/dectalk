@@ -188,11 +188,17 @@
 #define	DCS_NAME_URSULA			SKIP_ESCAPE+6
 #define	DCS_NAME_RITA			SKIP_ESCAPE+7
 #define	DCS_NAME_WILLY			SKIP_ESCAPE+8
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 #define	DCS_NAME_VAL			SKIP_ESCAPE+10
+#else
+#define	DCS_NAME_VAL			SKIP_ESCAPE+9
+#endif
 #define	DCS_COMMA				202
 #define	DCS_PERIOD				203
 #define	DCS_LATIN				SKIP_ESCAPE+11
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 #define	DCS_NAME_CHRIS			SKIP_ESCAPE+9
+#endif
 #define	DCS_VOLUME_SET			100
 #define	DCS_VOLUME_UP			101
 #define	DCS_VOLUME_DOWN			102

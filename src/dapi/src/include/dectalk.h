@@ -151,8 +151,12 @@ typedef struct PPARSE_struc     {
 #define UPPITY_URSULA           6
 #define ROUGH_RITA              7
 #define WHISPERY_WILLY          8
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 #define CRAFTY_CHRIS            9
 #define VARIABLE_VAL            10
+#else
+#define VARIABLE_VAL            9
+#endif
 
 /*
  *  pipe connection codes ...   supports up to 32 languages

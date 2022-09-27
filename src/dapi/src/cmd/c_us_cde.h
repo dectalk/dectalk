@@ -306,7 +306,9 @@ const unsigned char *voice_names[] = {
 	"ursula",
 	"rita",
 	"wendy",
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	"chris",
+#endif
 	"val",
 	0
 }; 
@@ -398,7 +400,9 @@ const struct dtpc_command command_table[] = {
 	{"name","a",1,DCS_NAME,cm_cmd_name},
     {"np","",0,DCS_NAME_PAUL,cm_cmd_name},
     {"nb","",0,DCS_NAME_BETTY,cm_cmd_name},
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
     {"nc","",0,DCS_NAME_CHRIS,cm_cmd_name},
+#endif
     {"nh","",0,DCS_NAME_HARRY,cm_cmd_name},
     {"nf","",0,DCS_NAME_FRANK,cm_cmd_name},
     {"nd","",0,DCS_NAME_DENNIS,cm_cmd_name},

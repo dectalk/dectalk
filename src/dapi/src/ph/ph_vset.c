@@ -458,7 +458,11 @@ void usevoice (LPTTS_HANDLE_T phTTS, int voice)
 	
 	for (i = 0; i < SPDEF; ++i)
 	{
-		pDph_t->curspdef[i] = newspdef[i] + tunespdef[i];
+		if (voice != VARIABLE_VAL) {
+			pDph_t->curspdef[i] = newspdef[i] + tunespdef[i];
+		} else {
+			pDph_t->curspdef[i] = newspdef[i];
+		}
 		//eab 11/16/98 BATS 804 If ANY vlaues are out of allowable ranges scream LOUDLY 
 #ifdef PH_DEBUG
 	value=0;
