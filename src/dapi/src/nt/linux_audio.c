@@ -1107,6 +1107,9 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
   int return_val;
 #endif
 
+#ifdef USE_PULSEAUDIO
+  info.fragments=4;
+#endif
   for (;;) {
 #ifdef _SPARC_SOLARIS_
    fds[0].fd=wwo->unixdev;
@@ -1135,7 +1138,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       return FALSE;
     }
 #else
-    info.fragments=3;
+    info.fragments--;
     info.fragsize=1024;
     info.fragstotal=16;
     info.bytes=12406;
@@ -1695,7 +1698,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	    wwo->format.wf.nSamplesPerSec, sample_rate);
 #endif
 #if defined(USE_PULSEAUDIO)
-    wwo->dwFragmentSize = 4096; /* set this to a useful value */
+    wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #elif defined(_SPARC_SOLARIS_)
     wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #else
