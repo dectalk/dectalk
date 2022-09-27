@@ -5033,7 +5033,7 @@ MMRESULT TextToSpeechResume( LPTTS_HANDLE_T phTTS )
 
 #define AUDIO_OUT_WAV		(1<<0)
 #define AUDIO_OUT_AU		(1<<1)
-#define AUDIO_OUT_RAW		(1<<3)
+#define AUDIO_OUT_RAW		(1<<2)
 #define AUDIO_OUT_STDOUT	(1<<3)
 
 /**********************************************************************/
