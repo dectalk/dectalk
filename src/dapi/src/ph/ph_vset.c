@@ -211,7 +211,9 @@ void setparam (LPTTS_HANDLE_T phTTS, int which, int value)
 	else
 	{
 		/* fixed tuning bug with values at the end of the range MGS */
-		value += (pDph_t->tunedef[voice][which]);
+		if (voice != VARIABLE_VAL) {
+			value += (pDph_t->tunedef[voice][which]);
+		}
 		if (value < lp->l_min)
 		{								   /* Lower limit check.   */
 			value = lp->l_min;
