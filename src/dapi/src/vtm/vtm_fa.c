@@ -482,11 +482,13 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 
 #if PC_SAMPLE_RATE == 22050
 #warning need to modify asperation gain for 22kHz, most likely wrong!
-  if ( pVtm_t->SampleRate > 11025) {
-    APinDB /= 2;
+  if ( APinDB < 0 ) {
+    APinDB = 0;
   }
-#endif
+  AsperationGain = pVtm_t->SpeakerAsperationGain * dBtoLinear[APinDB];
+#else
   AsperationGain = pVtm_t->SpeakerAsperationGain * dBtoLinear[APinDB + 10];
+#endif
 
   if ( pVtm_t->SampleRate < 9500 )
   {
@@ -498,7 +500,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 	// I have no idea what the constant should be.
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 5];
   }
-  else
+  else if ( pVtm_t->SampleRate < 19000 )
   {
 #ifdef HLSYN
     p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 13];
@@ -510,8 +512,20 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 6];
     p6_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A6inDB + 5];
   }
+  else
+  {
+    p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 13];
+    p3_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A3inDB + 11];
+    p4_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A4inDB + 8];
+    p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 7];
+    p6_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A6inDB + 6];
+  }
 
   BypassNoiseGain = pVtm_t->SpeakerFricationGain * dBtoLinear[ABinDB + 5];
+#if PC_SAMPLE_RATE == 22050
+#warning need to modify bypass noise gain for 22kHz, most likely wrong!
+  BypassNoiseGain *= 1;
+#endif
 
   /* Isn't really used yet but needs to be left in for compatibility 
   it's a place holder EAB 5/27/98*/
@@ -570,10 +584,15 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     /*  filtering using a fliter with a zero at 5KHz to achieve a "soft" filter                                                  */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE != 22050
     MINIMUM_ONE_ZERO_FILTER( Noise,
                              Noisef,
                              pVtm_t->NoiseTiltDelay,
                              NOISE_TILT_A1 );
+#else
+#warning need to remove noise low-pass for 22kHz, this is most likely wrong
+    Noise = Noisef;
+#endif
 
 	
 
@@ -587,12 +606,28 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     /******************************************************************/
 //according to notes this doesn;t work right unless inpout and output var 
 //are diff
+#if PC_SAMPLE_RATE == 22050
+#warning need to change lp-filter for noise at 22kHz, maybe correct
+    if (pVtm_t->SampleRate < 19000.0 ) {
+#endif
     MINIMUM_TWO_ZERO_FILTER( NoiseOutput,
                              Noise,
                              pVtm_t->NoiseDelay_1,
                              pVtm_t->NoiseDelay_2,
                              Noise_b1,
                              Noise_b2 );
+#if PC_SAMPLE_RATE == 22050
+    }
+    else
+    {
+    MINIMUM_TWO_ZERO_FILTER( NoiseOutput,
+                             Noise,
+                             pVtm_t->NoiseDelay_1,
+                             pVtm_t->NoiseDelay_2,
+                             Noise_b1*2,
+                             Noise_b2*2 );
+    }
+#endif
     
     Noise = NoiseOutput;
 #endif
@@ -1443,10 +1478,15 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
     flp = 948;
     blp = 800;
   }
-  else
+  else if (pVtm_t->SampleRate < 19000.0 )
   {
     flp = 948;
     blp = 615;
+  }
+  else
+  {
+    flp = 948;
+    blp = 615/2;
   }
 
   rlpg = (FLTPNT_T)0.5859375;
