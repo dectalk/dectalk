@@ -631,6 +631,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
     /*  RANDOM NUMBER FOR FRICATION AND ASPIRATION                    */
     /*  Tilt down aspiration noise spectrum at high freqs by low-pass */
     /*  filtering. noise = noise + 0.75 * last noise                  */
+    /*  0.75 -> 24574 (Q1.15)                                         */
     /******************************************************************/
 
     noise += frac1mul( 24574, pVtm_t->nolast );
@@ -960,11 +961,11 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	if ( pVtm_t->nopen > 95 )
 	{
 	  pVtm_t->temp = (S32)pVtm_t->temp * pVtm_t->nopen;
-	  pVtm_t->a = frac1mul(10923, pVtm_t->temp );
+	  pVtm_t->a = frac1mul(10923, pVtm_t->temp ); /* Q1.15 -> 0.333 */
 	}
 	else
 	{
-	  pVtm_t->temp = frac1mul(10923, pVtm_t->temp );
+	  pVtm_t->temp = frac1mul(10923, pVtm_t->temp ); /* Q1.15 -> 0.333 */
 	  pVtm_t->a = (S32)pVtm_t->temp * pVtm_t->nopen;
 	}
 	//  1/17/99 BATS852 There was an error in the way nopen was calculated 
@@ -1547,25 +1548,25 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   {
   case SAMPLE_RATE_INCREASE:
 
-    pVtm_t->noiseb = -2913;
+    pVtm_t->noiseb = -2913; /* Q4.12 -> -0.711181640625 */
 #ifndef CHANGES_AFTER_V43
-    noisec = 1499;
+    noisec = 1499; /* Q4.12 -> 0.365966796875 */
 #endif
     break;
 
   case SAMPLE_RATE_DECREASE:
 
-    pVtm_t->noiseb = -1873;
+    pVtm_t->noiseb = -1873; /* Q4.12 -> -0.457275390625 */
 #ifndef CHANGES_AFTER_V43
-    noisec = 1499;
+    noisec = 1499; /* Q4.12 -> 0.365966796875 */
 #endif
     break;
 
   case NO_SAMPLE_RATE_CHANGE:
 
-    pVtm_t->noiseb = -2913;
+    pVtm_t->noiseb = -2913; /* Q4.12 -> -0.711181640625 */
 #ifndef CHANGES_AFTER_V43
-    noisec = 1499;
+    noisec = 1499; /* Q4.12 -> 0.365966796875 */
 #endif
     break;
 
@@ -1579,8 +1580,8 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   /*  Resonator constant "r6pa" is set elsewhere from A6inDB.         */
   /********************************************************************/
 
-  /*pVtm_t->r6pb = -5702;*/     /* MVP : moved as a local constant */
-  /*r6pc = -1995;                */     /* MVP : moved as a local constant */
+  /*pVtm_t->r6pb = -5702;*/     /* Q4.12, MVP : moved as a local constant */
+  /*r6pc = -1995;                */     /* Q4.12, MVP : moved as a local constant */
 
   /********************************************************************/
   /*  Coefficients for fixed nasal formant.                           */
@@ -1629,21 +1630,21 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 
     flp = 948;
     blp = 615;
-    rlpg = 2400;
+    rlpg = 2400; /* Q4.12 -> 0.5859375 */
     break;
 
   case SAMPLE_RATE_DECREASE:
 
     flp = 698;
     blp = 453;
-    rlpg = 2400;
+    rlpg = 2400; /* Q4.12 -> 0.5859375 */
     break;
 
   case NO_SAMPLE_RATE_CHANGE:
 
     flp = 860;
     blp = 558;
-    rlpg = 2400;
+    rlpg = 2400; /* Q4.12 -> 0.5859375 */
     break;
 
   default:
