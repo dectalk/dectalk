@@ -580,14 +580,23 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     /*  filtering using a fliter with a zero at 5KHz to achieve a "soft" filter                                                  */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE != 22050
+#if PC_SAMPLE_RATE == 22050
+#warning need to change aspiration filter for noise at 22kHz, most probably wrong
+    if (pVtm_t->SampleRate < 19000.0 ) {
+#endif
     MINIMUM_ONE_ZERO_FILTER( Noise,
                              Noisef,
                              pVtm_t->NoiseTiltDelay,
                              NOISE_TILT_A1 );
-#else
-#warning need to remove noise low-pass for 22kHz, this is most likely wrong
-    Noise = Noisef;
+#if PC_SAMPLE_RATE == 22050
+    }
+    else
+    {
+    MINIMUM_ONE_ZERO_FILTER( Noise,
+                             Noisef,
+                             pVtm_t->NoiseTiltDelay,
+                             NOISE_TILT_A1 * 1.25);
+    }
 #endif
 
 	
