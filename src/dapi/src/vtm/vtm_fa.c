@@ -522,10 +522,6 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   }
 
   BypassNoiseGain = pVtm_t->SpeakerFricationGain * dBtoLinear[ABinDB + 5];
-#if PC_SAMPLE_RATE == 22050
-#warning need to modify bypass noise gain for 22kHz, most likely wrong!
-  BypassNoiseGain *= 1;
-#endif
 
   /* Isn't really used yet but needs to be left in for compatibility 
   it's a place holder EAB 5/27/98*/
