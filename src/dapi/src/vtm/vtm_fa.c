@@ -480,6 +480,12 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
  
 
 
+#if PC_SAMPLE_RATE == 22050
+#warning need to modify asperation gain for 22kHz, most likely wrong!
+  if ( pVtm_t->SampleRate > 11025) {
+    APinDB /= 2;
+  }
+#endif
   AsperationGain = pVtm_t->SpeakerAsperationGain * dBtoLinear[APinDB + 10];
 
   if ( pVtm_t->SampleRate < 9500 )
@@ -908,6 +914,7 @@ if(uiNs == nopen)
       /*  Decimate the glottal pulse sample rate by 4.                */
       /****************************************************************/
 			
+#if PC_SAMPLE_RATE != 22050
       MINIMUM_TWO_POLE_FILTER( pVtm_t->DifferentiatedVoicing,
                                pVtm_t->DifferentiatedGlottalFlow,
                                pVtm_t->LowPassDelay_1,
@@ -915,6 +922,10 @@ if(uiNs == nopen)
                                pVtm_t->LowPass_a1,
                                pVtm_t->LowPass_a2 );
 
+#else
+#warning need to remove low-pass filter for 22kHz, most likely wrong!
+      pVtm_t->DifferentiatedVoicing = pVtm_t->DifferentiatedGlottalFlow;
+#endif
       pVtm_t->uiVoicePeriodSampleNumber++;
     }
 #else
@@ -1667,6 +1678,13 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   iDeltaGainInDB = (int)pSpeakerDefinition->osgain;
   pVtm_t->OutputScaleFactor = OUTPUT_SCALE_FACTOR;
 
+#if PC_SAMPLE_RATE == 22050
+#warning need to modify scale factor for 22kHz
+  if ( pVtm_t->SampleRate > 11025) {
+    pVtm_t->OutputScaleFactor /= 2;
+  }
+#endif
+
   if ( iDeltaGainInDB <= 0 )
   {
     pVtm_t->OutputScaleFactor =
@@ -1716,6 +1734,7 @@ void SetSampleRate( LPTTS_HANDLE_T phTTS,  unsigned int uiSampRate )
   MaximumFrequency = MAXIMUM_FREQUENCY_SCALING * pVtm_t->SampleRate;
 //  pVtm_t->uiNumberOfSamplesPerFrame =
   //  (unsigned int)( pVtm_t->SampleRate * FRAME_TIME_IN_MSEC + 0.5 );
+  pKsd_t->SamplePeriod = 1.0 / pVtm_t->SampleRate;
 
   if ( pKsd_t->uiSampleRate == PC_SAMPLE_RATE )
   {
