@@ -104,6 +104,7 @@
 #include "vtm_fdef.h"
 //#include "vfport.h"
 #include "vfphdefs.h"
+#include "samprate.h"    /*  Constants used by the vocal tract model   */
 #include "vtm_f.h"       /*  Variables used by the vocal tract model   */
 #include "vtmtabf.h"     /*  Tables used by the vocal tract model      */
 #include "vfmfiltr.h"    /*  Filters Macros                            */
@@ -1706,6 +1707,7 @@ void SetSampleRate( LPTTS_HANDLE_T phTTS,  unsigned int uiSampRate )
   /********************************************************************/
   /*  Calculate the model sample dependant parameters.                */
   /********************************************************************/
+ U32 qval;
 
   phTTS->pKernelShareData->uiSampleRate = uiSampRate;
   pVtm_t->SampleRate = uiSampRate;
@@ -1715,7 +1717,7 @@ void SetSampleRate( LPTTS_HANDLE_T phTTS,  unsigned int uiSampRate )
 //  pVtm_t->uiNumberOfSamplesPerFrame =
   //  (unsigned int)( pVtm_t->SampleRate * FRAME_TIME_IN_MSEC + 0.5 );
 
-  if ( pKsd_t->uiSampleRate == 11025 )
+  if ( pKsd_t->uiSampleRate == PC_SAMPLE_RATE )
   {
     pVtm_t->bEightKHz = FALSE;
 
@@ -1724,13 +1726,38 @@ void SetSampleRate( LPTTS_HANDLE_T phTTS,  unsigned int uiSampRate )
     /******************************************************************/
 
     pVtm_t->uiSampleRateChange = SAMPLE_RATE_INCREASE;
-    pVtm_t->rate_scale = 18063;   /*  Equals 1.1 in Q14 format for 11 KHz.    */
-    pVtm_t->inv_rate_scale = 29722;    /*  Equals 0.909 in Q15 format.        */
-    pVtm_t->uiNumberOfSamplesPerFrame = 71;
+    /*
+     * Q2.14 format of (samplerate/10000):
+     *
+     * ((11025/10000)*(2^14)) = 18063
+     *
+     * +5000 is used to round up (10000/2)
+     */
+    qval = ((((1<<14)*(U32)pKsd_t->uiSampleRate)+5000)/10000);
+    pVtm_t->rate_scale = qval;   /*  Equals 1.1025 in Q14 format for 11 KHz.    */
+
+    /*
+     * Q1.15 format of (1/(samplerate/10000)):
+     *
+     * (1/(11025/10000))*(2^15) = 29722
+     *
+     * +(pKsd_t->uiSampleRate/2) is used to round up
+     */
+    qval = (((((1<<15)*(U32)10000))+(pKsd_t->uiSampleRate/2))/pKsd_t->uiSampleRate);
+    pVtm_t->inv_rate_scale = qval;    /*  Equals 0.909 in Q15 format.        */
+
+    /*
+     * Frame time: 0.064ms -> 71 s/f at 11025Hz
+     *
+     * (11025*64)/10000 = 71
+     *
+     * +5000 is used to round up (10000/2)
+     */
+    pVtm_t->uiNumberOfSamplesPerFrame = ((pKsd_t->uiSampleRate*64)+5000)/10000;
   }
   else
   {
-    if ( pKsd_t->uiSampleRate == 8000 )
+    if ( pKsd_t->uiSampleRate == MULAW_SAMPLE_RATE )
    {
       pVtm_t->bEightKHz = TRUE;
 

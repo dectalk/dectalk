@@ -244,6 +244,7 @@ FILE *fpODS_File;
 #endif
 
 #include "tts.h"
+#include "samprate.h"
 
 
 
@@ -1234,9 +1235,9 @@ MMRESULT PA_CreatePlayHandleEx( HPLAY_AUDIO_T * ppPlayAudio,
     /******************************************************************/
 
     WaveFormat.wFormatTag = WAVE_FORMAT_PCM;
-    WaveFormat.nSamplesPerSec = 11025;
+    WaveFormat.nSamplesPerSec = PC_SAMPLE_RATE;
     WaveFormat.nChannels = 1;
-    WaveFormat.nAvgBytesPerSec = 22050;
+    WaveFormat.nAvgBytesPerSec = PC_SAMPLE_RATE*2;
     WaveFormat.nBlockAlign = 2;
     WaveFormat.wBitsPerSample = 16;
     WaveFormat.cbSize = 0;

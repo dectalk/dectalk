@@ -135,8 +135,8 @@ typedef struct VTM_T {
 //All variables in VTM.H 
 UINT uiSampleRateChange;
 short malfem;
-S16 rate_scale ;
-S16 inv_rate_scale ;
+S32 rate_scale ;
+S32 inv_rate_scale ;
 /*double SamplePeriod ;*/	 /* Move this to Kernel_share_data.This is because
                              The "synchronization thread" use this variable before
 							 the VTM thread allocates thread specific structure and

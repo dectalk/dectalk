@@ -3066,7 +3066,7 @@ phTTS->uiID_Start_Message =
 		phTTS->dwOutputState = STATE_OUTPUT_NULL;
 		// tek 01aug97 bats423 init some stuff for later use here..
 		pPlayAudio->dMsecPerSample = 
-			(double)(1000)/(double)(22050);  // 11025 *2
+			(double)(1000)/(double)(PC_SAMPLE_RATE*2);  // 11025 *2
 	}
 
 
@@ -7303,7 +7303,7 @@ MMRESULT TextToSpeechGetCaps( LPTTS_CAPS_T pTTScaps )
 	
 	pTTScaps->dwNumberOfLanguages = 1;
 	pTTScaps->lpLanguageParamsArray = LanguageParamsArray;
-	pTTScaps->dwSampleRate = 11025;
+	pTTScaps->dwSampleRate = PC_SAMPLE_RATE;
 	pTTScaps->dwMinimumSpeakingRate = MIN_SPEAKING_RATE;
 	pTTScaps->dwMaximumSpeakingRate = MAX_SPEAKING_RATE;
 	pTTScaps->dwNumberOfPredefinedSpeakers = WENDY + 1;
@@ -11902,7 +11902,7 @@ MMRESULT TextToSpeechOpenSapi5Output( LPTTS_HANDLE_T phTTS,
 		// 11.025 KHz 16 bit
 		SetSampleRate( phTTS, PC_SAMPLE_RATE );
 		phTTS->OutputIsText=0;
-		phTTS->pAudioHandle->dMsecPerSample = (double)(1000)/(double)(22050);  // 11025 *2
+		phTTS->pAudioHandle->dMsecPerSample = (double)(1000)/(double)(PC_SAMPLE_RATE*2);  // 11025 *2
 		phTTS->pAudioHandle->bAudioIsEightBit=FALSE;
 		phTTS->pAudioHandle->bAudioIsMulaw=FALSE;
 		
@@ -11912,7 +11912,7 @@ MMRESULT TextToSpeechOpenSapi5Output( LPTTS_HANDLE_T phTTS,
 		// 11.025 KHz 8 bit
 		SetSampleRate( phTTS, PC_SAMPLE_RATE );
 		phTTS->OutputIsText=0;
-		phTTS->pAudioHandle->dMsecPerSample = (double)(1000)/(double)(11025); 
+		phTTS->pAudioHandle->dMsecPerSample = (double)(1000)/(double)(PC_SAMPLE_RATE); 
 		phTTS->pAudioHandle->bAudioIsEightBit=TRUE;
 		phTTS->pAudioHandle->bAudioIsMulaw=FALSE;
 		
@@ -11939,7 +11939,7 @@ MMRESULT TextToSpeechOpenSapi5Output( LPTTS_HANDLE_T phTTS,
 	case WAVE_FORMAT_NULL:
 		phTTS->OutputIsText=1;
 		SetSampleRate( phTTS, PC_SAMPLE_RATE );
-		phTTS->pAudioHandle->dMsecPerSample = (double)(1000)/(double)(22050);  // 11025 *2
+		phTTS->pAudioHandle->dMsecPerSample = (double)(1000)/(double)(PC_SAMPLE_RATE*2);  // 11025 *2
 		phTTS->pAudioHandle->bAudioIsEightBit=FALSE;
 		phTTS->pAudioHandle->bAudioIsMulaw=FALSE;
 		break;
