@@ -500,7 +500,10 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 	// I have no idea what the constant should be.
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 5];
   }
-  else if ( pVtm_t->SampleRate < 19000 )
+  else
+#if PC_SAMPLE_RATE == 22050
+    if ( pVtm_t->SampleRate < 19000 )
+#endif
   {
 #ifdef HLSYN
     p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 13];
@@ -512,6 +515,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 6];
     p6_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A6inDB + 5];
   }
+#if PC_SAMPLE_RATE == 22050
   else
   {
     p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 13];
@@ -520,6 +524,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 7];
     p6_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A6inDB + 6];
   }
+#endif
 
   BypassNoiseGain = pVtm_t->SpeakerFricationGain * dBtoLinear[ABinDB + 5];
 
@@ -1483,16 +1488,21 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
     flp = 948;
     blp = 800;
   }
-  else if (pVtm_t->SampleRate < 19000.0 )
+  else
+#if PC_SAMPLE_RATE == 22050
+    if (pVtm_t->SampleRate < 19000.0 )
+#endif
   {
     flp = 948;
     blp = 615;
   }
+#if PC_SAMPLE_RATE == 22050
   else
   {
     flp = 948;
     blp = 615/2;
   }
+#endif
 
   rlpg = (FLTPNT_T)0.5859375;
 
