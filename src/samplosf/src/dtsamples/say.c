@@ -560,8 +560,17 @@ int main( int argc, char *argv[] )
       if ((long)cd == -1) {
         cd = iconv_open("ISO-8859-1//TRANSLIT//IGNORE", nl_langinfo(CODESET));
         if ((long)cd == -1) {
-          perror("iconv_open");
-          exit(EXIT_FAILURE);
+          cd = iconv_open("Windows-1252", nl_langinfo(CODESET));
+          if ((long)cd == -1) {
+            cd = iconv_open("ISO-8859-15", nl_langinfo(CODESET));
+            if ((long)cd == -1) {
+              cd = iconv_open("ISO-8859-1", nl_langinfo(CODESET));
+              if ((long)cd == -1) {
+                perror("iconv_open");
+                exit(EXIT_FAILURE);
+              }
+            }
+          }
         }
       }
     }
