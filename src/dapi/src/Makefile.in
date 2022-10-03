@@ -31,14 +31,9 @@ DECTALK_DEMO_OBJS=@DECTALK_DEMO_OBJS@
 #which system libraries get linked in?
 LIBS=@DT_SO_LIBS@
 MMELIBS=@MMELIBS@
-#where do the shared libs go?
-SHLIB=@SHLIB@
 #osf crazy hidden shared lib symbol madness:
 SO_LOCATIONS=@SO_LOCATIONS@
 DAPI_LD_SHARED=@DAPI_LD_SHARED@ @AUDIO_LIBS@
-LIB_LN_S_A_DIR=@LIB_LN_S_A_DIR@
-LIB_LN_S_SO_DIR=@LIB_LN_S_SO_DIR@
-INC_LN_S_DIR=@INC_LN_S_DIR@
 #### End of system configuration section. #### 
 
 OUTPUT_DIR_2= $(OUTPUT_DIR)/link
@@ -160,38 +155,21 @@ ALL_OBJS=@ALL_LIB_OBJS@
 
 all:: $(ALL)
 
-$(LIB_LN_S_A_DIR)/libtts_$(LANG_CODE).a:$(OUTPUT_DIR)/libtts_$(LANG_CODE).a
-	-mkdir -p $(INC_LN_S_DIR) $(LIB_LN_S_A_DIR)
-	-$(LN_S)f $(DT_LIB_DIR)/libtts_$(LANG_CODE).a $@
-	-$(LN_S)f `pwd`/api/ttsapi.h $(INC_LN_S_DIR)/ttsapi.h
-	-$(LN_S)f `pwd`/osf/dtmmedefs.h $(INC_LN_S_DIR)/dtmmedefs.h	
-
-$(LIB_LN_S_A_DIR)/libtts_demo_$(LANG_CODE).a:$(OUTPUT_DIR)/libtts_demo_$(LANG_CODE).a
-	-mkdir -p $(INC_LN_S_DIR) $(LIB_LN_S_A_DIR)
-	-$(LN_S)f $(DT_LIB_DIR)/libtts_demo_$(LANG_CODE).a $@
-	-$(LN_S)f `pwd`/api/ttsapi.h $(INC_LN_S_DIR)/ttsapi.h
-	-$(LN_S)f `pwd`/osf/dtmmedefs.h $(INC_LN_S_DIR)/dtmmedefs.h	
-
-$(LIB_LN_S_A_DIR)/libttsmme_$(LANG_CODE).a:$(OUTPUT_DIR)/libttsmme_$(LANG_CODE).a
-	-mkdir -p $(INC_LN_S_DIR) $(LIB_LN_S_A_DIR)
-	$(LN_S)f $(DT_LIB_DIR)/libttsmme_$(LANG_CODE).a $@
-
-$(SHLIB)/libtts_$(LANG_CODE).so:$(OUTPUT_DIR)/libtts_$(LANG_CODE).so
-	-mkdir -p $(SHLIB)
-	$(LN_S)f $(DT_LIB_DIR)/libtts_$(LANG_CODE).so $@
-
-$(SHLIB)/libttsmme_$(LANG_CODE).so:$(OUTPUT_DIR)/libttsmme_$(LANG_CODE).so
-	-mkdir -p $(SHLIB)
-	$(LN_S)f $(DT_LIB_DIR)/libttsmme_$(LANG_CODE).so $@
-
 $(OUTPUT_DIR)/libtts_$(LANG_CODE).a: $(ALL_OBJS)
 	$(RM) $@
 	$(AR) $@ $(DECTALK_TTS_OBJS)
 #	$(RANLIB) $@
+	mkdir -p $(OUTPUT_DIR)/include/dtk
+	$(LN_S)f `pwd`/api/ttsapi.h $(OUTPUT_DIR)/include/dtk/ttsapi.h
+	$(LN_S)f `pwd`/osf/dtmmedefs.h $(OUTPUT_DIR)/include/dtk/dtmmedefs.h
+
 
 $(OUTPUT_DIR)/libtts_demo_$(LANG_CODE).a: $(ALL_OBJS)
 	$(RM) $@
 	$(AR) $@ $(DECTALK_DEMO_OBJS)
+	mkdir -p $(OUTPUT_DIR)/include/dtk
+	$(LN_S)f `pwd`/api/ttsapi.h $(OUTPUT_DIR)/include/dtk/ttsapi.h
+	$(LN_S)f `pwd`/osf/dtmmedefs.h $(OUTPUT_DIR)/include/dtk/dtmmedefs.h
 
 $(OUTPUT_DIR)/libttsmme_$(LANG_CODE).a: $(ALL_OBJS)
 	$(RM) $@
@@ -223,6 +201,7 @@ clean:
 	$(RM) $(OUTPUT_DIR)/link/*.o
 	$(RM) $(OUTPUT_DIR)/*.a
 	$(RM) $(OUTPUT_DIR)/*.so
+	$(RM) -rf $(OUTPUT_DIR)/include/
 	$(RM) core *~
 	$(RM) api/*~ cmd/*~ include/*~ kernel/*~ lts/*~ nt/*~
 	$(RM) osf/*~ ph/*~ vtm/*~

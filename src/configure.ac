@@ -89,11 +89,7 @@ AC_SUBST(OS_VERSION)dnl
 
 dnl don't put a slash on the end of this dir.  
 dnl it shouldn't matter but why chance it?
-BUILD_DIR=`pwd`"/dapi/build"
-case "$target" in
-	arm-ipaq-linux-*) BUILD_DIR=`pwd`"/dapi/build" ;;
-	arm-itsy-linux-*) BUILD_DIR=`pwd`"/dapi/build" ;;
-esac
+BUILD_DIR="${PWD}/dapi/build"
 AC_SUBST(BUILD_DIR)dnl
 
 dnl Set a configuration headers file
@@ -201,12 +197,7 @@ dnl use the itsy archiver.
 esac
 AC_SUBST(AR)dnl
 
-STD_INCLUDE="/usr/include/"
-case "$target" in
-	arm-ipaq-linux-*) STD_INCLUDE="/skiff/local/arm-linux/include" ;;
-dnl the itsy cross compiler knows where to get the std includes.
-esac
-STD_INCLUDE="${PWD}/build/\$(LANG_CODE)/include/"
+STD_INCLUDE="${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release/include"
 AC_SUBST(STD_INCLUDE)dnl
 
 MME_DIR="."
@@ -280,29 +271,6 @@ case "$target" in
 esac
 AC_SUBST(ALL_LIB_OBJS)dnl
 
-LIB_LN_S_A_DIR="/usr/lib"
-case "$target" in
-	arm-ipaq-linux-*)LIB_LN_S_A_DIR="/skiff/local/arm-linux/lib" ;;
-	*-*-linux-*)LIB_LN_S_A_DIR="/usr/local/lib" ;;
-esac
-LIB_LN_S_A_DIR="${PWD}/build/\$(LANG_CODE)/lib"
-AC_SUBST(LIB_LN_S_A_DIR)dnl
-
-LIB_LN_S_SO_DIR="/usr/lib"
-case "$target" in
-	arm-ipaq-linux-*)LIB_LN_S_SO_DIR="/skiff/local/arm-linux/lib" ;;
-	*-*-linux-*)LIB_LN_S_SO_DIR="/usr/local/lib" ;;
-esac
-LIB_LN_S_SO_DIR="${PWD}/build/\$(LANG_CODE)/lib"
-AC_SUBST(LIB_LN_S_SO_DIR)dnl
-
-INC_LN_S_DIR="/usr/include/dtk"
-case "$target" in
-	arm-ipaq-linux-*)INC_LN_S_DIR="/skiff/local/arm-linux/include/dtk" ;;
-esac
-INC_LN_S_DIR="${PWD}/build/\$(LANG_CODE)/include/dtk"
-AC_SUBST(INC_LN_S_DIR)dnl
-
 MME_COMPILE_FLAGS=""
 case "$target" in
 	alpha-dec-osf*) MME_COMPILE_FLAGS=" -DMME_SERVER -DUSE_MME_SERVER" ;;
@@ -311,23 +279,7 @@ esac
 AC_SUBST(MME_COMPILE_FLAGS)dnl
 
 dnl linux only builds mme libraries.
-DAPI_SRC_ALL="/usr/lib/libtts_\$(LANG_CODE).a \
-	/usr/lib/libttsmme_\$(LANG_CODE).a /usr/shlib/libtts_\$(LANG_CODE).so \
-	/usr/shlib/libttsmme_\$(LANG_CODE).so"
-case "$target" in
-	arm-ipaq-linux-*) DAPI_SRC_ALL="\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a \
-	\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_\$(LANG_CODE).a\
-	\$(SHLIB)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_demo_\$(LANG_CODE).a" ;;
-	*-*-linux-*) DAPI_SRC_ALL="\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a \
-	\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_\$(LANG_CODE).a\
-	\$(SHLIB)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_demo_\$(LANG_CODE).a" ;;
-	sparc-sun-*) DAPI_SRC_ALL="\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a \
-	\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_\$(LANG_CODE).a\
-	\$(SHLIB)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_demo_\$(LANG_CODE).a" ;;
-	powerpc-apple-*) DAPI_SRC_ALL="\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a \
-	\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_\$(LANG_CODE).a\
-	\$(SHLIB)/libtts_\$(LANG_CODE).so \$(LIB_LN_S_A_DIR)/libtts_demo_\$(LANG_CODE).a" ;;
-esac
+DAPI_SRC_ALL="\$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).so \$(OUTPUT_DIR)/libtts_demo_\$(LANG_CODE).a"
 AC_SUBST(DAPI_SRC_ALL)dnl
 
 dnl linux only links mme libs but they have to be called libtts_$(lang).*
@@ -397,16 +349,6 @@ case "$target" in
 esac
 AC_SUBST(DT_SO_LIBS)dnl
 
-SHLIB="/usr/shlib"
-case "$target" in
-	arm-ipaq-linux-*) SHLIB="/skiff/local/arm-linux/lib" ;;
-	*-*-linux-*) SHLIB="/usr/local/lib" ;;
-	sparc-sun-*) SHLIB="/usr/lib" ;;
-	powerpc-apple-*) SHLIB="/usr/lib" ;;
-esac
-SHLIB="${PWD}/build/\$(LANG_CODE)/lib"
-AC_SUBST(SHLIB)dnl
-
 SO_LOCATIONS=" \$(CP) /usr/shlib/so_locations ."
 case "$target" in
 	*-*-linux-*) SO_LOCATIONS="" ;;
@@ -428,15 +370,7 @@ case "$target" in
 esac
 AC_SUBST(DAPI_LD_SHARED)dnl
 
-dnl *  ML crap-a-roni goes below here.  what a nightmare!
-
-ML_ALL="/usr/lib/libtts.a /usr/lib/libttsmme.a \$(SHLIB)/libtts.so \$(SHLIB)/libttsmme.so"
-case "$target" in
-	arm-ipaq-linux-*) ML_ALL="\$(LIB_LN_S_A_DIR)/libtts.a \$(SHLIB)/libtts.so" ;;
-	*-*-linux-*) ML_ALL="\$(LIB_LN_S_A_DIR)/libtts.a \$(SHLIB)/libtts.so" ;;
-	sparc-sun-*) ML_ALL="\$(LIB_LN_S_A_DIR)/libtts.a \$(SHLIB)/libtts.so" ;;
-	powerpc-apple-*) ML_ALL="\$(LIB_LN_S_A_DIR)/libtts.a \$(SHLIB)/libtts.so" ;;
-esac
+ML_ALL="../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.so"
 AC_SUBST(ML_ALL)dnl
 
 dnl: see how simple this is for linux?
@@ -555,7 +489,7 @@ case "$target" in
 	*-*-linux-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 	powerpc-apple-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 esac
-SAMPLE_LINKFLAGS=" -ldl -L${PWD}/build/\$(LANG_CODE)/lib -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
+SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
 AC_SUBST(SAMPLE_LINKFLAGS)dnl
 
 SAMPLE_DTLIB=" -lttsmme"
