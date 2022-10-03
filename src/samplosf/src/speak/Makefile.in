@@ -48,7 +48,7 @@ G_DT_LANG_LIB=-ltts_$(LANG_CODE)
 G_DT_DEMO_LIB=-ltts_demo_$(LANG_CODE)
 GLIBS=-ldl -lpthread $(LIBS)
 
-GCFLAGS = $(DEBUG_FLAGS) $(GTK_CFLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES)
+GCFLAGS = -MMD $(DEBUG_FLAGS) $(GTK_CFLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES)
 GLINK_FLAGS=$(GTK_LFLAGS)
 
 
@@ -66,6 +66,8 @@ GSPEAK_OBJS = $(OUTPUT_DIR_2)/link/gspeak.o
 
 GSPEAK_DEMO_OBJS = $(OUTPUT_DIR_2)/link/gspeakdem_$(LANG_CODE).o
 
+GSPEAK_ALL_OBJS= $(GSPEAK_OBJS) $(GSPEAK_DEMO_OBJS)
+
 #all: $(OUTPUT_DIR_2)/speak $(OUTPUT_DIR_2)/speak.uid
 all: $(SPEAK_ALL)
 
@@ -82,35 +84,33 @@ $(OUTPUT_DIR_2)/gspeakdem_$(LANG_CODE):$(GSPEAK_DEMO_OBJS) ../../../dapi/build/d
 	$(CC) -o $@ $(GSPEAK_DEMO_OBJS) $(GLINK_FLAGS) $(G_DT_DEMO_LIB) $(GLIBS)
 
 $(OUTPUT_DIR_2)/link/gspeak.o:gspeak.c
-	$(CC) -c $(GCFLAGS) -o $@ $?
+	$(CC) -c $(GCFLAGS) -o $@ $<
 
 $(OUTPUT_DIR_2)/link/gspeakdem_$(LANG_CODE).o:gspeak.c
-	$(CC) -c -DDEMO -D$(LANGUAGE) $(GCFLAGS) -o $@ $?
+	$(CC) -c -DDEMO -D$(LANGUAGE) $(GCFLAGS) -o $@ $<
 
 $(OUTPUT_DIR_2)/speak:$(SPEAK_OBJS) ../../../dtalkml/build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/libtts.so
 	$(RM) $@
 	$(CC) -o $@ $(SPEAK_OBJS) $(LINKFLAGS) $(XLIBS) $(DT_LIB) $(LIBS) $(MMELIBS)
 
 $(OUTPUT_DIR_2)/speak.uid:speak.uil
-	/usr/bin/X11/uil -o $@ $?
+	/usr/bin/X11/uil -o $@ $<
 
 $(OUTPUT_DIR_2)/link/speak.o:speak.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR_2)/link/loadgif.o:loadgif.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+DEPEND:=$(GSPEAK_ALL_OBJS:.o=.d)
+-include $(DEPEND)
 
 clean:
-	$(RM) $(OUTPUT_DIR)/link/*.o
-	$(RM) $(OUTPUT_DIR_2)/link/*.o
+	$(RM) $(OUTPUT_DIR)/link/*.o $(OUTPUT_DIR)/link/*.d
+	$(RM) $(OUTPUT_DIR_2)/link/*.o $(OUTPUT_DIR_2)/link/*.d
 	$(RM) $(OUTPUT_DIR)/gspeak
 	$(RM) $(OUTPUT_DIR_2)/gspeak_$(LANG_CODE)
 	$(RM) $(OUTPUT_DIR_2)/gspeakdem_$(LANG_CODE)
 	$(RM) $(OUTPUT_DIR)/speak
 	$(RM) $(OUTPUT_DIR)/core
 	$(RM) core *~
-
-
-
-
-

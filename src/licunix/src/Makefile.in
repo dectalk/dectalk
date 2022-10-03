@@ -38,7 +38,7 @@ INCLUDES= -I$(INCLUDE_DIR) -I$(API_DIR) \
 	  -I$(NT_DIR) -I$(OSF_DIR) -I$(DECTALKF_H)\
           -I$(STD_INCLUDE) 
 
-CFLAGS= $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES)
+CFLAGS= -MMD $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES)
 
 ifeq ($(LANG_CODE), us)
 all::@LICENSE_ALL@	
@@ -48,47 +48,51 @@ endif
 
 LICENSE_SRC: liceninc.c license.c csn.c ../../dapi/src/api/crypt2.c
 
-LICENSE_OBJ: $(OUTPUT_DIR)/link/licenin1.o $(OUTPUT_DIR)/link/licenin3.o \
+LICENSE_OBJS= $(OUTPUT_DIR)/link/licenin1.o $(OUTPUT_DIR)/link/licenin3.o \
              $(OUTPUT_DIR)/link/licenin7.o $(OUTPUT_DIR)/link/crypt2.o \
              $(OUTPUT_DIR)/link/license.o  $(OUTPUT_DIR)/link/csn.o
 
+LICENSE_OBJ: $(LICENSE_OBJS)
+
 $(OUTPUT_DIR)/licenin1: $(OUTPUT_DIR)/link/licenin1.o $(OUTPUT_DIR)/link/crypt2.o
-	$(CC) $(LINKFLAGS) -o $@ $?
+	$(CC) $(LINKFLAGS) -o $@ $^
 
 $(OUTPUT_DIR)/licenin3: $(OUTPUT_DIR)/link/licenin3.o $(OUTPUT_DIR)/link/crypt2.o
-	$(CC) $(LINKFLAGS) -o $@ $?
+	$(CC) $(LINKFLAGS) -o $@ $^
 
 $(OUTPUT_DIR)/licenin7: $(OUTPUT_DIR)/link/licenin7.o $(OUTPUT_DIR)/link/crypt2.o
-	$(CC) $(LINKFLAGS) -o $@ $?
+	$(CC) $(LINKFLAGS) -o $@ $^
 
 $(OUTPUT_DIR)/installer: $(OUTPUT_DIR)/link/license.o $(OUTPUT_DIR)/link/crypt2.o $(OUTPUT_DIR)/link/csn.o
-	$(CC) $(LINKFLAGS) -o $@ $?
+	$(CC) $(LINKFLAGS) -o $@ $^
 
 $(OUTPUT_DIR)/arminstaller: $(OUTPUT_DIR)/link/license.o $(OUTPUT_DIR)/link/crypt2.o $(OUTPUT_DIR)/link/csn.o
-	$(CC) $(LINKFLAGS) -o $@ $?
+	$(CC) $(LINKFLAGS) -o $@ $^
 
 $(OUTPUT_DIR)/link/crypt2.o:../../dapi/src/api/crypt2.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/licenin1.o:liceninc.c
-	$(CC) -c $(CFLAGS) -DLICENSE_INCREMENT=1 -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\" -o $@ $?
+	$(CC) -c $(CFLAGS) -DLICENSE_INCREMENT=1 -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\" -o $@ $<
 
 $(OUTPUT_DIR)/link/licenin3.o:liceninc.c
-	$(CC) -c $(CFLAGS) -DLICENSE_INCREMENT=3 -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\" -o $@ $?
+	$(CC) -c $(CFLAGS) -DLICENSE_INCREMENT=3 -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\" -o $@ $<
 
 $(OUTPUT_DIR)/link/licenin7.o:liceninc.c
-	$(CC) -c $(CFLAGS) -DLICENSE_INCREMENT=7 -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\" -o $@ $?
+	$(CC) -c $(CFLAGS) -DLICENSE_INCREMENT=7 -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\" -o $@ $<
 
 
 $(OUTPUT_DIR)/link/license.o:license.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/csn.o:csn.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
+DEPEND:=$(LICENSE_OBJS:.o=.d)
+-include $(DEPEND)
 
 clean::
-	$(RM) $(OUTPUT_DIR)/link/*.o
+	$(RM) $(OUTPUT_DIR)/link/*.o $(OUTPUT_DIR)/link/*.d
 	$(RM) $(OUTPUT_DIR)/licenin*
 	$(RM) $(OUTPUT_DIR)/installer
 	$(RM) *~ core

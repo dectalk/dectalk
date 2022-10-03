@@ -54,7 +54,7 @@ INCLUDES= -I$(INCLUDE_DIR) -I$(API_DIR) -I$(CMD_DIR) -I$(LTS_DIR) \
 	     -I$(OSF_DIR) -I$(PH_DIR) -I$(DECTALKF_H)\
              -I$(PROTOS_DIR) -I$(NT_DIR) -I$(STD_INCLUDE) 
 
-CFLAGS= $(DEBUG_FLAGS) $(OPTO_FLAGS) $(INCLUDES) $(DEFINES)
+CFLAGS= -MMD $(DEBUG_FLAGS) $(OPTO_FLAGS) $(INCLUDES) $(DEFINES)
 
 DTALK_ML_SRC=dtalk_ml.c init.c
 
@@ -79,11 +79,11 @@ all: $(ALL)
 
 ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/libtts.a:../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/dtalk_ml.o ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/init.o 
 	$(RM) $@
-	$(AR) $@ $?
+	$(AR) $@ $<
 
 ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/libttsmme.a:../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/dtalk_ml_mme.o ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/init.o 
 	$(RM) $@
-	$(AR) $@ $?
+	$(AR) $@ $<
 
 ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/dtalk_ml.o:dtalk_ml.c
 	$(DTALK_ML)
@@ -94,7 +94,10 @@ all: $(ALL)
 ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/init.o:init.c
 	$(INIT_ML)
 
+DEPEND:=$(DTALK_ML_OBJ:.o=.d)
+-include $(DEPEND)
+
 clean:
-	$(RM) ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/*.o
+	$(RM) ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/*.o ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/link/*.d
 	$(RM) ../build/$(OS_VERSION)/$(LANG_CODE)/$(ML_OUT)/lib*
 	$(RM) *~

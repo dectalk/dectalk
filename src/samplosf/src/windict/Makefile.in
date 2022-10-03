@@ -46,7 +46,7 @@ INCLUDES= -I$(INLCUDE_DIR) -I$(API_DIR) -I$(NT_DIR) -I$(MME_DIR) -I$(DECTALKF_DI
 CDEBUGFLAGS = $(DEBUG_FLAGS)
 LINKFLAGS=  $(DEBUG_FLAGS)
 
-CFLAGS= $(INCLUDES) $(CDEBUGFLAGS) -D$(LANGUAGE) $(AUDIO_DEFINES)
+CFLAGS= -MMD $(INCLUDES) $(CDEBUGFLAGS) -D$(LANGUAGE) $(AUDIO_DEFINES)
 
 
 #DT_LIB= -lttsmme
@@ -61,6 +61,8 @@ WINDICT_SRCS = windict.c loadgif.o compile_dict.c
 WINDICT_OBJS= $(OUTPUT_DIR)/link/windict.o $(OUTPUT_DIR)/link/loadgif.o \
               $(OUTPUT_DIR)/link/compile_dict.o
 
+WINDIC_OBJS= $(OUTPUT_DIR)/link/windic.o $(OUTPUT_DIR)/link/compile_dict.o
+
 #all: $(OUTPUT_DIR)/windict $(OUTPUT_DIR)/windict.uid
 all: $(WINDICT_ALL)
 
@@ -69,27 +71,30 @@ $(OUTPUT_DIR)/windict:$(WINDICT_OBJS) $(DT_LIB_DIR)/libttsmme_$(LANG_CODE).so
 	$(CC) -o $@ $(WINDICT_OBJS) $(LINKFLAGS) $(XLIBS) $(DT_LIB) $(LIBS)
 
 $(OUTPUT_DIR)/windict.uid:windict.uil
-	/usr/bin/X11/uil -o $@ $?
+	/usr/bin/X11/uil -o $@ $<
 
 $(OUTPUT_DIR)/link/windict.o:windict.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/loadgif.o:../speak/loadgif.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/compile_dict.o:compile_dict.c
-	$(CC) -c $(CFLAGS) -o $@ $? $(GTK_DEFINES)
+	$(CC) -c $(CFLAGS) -o $@ $< $(GTK_DEFINES)
 
 
-$(OUTPUT_DIR)/windic : $(OUTPUT_DIR)/link/windic.o $(OUTPUT_DIR)/link/compile_dict.o
+$(OUTPUT_DIR)/windic : $(WINDIC_OBJS)
 	$(CC) -o $(OUTPUT_DIR)/windic $(OUTPUT_DIR)/link/windic.o $(OUTPUT_DIR)/link/compile_dict.o -ltts -lpthread -ldl $(GTK_LIBS)
 
 $(OUTPUT_DIR)/link/windic.o : windic.c
-	$(CC) -c $(CFLAGS) -o $@ $? $(GTK_DEFINES) -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\"
+	$(CC) -c $(CFLAGS) -o $@ $< $(GTK_DEFINES) -DDECTALK_INSTALL_PREFIX=\"$(DECTALK_INSTALL_PREFIX)\"
 
+
+DEPEND:=$(WINDIC_OBJS:.o=.d)
+-include $(DEPEND)
 
 clean:
-	$(RM) $(OUTPUT_DIR)/link/*.o
+	$(RM) $(OUTPUT_DIR)/link/*.o $(OUTPUT_DIR)/link/*.d
 	$(RM) $(OUTPUT_DIR)/windict
 	$(RM) $(OUTPUT_DIR)/windic
 	$(RM) $(OUTPUT_DIR)/core

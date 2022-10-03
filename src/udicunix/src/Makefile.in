@@ -45,7 +45,7 @@ INCLUDES= -I$(INCLUDE_DIR) -I$(API_DIR) -I$(LTS_DIR) -I$(NT_DIR) -I$(DECTALKF_DI
 CDEBUGFLAGS = $(DEBUG_FLAGS) 
 LINKFLAGS=  $(DEBUG_FLAGS)
 
-CFLAGS= $(INCLUDES) $(CDEBUGFLAGS) $(WARN_FLAGS) -D$(LANGUAGE) $(DEFINES)
+CFLAGS= -MMD $(INCLUDES) $(CDEBUGFLAGS) $(WARN_FLAGS) -D$(LANGUAGE) $(DEFINES)
 
 #DT_LIB= -lttsmme
 
@@ -62,18 +62,21 @@ UDICT_OBJS= $(OUTPUT_DIR)/link/udic_com.o $(OUTPUT_DIR)/link/alphabet.o
 #all: $(OUTPUT_DIR)/windict $(OUTPUT_DIR)/windict.uid
 
 $(OUTPUT_DIR)/link/udic_com.o:udic_com.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/alphabet.o:alphabet.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/udic_$(LANG_CODE):$(UDICT_OBJS)
 	$(RM) $@
 	$(CC) -o $@ $(UDICT_OBJS) $(LINKFLAGS) $(LIBS)
 
 
+DEPEND:=$(UDICT_OBJS:.o=.d)
+-include $(DEPEND)
+
 clean:
-	$(RM) $(OUTPUT_DIR)/link/*.o
+	$(RM) $(OUTPUT_DIR)/link/*.o $(OUTPUT_DIR)/link/*.d
 	$(RM) $(OUTPUT_DIR)/udic_$(LANG_CODE)
 	$(RM) $(OUTPUT_DIR)/core
 	$(RM) core *~

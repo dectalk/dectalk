@@ -412,27 +412,27 @@ esac
 
 AC_SUBST(ML_TTS_MME_SO)dnl
 
-DTALK_ML="\$(CC) -c \$(CFLAGS) -o \$@ \$?"
+DTALK_ML="\$(CC) -c \$(CFLAGS) -o \$@ \$<"
 case "$target" in
-	alpha-dec-osf4.0) DTALK_ML="\$(CC) -c \$(CFLAGS) -pthread -DBLD_ML_DLL -o \$@ \$?" ;;
-	alpha-dec-osf3.2) DTALK_ML="\$(CC) -c \$(CFLAGS) -o \$@ \$?" ;;
+	alpha-dec-osf4.0) DTALK_ML="\$(CC) -c \$(CFLAGS) -pthread -DBLD_ML_DLL -o \$@ \$<" ;;
+	alpha-dec-osf3.2) DTALK_ML="\$(CC) -c \$(CFLAGS) -o \$@ \$<" ;;
 esac
 AC_SUBST(DTALK_ML)dnl
 
 DTALK_ML_MME=""
 case "$target" in
 	alpha-dec-osf4.0) DTALK_ML_MME="\$(CC) -c \$(CFLAGS) -pthread -DMME_SERVER\
-		-DBLD_ML_DLL -o \$@ \$?" ;;
-	alpha-dec-osf3.2) DTALK_ML_MME="\$(CC) -c \$(CFLAGS) -DMME_SERVER  -o \$@ \$?" ;;
+		-DBLD_ML_DLL -o \$@ \$<" ;;
+	alpha-dec-osf3.2) DTALK_ML_MME="\$(CC) -c \$(CFLAGS) -DMME_SERVER  -o \$@ \$<" ;;
 esac
 AC_SUBST(DTALK_ML_MME)dnl
 
-INIT_ML="\$(CC) -c \$(CFLAGS) \$(DEFINES) -o \$@ \$?"
+INIT_ML="\$(CC) -c \$(CFLAGS) \$(DEFINES) -o \$@ \$<"
 case "$target" in
 	alpha-dec-osf4.0) INIT_ML="\$(CC) -c \$(CFLAGS) \$(DEFINES) -DOSF_VERSION_V4.0 -DDEC\
-		-DBLD_ML_DLL -G3 -pthread -w1 -DMME_SERVER -DUSE_MME_SERVER -o \$@ \$?" ;;
+		-DBLD_ML_DLL -G3 -pthread -w1 -DMME_SERVER -DUSE_MME_SERVER -o \$@ \$<" ;;
 	alpha-dec-osf3.2) INIT_ML="\$(CC) -c \$(CFLAGS) \$(DEFINES) -DOSF_VERSION_V3.2 -DDEC\
-		-G3 -threads -w1 -DMME_SERVER -DUSE_MME_SERVER -o \$@ \$?" ;;
+		-G3 -threads -w1 -DMME_SERVER -DUSE_MME_SERVER -o \$@ \$<" ;;
 esac
 AC_SUBST(INIT_ML)dnl
 

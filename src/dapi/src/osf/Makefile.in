@@ -41,7 +41,7 @@ INCLUDES= -I$(INCLUDE_DIR) -I$(API_DIR) -I$(CMD_DIR) -I$(DIC_DIR) -I$(KERNEL_DIR
 	  -I$(LTS_DIR) -I$(NT_DIR) -I$(OSF_DIR) -I$(PH_DIR) -I$(DECTALKF_H)\
           -I$(PROTOS_DIR) -I$(VTM_DIR) -I$(MME_DIR) -I$(STD_INCLUDE) 
 
-CFLAGS= $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES)
+CFLAGS= -MMD $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES)
 
 OSF_SRC= playstub.c loadable.c dtmmio.c 
 
@@ -50,13 +50,16 @@ OSF_OBJ= $(OUTPUT_DIR)/playstub.o $(OUTPUT_DIR)/dtmmio.o $(OUTPUT_DIR)/loadable.
 all:: $(OSF_OBJ)
 
 $(OUTPUT_DIR)/playstub.o : playstub.c
-	$(CC) -c -DDEC $(CFLAGS) -o $@ $? 
+	$(CC) -c -DDEC $(CFLAGS) -o $@ $< 
 
 $(OUTPUT_DIR)/dtmmio.o:dtmmio.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/loadable.o : loadable.c
-	$(CC) -c -DDEC $(CFLAGS) -o $@ $?
+	$(CC) -c -DDEC $(CFLAGS) -o $@ $<
+
+DEPEND:=$(OSF_OBJ:.o=.d)
+-include $(DEPEND)
 
 clean::
-	rm $(OUTPUT_DIR)/*.o
+	rm $(OUTPUT_DIR)/*.o $(OUTPUT_DIR)/*.d

@@ -50,7 +50,7 @@ INCLUDES= -I$(STD_INCLUDE) -I$(STD_INCLUDE)/dtk -I$(DECTALKF_DIR) -I$(API_DIR) -
 #OTHER_FLAGS=-threads 
 #LFLAGS=-G3 $(DEBUG_FLAGS)
 
-CFLAGS= $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES) $(AUDIO_DEFINES)
+CFLAGS= -MMD $(DEBUG_FLAGS) $(OPTO_FLAGS) $(WARN_FLAGS) $(INCLUDES) $(DEFINES) $(AUDIO_DEFINES)
 #LINKFLAGS= -Bdynamic
 
 XLIBS= -lMrm -lXm -lXt -lXext -lX11
@@ -68,55 +68,58 @@ all: $(DTSAMPLE_ALL)
 #     $(OUTPUT_DIR)/aclock $(OUTPUT_DIR)/xmsay $(OUTPUT_DIR)/xmsay.uid 
 
 $(OUTPUT_DIR)/link/say.o:say.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/dtmemory.o:dtmemory.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/aclock.o:aclock.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/say:$(OUTPUT_DIR)/link/say.o
-	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
+	$(CC) $(LINKFLAGS) -o $@ $< $(DT_LIB) $(LIBS) $(MMELIBS)
 
 $(OUTPUT_DIR)/link/tunecheck.o: tunecheck.c
-	$(CC) -c $(CFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
+	$(CC) -c $(CFLAGS) -o $@ $< $(DT_LIB) $(LIBS) $(MMELIBS)
 
 $(OUTPUT_DIR)/tunecheck: $(OUTPUT_DIR)/link/tunecheck.o
-	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS) -ltts_$(LANG_CODE)
+	$(CC) $(LINKFLAGS) -o $@ $< $(DT_LIB) $(LIBS) $(MMELIBS) -ltts_$(LANG_CODE)
 
 $(OUTPUT_DIR)/link/dump_vdf.o: dump_vdf.c
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/dump_vdf: $(OUTPUT_DIR)/link/dump_vdf.o
-	$(CC) $(LINKFLAGS) -o $@ $?
+	$(CC) $(LINKFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/link/mfg_load.o: mfg_load.c
-	$(CC) -c $(CFLAGS) -I$(HARDWARE_CONSOLE_DIR) -I$(HARDWARE_MISC_DIR) -o $@ $?
+	$(CC) -c $(CFLAGS) -I$(HARDWARE_CONSOLE_DIR) -I$(HARDWARE_MISC_DIR) -o $@ $<
 
 $(OUTPUT_DIR)/mfg_load: $(OUTPUT_DIR)/link/mfg_load.o
-	$(CC) $(LINKFLAGS) -o $@ $?
+	$(CC) $(LINKFLAGS) -o $@ $<
 
 $(OUTPUT_DIR)/say_demo_$(LANG_CODE):$(OUTPUT_DIR)/link/say.o
-	$(CC) $(LINKFLAGS) -o $@ $? -ltts_demo_$(LANG_CODE) $(LIBS) $(MMELIBS) $(AUDIO_LIBS) $(ICONV_LIBS)
+	$(CC) $(LINKFLAGS) -o $@ $< -ltts_demo_$(LANG_CODE) $(LIBS) $(MMELIBS) $(AUDIO_LIBS) $(ICONV_LIBS)
 
 $(OUTPUT_DIR)/dtmemory:$(OUTPUT_DIR)/link/dtmemory.o
-	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
+	$(CC) $(LINKFLAGS) -o $@ $< $(DT_LIB) $(LIBS) $(MMELIBS)
 
 $(OUTPUT_DIR)/dtmemory_demo_$(LANG_CODE):$(OUTPUT_DIR)/link/dtmemory.o
-	$(CC) $(LINKFLAGS) -o $@ $? -ltts_demo_$(LANG_CODE) $(LIBS) $(MMELIBS) $(AUDIO_LIBS) $(ICONV_LIBS)
+	$(CC) $(LINKFLAGS) -o $@ $< -ltts_demo_$(LANG_CODE) $(LIBS) $(MMELIBS) $(AUDIO_LIBS) $(ICONV_LIBS)
 
 $(OUTPUT_DIR)/aclock:$(OUTPUT_DIR)/link/aclock.o
-	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(MMELIBS)
+	$(CC) $(LINKFLAGS) -o $@ $< $(DT_LIB) $(LIBS) $(MMELIBS)
 
 $(OUTPUT_DIR)/xmsay.uid:xmsay.uil 
-	/usr/bin/X11/uil -o $@ $?
+	/usr/bin/X11/uil -o $@ $<
 
 $(OUTPUT_DIR)/xmsay:$(OUTPUT_DIR)/link/xmsay.o
-	$(CC) $(LINKFLAGS) -o $@ $? $(DT_LIB) $(LIBS) $(XLIBS) $(MMELIBS)
+	$(CC) $(LINKFLAGS) -o $@ $< $(DT_LIB) $(LIBS) $(XLIBS) $(MMELIBS)
 
 .c.o:
-	$(CC) -c $(CFLAGS) -o $@ $?
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+DEPEND:=$(SAMPLES_OBJ:.o=.d)
+-include $(DEPEND)
 
 clean:
 	$(RM) $(SAMPLES_OBJ)
