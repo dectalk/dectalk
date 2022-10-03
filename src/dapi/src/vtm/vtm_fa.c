@@ -445,7 +445,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 
   F3inHZ = FormantScale * (FLTPNT_T)variabpars[OUT_F3];
 
-  FZinHZ = InverseSampleRateScale * (FLTPNT_T)variabpars[OUT_FZ];
+  FZinHZ = InverseSampleRateScale * (FLTPNT_T)FZinHZ;
 #endif
 
 
@@ -467,6 +467,56 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 #else
   TiltInDB = variabpars[OUT_TLT] - 12; //- 12;    /*  Tilt in dB at 3 kHz     */
 #endif
+
+#if PC_SAMPLE_RATE == 22050
+#warning paper over that our pipe to ph/ is only S16 and we might get overflows, this needs to be fixed!
+  if ( pVtm_t->SampleRate >= 19000 ) {
+    if (F1inHZ < 0)
+      F1inHZ = 0;
+
+    if (F2inHZ < 0)
+      F2inHZ = 0;
+
+    if (F3inHZ < 0)
+      F3inHZ = 0;
+
+    if (FZinHZ < 0)
+      FZinHZ = 0;
+
+    if (B1inHZ < 0)
+      B1inHZ = 0;
+
+    if (B2inHZ < 0)
+      B2inHZ = 0;
+
+    if (B3inHZ < 0)
+      B3inHZ = 0;
+
+    if (AVinDB < -4)
+      AVinDB = -4;
+
+    if (APinDB < -10)
+      APinDB = -10;
+
+    if (A2inDB < -13)
+      A2inDB = -13;
+
+    if (A3inDB < -11)
+      A3inDB = -11;
+
+    if (A4inDB < -8)
+      A4inDB = -8;
+
+    if (A5inDB < -7)
+      A5inDB = -6;
+
+    if (A6inDB < -6)
+      A6inDB = -6;
+
+    if (ABinDB < -5)
+      ABinDB = -5;
+}
+#endif
   
 #ifdef HLSYN
   if (TiltInDB<2)
@@ -479,15 +529,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
  
 
 
-#if PC_SAMPLE_RATE == 22050
-#warning need to modify asperation gain for 22kHz, most likely wrong!
-  if ( APinDB < 0 ) {
-    APinDB = 0;
-  }
-  AsperationGain = pVtm_t->SpeakerAsperationGain * dBtoLinear[APinDB];
-#else
   AsperationGain = pVtm_t->SpeakerAsperationGain * dBtoLinear[APinDB + 10];
-#endif
 
   if ( pVtm_t->SampleRate < 9500 )
   {
@@ -578,30 +620,22 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 		Noisef = (FLTPNT_T)0.25 * (FLTPNT_T)pVtm_t->randomx; /*flat_spectrum*/
 	
 
+#if PC_SAMPLE_RATE == 22050
+#warning need to scale Noise for 22kHz, most probably wrong
+    if (pVtm_t->SampleRate >= 19000.0 ) {
+	    Noisef *= 5;
+    }
+#endif
 
     /******************************************************************/
     /*  Tilt down aspiration noise spectrum at high freqs by low-pass */
     /*  filtering using a fliter with a zero at 5KHz to achieve a "soft" filter                                                  */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 22050
-#warning need to change aspiration filter for noise at 22kHz, most probably wrong
-    if (pVtm_t->SampleRate < 19000.0 ) {
-#endif
     MINIMUM_ONE_ZERO_FILTER( Noise,
                              Noisef,
                              pVtm_t->NoiseTiltDelay,
                              NOISE_TILT_A1 );
-#if PC_SAMPLE_RATE == 22050
-    }
-    else
-    {
-    MINIMUM_ONE_ZERO_FILTER( Noise,
-                             Noisef,
-                             pVtm_t->NoiseTiltDelay,
-                             NOISE_TILT_A1 * 1.25);
-    }
-#endif
 
 	
 
@@ -616,7 +650,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 //according to notes this doesn;t work right unless inpout and output var 
 //are diff
 #if PC_SAMPLE_RATE == 22050
-#warning need to change lp-filter for noise at 22kHz, maybe correct
+#warning need to change lp-filter for noise at 22kHz, probably wrong
     if (pVtm_t->SampleRate < 19000.0 ) {
 #endif
     MINIMUM_TWO_ZERO_FILTER( NoiseOutput,
@@ -956,7 +990,6 @@ if(uiNs == nopen)
       /*  Decimate the glottal pulse sample rate by 4.                */
       /****************************************************************/
 			
-#if PC_SAMPLE_RATE != 22050
       MINIMUM_TWO_POLE_FILTER( pVtm_t->DifferentiatedVoicing,
                                pVtm_t->DifferentiatedGlottalFlow,
                                pVtm_t->LowPassDelay_1,
@@ -964,10 +997,6 @@ if(uiNs == nopen)
                                pVtm_t->LowPass_a1,
                                pVtm_t->LowPass_a2 );
 
-#else
-#warning need to remove low-pass filter for 22kHz, most likely wrong!
-      pVtm_t->DifferentiatedVoicing = pVtm_t->DifferentiatedGlottalFlow;
-#endif
       pVtm_t->uiVoicePeriodSampleNumber++;
     }
 #else
@@ -1145,6 +1174,12 @@ if(uiNs == nopen)
     /******************************************************************/
 
 	
+#if PC_SAMPLE_RATE == 22050
+#warning Need to scale noise for parallel vocal tract, probably wrong
+    if (pVtm_t->SampleRate >= 19000.0 ) {
+      Noise *= 10;
+    }
+#endif
 
     /******************************************************************/
     /*  Sixth Formant of Parallel Vocal Tract.                        */
@@ -1496,8 +1531,8 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 #if PC_SAMPLE_RATE == 22050
   else
   {
-    flp = 948;
-    blp = 615/2;
+    flp = 948*2;
+    blp = 615*2;
   }
 #endif
 
@@ -1733,7 +1768,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 #if PC_SAMPLE_RATE == 22050
 #warning need to modify scale factor for 22kHz
   if ( pVtm_t->SampleRate > 11025) {
-    pVtm_t->OutputScaleFactor /= 2;
+    pVtm_t->OutputScaleFactor /= 100;
   }
 #endif
 
