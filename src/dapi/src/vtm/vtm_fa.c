@@ -262,7 +262,6 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 #define SWG_INIT_VALUE 0 //(12345)
                  /*  Current loc in voicing period at 4 * Fs       */
   int nsr4;  /*  Counter of 4 samples in glottal source loop   */
-  int Index;
   unsigned int uiNs;	// position within frame
   // local variables from the speech packet
   S32_T AVinDB;     /*  Amp of voicing in dB,        0 to   70 */
@@ -902,11 +901,9 @@ if(uiNs == nopen)
         /*  lookup.                                                   */
         /**************************************************************/
 #ifndef NEW_VTM
-        Index = (int)( 0.125 * FZinHZ );
-
-        pVtm_t->Nasal_b0 = Nasal_b0_Table[Index];
-        pVtm_t->Nasal_b1 = Nasal_b1_Table[Index];
-        pVtm_t->Nasal_b2 = Nasal_b2_Table[Index];
+        pVtm_t->Nasal_b0 = Nasal_b0_calc(FZinHZ);
+        pVtm_t->Nasal_b1 = Nasal_b1_calc(FZinHZ);
+        pVtm_t->Nasal_b2 = Nasal_b2_calc(FZinHZ);
 #else
 
   DESIGN_TWO_POLE_FILTER( pVtm_t->NasalResonator_a1,
@@ -928,8 +925,8 @@ if(uiNs == nopen)
        b2 = -a2 * b0_T
 	   */
 	
-	 Radius = radius_table[(10 )]; //80 >> 3
-     pVtm_t->Nasal_b1 = Radius * CosineTable[(FZinHZ>>3 )]; 
+	 Radius = radius_calc(80 ); //80 >> 3
+     pVtm_t->Nasal_b1 = Radius * CosineCalc(FZinHZ ); 
      pVtm_t->Nasal_b2 = - Radius * Radius; 		 
 	 pVtm_t->Nasal_b0= (FLTPNT_T)1.0 -pVtm_t->Nasal_b2-pVtm_t->Nasal_b1;
 

@@ -54,8 +54,8 @@ extern FLTPNT_T InverseSampleRateScale;
   } \
   else \
   { \
-    Radius = radius_table[( (S32)BW>>3 )]; \
-    A1 = Radius * CosineTable[( (S32)Freq>>3 )]; \
+    Radius = radius_calc( BW ); \
+    A1 = Radius * CosineCalc( Freq ); \
     A2 = - Radius * Radius; \
   } \
   UnityGainAtDC = (FLTPNT_T)1.0 - A1 - A2;

@@ -370,6 +370,23 @@ FLTPNT_T B0[] = {
 /*                                                                    */
 /**********************************************************************/
 
+#if 1
+#define Nasal_BW 80.f
+#define Nasal_T (1.f/10000.f)
+#define Nasal_Gain 1.0
+#define Nasal_a1_calc (-expf(-2.f * M_PI * Nasal_BW * Nasal_T))
+#define Nasal_a2_calc(FZinHZ) (2.f * expf(-M_PI * Nasal_BW * Nasal_T) * cosf(2.f * M_PI * (FZinHZ) * Nasal_T))
+#define Nasal_b0T_calc(FZinHZ) (1.0 - Nasal_a1_calc - Nasal_a2_calc(FZinHZ))
+
+#define Nasal_b0_calc(FZinHZ) (Nasal_Gain / Nasal_b0T_calc(FZinHZ))
+/* These seem to be reversed?! */
+#define Nasal_b1_calc(FZinHZ) (-Nasal_a2_calc(FZinHZ) * Nasal_b0_calc(FZinHZ))
+#define Nasal_b2_calc(FZinHZ) (-Nasal_a1_calc * Nasal_b0_calc(FZinHZ))
+#else
+#define Nasal_b0_calc(FZinHZ) (Nasal_b0_Table[((int)( 0.125 * FZinHZ ))])
+#define Nasal_b1_calc(FZinHZ) (Nasal_b1_Table[((int)( 0.125 * FZinHZ ))])
+#define Nasal_b2_calc(FZinHZ) (Nasal_b2_Table[((int)( 0.125 * FZinHZ ))])
+
 FLTPNT_T Nasal_b0_Table[] = {
   1623.350994,  1560.917704,  1399.452298,  1193.663055,  989.881513,
   811.718222,  665.358214,  548.485973,  456.058920,  382.931102,
@@ -753,6 +770,7 @@ FLTPNT_T Nasal_b2_Table[] = {
   0.243911,  0.243881,  0.243855,  0.243832,  0.243812,
   0.243795,  0.243781,  0.243770,  0.243763,  0.243758
 };
+#endif
 
 /**********************************************************************/
 /*                                                                    */
@@ -798,6 +816,11 @@ FLTPNT_T dBtoLinear[88] = {
 /*  c = cos( 2 pi f / 10,000 ) where f = 0.0, 8.0, 16.0, ..., 4992    */
 /*                                                                    */
 /**********************************************************************/
+
+#if 1
+#define CosineCalc(f) (cosf(2.f * M_PI * (f) / 10000.f) * 2)
+#else
+#define CosineCalc(f) (CosineTable[(S32)(f>>3)])
 
 FLTPNT_T CosineTable[] = {
   2.000000,  1.999975,  1.999899,  1.999773,  1.999596,
@@ -926,6 +949,7 @@ FLTPNT_T CosineTable[] = {
   -1.997474,  -1.997954,  -1.998383,  -1.998762,  -1.999090,
   -1.999368,  -1.999596,  -1.999773,  -1.999899,  -1.999975
 };
+#endif
 
 /**********************************************************************/
 /*                                                                    */
@@ -934,6 +958,11 @@ FLTPNT_T CosineTable[] = {
 /*  radius = exp( - pi * b /10,000 ) where b = 0.0, 8.0, ..., 4992    */
 /*                                                                    */
 /**********************************************************************/
+
+#if 1
+#define radius_calc(b) (expf(-M_PI * (b) / 10000.f))
+#else
+#define radius_calc(b) (radius_table[(S32)(b>>3)])
 
 FLTPNT_T radius_table[] = {
   0.0, 0.997490,  0.994986,  0.992489,  0.989997,  0.987512,
@@ -1062,5 +1091,6 @@ FLTPNT_T radius_table[] = {
   0.212635,  0.212102,  0.211569,  0.211038,  0.210508,
   0.209980,  0.209453,  0.208927,  0.208403
 };
+#endif
 
 #endif
