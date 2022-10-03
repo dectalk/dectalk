@@ -117,7 +117,7 @@
 **          -fo file   Output wave file name, default: dtmemory.wav
 **          -h        This help message
 **          -r  #      Speaking rate ( 75 - 600 )
-**          -s  #      Speaker number (1-9)
+**          -s  #      Speaker number (0-9)
 **          -fi file   Speak from a specified text file
 **
 **     - OR -
@@ -233,7 +233,7 @@ static void usage(char *progname)
     fprintf(stderr,"                    stdout:raw Raw PCM or MULAW samples in host byte order\n");
     fprintf(stderr,"          -h        This help message\n");
     fprintf(stderr,"          -r  #      Speaking rate ( 75 - 600 )\n");
-    fprintf(stderr,"          -s  #      Speaker number (1-9)\n");
+    fprintf(stderr,"          -s  #      Speaker number (0-9)\n");
     fprintf(stderr,"          -fi file   Speak from a specified text file\n");
     if (dt_langs!=NULL && dt_langs->MultiLang==TRUE)
         fprintf(stderr,"          -l lang    Use specific language (us,uk,gr,sp,la,fr)\n");
