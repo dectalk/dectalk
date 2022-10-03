@@ -127,6 +127,7 @@
 #ifdef DTEX
 #include "version.h"
 #endif
+#include "coop.h"
 
 /* pick up the definition of MAXI_PHONES and COMMA */
 #include "l_com_ph.h"
@@ -2018,6 +2019,7 @@ int cm_cmd_power(LPTTS_HANDLE_T phTTS)
 			return(CMD_bad_string);
 	}
 }
+#endif /*DTEX*/
 
 /* *****************************************************************
  *      Function Name: #ifdef DTEX cm_cmd_version() 
@@ -2041,6 +2043,9 @@ int cm_cmd_version(LPTTS_HANDLE_T phTTS)
 	unsigned int old_sayflag;
     PCMD_T pCmd_t = phTTS->pCMDThreadData;           
     PKSD_T pKsd_t = phTTS->pKernelShareData;
+#ifndef DTEX
+        unsigned char versionstr[128] = { 0 };
+#endif
     
 	cmd_type =  cm_util_string_match(version_options,pCmd_t->pString[0]);
 	if (cmd_type == NO_STRING_MATCH)
@@ -2055,13 +2060,23 @@ int cm_cmd_version(LPTTS_HANDLE_T phTTS)
 			if(cm_cmd_sync(phTTS) == CMD_flushing)
 				return(CMD_flushing);
 
+#ifdef DTEX
                         cm_util_say_string(pKsd_t, (unsigned char *)versionspeak, 1);
+#else
+			sprintf(versionstr, "\rVersion \r %s \r %s \r", VERSION, RELEASE);
+                        cm_util_say_string(pKsd_t, versionstr, 1);
+#endif
 			if(cm_cmd_sync(phTTS) == CMD_flushing)
 				return(CMD_flushing);
 			return(CMD_success);
 			break;
 		case 1: /* status */
+#ifdef DTEX
 			printf("[:version %f]\n",&pKsd_t->version[0]);
+#else
+			sprintf(versionstr, "Version %s %s", VERSION, RELEASE);
+			printf("[:version %s]\n",versionstr);
+#endif
 			return(CMD_success);
 			break;
 		default:
@@ -2069,6 +2084,7 @@ int cm_cmd_version(LPTTS_HANDLE_T phTTS)
 	}
 }
 
+#ifdef DTEX 
 /* ******************************************************************
  *      Function Name: #ifdef DTEX cm_cmd_tsr()        
  *

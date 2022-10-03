@@ -239,6 +239,7 @@ const unsigned char *power_options[] = {
 	"lspeak",	// say the power status in loader.c .
 	0
 	};
+#endif /* DTEX */
 
 /* 
  * Used in cm_cmd_version()
@@ -250,6 +251,7 @@ const unsigned char *version_options[] = {
 	0
 	};
                                  
+#ifdef DTEX
 /*  
  * Used in cm_cmd_tsr()
  * [:tsr  stuff
@@ -481,6 +483,7 @@ const struct dtpc_command command_table[] = {
 #ifdef DBGV_ON
 	{"dbgv","dddddddddd",1,DCS_DBGV,cm_cmd_dbgv},
 #endif
+        {"version","a",1,0,cm_cmd_version},
 
 #ifdef MSDOS
 	{"clk_rate","d",1,DCS_CPU_RATE,cm_cmd_cpu_rate},
@@ -489,7 +492,6 @@ const struct dtpc_command command_table[] = {
         {"break","a",1,DCS_BREAK,cm_cmd_break}
 #ifdef DTEX
 	,{"power","ad",2,0,cm_cmd_power},
-        {"version","a",1,0,cm_cmd_version},
         {"tsr","a",1,0,cm_cmd_tsr}
 #endif /* DTEX */
 #endif // MSDOS

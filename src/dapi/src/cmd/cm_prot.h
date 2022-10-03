@@ -114,7 +114,9 @@ extern int      cm_cmd_vs(LPTTS_HANDLE_T phTTS);                /* special entry
 
 #ifdef DTEX
 extern int      cm_cmd_power(LPTTS_HANDLE_T phTTS);          /* battery and power related stuff */
+#endif /*DTEX*/
 extern int      cm_cmd_version(LPTTS_HANDLE_T phTTS);        /* say/return version.*/
+#ifdef DTEX
 extern int      cm_cmd_tsr(LPTTS_HANDLE_T phTTS);            /* [:tsr modes.. */
 #endif /*DTEX*/
 

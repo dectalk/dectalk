@@ -323,6 +323,26 @@ void cm_util_say_string(PKSD_T pKsd_t, unsigned char _far *instr, short mode)
 	}	
 
 }
+#else
+void cm_util_say_string(PKSD_T pKsd_t, unsigned char _far *instr, short mode)
+{
+	/* push a string into the input buffer.. */
+	unsigned short pipe_value[2] = { 0 };
+	unsigned short i;
+	for (i=0;instr[i] != '\0'; i++)
+	{
+		/* GL 11/26/1996 send the string to pipe to maintain the sync. */
+		{
+			pipe_value[0] = (PFASCII<<PSFONT)+instr[i];
+#ifndef SINGLE_THREADED
+			cm_util_write_pipe(pKsd_t,pKsd_t->lts_pipe,&pipe_value,1);
+#else
+			lts_loop(pKsd_t->phTTS, pipe_value);
+#endif
+		}
+	}
+
+}
 #endif
 
 

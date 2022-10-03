@@ -235,7 +235,7 @@
 #ifdef HLSYN
 #define VERSION					"5.00"							// CAB - Moved here
 #else
-#define VERSION					"4.62"
+#define VERSION					"4.99"
 #endif
 
 #ifdef HLSYN
@@ -245,7 +245,7 @@
 //#define DTALK_MIN_VERSION_CHAR  0                               // CJL - DTALK Version Check-char
 #else
 #define DTALK_MAJ_VERSION       4                               // KSB - DTALK Version Check-dec
-#define DTALK_MIN_VERSION       62                               // KSB - DTALK Version Check-dec
+#define DTALK_MIN_VERSION       99                               // KSB - DTALK Version Check-dec
 #endif
 
 #define DLL_MAJ_VERSION         3                               // KSB - DLL Version Check
@@ -264,7 +264,7 @@
 #endif
 /* ************************************************************************* */
 
-#define RELEASE					"B004"
+#define RELEASE					"Github"
 //#define PRODUCT_BUILD_TYPE      "R"                               // CJL - Production Build Type B or R
 //#define PRODUCT_BUILD_VERSION   002                               // CJL - Production Build Version xxx
 
