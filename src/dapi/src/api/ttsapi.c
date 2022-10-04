@@ -12031,6 +12031,13 @@ MMRESULT TextToSpeechSetVolume( LPTTS_HANDLE_T phTTS,int type, int volume)
 	{
 	case VOLUME_MAIN:
 		phTTS->pKernelShareData->volume=volume;
+#ifdef SOFTWARE_VOLUME
+	       StereoVolumeControl( phTTS,
+                                        volume,
+                                        VOLUME_SET,
+                                        TRUE,
+                                        TRUE );
+#endif
 		break;
 	case VOLUME_ATTENUATION:
 		phTTS->pKernelShareData->vol_att=volume;
