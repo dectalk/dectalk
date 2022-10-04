@@ -1588,7 +1588,11 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     fcntl(audio, F_SETFD, 1); /* set close on exec flag */
     wwo->unixdev = audio;
 #else
-    pa_ss.format = PA_SAMPLE_S16NE;
+    if (lpDesc->lpFormat->wBitsPerSample == 8) {
+	    pa_ss.format = PA_SAMPLE_U8;
+    } else {
+	    pa_ss.format = PA_SAMPLE_S16NE;
+    }
     pa_ss.channels = lpDesc->lpFormat->nChannels;
     pa_ss.rate = lpDesc->lpFormat->nSamplesPerSec;
     wwo->pa_conn = pa_simple_new(NULL,
