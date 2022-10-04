@@ -384,7 +384,9 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   /********************************************************************/
 
   T0inS4 =variabpars[OUT_T0];
+#ifdef HLSYN
   FZinHZ = variabpars[OUT_FZ];
+#endif
 #ifdef NEW_VTM
   FNPinHZ=(variabpars[OUT_FNP]);
 #endif
@@ -394,7 +396,9 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   case SAMPLE_RATE_INCREASE:
 
     T0inS4 = frac1mul( pVtm_t->rate_scale, T0inS4 ) << 1;
+#ifdef HLSYN
     FZinHZ = frac1mul( pVtm_t->inv_rate_scale, FZinHZ );
+#endif
 #ifdef NEW_VTM
     FNPinHZ = frac1mul( pVtm_t->inv_rate_scale, FNPinHZ );
 #endif
@@ -403,7 +407,9 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   case SAMPLE_RATE_DECREASE:
 
     T0inS4 = frac1mul( pVtm_t->rate_scale, T0inS4 );
+#ifdef HLSYN
     FZinHZ = frac1mul( pVtm_t->inv_rate_scale, FZinHZ ) << 1;
+#endif
 #ifdef NEW_VTM
     FNPinHZ = frac1mul( pVtm_t->inv_rate_scale, FNPinHZ ) << 1;
 #endif
@@ -445,7 +451,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 
   F3inHZ = FormantScale * (FLTPNT_T)variabpars[OUT_F3];
 
-  FZinHZ = InverseSampleRateScale * (FLTPNT_T)FZinHZ;
+  FZinHZ = InverseSampleRateScale * (FLTPNT_T)variabpars[OUT_FZ];
 #endif
 
 
@@ -1768,7 +1774,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 #if PC_SAMPLE_RATE == 22050
 #warning need to modify scale factor for 22kHz
   if ( pVtm_t->SampleRate > 11025) {
-    pVtm_t->OutputScaleFactor /= 100;
+    pVtm_t->OutputScaleFactor /= 30;
   }
 #endif
 
