@@ -115,9 +115,13 @@
 **                       2   for PCM,  8 bit Mono 11KHz format
 **                       3   for MULAW 8 bit Mono  8KHz format
 **          -fo file   Output wave file name, default: dtmemory.wav
-**          -h        This help message
+**                     Also supports Sun .au and two virtual stdout streams:
+**                     stdout:au Sun au with unknown length
+**                     stdout:raw Raw PCM or MULAW samples in host byte order
+**          -h         This help message
 **          -r  #      Speaking rate ( 75 - 600 )
 **          -s  #      Speaker number (0-9)
+**          -v  #      Volume (0-100)
 **          -fi file   Speak from a specified text file
 **
 **     - OR -
@@ -227,13 +231,14 @@ static void usage(char *progname)
     fprintf(stderr,"                       1   for PCM, 16 bit Mono 11KHz format\n");
     fprintf(stderr,"                       2   for PCM,  8 bit Mono 11KHz format\n");
     fprintf(stderr,"                       3   for MULAW 8 bit Mono  8KHz format\n");
-    fprintf(stderr,"          -fo file  Output wave file name, default: dtmemory.wav\n");
-    fprintf(stderr,"                    Also supports Sun .au and two virtual stdout streams:\n");
-    fprintf(stderr,"                    stdout:au Sun au with unknown length\n");
-    fprintf(stderr,"                    stdout:raw Raw PCM or MULAW samples in host byte order\n");
-    fprintf(stderr,"          -h        This help message\n");
+    fprintf(stderr,"          -fo file   Output wave file name, default: dtmemory.wav\n");
+    fprintf(stderr,"                     Also supports Sun .au and two virtual stdout streams:\n");
+    fprintf(stderr,"                     stdout:au Sun au with unknown length\n");
+    fprintf(stderr,"                     stdout:raw Raw PCM or MULAW samples in host byte order\n");
+    fprintf(stderr,"          -h         This help message\n");
     fprintf(stderr,"          -r  #      Speaking rate ( 75 - 600 )\n");
     fprintf(stderr,"          -s  #      Speaker number (0-9)\n");
+    fprintf(stderr,"          -v  #      Volume (0-100)\n");
     fprintf(stderr,"          -fi file   Speak from a specified text file\n");
     if (dt_langs!=NULL && dt_langs->MultiLang==TRUE)
         fprintf(stderr,"          -l lang    Use specific language (us,uk,gr,sp,la,fr)\n");
@@ -277,6 +282,7 @@ int main( int argc, char *argv[] )
     int  userSelectedDevice = 0;
     int speaker_id = -1;
     int rate       = -1;
+    int volume     = -1;
     int i; 
     unsigned int file_arg_index; 
     int isAPipe = FALSE;
@@ -336,6 +342,19 @@ int main( int argc, char *argv[] )
 	{
 	    i++;
 	    rate = atoi( argv[i] );
+	}
+
+        /************************************************/
+        /* Volume        				*/
+        /************************************************/
+	else if ( strcmp("-v",argv[i]) == 0 )
+	{
+	    i++;
+	    volume = atoi( argv[i] );
+	    if (volume < 0)
+	      volume = 0;
+	    if (volume > 100)
+	      volume = 100;
 	}
 
         /************************************************/
@@ -539,6 +558,9 @@ int main( int argc, char *argv[] )
     /***********************************************/
     if ( rate != (-1) )
        TextToSpeechSetRate (  ttsHandle, rate );
+
+    if (volume != (-1))
+       TextToSpeechSetVolume(ttsHandle, VOLUME_MAIN, volume);
 
     if ( specifiedOutputFile != -1 )
     {
