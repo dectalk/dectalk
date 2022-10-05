@@ -2044,7 +2044,12 @@ int cm_cmd_version(LPTTS_HANDLE_T phTTS)
     PCMD_T pCmd_t = phTTS->pCMDThreadData;           
     PKSD_T pKsd_t = phTTS->pKernelShareData;
 #ifndef DTEX
-        unsigned char versionstr[128] = { 0 };
+        unsigned char versionstr[512] = { 0 };
+	char datestr[] = __DATE__;
+	char *datepart[2];
+	int i;
+	int j=0;
+	int skip = 0;
 #endif
     
 	cmd_type =  cm_util_string_match(version_options,pCmd_t->pString[0]);
@@ -2063,8 +2068,23 @@ int cm_cmd_version(LPTTS_HANDLE_T phTTS)
 #ifdef DTEX
                         cm_util_say_string(pKsd_t, (unsigned char *)versionspeak, 1);
 #else
-			sprintf(versionstr, "\rVersion \r %s \r %s \r", VERSION, RELEASE);
-                        cm_util_say_string(pKsd_t, versionstr, 1);
+			for (i = 0; datestr[i] != '\0'; i++) {
+				if (datestr[i] == ' ' && !skip) {
+					datestr[i] = '\0';
+					datepart[j] = &(datestr[i+1]);
+					j++;
+					if (j > 1) break;
+					skip = 1;
+				} else if (datestr[i] != ' ') {
+					skip = 0;
+				}
+			}
+			/* Taken from DTC-01 firmware, including misspelling(?) of hear */
+			sprintf(versionstr, "\rHello. This is DECtalk. The firmware version is %d point %d %s. The code memories were generated on %s-%s-%s. The dictionary memories were generated on %s-%s-%s. There are many bytes free. If you can here this, there is a good chance that your DECtalk is working.\r",
+				DTALK_MAJ_VERSION, DTALK_MIN_VERSION, RELEASE,
+				datepart[0], datestr, datepart[1], datepart[0], datestr, datepart[1]);
+
+			cm_util_say_string(pKsd_t, versionstr, 1);
 #endif
 			if(cm_cmd_sync(phTTS) == CMD_flushing)
 				return(CMD_flushing);
