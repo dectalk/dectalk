@@ -474,56 +474,6 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   TiltInDB = variabpars[OUT_TLT] - 12; //- 12;    /*  Tilt in dB at 3 kHz     */
 #endif
 
-#if PC_SAMPLE_RATE == 22050
-#warning paper over that our pipe to ph/ is only S16 and we might get overflows, this needs to be fixed!
-  if ( pVtm_t->SampleRate >= 19000 ) {
-    if (F1inHZ < 0)
-      F1inHZ = 0;
-
-    if (F2inHZ < 0)
-      F2inHZ = 0;
-
-    if (F3inHZ < 0)
-      F3inHZ = 0;
-
-    if (FZinHZ < 0)
-      FZinHZ = 0;
-
-    if (B1inHZ < 0)
-      B1inHZ = 0;
-
-    if (B2inHZ < 0)
-      B2inHZ = 0;
-
-    if (B3inHZ < 0)
-      B3inHZ = 0;
-
-    if (AVinDB < -4)
-      AVinDB = -4;
-
-    if (APinDB < -10)
-      APinDB = -10;
-
-    if (A2inDB < -13)
-      A2inDB = -13;
-
-    if (A3inDB < -11)
-      A3inDB = -11;
-
-    if (A4inDB < -8)
-      A4inDB = -8;
-
-    if (A5inDB < -7)
-      A5inDB = -6;
-
-    if (A6inDB < -6)
-      A6inDB = -6;
-
-    if (ABinDB < -5)
-      ABinDB = -5;
-}
-#endif
-  
 #ifdef HLSYN
   if (TiltInDB<2)
 	  TiltInDB =2;
@@ -1183,7 +1133,7 @@ if(uiNs == nopen)
 #if PC_SAMPLE_RATE == 22050
 #warning Need to scale noise for parallel vocal tract, probably wrong
     if (pVtm_t->SampleRate >= 19000.0 ) {
-      Noise *= 10;
+      Noise *= 5;
     }
 #endif
 
