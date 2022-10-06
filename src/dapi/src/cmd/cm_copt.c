@@ -2080,7 +2080,7 @@ int cm_cmd_version(LPTTS_HANDLE_T phTTS)
 				}
 			}
 			/* Taken from DTC-01 firmware, including misspelling(?) of hear */
-			sprintf(versionstr, "\rHello. This is DECtalk. The firmware version is %d point %d %s. The code memories were generated on %s-%s-%s. The dictionary memories were generated on %s-%s-%s. There are many bytes free. If you can here this, there is a good chance that your DECtalk is working.\r",
+			sprintf(versionstr, "\rHello. This is DECtalk. The software version is %d point %d %s. The code memories were generated on %s-%s-%s. The dictionary memories were generated on %s-%s-%s. There are many bytes free. If you can here this, there is a good chance that your DECtalk is working.\r",
 				DTALK_MAJ_VERSION, DTALK_MIN_VERSION, RELEASE,
 				datepart[0], datestr, datepart[1], datepart[0], datestr, datepart[1]);
 
