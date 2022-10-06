@@ -1159,6 +1159,7 @@ GERMAN
 static void make_f0_command (PDPH_T pDph_t,short type, short rulenumber, short tar,
 				 			 short delay,short length, short *psCumdur)
 {
+	PKSD_T pKsd_t = pDph_t->phTTS->pKernelShareData;
 
 	/* Cudur reflects time (in frames) since last f0 command        */
 	/* Cumdur+delay should never be less than zero                  */
@@ -1168,6 +1169,9 @@ static void make_f0_command (PDPH_T pDph_t,short type, short rulenumber, short t
 
 		
 		//WINprintf("rule %d tar %d delay %d \n",rulenumber, tar, delay);
+	if (DT_DBG(PH_DBG,0x010))
+		printf("rule %d type %d tar %d delay %d length %d  \n", rulenumber, type, tar, delay, length);
+
 	if ((delay + *psCumdur) < 0)
 	{
 		delay = -(*psCumdur);
@@ -2047,6 +2051,7 @@ static void make_f0_command (PDPH_T pDph_t, short rulenumber, short tar, short d
 	
 
 {
+	PKSD_T pKsd_t = pDph_t->phTTS->pKernelShareData;
 
 	/* Cudur reflects time (in frames) since last f0 command        */
 	/* Cumdur+delay should never be less than zero                  */
@@ -2054,6 +2059,9 @@ static void make_f0_command (PDPH_T pDph_t, short rulenumber, short tar, short d
 	/* static short prpholas, temp; *//* MVP : Never Used,comment it out */
 	/* If requested time is earlier than last f0 command, zero offset */
 	/* WINprintf("rule %d tar %d delay %d \n",rulenumber, tar, delay);*/
+
+	if (DT_DBG(PH_DBG,0x010))
+		printf("rule %d tar %d delay %d length %d  \n", rulenumber, tar, delay, length);
 
 	if ((delay + *psCumdur) < 0)
 	{
