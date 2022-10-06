@@ -1100,8 +1100,10 @@ if(pKsd_t->lang_curr == LANG_latin_american
 			{
 				if (is_wboundary ( (short)(pDph_t->symbols[m] & PVALUE) ) )
 				{
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 					if ((pDph_t->symbols[m] & PVALUE) == WBOUND)
 						m++;
+#endif
 					if (((pDph_t->symbols[m] & PVALUE) >= COMMA)
 
 						|| (((pDph_t->symbols[m] & PVALUE) == PPSTART) && (pDph_t->symbols[m + 1] != USP_W)))
