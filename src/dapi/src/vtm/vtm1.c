@@ -1289,13 +1289,17 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	 //noise with a breathy voice. 
 	 if (pVtm_t->avlind == 0 && (variabpars[OUT_PH] & PVALUE) == 0 )
 	 {
-		 pVtm_t->rampdown += 200;
+		  if (pVtm_t->rampdown >= 0)
+		         pVtm_t->rampdown += 200;
+		  else
+		         pVtm_t->rampdown += 1;
 		  if (pVtm_t->rampdown >= 4096)
 			 pVtm_t->rampdown = 4096;
-		  out = frac4mul( out,(4096 - pVtm_t->rampdown));
+		  if (pVtm_t->rampdown >= 0)
+		         out = frac4mul( out,(4096 - pVtm_t->rampdown));
 	 }
 	 else
-		 pVtm_t->rampdown=0;
+		 pVtm_t->rampdown=-(pKsd_t->uiSampleRate>>3)-(pKsd_t->uiSampleRate>>4);
 #endif
 
     /******************************************************************/
@@ -1464,6 +1468,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   S16 a1gain;    /*  Gain in dB for the 1st cascade resonator.          */
 
   PVTM_T pVtm_t = phTTS->pVTMThreadData;
+  PKSD_T pKsd_t = phTTS->pKernelShareData;
 
     /********************************************************************/
   /*  Zero Vocal-Tract-Model parameters.                              */
@@ -1518,6 +1523,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 	/* Second sample of the tilt filter. 
 	   10/96 eab this filter parameter needs to be zeroed also */
 	pVtm_t->one_minus_decay = 0;
+	pVtm_t->rampdown = -(pKsd_t->uiSampleRate>>3)-(pKsd_t->uiSampleRate>>4);
 
 	pVtm_t->avlind = 0;		// tek 08oct96
 	pVtm_t->voice0 = 0;		// tek 08oct96
