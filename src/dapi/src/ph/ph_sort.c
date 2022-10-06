@@ -1166,7 +1166,10 @@ if(pKsd_t->lang_curr == LANG_latin_american
 		}
 
 	
+/* I'm more or less certain, this is an error in all cases, but that's the state of newer versions: */
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 		}
+#endif
 
 #if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
 #if defined ENGLISH_US || defined SPANISH || defined GERMAN
@@ -1179,28 +1182,20 @@ if(pKsd_t->lang_curr == LANG_latin_american
 #endif
                 {
                         /* if ((pDph_t->symbols[n] == S1) || (pDph_t->symbols[n] == SEMPH)) */ /* english */
-                        if (pDph_t->symbols[n] != S2)           /* these are the same */                   /* spanish */
+                        if ((pDph_t->symbols[n] & PVALUE) != S2)           /* these are the same */                   /* spanish */
                         {
                                 nstresses++;               /* Count # stresses to this point */
                         }
                         /* Examine following input for next segment, see if syllabic */
                         m = n + 1;
-#if defined ENGLISH_US
-                        while ((pDph_t->symbols[m] >= US_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
-#elif defined GERMAN
-                        while ((pDph_t->symbols[m] >= GR_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
-#elif defined SPANISH_SP
-                        while ((pDph_t->symbols[m] >= SP_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
-#elif defined SPANISH_LA
-                        while ((pDph_t->symbols[m] >= LA_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
-#endif
+                        while (((pDph_t->symbols[m] & PVALUE) >= MAX_PHONES) && (m < pDph_t->nsymbtot))
                         {
 #ifdef ENGLISH_US
-                                if (pDph_t->symbols[m] > WBOUND && pDph_t->symbols[m] < NEW_PARAGRAPH
-                                        && pDph_t->symbols[m] != HYPHEN /* xxx for auto compunds */ )
+                                if ((pDph_t->symbols[m] & PVALUE) > WBOUND && (pDph_t->symbols[m] & PVALUE) < NEW_PARAGRAPH
+                                        && (pDph_t->symbols[m] & PVALUE) != HYPHEN /* xxx for auto compunds */ )
 #endif
 #if defined SPANISH || defined GERMAN 
-                                if (pDph_t->symbols[m] >= SBOUND)
+                                if ((pDph_t->symbols[m] & PVALUE) >= SBOUND)
 #endif
                                 {
                                         nstresses--;
@@ -1224,6 +1219,43 @@ if(pKsd_t->lang_curr == LANG_latin_american
 		if (((pDph_t->symbols[n] & PVALUE) >= SBOUND) && ((pDph_t->symbols[n] & PVALUE) <= EXCLAIM))
 		{
 /* for (m=n+1; m<pDph_t->nsymbtot; m++) out-goofs up when trying to do all at once { */
+#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
+#if defined ENGLISH_US || defined GERMAN
+#ifdef ENGLISH_US
+                        m = n + 1;
+                        if (m < pDph_t->nsymbtot)
+                        {
+                                /* if (pDph_t->symbols[m] < TOT_ALLOPHONES)    break; */
+                                if (((pDph_t->symbols[m] & PVALUE) >= SBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
+                                {
+                                        zap_weaker_bound (phTTS, n, m);
+                                }
+                        }
+#endif
+#ifdef GERMAN
+                        for (m = n + 1; m < pDph_t->nsymbtot; m++)
+                        {
+                                if ((pDph_t->symbols[m] & PVALUE) < GR_TOT_ALLOPHONES)
+                                        break;
+                                if (((pDph_t->symbols[m] & PVALUE) >= SBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
+                                {
+                                        zap_weaker_bound (phTTS, n, m);
+                                }
+                        }
+#endif
+                }
+                /* Replace weak boundaries by stronger ones at slow rates */
+                if (pKsd_t->sprate <= 120)
+                {
+                        if (((pDph_t->symbols[n] & PVALUE) == VPSTART) || ((pDph_t->symbols[n] & PVALUE) == PPSTART))
+                        {
+                                pDph_t->symbols[n] = COMMA;
+                        }
+		}
+#else
+		}
+#endif  /* #if defined ENGLISH_US || defined GERMAN*/
+#endif
 
 		if (pKsd_t->sprate <= 140)
 		{
@@ -1232,8 +1264,6 @@ if(pKsd_t->lang_curr == LANG_latin_american
 				pDph_t->symbols[n] = VPSTART;
 			}
 		}
-
-
 
 		/* Every breath group must have at least one 1-stress */
 		if (((pDph_t->symbols[n]& PVALUE) >= COMMA) && ((pDph_t->symbols[n]& PVALUE) <= EXCLAIM))
