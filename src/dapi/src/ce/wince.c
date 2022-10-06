@@ -69,14 +69,6 @@
 #endif
 
 
-#ifndef SMARTMEDIA
-#ifndef CUP28PROJECT
-#if	(UNDER_CE != 200)
-#include <wce.h>
-#endif
-#endif
-#endif
-
 #if defined(_WIN32_WCE) && (_WIN32_WCE == 200)
 #define WINCE200
 #endif

@@ -75,50 +75,5 @@ void WideStringtoAsciiString(char *, wchar_t *,unsigned int);
 
 DWORD timeGetTime(void); 
 
-/* RIFF chunk information data structure */
-typedef struct _MMCKINFO
-{
-	FOURCC          ckid;           /* chunk ID */
-	DWORD           cksize;         /* chunk size */
-	FOURCC          fccType;        /* form type or list type */
-	DWORD           dwDataOffset;   /* offset of data portion of chunk */
-	DWORD           dwFlags;        /* flags used by MMIO functions */
-} MMCKINFO, *PMMCKINFO, NEAR *NPMMCKINFO, FAR *LPMMCKINFO;
-typedef const MMCKINFO *LPCMMCKINFO;
-
-//DECLARE_HANDLE(HMMIO);                  /* a handle to an open file */
-typedef LRESULT (CALLBACK MMIOPROC)(LPSTR lpmmioinfo, UINT uMsg,
-	    LPARAM lParam1, LPARAM lParam2);
-typedef MMIOPROC FAR *LPMMIOPROC;
-
-/* general MMIO information data structure */
-typedef struct _MMIOINFO
-{
-	/* general fields */
-	DWORD           dwFlags;        /* general status flags */
-	FOURCC          fccIOProc;      /* pointer to I/O procedure */
-	LPMMIOPROC      pIOProc;        /* pointer to I/O procedure */
-	UINT            wErrorRet;      /* place for error to be returned */
-	HTASK           htask;          /* alternate local task */
-
-	/* fields maintained by MMIO functions during buffered I/O */
-	LONG            cchBuffer;      /* size of I/O buffer (or 0L) */
-	HPSTR           pchBuffer;      /* start of I/O buffer (or NULL) */
-	HPSTR           pchNext;        /* pointer to next byte to read/write */
-	HPSTR           pchEndRead;     /* pointer to last valid byte to read */
-	HPSTR           pchEndWrite;    /* pointer to last byte to write */
-	LONG            lBufOffset;     /* disk offset of start of buffer */
-
-	/* fields maintained by I/O procedure */
-	LONG            lDiskOffset;    /* disk offset of next read or write */
-	DWORD           adwInfo[3];     /* data specific to type of MMIOPROC */
-
-	/* other fields maintained by MMIO */
-	DWORD           dwReserved1;    /* reserved for MMIO use */
-	DWORD           dwReserved2;    /* reserved for MMIO use */
-	HMMIO           hmmio;          /* handle to open file */
-} MMIOINFO, *PMMIOINFO, NEAR *NPMMIOINFO, FAR *LPMMIOINFO;
-typedef const MMIOINFO FAR *LPCMMIOINFO;
-
 #endif	// CEMM_HEADER
 #endif	// UNDER_CE
