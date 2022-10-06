@@ -129,7 +129,7 @@ static void find_syll_to_stress (LPTTS_HANDLE_T phTTS, short *locend, short nsta
 	PKSD_T                  pKsd_t = phTTS->pKernelShareData;
 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
 
-if(pKsd_t->lang_curr == LANG_german)
+if(pKsd_t->lang_curr != LANG_german)
 {
 	/* Try to promote a secondary stress to primary, working from back */
 	for (m = *locend - 1; m >= nstartphrase; m--)

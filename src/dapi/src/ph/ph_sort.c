@@ -1167,7 +1167,57 @@ if(pKsd_t->lang_curr == LANG_latin_american
 
 	
 		}
-//	  stzapped:
+
+#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
+#if defined ENGLISH_US || defined SPANISH || defined GERMAN
+                /* Look for dangling stress mark (i.e. not followed by +SYLL) */
+#ifdef GERMAN
+                if (((pDph_t->symbols[n] & PVALUE) >= S3) && ((pDph_t->symbols[n] & PVALUE) <= HAT_RF))
+#endif
+#if defined ENGLISH_US || defined SPANISH
+                if (((pDph_t->symbols[n] & PVALUE) >= S2) && ((pDph_t->symbols[n] & PVALUE) <= SEMPH))
+#endif
+                {
+                        /* if ((pDph_t->symbols[n] == S1) || (pDph_t->symbols[n] == SEMPH)) */ /* english */
+                        if (pDph_t->symbols[n] != S2)           /* these are the same */                   /* spanish */
+                        {
+                                nstresses++;               /* Count # stresses to this point */
+                        }
+                        /* Examine following input for next segment, see if syllabic */
+                        m = n + 1;
+#if defined ENGLISH_US
+                        while ((pDph_t->symbols[m] >= US_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
+#elif defined GERMAN
+                        while ((pDph_t->symbols[m] >= GR_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
+#elif defined SPANISH_SP
+                        while ((pDph_t->symbols[m] >= SP_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
+#elif defined SPANISH_LA
+                        while ((pDph_t->symbols[m] >= LA_TOT_ALLOPHONES) && (m < pDph_t->nsymbtot))
+#endif
+                        {
+#ifdef ENGLISH_US
+                                if (pDph_t->symbols[m] > WBOUND && pDph_t->symbols[m] < NEW_PARAGRAPH
+                                        && pDph_t->symbols[m] != HYPHEN /* xxx for auto compunds */ )
+#endif
+#if defined SPANISH || defined GERMAN 
+                                if (pDph_t->symbols[m] >= SBOUND)
+#endif
+                                {
+                                        nstresses--;
+                                        delete_symbol (phTTS, n);       /* Ignore stress at end of */
+                                        goto stzapped;     /* syllable or word     */
+                                }
+                                m++;
+                        }
+
+                        if ((phone_feature(pDph_t, pDph_t->symbols[m]) & FSYLL) IS_MINUS)
+                        {
+                                move_stdangle (phTTS, n);
+                        }
+                }
+	  stzapped:
+#endif
+#endif
 
 
 		/* Remove weaker of two boundary pDph_t->symbols in a row */
