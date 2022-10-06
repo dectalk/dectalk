@@ -1,8 +1,8 @@
 [Setup]
-AppName=DECtalk 5.0 SAPI5
-AppVerName=DECtalk 5.0 SAPI5
-DefaultDirName={pf}\DECtalk 5.0 SAPI5
-OutputBaseFilename=DECtalk 5.0 SAPI5
+AppName=DECtalk 4.99 SAPI5
+AppVerName=DECtalk 4.99 SAPI5
+DefaultDirName={pf}\DECtalk 4.99 SAPI5
+OutputBaseFilename=DECtalk 4.99 SAPI5
 Compression=lzma
 SolidCompression=yes
 

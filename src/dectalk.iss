@@ -1,12 +1,12 @@
 [Setup]
-AppName=DECtalk 5.0
-AppVerName=DECtalk 5.0
-DefaultDirName={pf}\DECtalk 5.0
-DefaultGroupName=DECtalk 5.0
+AppName=DECtalk 4.99
+AppVerName=DECtalk 4.99
+DefaultDirName={pf}\DECtalk 4.99
+DefaultGroupName=DECtalk 4.99
 AllowNoIcons=yes
 UserInfoPage=yes
 LicenseFile=kitting\license.txt
-OutputBaseFilename=DECtalk 5.0
+OutputBaseFilename=DECtalk 4.99
 Compression=lzma
 SolidCompression=yes
 
@@ -67,26 +67,26 @@ Source: "sampleML\envpatch\build\release\envpatch.exe"; DestDir: "{app}"; Compon
 Source: "sampleML\MLDemo\build\release\MLDemo.exe"; DestDir: "{app}"; Components: samples
 
 [Registry]
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62"; ValueName: "Company"; ValueType: String; ValueData: "{userinfoorg}"; Flags: uninsdeletevalue uninsdeletekeyifempty
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62"; ValueName: "Installer"; ValueType: String; ValueData: "{userinfoname}"; Flags: uninsdeletevalue uninsdeletekeyifempty
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\US"; ValueName: "Language"; ValueType: String; ValueData: "ENGLISH, US"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\US"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\us\dtalk_us.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\US"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk US version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\UK"; ValueName: "Language"; ValueType: String; ValueData: "ENGLISH, UK"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\UK"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\uk\dtalk_uk.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\UK"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk UK version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\SP"; ValueName: "Language"; ValueType: String; ValueData: "SPANISH"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: sp
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\SP"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\sp\dtalk_sp.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: sp
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\SP"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk SP version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: sp
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\LA"; ValueName: "Language"; ValueType: String; ValueData: "LATIN AMERICAN"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: la
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\LA"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\la\dtalk_la.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: la
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\LA"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk LA version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: la
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\GR"; ValueName: "Language"; ValueType: String; ValueData: "GERMAN"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\GR"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\gr\dtalk_gr.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\GR"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk GR version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\FR"; ValueName: "Language"; ValueType: String; ValueData: "FRENCH"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\FR"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\fr\dtalk_fr.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
-Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.62\FR"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk FR version 4.62"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99"; ValueName: "Company"; ValueType: String; ValueData: "{userinfoorg}"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99"; ValueName: "Installer"; ValueType: String; ValueData: "{userinfoname}"; Flags: uninsdeletevalue uninsdeletekeyifempty
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\US"; ValueName: "Language"; ValueType: String; ValueData: "ENGLISH, US"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\US"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\us\dtalk_us.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\US"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk US version 4.99"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\UK"; ValueName: "Language"; ValueType: String; ValueData: "ENGLISH, UK"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\UK"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\uk\dtalk_uk.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\UK"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk UK version 4.99"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\SP"; ValueName: "Language"; ValueType: String; ValueData: "SPANISH"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: sp
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\SP"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\sp\dtalk_sp.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: sp
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\SP"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk SP version 4.99"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: sp
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\LA"; ValueName: "Language"; ValueType: String; ValueData: "LATIN AMERICAN"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: la
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\LA"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\la\dtalk_la.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: la
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\LA"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk LA version 4.99"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: la
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\GR"; ValueName: "Language"; ValueType: String; ValueData: "GERMAN"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\GR"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\gr\dtalk_gr.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\GR"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk GR version 4.99"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: gr
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\FR"; ValueName: "Language"; ValueType: String; ValueData: "FRENCH"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\FR"; ValueName: "MainDict"; ValueType: String; ValueData: "{app}\fr\dtalk_fr.dic"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
+Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\4.99\FR"; ValueName: "Version"; ValueType: String; ValueData: "DECtalk FR version 4.99"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: fr
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\Langs"; ValueName: "DefaultLang"; Flags: uninsdeletevalue uninsdeletekeyifempty
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\Langs"; ValueName: "US"; ValueType: String; ValueData: "ENGLISH, US"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: us
 Root: HKLM; Subkey: "SOFTWARE\DECtalk Software\DECtalk\Langs"; ValueName: "UK"; ValueType: String; ValueData: "ENGLISH, UK"; Flags: uninsdeletevalue uninsdeletekeyifempty; Components: uk
