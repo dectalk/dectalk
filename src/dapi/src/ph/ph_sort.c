@@ -288,9 +288,9 @@ int fr_phsort (LPTTS_HANDLE_T phTTS)
   PKSD_T            pKsd_t     = phTTS->pKernelShareData;
   PDPH_T            pDph_t     = phTTS->pPHThreadData;
   PDPHSETTAR_ST     pDphsettar = pDph_t->pSTphsettar;
-	short *cp;
-	short  *durlookup(PDPH_T pDph_t,short *symbol , short table[]);
-	short tmp;
+  short *cp;
+  short  *durlookup(PDPH_T pDph_t,short *symbol , short table[]);
+  short tmp;
   short curr_in_sym = 0; // current symbol
   short n           = 0; // loop for
   short curr_dur    = 0;
@@ -447,20 +447,20 @@ int all_phsort (LPTTS_HANDLE_T phTTS)
 
 
 
-	short	nextvowel=0;
-	short   nextthing=0;
+        short	nextvowel=0;
+        short   nextthing=0;
 
-	short tmp=0;
-	short doneit=0;
+        short tmp=0;
+        short doneit=0;
 
 
-		short	phrase_after_quote = 0;
-		short	nsyll;	   /* Nbr. syllables       */
-		short	syllclass; /* Set if open syllable */
-		U32		iscoda;	   /* Set after nucleus    */
+        short	phrase_after_quote = 0;
+        short	nsyll;	   /* Nbr. syllables       */
+        short	syllclass; /* Set if open syllable */
+        U32		iscoda;	   /* Set after nucleus    */
 
-		pDph_t->special_phrase=0;
-	
+        pDph_t->special_phrase=0;
+
 
 
 
@@ -493,819 +493,815 @@ int all_phsort (LPTTS_HANDLE_T phTTS)
 	if(pDph_t->nsymbtot >2 && pDph_t->symbols[1] !=111)
 		insertphone (phTTS,(1),( 111));
 
-if(pKsd_t->lang_curr == LANG_german)
-{
-	for (n = 0; n < pDph_t->nsymbtot; n++)
-	{
-		if (((pDph_t->symbols[n] ) == S1 ||
-			  (pDph_t->symbols[n]) == S2 ||
-			  (pDph_t->symbols[n]) == S3)
-			 && !(phone_feature( pDph_t,  pDph_t->symbols[n + 1]) & FVOWEL))
-		{
-			/* BATS 711 Slight improvement in loop performance start at n+2 not n */
-		
-			
-			for (nextvowel = n+2; nextvowel < pDph_t->nsymbtot; nextvowel++)
-			{
-				if (phone_feature( pDph_t,  pDph_t->symbols[nextvowel]) & FVOWEL)
-				{
-					tmp = pDph_t->symbols[n];
-					for (ntmp = n; ntmp < (nextvowel - 1); ntmp++)
-					{
-						pDph_t->symbols[ntmp]  = pDph_t->symbols[ntmp + 1];
-					}
-					pDph_t->symbols[nextvowel - 1] = tmp;
-					n = nextvowel;	   /* done to this point so jump ahead */
-					break;
-				}
-			}
-		}
-	}
-
-}
+        if(pKsd_t->lang_curr == LANG_german)
+        {
+            for (n = 0; n < pDph_t->nsymbtot; n++)
+            {
+                if (((pDph_t->symbols[n] ) == S1 ||
+                            (pDph_t->symbols[n]) == S2 ||
+                            (pDph_t->symbols[n]) == S3)
+                        && !(phone_feature( pDph_t,  pDph_t->symbols[n + 1]) & FVOWEL))
+                {
+                    /* BATS 711 Slight improvement in loop performance start at n+2 not n */
 
 
-	for (n = 0; n < pDph_t->nsymbtot; n++)
-	{
-		if (pDphsettar->did_del)
-		{
-			n--;	/* delete was done so back up one to process shifted phoneme eab */
-			pDphsettar->did_del = 0;
-			/* del_cnt++; *//* MVP : Value is never used */
-		}
+                    for (nextvowel = n+2; nextvowel < pDph_t->nsymbtot; nextvowel++)
+                    {
+                        if (phone_feature( pDph_t,  pDph_t->symbols[nextvowel]) & FVOWEL)
+                        {
+                            tmp = pDph_t->symbols[n];
+                            for (ntmp = n; ntmp < (nextvowel - 1); ntmp++)
+                            {
+                                pDph_t->symbols[ntmp]  = pDph_t->symbols[ntmp + 1];
+                            }
+                            pDph_t->symbols[nextvowel - 1] = tmp;
+                            n = nextvowel;	   /* done to this point so jump ahead */
+                            break;
+                        }
+                    }
+                }
+            }
 
-if(pKsd_t->lang_curr == LANG_german)
-{
-						if((n > 1)&& (pDph_t->symbols[n] ) >= WBOUND
-							&& (pDph_t->symbols[n]  <= RELSTART ))
-							
-							//if (phone_feature(pDph_t, pDph_t->symbols[n-1]) & FSONOR)		/* RSM */
-							//{																/* RSM */
-								for (nextthing = n+1; nextthing < pDph_t->nsymbtot; nextthing++)
-								{	
-									if ( (pDph_t->symbols[nextthing] & PVALUE) < 100)
-									{
-										// y wbound y where y==y then we need a glottal stop to indicate wbound
-										// or if followed by a sonorant
-										//if((pDph_t->symbols[n-1] == pDph_t->symbols[nextthing])						/* RSM */
-										//	||( (pDph_t->symbols[n-1] == GRP_R || pDph_t->symbols[n-1] == GRP_RR) &&	/* RSM */
-										//	(phone_feature(pDph_t,pDph_t->symbols[nextthing])&FSONOR )))				/* RSM */
-										if((pDph_t->symbols[n-1] == pDph_t->symbols[nextthing])						/* RSM */
-											||	(phone_feature(pDph_t,pDph_t->symbols[n-1])&FVOICD ) &&
-											(phone_feature(pDph_t,pDph_t->symbols[nextthing])&FVOICD)
-												&& !(phone_feature(pDph_t,pDph_t->symbols[nextthing])&FSTOP) )
-										{
-									//	insertphone (phTTS, (short) (n+1), GRP_Q);	
-										}
-										break;
-									}
-									
-								//} /* RSM */
-							}
-}
+        }
+
+
+        for (n = 0; n < pDph_t->nsymbtot; n++)
+        {
+            if (pDphsettar->did_del)
+            {
+                n--;	/* delete was done so back up one to process shifted phoneme eab */
+                pDphsettar->did_del = 0;
+                /* del_cnt++; *//* MVP : Value is never used */
+            }
+
+            if(pKsd_t->lang_curr == LANG_german)
+            {
+                if((n > 1)&& (pDph_t->symbols[n] ) >= WBOUND
+                        && (pDph_t->symbols[n]  <= RELSTART ))
+
+                    //if (phone_feature(pDph_t, pDph_t->symbols[n-1]) & FSONOR)		/* RSM */
+                    //{																/* RSM */
+                    for (nextthing = n+1; nextthing < pDph_t->nsymbtot; nextthing++)
+                    {	
+                        if ( (pDph_t->symbols[nextthing] & PVALUE) < 100)
+                        {
+                            // y wbound y where y==y then we need a glottal stop to indicate wbound
+                            // or if followed by a sonorant
+                            //if((pDph_t->symbols[n-1] == pDph_t->symbols[nextthing])						/* RSM */
+                            //	||( (pDph_t->symbols[n-1] == GRP_R || pDph_t->symbols[n-1] == GRP_RR) &&	/* RSM */
+                            //	(phone_feature(pDph_t,pDph_t->symbols[nextthing])&FSONOR )))				/* RSM */
+                            if((pDph_t->symbols[n-1] == pDph_t->symbols[nextthing])						/* RSM */
+                                    ||	(phone_feature(pDph_t,pDph_t->symbols[n-1])&FVOICD ) &&
+                                    (phone_feature(pDph_t,pDph_t->symbols[nextthing])&FVOICD)
+                                    && !(phone_feature(pDph_t,pDph_t->symbols[nextthing])&FSTOP) )
+                            {
+                                //	insertphone (phTTS, (short) (n+1), GRP_Q);	
+                            }
+                            break;
+                        }
+
+                        //} /* RSM */
+                    }
+            }
 //eab depending on situation ending may be wbound pp or just pp delete wboundary in 
 //wbound pp case as it is redundant
 
 /// eab temporary pause code
-			if( pDph_t->symbols[n] == NEW_PARAGRAPH
-				&& pDph_t->symbols[n+1] == NEW_PARAGRAPH)
-			{
-			//	pDph_t->symbols[n] = COMMA;
-				delete_symbol (phTTS, n);
-			}
+            if( pDph_t->symbols[n] == NEW_PARAGRAPH
+                    && pDph_t->symbols[n+1] == NEW_PARAGRAPH)
+            {
+                //	pDph_t->symbols[n] = COMMA;
+                delete_symbol (phTTS, n);
+            }
 
-			if( pDph_t->symbols[n] == WBOUND && 
-				pDph_t->symbols[n+1] == PERIOD )
-			{
-				delete_symbol (phTTS, n);
-			}
+            if( pDph_t->symbols[n] == WBOUND && 
+                    pDph_t->symbols[n+1] == PERIOD )
+            {
+                delete_symbol (phTTS, n);
+            }
 ///reiner rule to compensate for bachus putting in a glottal stop in front of first 
 								//word in an uttereance
-			if( pDph_t->symbols[n] == GRP_Q && n <= 2)
-			{
-				delete_symbol (phTTS, n);
-			}
+            if( pDph_t->symbols[n] == GRP_Q && n <= 2)
+            {
+                delete_symbol (phTTS, n);
+            }
 
 
-			if( pDph_t->symbols[n] == GRP_TS && pDph_t->symbols[n+1] == GRP_S)
-			{
-				delete_symbol (phTTS, n);
-			}
-		if( pDph_t->symbols[n] == GRP_TJ)
-		{
-			pDph_t->symbols[n] = GRP_T;
-			insertphone (phTTS, (short)(n+1), ( GRP_SH));
-		}
-		if ((pDph_t->symbols[n] ) == GRP_PF)
-			
-			{
-				pDph_t->symbols[n]  = ( GRP_P);
-				insertphone (phTTS, (short)(n+1), ( GRP_F)); // NAL warning removal
-					/* 12/10/1996 EDB */
-				n++;
-		}
-		if (pDph_t->symbols[n]  == LAP_NH
-			|| pDph_t->symbols[n]  == LAP_LL)
-			
-		{
-			
-			insertphone (phTTS, (short)(n+1), ( LAP_I)); // NAL warning removal
-			/* 12/10/1996 EDB */
-			n++;
-		}
-		if (pDph_t->symbols[n]  == SPP_NH
-			|| pDph_t->symbols[n]  == SPP_LL)
-			
-		{
-			
-			insertphone (phTTS, (short)(n+1), ( SPP_I)); // NAL warning removal
-			/* 12/10/1996 EDB */
-			n++;
-		}
+            if( pDph_t->symbols[n] == GRP_TS && pDph_t->symbols[n+1] == GRP_S)
+            {
+                delete_symbol (phTTS, n);
+            }
+            if( pDph_t->symbols[n] == GRP_TJ)
+            {
+                pDph_t->symbols[n] = GRP_T;
+                insertphone (phTTS, (short)(n+1), ( GRP_SH));
+            }
+            if ((pDph_t->symbols[n] ) == GRP_PF)
+
+            {
+                pDph_t->symbols[n]  = ( GRP_P);
+                insertphone (phTTS, (short)(n+1), ( GRP_F)); // NAL warning removal
+                /* 12/10/1996 EDB */
+                n++;
+            }
+            if (pDph_t->symbols[n]  == LAP_NH
+                    || pDph_t->symbols[n]  == LAP_LL)
+
+            {
+
+                insertphone (phTTS, (short)(n+1), ( LAP_I)); // NAL warning removal
+                /* 12/10/1996 EDB */
+                n++;
+            }
+            if (pDph_t->symbols[n]  == SPP_NH
+                    || pDph_t->symbols[n]  == SPP_LL)
+
+            {
+
+                insertphone (phTTS, (short)(n+1), ( SPP_I)); // NAL warning removal
+                /* 12/10/1996 EDB */
+                n++;
+            }
 
 
 
-		if(pDph_t->symbols[n] == GRP_TS)
-		{
-			pDph_t->symbols[n] = GRP_T;
-			insertphone (phTTS, (n+1), GRP_S);
-		}
+            if(pDph_t->symbols[n] == GRP_TS)
+            {
+                pDph_t->symbols[n] = GRP_T;
+                insertphone (phTTS, (n+1), GRP_S);
+            }
 
-if(pKsd_t->lang_curr == LANG_spanish)
-{
-		/* kludge we need to have a word boundary at the begiining to make things
-		coding more straight forward n=0 is becuase of no inital wbound.*/
-		if (pDph_t->symbols[n] == WBOUND || n==0)
-		{
-			/* allophonic rule for grapheme Y->e 
-			before an I as in Y india pronounced e india */
-			if((pDph_t->symbols[n+1] == SPP_I)
-				&& (pDph_t->symbols[n+2] == WBOUND))
-			{
-			/*then look ahead to see if the 
-			  next real phoneme is the vowel SPP_I*/
-				ntmp = n+2;
-			/* step past any non-phonemes such as stress*/
-				while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
-					(pDph_t->symbols[tmp] & PVALUE)==SPP_Q )
-					&& ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-				/* Is next thing a the vowel*/
-				if ((pDph_t->symbols[tmp] /*& PVALUE*/) == SPP_I)	
-				{
-					pDph_t->symbols[n+1]=SPP_E;
-				}
-			}
-			/* allophonic rule for "or" O->e
-			before an I as in Y india pronounced e india*/
-			if((pDph_t->symbols[n+2] == SPP_O)
-			 && (pDph_t->symbols[n+3] == WBOUND))
-			{
-			/* then look ahead to see if the next real phoneme is the vowel SPP_I*/
-				ntmp = n+3;
-			/* step past any non-phonemes such as stress */
-				while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
-					(pDph_t->symbols[tmp]) == SPP_Q )
-					&& ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-			    /* Is next thing SPP_O */
-				if ((pDph_t->symbols[tmp]) == SPP_O)		
-				{
-					pDph_t->symbols[n+2]=SPP_U;
-				}
-			}
-				
-			
+            if(pKsd_t->lang_curr == LANG_spanish)
+            {
+                /* kludge we need to have a word boundary at the begiining to make things
+                   coding more straight forward n=0 is becuase of no inital wbound.*/
+                if (pDph_t->symbols[n] == WBOUND || n==0)
+                {
+                    /* allophonic rule for grapheme Y->e 
+                       before an I as in Y india pronounced e india */
+                    if((pDph_t->symbols[n+1] == SPP_I)
+                            && (pDph_t->symbols[n+2] == WBOUND))
+                    {
+                        /*then look ahead to see if the 
+                          next real phoneme is the vowel SPP_I*/
+                        ntmp = n+2;
+                        /* step past any non-phonemes such as stress*/
+                        while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
+                                    (pDph_t->symbols[tmp] & PVALUE)==SPP_Q )
+                                && ntmp < pDph_t->nsymbtot)
+                        {
+                            ntmp++;
+                        }
+                        /* Is next thing a the vowel*/
+                        if ((pDph_t->symbols[tmp] /*& PVALUE*/) == SPP_I)	
+                        {
+                            pDph_t->symbols[n+1]=SPP_E;
+                        }
+                    }
+                    /* allophonic rule for "or" O->e
+                       before an I as in Y india pronounced e india*/
+                    if((pDph_t->symbols[n+2] == SPP_O)
+                            && (pDph_t->symbols[n+3] == WBOUND))
+                    {
+                        /* then look ahead to see if the next real phoneme is the vowel SPP_I*/
+                        ntmp = n+3;
+                        /* step past any non-phonemes such as stress */
+                        while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
+                                    (pDph_t->symbols[tmp]) == SPP_Q )
+                                && ntmp < pDph_t->nsymbtot)
+                        {
+                            ntmp++;
+                        }
+                        /* Is next thing SPP_O */
+                        if ((pDph_t->symbols[tmp]) == SPP_O)		
+                        {
+                            pDph_t->symbols[n+2]=SPP_U;
+                        }
+                    }
+
+
 #ifdef BOOK_SAYS_DIFFERENT
-			// from previous input perhaps a castillion/latin difference or
-			// maybe anna was wrong/anglicanixzed
-		    /* 12/27/96 EAB insert a glotal stop bewteen s#s V#s and s#v and 
-			   Juan would like it with sonor #sonor  */
-			if(pDph_t->symbols[n-1] == SPP_S || pDph_t->symbols[n-1] == SPP_TH)
-			{
-				ntmp = n;
-				/* step past any non-phonemes such as stress */
-				while((pDph_t->symbols[ntmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-				/* If next thing an S use sil instead of  a voiced
-				glotal stop*/
-				if((pDph_t->symbols[ntmp] ) == SPP_S || (pDph_t->symbols[ntmp] ) == SPP_TH)
-				{
-					insertphone(phTTS, n, GEN_SIL);
-					n=ntmp;
-				}
+                    // from previous input perhaps a castillion/latin difference or
+                    // maybe anna was wrong/anglicanixzed
+                    /* 12/27/96 EAB insert a glotal stop bewteen s#s V#s and s#v and 
+                       Juan would like it with sonor #sonor  */
+                    if(pDph_t->symbols[n-1] == SPP_S || pDph_t->symbols[n-1] == SPP_TH)
+                    {
+                        ntmp = n;
+                        /* step past any non-phonemes such as stress */
+                        while((pDph_t->symbols[ntmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
+                        {
+                            ntmp++;
+                        }
+                        /* If next thing an S use sil instead of  a voiced
+                           glotal stop*/
+                        if((pDph_t->symbols[ntmp] ) == SPP_S || (pDph_t->symbols[ntmp] ) == SPP_TH)
+                        {
+                            insertphone(phTTS, n, GEN_SIL);
+                            n=ntmp;
+                        }
 
-				/* Is next thing a vowel*/
-				else if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FVOWEL	)
-				{
-					if((pDph_t->wordclass[n] & 0x020))
-						insertphone (phTTS, n, SPP_Q);
-					/* BATS 677 Found another spot it was doing it wrong
-					EAB 5/18/98 */
-					if(!(pDph_t->wordclass[n-1] & 0x00800000)
-						&& !(pDph_t->wordclass[n+1] & 0x00800000))
-					{
-						insertphone (phTTS, n, SPP_Q);
-					/* 12/10/1996 EDB */
-					n=ntmp;
-					}
-				}
-			}
-				else if(phone_feature( pDph_t,  pDph_t->symbols[n-1]] & FSONOR)
-			{
-				ntmp = n;
-				/* step past any non-phonemes such as stress */
-				while ((pDph_t->symbols[tmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-				/* Is next thing an s or a vowel i.e. vowel wbound vowel gets a glotal also 
-				BATS 677 EAB 5/18/98 */
-				if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FSONOR
-					|| 	(pDph_t->symbols[tmp]) == SPP_S || (pDph_t->symbols[tmp]) == SPP_TH)
-				{
-					/*last phoneme of word equals next phoneme so glotal stop it*/
-					if(pDph_t->symbols[n-1]==(pDph_t->symbols[tmp] & PVALUE))
-					{
-						insertphone (phTTS, n, SPP_Q);
-					}
-			/* BATS 674 Should be inserting a glotal stop not silence eab 5/13/98*/
-			/* now trying to refine so that we don't put in tooo many glotal stops
-			but we must be careful because we can cause confusion eab 8/7/98 */
-					
+                        /* Is next thing a vowel*/
+                        else if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FVOWEL	)
+                                {
+                                if((pDph_t->wordclass[n] & 0x020))
+                                insertphone (phTTS, n, SPP_Q);
+                                /* BATS 677 Found another spot it was doing it wrong
+                                   EAB 5/18/98 */
+                                if(!(pDph_t->wordclass[n-1] & 0x00800000)
+                                        && !(pDph_t->wordclass[n+1] & 0x00800000))
+                                {
+                                insertphone (phTTS, n, SPP_Q);
+                                /* 12/10/1996 EDB */
+                                n=ntmp;
+                                }
+                                }
+                                }
+                                else if(phone_feature( pDph_t,  pDph_t->symbols[n-1]] & FSONOR)
+                                    {
+                                    ntmp = n;
+                                    /* step past any non-phonemes such as stress */
+                                    while ((pDph_t->symbols[tmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
+                                    {
+                                    ntmp++;
+                                    }
+                                    /* Is next thing an s or a vowel i.e. vowel wbound vowel gets a glotal also 
+                                       BATS 677 EAB 5/18/98 */
+                                    if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FSONOR
+                                                || 	(pDph_t->symbols[tmp]) == SPP_S || (pDph_t->symbols[tmp]) == SPP_TH)
+                                            {
+                                            /*last phoneme of word equals next phoneme so glotal stop it*/
+                                            if(pDph_t->symbols[n-1]==(pDph_t->symbols[tmp] & PVALUE))
+                                            {
+                                            insertphone (phTTS, n, SPP_Q);
+                                            }
+                                            /* BATS 674 Should be inserting a glotal stop not silence eab 5/13/98*/
+                                            /* now trying to refine so that we don't put in tooo many glotal stops
+                                               but we must be careful because we can cause confusion eab 8/7/98 */
 
-			/* BATS 677 Found another spot it was doing it wrong
-			EAB 5/18/98 EAB Found a behavior problem because N+1 can be end
-			marker with no silence at the end yet */
 
-					else if(n>0 && !(pDph_t->wordclass[n-1] & 0x00800000))
-					{
-						if((pDph_t->symbols[n+1]& PVALUE) != GEN_SIL  )
-							if( !((pDph_t->symbols[n+1]& PVALUE) >= 115
-								&& (pDph_t->symbols[n+1]& PVALUE) <= 118))
-							insertphone (phTTS, n, SPP_Q);
+                                            /* BATS 677 Found another spot it was doing it wrong
+                                               EAB 5/18/98 EAB Found a behavior problem because N+1 can be end
+                                               marker with no silence at the end yet */
 
-					/* 12/10/1996 EDB */
-					}
-					n=ntmp;
-				}
-			}
+                                            else if(n>0 && !(pDph_t->wordclass[n-1] & 0x00800000))
+                                            {
+                                            if((pDph_t->symbols[n+1]& PVALUE) != GEN_SIL  )
+                                            if( !((pDph_t->symbols[n+1]& PVALUE) >= 115
+                                                        && (pDph_t->symbols[n+1]& PVALUE) <= 118))
+                                                insertphone (phTTS, n, SPP_Q);
+
+                                            /* 12/10/1996 EDB */
+                                            }
+                                            n=ntmp;
+                                            }
+                                    }
 #endif // BOOK_SAYS_DIFFERENT
-							
-		}
-}
 
-		
-if(pKsd_t->lang_curr == LANG_latin_american)
-{
-		/* kludge we need to have a word boundary at the begiining to make things
-		coding more straight forward n=0 is becuase of no inital wbound.*/
-		if (pDph_t->symbols[n] == WBOUND || n==0)
-		{
-			/* allophonic rule for grapheme Y->e 
-			before an I as in Y india pronounced e india */
-			if((pDph_t->symbols[n+1] == LAP_I)
-				&& (pDph_t->symbols[n+2] == WBOUND))
-			{
-			/*then look ahead to see if the 
-			  next real phoneme is the vowel LAP_I*/
-				ntmp = n+2;
-			/* step past any non-phonemes such as stress*/
-				while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
-					(pDph_t->symbols[tmp])==LAP_Q )
-					&& ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-				/* Is next thing a the vowel*/
-				if ((pDph_t->symbols[tmp]) == LAP_I)		
-				{
-					pDph_t->symbols[n+1]=LAP_E;
-				}
-			}
-			/* allophonic rule for "or" O->e
-			before an I as in Y india pronounced e india*/
-			if((pDph_t->symbols[n+2] == LAP_O)
-			 && (pDph_t->symbols[n+3] == WBOUND))
-			{
-			/* then look ahead to see if the next real phoneme is the vowel LAP_I*/
-				ntmp = n+3;
-			/* step past any non-phonemes such as stress */
-				while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
-					(pDph_t->symbols[tmp]) == LAP_Q )
-					&& ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-			    /* Is next thing LAP_O */
-				if ((pDph_t->symbols[tmp]) == LAP_O)		
-				{
-					pDph_t->symbols[n+2]=LAP_U;
-				}
-			}
-				
-			
+                }
+            }
+
+
+            if(pKsd_t->lang_curr == LANG_latin_american)
+            {
+                /* kludge we need to have a word boundary at the begiining to make things
+                   coding more straight forward n=0 is becuase of no inital wbound.*/
+                if (pDph_t->symbols[n] == WBOUND || n==0)
+                {
+                    /* allophonic rule for grapheme Y->e 
+                       before an I as in Y india pronounced e india */
+                    if((pDph_t->symbols[n+1] == LAP_I)
+                            && (pDph_t->symbols[n+2] == WBOUND))
+                    {
+                        /*then look ahead to see if the 
+                          next real phoneme is the vowel LAP_I*/
+                        ntmp = n+2;
+                        /* step past any non-phonemes such as stress*/
+                        while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
+                                    (pDph_t->symbols[tmp])==LAP_Q )
+                                && ntmp < pDph_t->nsymbtot)
+                        {
+                            ntmp++;
+                        }
+                        /* Is next thing a the vowel*/
+                        if ((pDph_t->symbols[tmp]) == LAP_I)		
+                        {
+                            pDph_t->symbols[n+1]=LAP_E;
+                        }
+                    }
+                    /* allophonic rule for "or" O->e
+                       before an I as in Y india pronounced e india*/
+                    if((pDph_t->symbols[n+2] == LAP_O)
+                            && (pDph_t->symbols[n+3] == WBOUND))
+                    {
+                        /* then look ahead to see if the next real phoneme is the vowel LAP_I*/
+                        ntmp = n+3;
+                        /* step past any non-phonemes such as stress */
+                        while ( ((pDph_t->symbols[tmp] & PVALUE) > 100 ||
+                                    (pDph_t->symbols[tmp]) == LAP_Q )
+                                && ntmp < pDph_t->nsymbtot)
+                        {
+                            ntmp++;
+                        }
+                        /* Is next thing LAP_O */
+                        if ((pDph_t->symbols[tmp]) == LAP_O)		
+                        {
+                            pDph_t->symbols[n+2]=LAP_U;
+                        }
+                    }
+
+
 #ifdef BOOK_SAYS_DIFFERENT
-			// from previous input perhaps a castillion/latin difference or
-			// maybe anna was wrong/anglicanixzed
-		    /* 12/27/96 EAB insert a glotal stop bewteen s#s V#s and s#v and 
-			   Juan would like it with sonor #sonor  */
-			if(pDph_t->symbols[n-1] == LAP_S || pDph_t->symbols[n-1] == LAP_TH)
-			{
-				ntmp = n;
-				/* step past any non-phonemes such as stress */
-				while((pDph_t->symbols[tmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-				/* If next thing an S use sil instead of  a voiced
-				glotal stop*/
-				if((pDph_t->symbols[tmp]) == LAP_S || (pDph_t->symbols[tmp]) == LAP_TH)
-				{
-					insertphone(phTTS, n, GEN_SIL);
-					n=ntmp;
-				}
+                    // from previous input perhaps a castillion/latin difference or
+                    // maybe anna was wrong/anglicanixzed
+                    /* 12/27/96 EAB insert a glotal stop bewteen s#s V#s and s#v and 
+                       Juan would like it with sonor #sonor  */
+                    if(pDph_t->symbols[n-1] == LAP_S || pDph_t->symbols[n-1] == LAP_TH)
+                    {
+                        ntmp = n;
+                        /* step past any non-phonemes such as stress */
+                        while((pDph_t->symbols[tmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
+                        {
+                            ntmp++;
+                        }
+                        /* If next thing an S use sil instead of  a voiced
+                           glotal stop*/
+                        if((pDph_t->symbols[tmp]) == LAP_S || (pDph_t->symbols[tmp]) == LAP_TH)
+                        {
+                            insertphone(phTTS, n, GEN_SIL);
+                            n=ntmp;
+                        }
 
-				/* Is next thing a vowel*/
-				else if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FVOWEL	)
-				{
-					if((pDph_t->wordclass[n] & 0x020))
-						insertphone (phTTS, n, LAP_Q);
-					/* BATS 677 Found another spot it was doing it wrong
-					EAB 5/18/98 */
-					if(!(pDph_t->wordclass[n-1] & 0x00800000)
-						&& !(pDph_t->wordclass[n+1] & 0x00800000))
-					{
-						insertphone (phTTS, n, LAP_Q);
-					/* 12/10/1996 EDB */
-					n=ntmp;
-					}
-				}
-			}
-				else if(phone_feature( pDph_t,  pDph_t->symbols[n-1]] & FSONOR)
-			{
-				ntmp = n;
-				/* step past any non-phonemes such as stress */
-				while ((pDph_t->symbols[tmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
-				{
-					ntmp++;
-				}
-				/* Is next thing an s or a vowel i.e. vowel wbound vowel gets a glotal also 
-				BATS 677 EAB 5/18/98 */
-				if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FSONOR
-					|| 	(pDph_t->symbols[tmp]) == LAP_S || (pDph_t->symbols[tmp]) == LAP_TH)
-				{
-					/*last phoneme of word equals next phoneme so glotal stop it*/
-					if(pDph_t->symbols[n-1]==(pDph_t->symbols[tmp] & PVALUE))
-					{
-						insertphone (phTTS, n, LAP_Q);
-					}
-			/* BATS 674 Should be inserting a glotal stop not silence eab 5/13/98*/
-			/* now trying to refine so that we don't put in tooo many glotal stops
-			but we must be careful because we can cause confusion eab 8/7/98 */
-					
+                        /* Is next thing a vowel*/
+                        else if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FVOWEL	)
+                                {
+                                if((pDph_t->wordclass[n] & 0x020))
+                                insertphone (phTTS, n, LAP_Q);
+                                /* BATS 677 Found another spot it was doing it wrong
+                                   EAB 5/18/98 */
+                                if(!(pDph_t->wordclass[n-1] & 0x00800000)
+                                        && !(pDph_t->wordclass[n+1] & 0x00800000))
+                                {
+                                insertphone (phTTS, n, LAP_Q);
+                                /* 12/10/1996 EDB */
+                                n=ntmp;
+                                }
+                                }
+                                }
+                                else if(phone_feature( pDph_t,  pDph_t->symbols[n-1]] & FSONOR)
+                                    {
+                                    ntmp = n;
+                                    /* step past any non-phonemes such as stress */
+                                    while ((pDph_t->symbols[tmp] & PVALUE) > 100 && ntmp < pDph_t->nsymbtot)
+                                    {
+                                    ntmp++;
+                                    }
+                                    /* Is next thing an s or a vowel i.e. vowel wbound vowel gets a glotal also 
+                                       BATS 677 EAB 5/18/98 */
+                                    if (phone_feature( pDph_t,  (pDph_t->symbols[tmp] & PVALUE)] & FSONOR
+                                                || 	(pDph_t->symbols[tmp]) == LAP_S || (pDph_t->symbols[tmp]) == LAP_TH)
+                                            {
+                                            /*last phoneme of word equals next phoneme so glotal stop it*/
+                                            if(pDph_t->symbols[n-1]==(pDph_t->symbols[tmp] & PVALUE))
+                                            {
+                                            insertphone (phTTS, n, LAP_Q);
+                                            }
+                                            /* BATS 674 Should be inserting a glotal stop not silence eab 5/13/98*/
+                                            /* now trying to refine so that we don't put in tooo many glotal stops
+                                               but we must be careful because we can cause confusion eab 8/7/98 */
 
-			/* BATS 677 Found another spot it was doing it wrong
-			EAB 5/18/98 EAB Found a behavior problem because N+1 can be end
-			marker with no silence at the end yet */
 
-					else if(n>0 && !(pDph_t->wordclass[n-1] & 0x00800000))
-					{
-						if(pDph_t->symbols[n+1] & PVALUE) != GEN_SIL  )
-							if( !((pDph_t->symbols[n+1] & PVALUE) >= 115
-								&& (pDph_t->symbols[n+1]& PVALUE) <= 118))
-							insertphone (phTTS, n, LAP_Q);
+                                            /* BATS 677 Found another spot it was doing it wrong
+                                               EAB 5/18/98 EAB Found a behavior problem because N+1 can be end
+                                               marker with no silence at the end yet */
 
-					/* 12/10/1996 EDB */
-					}
-					n=ntmp;
-				}
-			}
+                                            else if(n>0 && !(pDph_t->wordclass[n-1] & 0x00800000))
+                                            {
+                                            if(pDph_t->symbols[n+1] & PVALUE) != GEN_SIL  )
+                                                if( !((pDph_t->symbols[n+1] & PVALUE) >= 115
+                                                            && (pDph_t->symbols[n+1]& PVALUE) <= 118))
+                                                    insertphone (phTTS, n, LAP_Q);
+
+                                            /* 12/10/1996 EDB */
+                                            }
+                                            n=ntmp;
+                                            }
+                                    }
 #endif // BOOK_SAYS_DIFFERENT
-							
-		}}
 
-if(pKsd_t->lang_curr == LANG_german)
-{
-		/* code to insert a secondary stress in a polysyllabic or compound word on the second +syl after
-           a stress*/
-		if(pDph_t->Word_has_stress == 1)
-		{
-			if ((phone_feature( pDph_t,  pDph_t->symbols[n]) & FSYLL)IS_PLUS)
-			{
-				pDph_t->number_fsyls++;
-				if(pDph_t->number_fsyls == 4)
-				{
-					insertphone (phTTS, n, S2);
-				}
-			}
-		}
+                }
+            }
+
+            if(pKsd_t->lang_curr == LANG_german)
+            {
+                /* code to insert a secondary stress in a polysyllabic or compound word on the second +syl after
+                   a stress*/
+                if(pDph_t->Word_has_stress == 1)
+                {
+                    if ((phone_feature( pDph_t,  pDph_t->symbols[n]) & FSYLL)IS_PLUS)
+                    {
+                        pDph_t->number_fsyls++;
+                        if(pDph_t->number_fsyls == 4)
+                        {
+                            insertphone (phTTS, n, S2);
+                        }
+                    }
+                }
 
 
-		if (pDph_t->symbols[n] == S1 )
-		{
-			pDph_t->Word_has_stress =1; // eab 3/37 /98 set word stress marker
-		
-			if(compound_destress)
-			{
-				/* xxx new code to do compound destress correctly eab 8/94 */
-				pDph_t->symbols[n] = S2;
-				compound_destress = FALSE;
-			}
-		}
+                if (pDph_t->symbols[n] == S1 )
+                {
+                    pDph_t->Word_has_stress =1; // eab 3/37 /98 set word stress marker
 
-}
+                    if(compound_destress)
+                    {
+                        /* xxx new code to do compound destress correctly eab 8/94 */
+                        pDph_t->symbols[n] = S2;
+                        compound_destress = FALSE;
+                    }
+                }
 
-if(pKsd_t->lang_curr == LANG_british)
-{
-		/* linking r rule 12/3/97 eab*/
-		if ((pDph_t->symbols[n] ) == LINKRWORD)
-		{
-			/*EAB This is new code to tell when to drop the final R. The LINKRWORD tells us
-			that it's a candididate for liason but we need to look at the ending because it could
-			have s suffix. If it does end in R and the next word doesn't begin with a vowel we can
-			drop it*/
-			Ge_ma_found_r=0;
-			ntmp=n+1;
-			/* fixed a bug with linkrword where it would walk past the end of the world */
-			while ((pDph_t->symbols[ntmp] & PVALUE) <= MBOUND && ntmp <= (pDph_t->nsymbtot-1))
-			{
-				if((pDph_t->symbols[ntmp] ) == UKP_R )
-				{
-					//we move up through the word and didn't find an "R" even though
-					//there should be by verture of linkrword
-					//This is a dictioary or letter to sound error conition so punt
-					// EAB 1/19/99  BATS 855
-					Ge_ma_found_r=1;
-					ntmpr=ntmp;
-				}
-				ntmp++;
-			}
+            }
 
-			ntmp++; //move pointer to "thing follwoing r				
-			if(Ge_ma_found_r==1) //protection code it souhld always find a n R
-			{
-				//move pointer to next valid phoneme
-				while ((pDph_t->symbols[ntmp] & PVALUE) >= 100 && ntmp <= (pDph_t->nsymbtot-1))
-				{
-					ntmp++;
-				}
-		
-				// BATS 590*/
-		
-				//If next thing a vowel don't delete it 
-				// BATS 590 if it is the suffex ED (ix d) 
-				// or S (z phoneme) then don't delete the r 
-				
-				//This thing (BATS 590) doesn't make sense and we don't understand
-				//exactly what it should be doing so ginger and I have eliminated
-				//it. It wasn't firing because in these case the lts wasn't sending 
-				//nor the r the ix d suffix  anyway
-				
-				//The pDph_t->symbols[ntmp] > 100 is becuase featb is yeilding a negative
-				// number insetad of zero like it should (featb out of phedit not correct
-				
-				if ( !(phone_feature( pDph_t,  pDph_t->symbols[ntmp ]) & FVOWEL))
-				{
-					
-					delete_symbol (phTTS, ntmpr);
-				}
-			}		
-		}
-		
-}
-		
+            if(pKsd_t->lang_curr == LANG_british)
+            {
+                /* linking r rule 12/3/97 eab*/
+                if ((pDph_t->symbols[n] ) == LINKRWORD)
+                {
+                    /*EAB This is new code to tell when to drop the final R. The LINKRWORD tells us
+                      that it's a candididate for liason but we need to look at the ending because it could
+                      have s suffix. If it does end in R and the next word doesn't begin with a vowel we can
+                      drop it*/
+                    Ge_ma_found_r=0;
+                    ntmp=n+1;
+                    /* fixed a bug with linkrword where it would walk past the end of the world */
+                    while ((pDph_t->symbols[ntmp] & PVALUE) <= MBOUND && ntmp <= (pDph_t->nsymbtot-1))
+                    {
+                        if((pDph_t->symbols[ntmp] ) == UKP_R )
+                        {
+                            //we move up through the word and didn't find an "R" even though
+                            //there should be by verture of linkrword
+                            //This is a dictioary or letter to sound error conition so punt
+                            // EAB 1/19/99  BATS 855
+                            Ge_ma_found_r=1;
+                            ntmpr=ntmp;
+                        }
+                        ntmp++;
+                    }
 
-if(pKsd_t->lang_curr == LANG_latin_american
-   || pKsd_t->lang_curr == LANG_spanish )
-{
+                    ntmp++; //move pointer to "thing follwoing r				
+                    if(Ge_ma_found_r==1) //protection code it souhld always find a n R
+                    {
+                        //move pointer to next valid phoneme
+                        while ((pDph_t->symbols[ntmp] & PVALUE) >= 100 && ntmp <= (pDph_t->nsymbtot-1))
+                        {
+                            ntmp++;
+                        }
 
-		/* xxx new code to do compound destress correctly eab 8/94 */
-		if (pDph_t->symbols[n] == HYPHEN)
-		{
-			compound_destress = TRUE;
-		}
+                        // BATS 590*/
 
-		if (pDph_t->symbols[n] == S1 && compound_destress)
-			/* xxx new code to do compound destress correctly eab 8/94 */
-		{
-			pDph_t->symbols[n] = S2;
-			compound_destress = FALSE;
-		}
+                        //If next thing a vowel don't delete it 
+                        // BATS 590 if it is the suffex ED (ix d) 
+                        // or S (z phoneme) then don't delete the r 
 
-		if (pDph_t->symbols[n] == SPECIALWORD)
-		{
-			if (phrase_after_quote)
-			{
-				pDph_t->special_phrase = 1;
-			}
-			phrase_after_quote = 0;
-			delete_symbol (phTTS, n);
-		}
+                        //This thing (BATS 590) doesn't make sense and we don't understand
+                        //exactly what it should be doing so ginger and I have eliminated
+                        //it. It wasn't firing because in these case the lts wasn't sending 
+                        //nor the r the ix d suffix  anyway
 
-		if(pDph_t->symbols[n] == SPP_I 	|| pDph_t->symbols[n] == LAP_I)
+                        //The pDph_t->symbols[ntmp] > 100 is becuase featb is yeilding a negative
+                        // number insetad of zero like it should (featb out of phedit not correct
 
-		{
-			if ((pDph_t->symbols[n - 1] & PVALUE) == WBOUND
-				&& (pDph_t->symbols[n + 1] & PVALUE)== WBOUND)
-			{
-				pDph_t->wordclass[n] |= 0x00800000;
-			}
-		}
-		/* Move identiical phones seperated by 
-		a wbound code to PH_timing so we can control duration*/
-	
-}
+                        if ( !(phone_feature( pDph_t,  pDph_t->symbols[ntmp ]) & FVOWEL))
+                        {
 
-		/* Check for user F0 commands in input string for this clause     */
+                            delete_symbol (phTTS, ntmpr);
+                        }
+                    }		
+                }
+            }
 
-		/* RULES for input of a user f0 command                   */
-		/* 1. If no f0 commands in input, set f0mode = NORMAL     */
-		/* 2. If explicit [/] or [\] phonemes in input,           */
-		/* set f0mode = HAT_LOCATIONS_SPECIFIED           		  */
-		/* 3. If first f0 command is attached to phoneme and has  */
-		/* value <= 37, set f0mode = SINGING                      */
-		/* 4. If first f0 command is attached to phoneme and has  */
-		/* value > 37, set f0mode = PHONE_TARGETS_SPECIFIED       */
-		/* 5. If first f0 command is attached to non-phoneme ['], */
-		/* [/], or [\], set f0mode = HAT_F0_SIZES_SPECIFIED       */
-		/* NOTE cases are mutually exclusive except 2&5 so all    */
-		/* f0 commands must be of same category within clause 	  */
 
-		/* RULES for interpretation of user f0 commands           */
-		/* SINGING:  e.g. [a<500,22>].                            */
-		/* If duration attached to phoneme, convert to frames     */
-		/* If note number attached to phoneme, convert to Hz      */
-		/* Go to new note linearly in freq over 160 ms, start     */
-		/* at begin time of phoneme.                              */
-		/* Add vibratto of +/-1.8 Hz, at 6.5 Hz repetition rate   */
-		/* PHONE_TARGETS_SPECIFIED:  e.g. [a<,125>]               */
-		/* If duration attached to phoneme, convert to frames     */
-		/* If f0 target attached to phoneme, convert to Hz        */
-		/* Go to new f0 target linearly in freq over duration     */
-		/* of phoneme, start at beginning of phoneme              */
-		/* All Hz values are absolute, there is no spdef scaling  */
-		/* HAT_LOCATIONS_SPECIFIED:  e.g. [/'ab\a]                */
-		/* Example: hat rise on first stressed vowel (as is       */
-		/* usual in DECtalk), but fall on final unstressed V      */
-		/* Usual practice of Dectalk determining hat locations    */
-		/* is totally disabled, rises and falls occur only on     */
-		/* phone following the rise or fall symbol.               */
-		/* Phone following rise and/or fall must be +syllabic     */
-		/* or PHSORT will produce garbage                 		  */
-		/* Rise and fall pDph_t->symbols must alternate,          */
-		/* first is rise    									  */
-		/* If syllable will have rise, stress pulse, & fall, it   */
-		/* is best to specify them in that order, i.e. [/'\a] 	  */
-		/* HAT_F0_SIZES_SPECIFIED:  e.g. [/'<,12>\<,40>a]         */
-		/* Example: use normal hat rise, 12 Hz stress impulse,    */
-		/* and 40 Hz hat fall, times of events are normal 		  */
-		/* Disable prediction of where to insert hat rises &      */
-		/* falls if there are [/] and [\] pDph_t->symbols         */
-		/* present, or     										  */
-		/* if ['] has an attached user f0 command         		  */
-		/* Override computed values for hat rise, fall, and       */
-		/* stress pulses if a user-specified f0 command is        */
-		/* attached to [/], [\], or [']                   		  */
-		/* Continue to add continuation rises at commas and       */
-		/* add question intonation by rule                        */
-		/* If duration attached, it is time of f0 event onset     */
-		/* relative to onset of next phone (can be negative)      */
-		/* F0 targets attached to [/] are step rises, attached    */
-		/* to [\] are step falls, and attached to ['] are 		  */
-		/* stress impulses; amount is given in nominal Hz 		  */
-		/* All Hz values are subjected to spdef scalings  		  */
-		/* No more than one rise, one stress pulse and one fall   */
-		/* allowed on each vowel, in that order           		  */
-		if (((pDph_t->symbols[n]& PVALUE) >= HAT_RISE) && ((pDph_t->symbols[n] & PVALUE)<= HAT_RF))
-		{
-			if (pDph_t->f0mode == NORMAL)
-			{
-				pDph_t->f0mode = HAT_LOCATIONS_SPECIFIED;
-			}
-		}
+            if(pKsd_t->lang_curr == LANG_latin_american
+                    || pKsd_t->lang_curr == LANG_spanish )
+            {
 
-		/* Clause-final function word (preceded by [(]) should be stressed */
-		if (pDph_t->symbols[n] == PPSTART)
-		{
-			/* Examine input for next bound, see if cbound or greater */
-			m = n + 1;
-			while (m < pDph_t->nsymbtot)
-			{
-				if (is_wboundary ( (short)(pDph_t->symbols[m] & PVALUE) ) )
-				{
+                /* xxx new code to do compound destress correctly eab 8/94 */
+                if (pDph_t->symbols[n] == HYPHEN)
+                {
+                    compound_destress = TRUE;
+                }
+
+                if (pDph_t->symbols[n] == S1 && compound_destress)
+                    /* xxx new code to do compound destress correctly eab 8/94 */
+                {
+                    pDph_t->symbols[n] = S2;
+                    compound_destress = FALSE;
+                }
+
+                if (pDph_t->symbols[n] == SPECIALWORD)
+                {
+                    if (phrase_after_quote)
+                    {
+                        pDph_t->special_phrase = 1;
+                    }
+                    phrase_after_quote = 0;
+                    delete_symbol (phTTS, n);
+                }
+
+                if(pDph_t->symbols[n] == SPP_I 	|| pDph_t->symbols[n] == LAP_I)
+
+                {
+                    if ((pDph_t->symbols[n - 1] & PVALUE) == WBOUND
+                            && (pDph_t->symbols[n + 1] & PVALUE)== WBOUND)
+                    {
+                        pDph_t->wordclass[n] |= 0x00800000;
+                    }
+                }
+                /* Move identiical phones seperated by 
+                   a wbound code to PH_timing so we can control duration*/
+
+            }
+
+            /* Check for user F0 commands in input string for this clause     */
+
+            /* RULES for input of a user f0 command                   */
+            /* 1. If no f0 commands in input, set f0mode = NORMAL     */
+            /* 2. If explicit [/] or [\] phonemes in input,           */
+            /* set f0mode = HAT_LOCATIONS_SPECIFIED           	      */
+            /* 3. If first f0 command is attached to phoneme and has  */
+            /* value <= 37, set f0mode = SINGING                      */
+            /* 4. If first f0 command is attached to phoneme and has  */
+            /* value > 37, set f0mode = PHONE_TARGETS_SPECIFIED       */
+            /* 5. If first f0 command is attached to non-phoneme ['], */
+            /* [/], or [\], set f0mode = HAT_F0_SIZES_SPECIFIED       */
+            /* NOTE cases are mutually exclusive except 2&5 so all    */
+            /* f0 commands must be of same category within clause     */
+
+            /* RULES for interpretation of user f0 commands           */
+            /* SINGING:  e.g. [a<500,22>].                            */
+            /* If duration attached to phoneme, convert to frames     */
+            /* If note number attached to phoneme, convert to Hz      */
+            /* Go to new note linearly in freq over 160 ms, start     */
+            /* at begin time of phoneme.                              */
+            /* Add vibratto of +/-1.8 Hz, at 6.5 Hz repetition rate   */
+            /* PHONE_TARGETS_SPECIFIED:  e.g. [a<,125>]               */
+            /* If duration attached to phoneme, convert to frames     */
+            /* If f0 target attached to phoneme, convert to Hz        */
+            /* Go to new f0 target linearly in freq over duration     */
+            /* of phoneme, start at beginning of phoneme              */
+            /* All Hz values are absolute, there is no spdef scaling  */
+            /* HAT_LOCATIONS_SPECIFIED:  e.g. [/'ab\a]                */
+            /* Example: hat rise on first stressed vowel (as is       */
+            /* usual in DECtalk), but fall on final unstressed V      */
+            /* Usual practice of Dectalk determining hat locations    */
+            /* is totally disabled, rises and falls occur only on     */
+            /* phone following the rise or fall symbol.               */
+            /* Phone following rise and/or fall must be +syllabic     */
+            /* or PHSORT will produce garbage                         */
+            /* Rise and fall pDph_t->symbols must alternate,          */
+            /* first is rise                                          */
+            /* If syllable will have rise, stress pulse, & fall, it   */
+            /* is best to specify them in that order, i.e. [/'\a]     */
+            /* HAT_F0_SIZES_SPECIFIED:  e.g. [/'<,12>\<,40>a]         */
+            /* Example: use normal hat rise, 12 Hz stress impulse,    */
+            /* and 40 Hz hat fall, times of events are normal         */
+            /* Disable prediction of where to insert hat rises &      */
+            /* falls if there are [/] and [\] pDph_t->symbols         */
+            /* present, or                                            */
+            /* if ['] has an attached user f0 command                 */
+            /* Override computed values for hat rise, fall, and       */
+            /* stress pulses if a user-specified f0 command is        */
+            /* attached to [/], [\], or [']                           */
+            /* Continue to add continuation rises at commas and       */
+            /* add question intonation by rule                        */
+            /* If duration attached, it is time of f0 event onset     */
+            /* relative to onset of next phone (can be negative)      */
+            /* F0 targets attached to [/] are step rises, attached    */
+            /* to [\] are step falls, and attached to ['] are         */
+            /* stress impulses; amount is given in nominal Hz         */
+            /* All Hz values are subjected to spdef scalings          */
+            /* No more than one rise, one stress pulse and one fall   */
+            /* allowed on each vowel, in that order                   */
+            if (((pDph_t->symbols[n]& PVALUE) >= HAT_RISE) && ((pDph_t->symbols[n] & PVALUE)<= HAT_RF))
+            {
+                if (pDph_t->f0mode == NORMAL)
+                {
+                    pDph_t->f0mode = HAT_LOCATIONS_SPECIFIED;
+                }
+            }
+
+            /* Clause-final function word (preceded by [(]) should be stressed */
+            if (pDph_t->symbols[n] == PPSTART)
+            {
+                /* Examine input for next bound, see if cbound or greater */
+                m = n + 1;
+                while (m < pDph_t->nsymbtot)
+                {
+                    if (is_wboundary ( (short)(pDph_t->symbols[m] & PVALUE) ) )
+                    {
 #if defined(HLSYN) || defined(CHANGES_AFTER_V43)
-					if ((pDph_t->symbols[m] & PVALUE) == WBOUND)
-						m++;
+                        if ((pDph_t->symbols[m] & PVALUE) == WBOUND)
+                            m++;
 #endif
-					if (((pDph_t->symbols[m] & PVALUE) >= COMMA)
+                        if (((pDph_t->symbols[m] & PVALUE) >= COMMA)
 
-						|| (((pDph_t->symbols[m] & PVALUE) == PPSTART) && (pDph_t->symbols[m + 1] != USP_W)))
+                                || (((pDph_t->symbols[m] & PVALUE) == PPSTART) && (pDph_t->symbols[m + 1] != USP_W)))
 
-						
 
-					{
-						pDph_t->symbols[n] = WBOUND;	/* Replace [(] by [ ] */
-						/* Raise PPSTART to VPSTART to set off verbal particle */
-						if ((pDph_t->symbols[m] & PVALUE) == PPSTART)
-						{
-							pDph_t->symbols[m]  = VPSTART;
-						}
-						/* Unreduce the vowel in "for, to, into" */
 
-						if ((pDph_t->symbols[n + 1] == USP_F) && (pDph_t->symbols[n + 2] == USP_RR))
-						{
-							pDph_t->symbols[n + 2] = USP_OR;
-						}
-						if ((pDph_t->symbols[m - 2] == USP_T) && (pDph_t->symbols[m - 1] == USP_UH))
-						{
-							pDph_t->symbols[n + 2] = USP_UW;
-						}
+                        {
+                            pDph_t->symbols[n] = WBOUND;	/* Replace [(] by [ ] */
+                            /* Raise PPSTART to VPSTART to set off verbal particle */
+                            if ((pDph_t->symbols[m] & PVALUE) == PPSTART)
+                            {
+                                pDph_t->symbols[m]  = VPSTART;
+                            }
+                            /* Unreduce the vowel in "for, to, into" */
 
-						if ((pDph_t->symbols[n + 1] == UKP_F) && (pDph_t->symbols[n + 2] == UKP_RR))
-						{
-							pDph_t->symbols[n + 2] = UKP_OR;
-						}
-						if ((pDph_t->symbols[m - 2] == UKP_T) && (pDph_t->symbols[m - 1] == UKP_UH))
-						{
-							pDph_t->symbols[n + 2] = UKP_UW;
-						}
+                            if ((pDph_t->symbols[n + 1] == USP_F) && (pDph_t->symbols[n + 2] == USP_RR))
+                            {
+                                pDph_t->symbols[n + 2] = USP_OR;
+                            }
+                            if ((pDph_t->symbols[m - 2] == USP_T) && (pDph_t->symbols[m - 1] == USP_UH))
+                            {
+                                pDph_t->symbols[n + 2] = USP_UW;
+                            }
 
-						/* Promote init secondary stress, or find V to stress */
-						if (pDph_t->symbols[n + 1] == S2)
-						{
-							pDph_t->symbols[n + 1] = S1;	/* Replace [`] by ['] */
-						}
-						else
-						{
-							insertphone (phTTS, (short)(n + 1), S1);		/* Insert dangling ['] */
-							move_stdangle (phTTS, (short)(n + 1) );	/* Move to right place */
-						}
-					}
+                            if ((pDph_t->symbols[n + 1] == UKP_F) && (pDph_t->symbols[n + 2] == UKP_RR))
+                            {
+                                pDph_t->symbols[n + 2] = UKP_OR;
+                            }
+                            if ((pDph_t->symbols[m - 2] == UKP_T) && (pDph_t->symbols[m - 1] == UKP_UH))
+                            {
+                                pDph_t->symbols[n + 2] = UKP_UW;
+                            }
 
-if(pKsd_t->lang_curr == LANG_latin_american
-   || pKsd_t->lang_curr == LANG_spanish )
-{
-					if ((pDph_t->symbols[m] & PVALUE) >= COMMA)
-					{
-						pDph_t->symbols[n]= S2;	   /* Replace [(] by [`]  */
-					}
-					/* Should be an insert instead   */
-}
-					break;
-				}
+                            /* Promote init secondary stress, or find V to stress */
+                            if (pDph_t->symbols[n + 1] == S2)
+                            {
+                                pDph_t->symbols[n + 1] = S1;	/* Replace [`] by ['] */
+                            }
+                            else
+                            {
+                                insertphone (phTTS, (short)(n + 1), S1);		/* Insert dangling ['] */
+                                move_stdangle (phTTS, (short)(n + 1) );	/* Move to right place */
+                            }
+                        }
 
-				m++;
-			}
-		}
+                        if(pKsd_t->lang_curr == LANG_latin_american
+                                || pKsd_t->lang_curr == LANG_spanish )
+                        {
+                            if ((pDph_t->symbols[m] & PVALUE) >= COMMA)
+                            {
+                                pDph_t->symbols[n]= S2;	   /* Replace [(] by [`]  */
+                            }
+                            /* Should be an insert instead   */
+                        }
+                        break;
+                    }
 
-	
-/* I'm more or less certain, this is an error in all cases, but that's the state of newer versions: */
-#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
-		}
-#endif
+                    m++;
+                }
+            }
 
 #if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
 #if defined ENGLISH_US || defined SPANISH || defined GERMAN
-                /* Look for dangling stress mark (i.e. not followed by +SYLL) */
+            /* Look for dangling stress mark (i.e. not followed by +SYLL) */
 #ifdef GERMAN
-                if (((pDph_t->symbols[n] & PVALUE) >= S3) && ((pDph_t->symbols[n] & PVALUE) <= HAT_RF))
+            if (((pDph_t->symbols[n] & PVALUE) >= S3) && ((pDph_t->symbols[n] & PVALUE) <= HAT_RF))
 #endif
 #if defined ENGLISH_US || defined SPANISH
-                if (((pDph_t->symbols[n] & PVALUE) >= S2) && ((pDph_t->symbols[n] & PVALUE) <= SEMPH))
+            if (((pDph_t->symbols[n] & PVALUE) >= S2) && ((pDph_t->symbols[n] & PVALUE) <= SEMPH))
 #endif
+            {
+                /* if ((pDph_t->symbols[n] == S1) || (pDph_t->symbols[n] == SEMPH)) */ /* english */
+                if ((pDph_t->symbols[n] & PVALUE) != S2)           /* these are the same */                   /* spanish */
                 {
-                        /* if ((pDph_t->symbols[n] == S1) || (pDph_t->symbols[n] == SEMPH)) */ /* english */
-                        if ((pDph_t->symbols[n] & PVALUE) != S2)           /* these are the same */                   /* spanish */
-                        {
-                                nstresses++;               /* Count # stresses to this point */
-                        }
-                        /* Examine following input for next segment, see if syllabic */
-                        m = n + 1;
-                        while (((pDph_t->symbols[m] & PVALUE) >= MAX_PHONES) && (m < pDph_t->nsymbtot))
-                        {
+                    nstresses++;               /* Count # stresses to this point */
+                }
+                /* Examine following input for next segment, see if syllabic */
+                m = n + 1;
+                while (((pDph_t->symbols[m] & PVALUE) >= MAX_PHONES) && (m < pDph_t->nsymbtot))
+                {
 #ifdef ENGLISH_US
-                                if ((pDph_t->symbols[m] & PVALUE) > WBOUND && (pDph_t->symbols[m] & PVALUE) < NEW_PARAGRAPH
-                                        && (pDph_t->symbols[m] & PVALUE) != HYPHEN /* xxx for auto compunds */ )
+                    if ((pDph_t->symbols[m] & PVALUE) > WBOUND && (pDph_t->symbols[m] & PVALUE) < NEW_PARAGRAPH
+                            && (pDph_t->symbols[m] & PVALUE) != HYPHEN /* xxx for auto compunds */ )
 #endif
 #if defined SPANISH || defined GERMAN 
-                                if ((pDph_t->symbols[m] & PVALUE) >= SBOUND)
+                        if ((pDph_t->symbols[m] & PVALUE) >= SBOUND)
 #endif
-                                {
-                                        nstresses--;
-                                        delete_symbol (phTTS, n);       /* Ignore stress at end of */
-                                        goto stzapped;     /* syllable or word     */
-                                }
-                                m++;
-                        }
-
-                        if ((phone_feature(pDph_t, pDph_t->symbols[m]) & FSYLL) IS_MINUS)
                         {
-                                move_stdangle (phTTS, n);
+                            nstresses--;
+                            delete_symbol (phTTS, n);       /* Ignore stress at end of */
+                            goto stzapped;     /* syllable or word     */
                         }
+                    m++;
                 }
-	  stzapped:
+
+                if ((phone_feature(pDph_t, pDph_t->symbols[m]) & FSYLL) IS_MINUS)
+                {
+                    move_stdangle (phTTS, n);
+                }
+            }
+stzapped:
 #endif
 #endif
 
 
-		/* Remove weaker of two boundary pDph_t->symbols in a row */
-		if (((pDph_t->symbols[n] & PVALUE) >= SBOUND) && ((pDph_t->symbols[n] & PVALUE) <= EXCLAIM))
-		{
-/* for (m=n+1; m<pDph_t->nsymbtot; m++) out-goofs up when trying to do all at once { */
+            /* Remove weaker of two boundary pDph_t->symbols in a row */
+            if (((pDph_t->symbols[n] & PVALUE) >= SBOUND) && ((pDph_t->symbols[n] & PVALUE) <= EXCLAIM))
+            {
+                /* for (m=n+1; m<pDph_t->nsymbtot; m++) out-goofs up when trying to do all at once { */
 #if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
 #if defined ENGLISH_US || defined GERMAN
 #ifdef ENGLISH_US
-                        m = n + 1;
-                        if (m < pDph_t->nsymbtot)
-                        {
-                                /* if (pDph_t->symbols[m] < TOT_ALLOPHONES)    break; */
-                                if (((pDph_t->symbols[m] & PVALUE) >= SBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
-                                {
-                                        zap_weaker_bound (phTTS, n, m);
-                                }
-                        }
+                m = n + 1;
+                if (m < pDph_t->nsymbtot)
+                {
+                    /* if (pDph_t->symbols[m] < TOT_ALLOPHONES)    break; */
+                    if (((pDph_t->symbols[m] & PVALUE) >= SBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
+                    {
+                        zap_weaker_bound (phTTS, n, m);
+                    }
+                }
 #endif
 #ifdef GERMAN
-                        for (m = n + 1; m < pDph_t->nsymbtot; m++)
-                        {
-                                if ((pDph_t->symbols[m] & PVALUE) < GR_TOT_ALLOPHONES)
-                                        break;
-                                if (((pDph_t->symbols[m] & PVALUE) >= SBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
-                                {
-                                        zap_weaker_bound (phTTS, n, m);
-                                }
-                        }
-#endif
-                }
-                /* Replace weak boundaries by stronger ones at slow rates */
-                if (pKsd_t->sprate <= 120)
+                for (m = n + 1; m < pDph_t->nsymbtot; m++)
                 {
-                        if (((pDph_t->symbols[n] & PVALUE) == VPSTART) || ((pDph_t->symbols[n] & PVALUE) == PPSTART))
-                        {
-                                pDph_t->symbols[n] = COMMA;
-                        }
-		}
-#else
-		}
+                    if ((pDph_t->symbols[m] & PVALUE) < GR_TOT_ALLOPHONES)
+                        break;
+                    if (((pDph_t->symbols[m] & PVALUE) >= SBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
+                    {
+                        zap_weaker_bound (phTTS, n, m);
+                    }
+                }
+#endif
+#endif  /* #if defined ENGLISH_US || defined GERMAN*/
+#endif
+            }
+#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
+#if defined ENGLISH_US || defined GERMAN
+            /* Replace weak boundaries by stronger ones at slow rates */
+            if (pKsd_t->sprate <= 120)
+            {
+                if (((pDph_t->symbols[n] & PVALUE) == VPSTART) || ((pDph_t->symbols[n] & PVALUE) == PPSTART))
+                {
+                    pDph_t->symbols[n] = COMMA;
+                }
+            }
 #endif  /* #if defined ENGLISH_US || defined GERMAN*/
 #endif
 
-		if (pKsd_t->sprate <= 140)
-		{
-			if (pDph_t->symbols[n] == PPSTART)
-			{
-				pDph_t->symbols[n] = VPSTART;
-			}
-		}
+            if (pKsd_t->sprate <= 140)
+            {
+                if (pDph_t->symbols[n] == PPSTART)
+                {
+                    pDph_t->symbols[n] = VPSTART;
+                }
+            }
 
-		/* Every breath group must have at least one 1-stress */
-		if (((pDph_t->symbols[n]& PVALUE) >= COMMA) && ((pDph_t->symbols[n]& PVALUE) <= EXCLAIM))
-		{
+            /* Every breath group must have at least one 1-stress */
+            if (((pDph_t->symbols[n]& PVALUE) >= COMMA) && ((pDph_t->symbols[n]& PVALUE) <= EXCLAIM))
+            {
 
-			if ((n > 0) && (nstresses == 0))
-			{
-				find_syll_to_stress (phTTS, &n, nstartphrase);	/* MVP : was n and n was static */
-				nstresses = 1;
+                if ((n > 0) && (nstresses == 0))
+                {
+                    find_syll_to_stress (phTTS, &n, nstartphrase);	/* MVP : was n and n was static */
+                    nstresses = 1;
 
-			}
-		}
+                }
+            }
 
-		/* Reset to new phrase if encounter [ } , . ? ! ] */
-		/* 
-		 * NOTE: Phoneme RELSTART = [}] not currently defined.  When it is, 
-		 * all words in FUNWRD1.DIC that introduce relative clauses, such as
-		 * "when, that, which" should have [}] symbol appended to front. 
-		 */
-		if (((pDph_t->symbols[n] & PVALUE) >= RELSTART) && ((pDph_t->symbols[n] & PVALUE) <= EXCLAIM))
-		{
-			nstresses = 0;
-			nstartphrase = n;
-		}
+            /* Reset to new phrase if encounter [ } , . ? ! ] */
+            /* 
+             * NOTE: Phoneme RELSTART = [}] not currently defined.  When it is, 
+             * all words in FUNWRD1.DIC that introduce relative clauses, such as
+             * "when, that, which" should have [}] symbol appended to front. 
+             */
+            if (((pDph_t->symbols[n] & PVALUE) >= RELSTART) && ((pDph_t->symbols[n] & PVALUE) <= EXCLAIM))
+            {
+                nstresses = 0;
+                nstartphrase = n;
+            }
 
-		/* Exclamation point raises last stress of sentence to emphasis */
-		if ((pDph_t->symbols[n] & PVALUE) == EXCLAIM)
-		{
-			raise_last_stress (pDph_t, n);
-		}
-		/* Set varaible to indicate a question sentence */
-		if ((pDph_t->symbols[n] & PVALUE) == QUEST)
-		{
-			pDph_t->cbsymbol = TRUE;
-		}
-	}
+            /* Exclamation point raises last stress of sentence to emphasis */
+            if ((pDph_t->symbols[n] & PVALUE) == EXCLAIM)
+            {
+                raise_last_stress (pDph_t, n);
+            }
+            /* Set varaible to indicate a question sentence */
+            if ((pDph_t->symbols[n] & PVALUE) == QUEST)
+            {
+                pDph_t->cbsymbol = TRUE;
+            }
+	} /* for(n) */
 
-if(pKsd_t->lang_curr == LANG_spanish
-   || pKsd_t->lang_curr == LANG_latin_american)
-{
-	sp_spanish_allophonics (phTTS);
-}
+        if(pKsd_t->lang_curr == LANG_spanish
+                || pKsd_t->lang_curr == LANG_latin_american)
+        {
+            sp_spanish_allophonics (phTTS);
+        }
 
 	/* Main loop 2: for each input symbol, pass to output array or turn into */
 	/* a feature value */
@@ -1330,362 +1326,362 @@ if(pKsd_t->lang_curr == LANG_spanish
 	for (n = 0; n < pDph_t->nsymbtot; n++)
 	{
 
-		/* MGS fixed indexing problem #10190 */
-		snphonetot = pDph_t->nphonetot;
+            /* MGS fixed indexing problem #10190 */
+            snphonetot = pDph_t->nphonetot;
 
-		if (pKsd_t->halting)
-			return (FALSE);
+            if (pKsd_t->halting)
+                return (FALSE);
 
-		curr_in_phone = pDph_t->symbols[n];
-		curr_in_sym = pDph_t->symbols[n] & PVALUE;	/* Precompute useful variable */
+            curr_in_phone = pDph_t->symbols[n];
+            curr_in_sym = pDph_t->symbols[n] & PVALUE;	/* Precompute useful variable */
 
-		curr_dur = pDph_t->user_durs[n];	/* User-specified dur if non-zero */
-		pDph_t->user_durs[n] = 0;
+            curr_dur = pDph_t->user_durs[n];	/* User-specified dur if non-zero */
+            pDph_t->user_durs[n] = 0;
 
-		curr_f0 = pDph_t->user_f0[n];  /* User-specified f0 if non-zero  */
-		pDph_t->user_f0[n] = 0;
+            curr_f0 = pDph_t->user_f0[n];  /* User-specified f0 if non-zero  */
+            pDph_t->user_f0[n] = 0;
 
-		/* Check to see if user-specified f0 hats/stress-pulses */
+            /* Check to see if user-specified f0 hats/stress-pulses */
 
-		interp_user_f0 (pDph_t, &curr_dur, &curr_f0, curr_in_sym, &mf0);
+            interp_user_f0 (pDph_t, &curr_dur, &curr_f0, curr_in_sym, &mf0);
 
-		/* Switch on the current input symbol */
+            /* Switch on the current input symbol */
 				
 #if defined(HLSYN) || defined(CHANGES_AFTER_V43)
-		/* added wordclass info for AD */
-		
-		// CAB Removed warnings by typecast
-		if ( (cp = durlookup(pDph_t, &pDph_t->symbols[n], (short *)&durdic[0])) != NULL)
-		{	
-			tmp=n;
-			do{
-			if(*cp != 0 && tmp == n)
-			{
-				curr_dur=*cp;
-			}
-			else
-			{
-				//need to not overide user durations
-				if(pDph_t->user_durs[tmp] ==0)
-				pDph_t->user_durs[tmp]=*cp;
-			}
-			tmp++;
-			cp++;
-			}
-			while (*cp != -1);
-		}
+            /* added wordclass info for AD */
+
+            // CAB Removed warnings by typecast
+            if ( (cp = durlookup(pDph_t, &pDph_t->symbols[n], (short *)&durdic[0])) != NULL)
+            {	
+                tmp=n;
+                do{
+                    if(*cp != 0 && tmp == n)
+                    {
+                        curr_dur=*cp;
+                    }
+                    else
+                    {
+                        //need to not overide user durations
+                        if(pDph_t->user_durs[tmp] ==0)
+                            pDph_t->user_durs[tmp]=*cp;
+                    }
+                    tmp++;
+                    cp++;
+                }
+                while (*cp != -1);
+            }
 #endif
-	
-		if (curr_in_sym < MAX_PHONES)
-		{							   /* A real phoneme */
-			make_phone (pDph_t, curr_in_phone, n, curr_dur, curr_f0);		/* eab try handling stuff in make */
 
-if(pKsd_t->lang_curr == LANG_spanish
-   || pKsd_t->lang_curr == LANG_latin_american)
-		{
-			if (word_init_sw)
-			{
-				nsyll = countsyll (pDph_t, n); 	/* Get nbr of syllables     */
-				syllclass = 0;		   			/* Setup for new syll   */
-				iscoda = 0;			   			/* Haven't seen vowel   */
-				wordstress = getwordstress (pDph_t,n);
-				if ((phone_feature( pDph_t,  curr_in_phone) & FSYLL) IS_MINUS)
-				{
-					add_feature (pDph_t, FWINITC, (short)(CURRPHONE) ); // NAL warning removal
+            if (curr_in_sym < MAX_PHONES)
+            {							   /* A real phoneme */
+                make_phone (pDph_t, curr_in_phone, n, curr_dur, curr_f0);		/* eab try handling stuff in make */
 
-				}
-				word_init_sw = FALSE;
-			}
-		}
+                if(pKsd_t->lang_curr == LANG_spanish
+                        || pKsd_t->lang_curr == LANG_latin_american)
+                {
+                    if (word_init_sw)
+                    {
+                        nsyll = countsyll (pDph_t, n); 	/* Get nbr of syllables     */
+                        syllclass = 0;		   			/* Setup for new syll   */
+                        iscoda = 0;			   			/* Haven't seen vowel   */
+                        wordstress = getwordstress (pDph_t,n);
+                        if ((phone_feature( pDph_t,  curr_in_phone) & FSYLL) IS_MINUS)
+                        {
+                            add_feature (pDph_t, FWINITC, (short)(CURRPHONE) ); // NAL warning removal
 
-			/* If syllabic, look ahead to see initial/medial/final syll */
-			if ((phone_feature( pDph_t,  curr_in_phone) & FSYLL) IS_PLUS)
-			{
-				in_rhyme = TRUE;
-				word_init_sw = FALSE;
-				init_med_final (phTTS, n);
+                        }
+                        word_init_sw = FALSE;
+                    }
+                }
 
-if(pKsd_t->lang_curr == LANG_spanish
-   ||pKsd_t->lang_curr == LANG_latin_american)
-{
-				if (iscoda == 0)
-				{
-if(pKsd_t->lang_curr == LANG_spanish)
-		syllclass = sp_getsyllclass (pDph_t, (short)(n + 1)); // NAL warning removal
-if( pKsd_t->lang_curr == LANG_spanish)
-					syllclass = la_getsyllclass (pDph_t, (short)(n + 1)); // NAL warning removal
-					iscoda = FCODA;
-				}
-				add_feature (pDph_t, nsyll + syllclass + wordstress, (short)(CURRPHONE) ); // NAL warning removal
-}
-			}
-			/* Assign stress feature to consonants */
-			else
-			{
-				get_stress_of_conson (phTTS, n, compound_destress);
-if(pKsd_t->lang_curr == LANG_spanish
-   || pKsd_t->lang_curr == LANG_latin_american)
-{
-				/* Do we need to set "wordstress" here? */
-				add_feature (pDph_t,nsyll + syllclass + iscoda, (short)(CURRPHONE) ); // NAL warning removal
-}
-			}
-			/* Assign word-initial feature to consonant(s) */
+                /* If syllabic, look ahead to see initial/medial/final syll */
+                if ((phone_feature( pDph_t,  curr_in_phone) & FSYLL) IS_PLUS)
+                {
+                    in_rhyme = TRUE;
+                    word_init_sw = FALSE;
+                    init_med_final (phTTS, n);
+
+                    if(pKsd_t->lang_curr == LANG_spanish
+                            ||pKsd_t->lang_curr == LANG_latin_american)
+                    {
+                        if (iscoda == 0)
+                        {
+                            if(pKsd_t->lang_curr == LANG_spanish)
+                                syllclass = sp_getsyllclass (pDph_t, (short)(n + 1)); // NAL warning removal
+                            if( pKsd_t->lang_curr == LANG_spanish)
+                                syllclass = la_getsyllclass (pDph_t, (short)(n + 1)); // NAL warning removal
+                            iscoda = FCODA;
+                        }
+                        add_feature (pDph_t, nsyll + syllclass + wordstress, (short)(CURRPHONE) ); // NAL warning removal
+                    }
+                }
+                /* Assign stress feature to consonants */
+                else
+                {
+                    get_stress_of_conson (phTTS, n, compound_destress);
+                    if(pKsd_t->lang_curr == LANG_spanish
+                            || pKsd_t->lang_curr == LANG_latin_american)
+                    {
+                        /* Do we need to set "wordstress" here? */
+                        add_feature (pDph_t,nsyll + syllclass + iscoda, (short)(CURRPHONE) ); // NAL warning removal
+                    }
+                }
+                /* Assign word-initial feature to consonant(s) */
 #if defined ENGLISH || defined GERMAN 
-			if (word_init_sw == TRUE)
-			{
-				add_feature (pDph_t, FWINITC, (short)(CURRPHONE)); // NAL warning removal
-			}
+                if (word_init_sw == TRUE)
+                {
+                    add_feature (pDph_t, FWINITC, (short)(CURRPHONE)); // NAL warning removal
+                }
 #endif // efined ENGLISH || defined GERMAN
 
-			/* Assign boundary type to segments of rhyme */
-			if (in_rhyme == TRUE)
-			{
-				get_next_bound_type (phTTS, n);
-			}
-		}
-		else
-		{							   /* A non-phoneme */
-			switch (curr_in_sym)
-			{
-/* Per Oliver this code allows for vowels before double consonants to have a faster duration
-	BATS 709	EAB 7/2/98*/
+                /* Assign boundary type to segments of rhyme */
+                if (in_rhyme == TRUE)
+                {
+                    get_next_bound_type (phTTS, n);
+                }
+            }
+            else
+            {							   /* A non-phoneme */
+                switch (curr_in_sym)
+                {
+                    /* Per Oliver this code allows for vowels before double consonants to have a faster duration
+                       BATS 709	EAB 7/2/98*/
 
-			case DOUBLCONS:
+                    case DOUBLCONS:
 
-				add_feature (pDph_t, FDOUBLECONS, NEXTPHONE);
-				break;
+                        add_feature (pDph_t, FDOUBLECONS, NEXTPHONE);
+                        break;
 
-			case S1:
+                    case S1:
 
-					add_feature (pDph_t, FSTRESS_1, NEXTPHONE);
-
-#ifdef MSDBG8
-				printf ("add_feature(FSTRESS_1,NEXTPHONE)\n");
-#endif
-		 		break;
-			case S2:
-
-				add_feature (pDph_t, FSTRESS_2, NEXTPHONE);
+                        add_feature (pDph_t, FSTRESS_1, NEXTPHONE);
 
 #ifdef MSDBG8
-					printf ("add_feature(FSTRESS_2,NEXTPHONE)\n");
+                        printf ("add_feature(FSTRESS_1,NEXTPHONE)\n");
 #endif
-				break;
+                        break;
+                    case S2:
 
-			case S3:
-				/* 
-				 * This is being used in the spanish as a marker for ", which causes 
-				 * the next clause to be treated differently didn't use feature
-				 * bits because there is now room for S3 
-				 */
-				phrase_after_quote = 1;
-
-				break;
-
-			case SEMPH:
-				
-				add_feature (pDph_t, FEMPHASIS, NEXTPHONE);
+                        add_feature (pDph_t, FSTRESS_2, NEXTPHONE);
 
 #ifdef MSDBG8
-				printf ("add_feature(FEMPHASIS,NEXTPHONE\n");
+                        printf ("add_feature(FSTRESS_2,NEXTPHONE)\n");
+#endif
+                        break;
+
+                    case S3:
+                        /* 
+                         * This is being used in the spanish as a marker for ", which causes 
+                         * the next clause to be treated differently didn't use feature
+                         * bits because there is now room for S3 
+                         */
+                        phrase_after_quote = 1;
+
+                        break;
+
+                    case SEMPH:
+
+                        add_feature (pDph_t, FEMPHASIS, NEXTPHONE);
+
+#ifdef MSDBG8
+                        printf ("add_feature(FEMPHASIS,NEXTPHONE\n");
 
 #endif
 
-				break;
-			case HYPHEN:
-				compound_destress = FALSE;
-			case MBOUND:
+                        break;
+                    case HYPHEN:
+                        compound_destress = FALSE;
+                    case MBOUND:
 
-			case SBOUND:
+                    case SBOUND:
 
-				add_feature (pDph_t, FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
-				add_feature (pDph_t, FSBOUND, (short)(CURRPHONE) ); // NAL warning removal
-				iscoda = 0;
-				syllclass = 0;
-				break;
+                        add_feature (pDph_t, FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
+                        add_feature (pDph_t, FSBOUND, (short)(CURRPHONE) ); // NAL warning removal
+                        iscoda = 0;
+                        syllclass = 0;
+                        break;
 
 
-			case WBOUND:
+                    case WBOUND:
 
-				pDph_t->number_words++; /* EAB Let's count  up the number of words*/
-				doneit =0;
-					/* eab AT slow speaking rate insert a glottal stop that later 
-				gets it's timing adjusted and voicing reduced*/
-				
-				word_init_sw = TRUE;
-					/* eab AT slow speaking rate insert a glottal stop that later 
-				gets it's timing adjusted and voicing reduced*/
+                        pDph_t->number_words++; /* EAB Let's count  up the number of words*/
+                        doneit =0;
+                        /* eab AT slow speaking rate insert a glottal stop that later 
+                           gets it's timing adjusted and voicing reduced*/
 
-				if(pKsd_t->sprate <115)
+                        word_init_sw = TRUE;
+                        /* eab AT slow speaking rate insert a glottal stop that later 
+                           gets it's timing adjusted and voicing reduced*/
+
+                        if(pKsd_t->sprate <115)
 //					insertphone (phTTS, (short) (n+1), USP_Q);
 
 
-				
 
 
-if(pKsd_t->lang_curr == LANG_latin_american
-   || pKsd_t->lang_curr == LANG_spanish )
-{
-/* printf("at boun  %d \n ",n); */
-				if (n > 1)
-				{
-					add_feature (pDph_t, FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
-				}
-}
-				break;
-			case PPSTART:
-						word_init_sw = TRUE;
-				//	add_feature (pDph_t, FPPNEXT, (short)(CURRPHONE) ); 
-						break;
-			case VPSTART:
-						word_init_sw = TRUE;
-					//	add_feature (pDph_t, FVPNEXT, (short)(CURRPHONE) ); 
-						break;
-			case RELSTART:
-				word_init_sw = TRUE;
-if(pKsd_t->lang_curr == LANG_english)
-{
-				if (pDph_t->symbols[n + 1] == HYPHEN)
-				{
-					break;			   /* xxx here to allow compound noun insert */
-				}
-}
-				word_init_sw = TRUE;
-				nsyll = 0;
-				compound_destress = FALSE;
 
-				break;
+                            if(pKsd_t->lang_curr == LANG_latin_american
+                                    || pKsd_t->lang_curr == LANG_spanish )
+                            {
+                                /* printf("at boun  %d \n ",n); */
+                                if (n > 1)
+                                {
+                                    add_feature (pDph_t, FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
+                                }
+                            }
+                        break;
+                    case PPSTART:
+                        word_init_sw = TRUE;
+                        //	add_feature (pDph_t, FPPNEXT, (short)(CURRPHONE) ); 
+                        break;
+                    case VPSTART:
+                        word_init_sw = TRUE;
+                        //	add_feature (pDph_t, FVPNEXT, (short)(CURRPHONE) ); 
+                        break;
+                    case RELSTART:
+                        word_init_sw = TRUE;
+                        if(pKsd_t->lang_curr == LANG_english)
+                        {
+                            if (pDph_t->symbols[n + 1] == HYPHEN)
+                            {
+                                break;			   /* xxx here to allow compound noun insert */
+                            }
+                        }
+                        word_init_sw = TRUE;
+                        nsyll = 0;
+                        compound_destress = FALSE;
 
-				case COMMA:
-				pDph_t->clausetype = COMMACLAUSE;
-				pDph_t->clausenumber++;
-					pDph_t->dcommacnt++;
-				if(pDph_t->dcommacnt > 1 || pDph_t->number_words > 4)
-				{
-					pDph_t->clausetype = DECLARATIVE;
-				}
-if(pKsd_t->lang_curr == LANG_spanish)
-{
-				if (n > 1)
-				{
-					add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
-				}
-            	nsyll=0;
-}
-				make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
-				word_init_sw = TRUE;
-				compound_destress = FALSE;
-				break;
-			case PERIOD:
-			pDph_t->clausetype = DECLARATIVE;
-			add_feature (pDph_t, FSENTENDS, NEXTPHONE);
-			pDph_t->clausenumber=0;
-if(pKsd_t->lang_curr == LANG_latin_american
-   || pKsd_t->lang_curr == LANG_spanish )
-{
-				if (n > 1)
-				{
-					add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
-				}
-            	nsyll=0;
-}
-				add_feature (pDph_t, FSENTENDS, NEXTPHONE);
-				make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
-				word_init_sw = TRUE;
-				compound_destress = FALSE;
-				break;
-			case EXCLAIM:
-			pDph_t->clausetype = EXCLAIMCLAUSE;
-			pDph_t->clausenumber=0;
-if(pKsd_t->lang_curr == LANG_latin_american
-   || pKsd_t->lang_curr == LANG_spanish )
-{
-				if (n > 1)
-				{
-					add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
-				}
-            	nsyll=0;
-}
-				make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
-				word_init_sw = TRUE;
-				compound_destress = FALSE;
-				break;
-				
-			case QUEST:          			
-			pDph_t->clausetype = QUESTION;
-			pDph_t->clausenumber=0;
-if(pKsd_t->lang_curr == LANG_latin_american
-   || pKsd_t->lang_curr == LANG_spanish )
-{
-				if (n > 1)
-				{
-					add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
-				}
-            	nsyll=0;
-}
-				make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
-				word_init_sw = TRUE;
-				compound_destress = FALSE;
-				break;
+                        break;
+
+                    case COMMA:
+                        pDph_t->clausetype = COMMACLAUSE;
+                        pDph_t->clausenumber++;
+                        pDph_t->dcommacnt++;
+                        if(pDph_t->dcommacnt > 1 || pDph_t->number_words > 4)
+                        {
+                            pDph_t->clausetype = DECLARATIVE;
+                        }
+                        if(pKsd_t->lang_curr == LANG_spanish)
+                        {
+                            if (n > 1)
+                            {
+                                add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
+                            }
+                            nsyll=0;
+                        }
+                        make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
+                        word_init_sw = TRUE;
+                        compound_destress = FALSE;
+                        break;
+                    case PERIOD:
+                        pDph_t->clausetype = DECLARATIVE;
+                        add_feature (pDph_t, FSENTENDS, NEXTPHONE);
+                        pDph_t->clausenumber=0;
+                        if(pKsd_t->lang_curr == LANG_latin_american
+                                || pKsd_t->lang_curr == LANG_spanish )
+                        {
+                            if (n > 1)
+                            {
+                                add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
+                            }
+                            nsyll=0;
+                        }
+                        add_feature (pDph_t, FSENTENDS, NEXTPHONE);
+                        make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
+                        word_init_sw = TRUE;
+                        compound_destress = FALSE;
+                        break;
+                    case EXCLAIM:
+                        pDph_t->clausetype = EXCLAIMCLAUSE;
+                        pDph_t->clausenumber=0;
+                        if(pKsd_t->lang_curr == LANG_latin_american
+                                || pKsd_t->lang_curr == LANG_spanish )
+                        {
+                            if (n > 1)
+                            {
+                                add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
+                            }
+                            nsyll=0;
+                        }
+                        make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
+                        word_init_sw = TRUE;
+                        compound_destress = FALSE;
+                        break;
+
+                    case QUEST:          			
+                        pDph_t->clausetype = QUESTION;
+                        pDph_t->clausenumber=0;
+                        if(pKsd_t->lang_curr == LANG_latin_american
+                                || pKsd_t->lang_curr == LANG_spanish )
+                        {
+                            if (n > 1)
+                            {
+                                add_feature (pDph_t,FISBOUND, (short)(CURRPHONE) ); // NAL warning removal
+                            }
+                            nsyll=0;
+                        }
+                        make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
+                        word_init_sw = TRUE;
+                        compound_destress = FALSE;
+                        break;
 
 
-			case HAT_RISE:
-				pDph_t->hat_seen++;
-			
-				add_feature (pDph_t, FHAT_BEGINS, NEXTPHONE);
+                    case HAT_RISE:
+                        pDph_t->hat_seen++;
+
+                        add_feature (pDph_t, FHAT_BEGINS, NEXTPHONE);
 
 #ifdef MSDBG8
-				printf ("add_feature(FHAT_BEGINS,NEXTPHONE)\n");
+                        printf ("add_feature(FHAT_BEGINS,NEXTPHONE)\n");
 #endif
-				break;
-			case HAT_FALL:
+                        break;
+                    case HAT_FALL:
 
-				pDph_t->hat_seen++;
+                        pDph_t->hat_seen++;
 
-				add_feature (pDph_t, FHAT_ENDS, NEXTPHONE);
+                        add_feature (pDph_t, FHAT_ENDS, NEXTPHONE);
 #ifdef MSDBG8
-				printf ("add_feature(FHAT_ENDS,NEXTPHONE)\n");
+                        printf ("add_feature(FHAT_ENDS,NEXTPHONE)\n");
 #endif
-				break;
+                        break;
 
-			case HAT_RF:
-				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-				/* german DECtalk uses also HAT_RF                   					  */
-				/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-				pDph_t->hat_seen++;
-				add_feature (pDph_t, FHAT_ROOF, NEXTPHONE);
-				break;
+                    case HAT_RF:
+                        /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+                        /* german DECtalk uses also HAT_RF                   					  */
+                        /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+                        pDph_t->hat_seen++;
+                        add_feature (pDph_t, FHAT_ROOF, NEXTPHONE);
+                        break;
 
-			case BLOCK_RULES:
-				add_feature (pDph_t, FBLOCK, NEXTPHONE);
+                    case BLOCK_RULES:
+                        add_feature (pDph_t, FBLOCK, NEXTPHONE);
 #ifdef MSDBG8
-				printf ("add_feature(FBLOCK,NEXTPHONE)\n");
+                        printf ("add_feature(FBLOCK,NEXTPHONE)\n");
 #endif
-				break;
-			case NEW_PARAGRAPH:
-				add_feature (pDph_t, PRESSBOUND, NEXTPHONE);
-				add_feature (pDph_t, PRESSBOUND, pDph_t->nphonetot+1);
-				pDph_t->newparagsw = TRUE;
-				break;
-			default:
-				break;
-			}
-		}
-		if ((pDph_t->nphonetot == snphonetot))	/* eab */
-		{
+                        break;
+                    case NEW_PARAGRAPH:
+                        add_feature (pDph_t, PRESSBOUND, NEXTPHONE);
+                        add_feature (pDph_t, PRESSBOUND, pDph_t->nphonetot+1);
+                        pDph_t->newparagsw = TRUE;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if ((pDph_t->nphonetot == snphonetot))	/* eab */
+            {
 #ifdef MSDOS
-			adjust_index ((n + 1), -1, 0);	/* eab n+1 to bind forward */
+                adjust_index ((n + 1), -1, 0);	/* eab n+1 to bind forward */
 #else
-			adjust_index (pKsd_t, (n + 1), -1, 0);	/* eab n+1 to bind forward */
+                adjust_index (pKsd_t, (n + 1), -1, 0);	/* eab n+1 to bind forward */
 #endif
 #ifdef DEBUGIND
 
-			printf ("adj -1 on %d %d \n", curr_in_sym, (n + 1));
+                printf ("adj -1 on %d %d \n", curr_in_sym, (n + 1));
 #endif
-		}
-	}
-	return (TRUE);
+            }
+        }
+    return (TRUE);
 }	// pbsort()
 
 /*
@@ -2147,4 +2143,4 @@ extern short fr_featb[];
 /* *****************************************************************/
 }
 
-
+//# vim: ts=8 sw=4 et
