@@ -492,6 +492,21 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 			{
 				pCmd_t->prevword=pCmd_t->clausebuf;
 			}
+#ifdef ENGLISH
+			/* HACK: Check for Dr. and St. */
+			if (pCmd_t->prevword!=NULL)
+			{
+				char *word = cm_text_get_word(pCmd_t->prevword,pCmd_t->wordbuf,1);
+				if (word != NULL && strlen(word) == 3 &&
+				    (((((word[0] == 'D') || (word[0] == 'd')) &&
+				       ((word[1] == 'R') || (word[1] == 'r'))) ||
+				      (((word[0] == 'S') || (word[0] == 's')) &&
+				       ((word[1] == 'T') || (word[1] == 't')))) &&
+				     word[2] == '.')) {
+					pCmd_t->done=0;
+				}
+			}
+#endif
 //			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && (pCmd_t->ParseChar== 0x0fff) &&
 			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && ((char_types[pCmd_t->ParseChar] & MARK_space) || (pCmd_t->ParseChar==0x82)) &&
 		    (par_dict_lookup(pKsd_t,(char *)cm_text_get_word(pCmd_t->prevword,pCmd_t->wordbuf,1),0)))

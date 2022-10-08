@@ -370,6 +370,17 @@ void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 			 )
 
 		{
+#ifdef ENGLISH
+			/* HACK: Check for Dr. and St. */
+			if (pLts_t->cur_input_pos >= 4 &&
+			    (((((pLts_t->input_array[pLts_t->cur_input_pos-4] == 'D') || (pLts_t->input_array[pLts_t->cur_input_pos-4] == 'd')) &&
+			       ((pLts_t->input_array[pLts_t->cur_input_pos-3] == 'R') || (pLts_t->input_array[pLts_t->cur_input_pos-3] == 'r'))) ||
+			      (((pLts_t->input_array[pLts_t->cur_input_pos-4] == 'S') || (pLts_t->input_array[pLts_t->cur_input_pos-4] == 's')) &&
+			       ((pLts_t->input_array[pLts_t->cur_input_pos-3] == 'T') || (pLts_t->input_array[pLts_t->cur_input_pos-3] == 't')))) &&
+			     pLts_t->input_array[pLts_t->cur_input_pos-2] == '.')) {
+				return;
+			}
+#endif
 #ifndef ARM7
 			if (phTTS->bInReset)	
 				return;
