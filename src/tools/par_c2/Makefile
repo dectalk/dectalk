@@ -6,7 +6,7 @@ all: par_c2
 par_c2: $(OBJS)
 
 compile: ../../dapi/src/cmd/par_rule2.par par_c2
-	./par_c2 $<
+	cd ../../dapi/src/cmd/; ../../../tools/par_c2/par_c2 par_rule2.par
 
 clean:
 	-rm -f $(OBJS) par_c2
