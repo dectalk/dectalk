@@ -244,6 +244,22 @@ static void usage(char *progname)
     fprintf(stderr,"          -fi file   Speak from a specified text file\n");
     if (dt_langs!=NULL && dt_langs->MultiLang==TRUE)
         fprintf(stderr,"          -l lang    Use specific language (us,uk,gr,sp,la,fr)\n");
+    fprintf(stderr,"          -pre text  Text to be passed to DECtalk before the normal input.\n" );
+    fprintf(stderr,"                     This is useful for passing initializing commands to\n" );
+    fprintf(stderr,"                     DECtalk that would normally not be part of the input.\n" );
+    fprintf(stderr,"                     If the prefix text has spaces, it must be enclosed in\n" );
+    fprintf(stderr,"                     quotes.  An example would be \"[:phoneme on]\" or\n" );
+    fprintf(stderr,"                     \"[:nb :ra200]\".\n" );
+    fprintf(stderr,"                     The prefix text is \"forced\" out before the input text\n" );
+    fprintf(stderr,"                     is read.\n" );
+    fprintf(stderr,"          -post text Text to be passed to DECtalk after the normal input.\n" );
+    fprintf(stderr,"                     This is useful for passing terminating commands to\n" );
+    fprintf(stderr,"                     DECtalk that would normally not be part of the input.\n" );
+    fprintf(stderr,"                     If the postfix text has spaces, it must be enclosed\n" );
+    fprintf(stderr,"                     in quotes.  An example would be \"[:phoneme off]\" or\n" );
+    fprintf(stderr,"                     \"The End\".\n" );
+    fprintf(stderr,"                     The \"normal\" input is \"forced\" out before the postfix\n" );
+    fprintf(stderr,"                     text is read.\n" );
     exit(-1);
 }
 
@@ -302,6 +318,8 @@ int main( int argc, char *argv[] )
     char *lang = NULL;
     int  specifiedOutputFile = -1;
     unsigned int TTS_lang = 0;
+    char *prefixText = NULL;
+    char *postfixText = NULL;
 
     /***********************************************/
     /* Set defaults				   */
@@ -470,6 +488,42 @@ int main( int argc, char *argv[] )
 	    }
 	}
 
+        /********************************************************/
+        /* Switch '-pre' pre text                               */
+        /********************************************************/
+	else if ( strcmp("-pre", argv[i]) == 0 )
+	{
+            /*
+             * check if there is an argument after -pre
+             */
+            if ( argc <= i+1)
+               usage( argv[0] );
+            if ( strlen (argv[i+1]) <= 0 )
+               usage( argv[0] );
+
+	    i++;
+
+	    prefixText = argv[i];
+	}
+
+        /********************************************************/
+        /* Switch '-post' post text                             */
+        /********************************************************/
+	else if ( strcmp("-post", argv[i]) == 0 )
+	{
+            /*
+             * check if there is an argument after -pre
+             */
+            if ( argc <= i+1)
+               usage( argv[0] );
+            if ( strlen (argv[i+1]) <= 0 )
+               usage( argv[0] );
+
+	    i++;
+
+	    postfixText = argv[i];
+	}
+
         /************************************************/
         /* Usage error - check for -h                   */
         /************************************************/
@@ -601,6 +655,21 @@ int main( int argc, char *argv[] )
     }
 #endif
 
+    /* Do we have prefix text to speak? */
+
+    if ( prefixText != NULL )
+    {
+        char *play_buf = prefixText;
+
+#ifdef HAVE_ICONV
+        play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
+#endif
+        status = TextToSpeechSpeak( ttsHandle, play_buf, TTS_FORCE );
+#ifdef HAVE_ICONV
+        free(play_buf);
+#endif
+    }
+
     /**********************************************/
     /* Get text from stdin                        */
     /**********************************************/
@@ -720,6 +789,26 @@ int main( int argc, char *argv[] )
 #endif
         }
     }
+
+    /* Do we have postfix text to speak? */
+
+    if ( postfixText != NULL )
+    {
+        char *play_buf = postfixText;
+
+#ifdef HAVE_ICONV
+        play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
+#endif
+        status = TextToSpeechSpeak( ttsHandle, play_buf, TTS_FORCE );
+#ifdef HAVE_ICONV
+        free(play_buf);
+#endif
+    }
+
+    /* Sync to make sure everything has come out */
+
+    TextToSpeechSpeak( ttsHandle, "        ", TTS_FORCE );
+    TextToSpeechSync( ttsHandle );
 
     if ( specifiedOutputFile != -1 )
     {
