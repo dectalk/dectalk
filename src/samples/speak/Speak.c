@@ -866,7 +866,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		GetClientRect(hWnd, &lprc);
 		hSpeakText = CreateWindow("EDIT", "",
 			WS_CHILD |WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | WS_BORDER | ES_LEFT |
-			ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_NOHIDESEL | DS_LOCALEDIT,
+			ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_NOHIDESEL,
 			border * 2, border * 2 + fbHeight,
 			etWidth,
 			etHeight ,

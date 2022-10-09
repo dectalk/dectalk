@@ -983,7 +983,7 @@ BOOL  InitWindows(HWND hWnd)
         "EDIT",                    /* See RegisterClass() call.          */
         "",                        /* Text for window title bar.         */
         WS_CHILD |WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | WS_BORDER | ES_LEFT |
-        ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_NOHIDESEL | DS_LOCALEDIT,
+        ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_NOHIDESEL,
         
         0L,                        /* Default horizontal position.       */
         21L,                       /* Default vertical position.         */
