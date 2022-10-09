@@ -247,7 +247,11 @@ void phclause (LPTTS_HANDLE_T phTTS)
 		else if(pKsd_t->lang_curr == LANG_english)
 	{
 		pDph_t->nfcomma = 16;  
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 		pDph_t->nfperiod = 94;
+#else
+		pDph_t->nfperiod = 75;
+#endif
 	}
 	// 1. If speaker def changed, now it time to really change it.          
 	// The old (KL) code used to set "initsw". This gets done in the        
