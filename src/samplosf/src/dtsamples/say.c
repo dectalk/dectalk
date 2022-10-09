@@ -668,6 +668,7 @@ int main( int argc, char *argv[] )
 #ifdef HAVE_ICONV
         free(play_buf);
 #endif
+        TextToSpeechSync( ttsHandle );
     }
 
     /**********************************************/
