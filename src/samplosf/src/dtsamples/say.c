@@ -172,6 +172,8 @@
 #include <locale.h>
 #endif
 
+#define REALLOC_SIZE 4096
+
  /*
   * Global variables
   */
@@ -276,7 +278,8 @@ static void usage(char *progname)
 
 int main( int argc, char *argv[] )
 {
-    char buf[4096];
+    char *buf;
+    int buf_len = 0;
     char cli_text[4096];
     unsigned int  devNo = WAVE_MAPPER;
     int  userSelectedDevice = 0;
@@ -611,37 +614,68 @@ int main( int argc, char *argv[] )
 
     else if ( file_arg_index == (-1) && cli_len == 0 )
     {
+        int read_bytes = 0;
         /*******************************************************/
         /* Read and play 256 bytes at a time until out of data */
         /*******************************************************/
         dwFlags = TTS_FORCE;
-	memset(buf, 0, sizeof(buf));
-	while ( fgets(buf,sizeof(buf)-1,stdin))
-	{
-	    char *play_buf = buf;
+        buf = malloc(REALLOC_SIZE*sizeof(char));
+        if (buf == NULL) {
+                fprintf(stderr, "Can't allocate memory!\n");
+                return(0);
+        }
+        buf_len = REALLOC_SIZE;
+        memset(buf, 0, buf_len);
+
+
+        while(fgets( buf + read_bytes, buf_len-read_bytes-1, stdin ) || read_bytes)
+        {
+	   char *play_buf = buf;
+           int nbytes;
+
+	   nbytes = strlen(buf + read_bytes);
+           if (nbytes == buf_len-read_bytes-2 && buf[buf_len-3] != '\n') {
+             char *tmpbuf;
+
+             buf_len += REALLOC_SIZE;
+             tmpbuf = realloc(buf, buf_len*sizeof(char));
+             if (tmpbuf == NULL) {
+                 fprintf(stderr, "Can't allocate memory!\n");
+                 free(buf);
+                 return(0);
+             }
+             buf = tmpbuf;
+
+             read_bytes += nbytes;
+
+             memset(buf + read_bytes, 0, buf_len-read_bytes);
+             continue;
+           }
+           play_buf = buf;
 #ifdef HAVE_ICONV
-	    play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
+           play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
 #endif
-	    text_len = strlen( play_buf );
-	    if (text_len==2)
-		{
-			TextToSpeechTyping(ttsHandle,play_buf[0]);
-		}
-		else
-		{
-	    		TextToSpeechReset(ttsHandle,FALSE);
-	    if (TextToSpeechSpeak(ttsHandle, play_buf, dwFlags) != MMSYSERR_NOERROR )
-	    {
-		fprintf(stderr,"Error writing %d bytes to TextToSpeech.\n",
-                                     text_len);
-		break;
-	    }
-	    memset(buf, 0, sizeof(buf));
+           text_len = strlen( play_buf );
+	   if (text_len==2)
+	   {
+	     TextToSpeechTyping(ttsHandle,play_buf[0]);
+	   }
+	   else
+	   {
+             TextToSpeechReset(ttsHandle,FALSE);
+	     if (TextToSpeechSpeak(ttsHandle, play_buf, dwFlags) != MMSYSERR_NOERROR )
+	     {
+	         fprintf(stderr,"Error writing %d bytes to TextToSpeech.\n",
+                                      text_len);
+	         break;
+	     }
+           }
+           read_bytes = 0;
+           memset(buf, 0, buf_len);
 #ifdef HAVE_ICONV
-	    free(play_buf);
+           free(play_buf);
 #endif
 	}
-    }
     }
 
     /***********************************************/
@@ -717,7 +751,6 @@ int main( int argc, char *argv[] )
 **   int - Total number of bytes of text played back.
 **
 *****************************************************************************/
-#define REALLOC_SIZE 4096
 int play_file( char *file_name, int isAPipe )
 {
     FILE *fileHandle;
@@ -742,8 +775,28 @@ int play_file( char *file_name, int isAPipe )
     /******************************************************/
     if ( isAPipe == TRUE )
     {
-       while( fgets( buf, buf_len-1, stdin )  )
+       int read_bytes = 0;
+
+       while(fgets( buf + read_bytes, buf_len-read_bytes-1, stdin ) || read_bytes)
        {
+          nbytes = strlen(buf + read_bytes);
+          if (nbytes == buf_len-read_bytes-2 && buf[buf_len-3] != '\n') {
+            char *tmpbuf;
+
+            buf_len += REALLOC_SIZE;
+            tmpbuf = realloc(buf, buf_len*sizeof(char));
+            if (tmpbuf == NULL) {
+                fprintf(stderr, "Can't allocate memory!\n");
+                free(buf);
+                return(0);
+            }
+            buf = tmpbuf;
+
+            read_bytes += nbytes;
+
+            memset(buf + read_bytes, 0, buf_len-read_bytes);
+            continue;
+          }
           play_buf = buf;
 #ifdef HAVE_ICONV
           play_buf = convert_string_for_dapi(play_buf, strlen(play_buf));
@@ -756,6 +809,7 @@ int play_file( char *file_name, int isAPipe )
              break;
           }
           total_bytes += text_len;
+          read_bytes = 0;
           memset(buf, 0, buf_len);
 #ifdef HAVE_ICONV
           free(play_buf);
