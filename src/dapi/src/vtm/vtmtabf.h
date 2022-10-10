@@ -374,8 +374,8 @@ FLTPNT_T B0[] = {
 #define Nasal_BW 80.0
 #define Nasal_T (1.0/10000.0)
 #define Nasal_Gain 1.0
-#define Nasal_a1_calc (-expf(-2.0 * M_PI * Nasal_BW * Nasal_T))
-#define Nasal_a2_calc(FZinHZ) (2.0 * expf(-M_PI * Nasal_BW * Nasal_T) * cosf(2.0 * M_PI * (FZinHZ) * Nasal_T))
+#define Nasal_a1_calc (-exp(-2.0 * M_PI * Nasal_BW * Nasal_T))
+#define Nasal_a2_calc(FZinHZ) (2.0 * exp(-M_PI * Nasal_BW * Nasal_T) * cos(2.0 * M_PI * (FZinHZ) * Nasal_T))
 #define Nasal_b0T_calc(FZinHZ) (1.0 - Nasal_a1_calc - Nasal_a2_calc(FZinHZ))
 
 #define Nasal_b0_calc(FZinHZ) (Nasal_Gain / Nasal_b0T_calc(FZinHZ))
@@ -818,7 +818,7 @@ FLTPNT_T dBtoLinear[88] = {
 /**********************************************************************/
 
 #if 1
-#define CosineCalc(f) (cosf(2.0 * M_PI * (f) / 10000.0) * 2)
+#define CosineCalc(f) (cos(2.0 * M_PI * (f) / 10000.0) * 2)
 #else
 #define CosineCalc(f) (CosineTable[(S32)(f>>3)])
 
@@ -960,7 +960,7 @@ FLTPNT_T CosineTable[] = {
 /**********************************************************************/
 
 #if 1
-#define radius_calc(b) (expf(-M_PI * (b) / 10000.0))
+#define radius_calc(b) (exp(-M_PI * (b) / 10000.0))
 #else
 #define radius_calc(b) (radius_table[(S32)(b>>3)])
 

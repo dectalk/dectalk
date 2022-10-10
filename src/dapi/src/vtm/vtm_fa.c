@@ -96,6 +96,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 #include "port.h"
 /* changed case of TTS.H to tts.h for __osf__ */
 #include "tts.h"
