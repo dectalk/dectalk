@@ -533,6 +533,28 @@ int all_phsort (LPTTS_HANDLE_T phTTS)
                 pDphsettar->did_del = 0;
                 /* del_cnt++; *//* MVP : Value is never used */
             }
+#if !defined(HLSYN) && !defined(CHANGES_AFTER_V43)
+            if(pKsd_t->lang_curr == LANG_english || pKsd_t->lang_curr == LANG_british)
+            {
+                /* xxx new code to do compound destress correctly eab 8/94 */
+                if (pDph_t->symbols[n] == HYPHEN)
+                {
+                    compound_destress = TRUE;
+                }
+
+                if (pDph_t->symbols[n] == S1 && compound_destress)
+                    /* xxx new code to do compound destress correctly eab 8/94 */
+                {
+                    pDph_t->symbols[n] = S2;
+                    compound_destress = FALSE;
+                }
+
+                if (pDph_t->symbols[n] == SPECIALWORD)
+                {
+                    delete_symbol (phTTS, n);
+                }
+            }
+#endif
 
             if(pKsd_t->lang_curr == LANG_german)
             {

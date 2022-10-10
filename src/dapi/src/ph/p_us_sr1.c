@@ -123,6 +123,7 @@ static void get_stress_of_conson (LPTTS_HANDLE_T phTTS, short msym, short compou
 			}
 			return;
 		}
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 		else if(sy == 108)
 		{
 			m--;
@@ -145,6 +146,7 @@ static void get_stress_of_conson (LPTTS_HANDLE_T phTTS, short msym, short compou
 			{
 				add_feature (pDph_t, FEMPHASIS, (short)(CURRPHONE) ); // NAL warning removal
 			}
+#endif
 
 
 		if ((phone_feature(pDph_t, sy) & FSYLL) IS_PLUS)
