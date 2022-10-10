@@ -1512,6 +1512,7 @@ stzapped:
 
                         break;
                     case HYPHEN:
+#ifdef SPANISH
                         compound_destress = FALSE;
                     case MBOUND:
 
@@ -1521,6 +1522,10 @@ stzapped:
                         add_feature (pDph_t, FSBOUND, (short)(CURRPHONE) ); // NAL warning removal
                         iscoda = 0;
                         syllclass = 0;
+#endif
+#ifdef GERMAN
+                        compound_destress = TRUE;
+#endif
                         break;
 
 
