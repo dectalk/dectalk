@@ -9,6 +9,21 @@ These files were shared by their original developer [late Edward Bruckert](https
 
 ## Building
 
+<details>
+<summary>Setting up on Ubuntu Linux</summary>
+
+If you're building on Ubuntu, obtain the following dependencies:
+
+```sh
+apt-get install build-essential libpulse-dev libgtk2.0-dev unzip
+```
+
+(libgtk2.0-dev is only needed if you want the graphical frontend, libpulse-dev if you want pulseaudio audio-output)
+
+</details>
+<details>
+<summary>Compiling on Linux</summary>
+
 ```sh
 # Run all these commands in the /src directory...
 # Generates configure files
@@ -23,26 +38,36 @@ make -j
 
 The built files will be found in the `/dist` folder.
 
-### Ubuntu
+</details>
+<details>
+<summary>Compiling on Linux with Docker</summary>
 
-If you're building on Ubuntu, obtain the following dependencies:
+To build DECtalk without setting up a local build environment, run `sudo docker-compose up`
+(and make sure you have Docker and docker-compose installed!)
 
-```sh
-apt-get install build-essential libpulse-dev libgtk2.0-dev unzip
-```
+</details>
+<details>
+<summary>Setting up on Microsoft Windows</summary>
 
-(libgtk2.0-dev is only needed if you want the graphical frontend, libpulse-dev if you want pulseaudio audio-output)
+There's a great article on CodeProject which explains how to install Visual Studio 6.0 from scratch.
+[Read it here](https://www.codeproject.com/Articles/1191047/Install-Visual-Studio-on-Windows)
 
-## Dockerised Builds
+You will also need to add your `vcvars32.bat` file to the environment variables.
+Do this by adding `C:\Program Files (x86)\Microsoft Visual Studio\VC98\Bin` to your Windows system `PATH`.
 
-To build DECtalk without setting up a local build environment, run `sudo docker-compose up` (and make sure you have Docker and docker-compose installed!)
+</details>
+<details>
+<summary>Compiling on Microsoft Windows</summary>
 
-## Building on Windows
+The [`\devops\windows\dt_buildall.bat`](./devops/windows/dt_buildall.bat)
+file is a great place to get started if you want to build individual components of DECtalk.
 
-1. Download and Install Visual C++ 6.0. Newer versions might also work.
-2. Build the dapi/src/devdtk43 project to build dectalk.dll.
-3. To build the dictionaries run dapi/src/builddic.bat after building the dictionary compiler (dapi/src/dic).
-4. Build any desired sample apps, or anything else you might want compiled such as SAPI5.
+If you want to compile all files, execute the `\devops\windows\dt_buildall.bat` file
+from the root of the project folder.
+
+You can then collate all files together by executing the `\devops\windows\dt_copyfiles.bat` file.
+
+</details>
 
 ## The Team
 
