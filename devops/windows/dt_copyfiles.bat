@@ -43,5 +43,13 @@ copy /y src\samples\speak\build\sp\release\speak.exe dist\speak_sp.exe
 copy /y src\samples\speak\build\uk\release\speak.exe dist\speak_uk.exe
 copy /y src\samples\speak\build\us\release\speak.exe dist\speak_us.exe
 
+@REM Copy over speak window binaries
+copy /y src\samples\say\build\fr\release\say.exe dist\say_fr.exe
+copy /y src\samples\say\build\gr\release\say.exe dist\say_gr.exe
+copy /y src\samples\say\build\la\release\say.exe dist\say_la.exe
+copy /y src\samples\say\build\sp\release\say.exe dist\say_sp.exe
+copy /y src\samples\say\build\uk\release\say.exe dist\say_uk.exe
+copy /y src\samples\say\build\us\release\say.exe dist\say_us.exe
+
 @REM Exit with exit code 0.
 exit /b 0
