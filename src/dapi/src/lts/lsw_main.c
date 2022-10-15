@@ -1132,6 +1132,84 @@ WideStringtoAsciiString(szUserDict, wszUserDict, MAX_STRING_LENGTH);
 
 			strcpy( szMainDict, szMainDictDef );
 			strcpy( szForeignDict, szForeignDictDef );
+			//Search for dictionary in exe-dir and exe-dir\dic
+			{
+				char temp[1024], temp2[1024];
+				LPTSTR cmd_line = GetCommandLine();
+				char new_cmd_line[512];
+				int cmd_ptr = 0;
+
+				while (cmd_line[cmd_ptr] != '\0' && cmd_line[cmd_ptr] != ' ')
+					cmd_ptr++;
+				while (cmd_line[cmd_ptr] != '\\' && cmd_ptr != 0)
+					cmd_ptr--;
+				if (cmd_ptr != 0)
+					cmd_ptr++;
+				cmd_line[cmd_ptr] = '\0';
+
+				if (cmd_line[0] == '"')	strcpy(new_cmd_line,cmd_line+1);
+				else strcpy(new_cmd_line,cmd_line);  
+
+				sprintf(temp, "%s%s", new_cmd_line, szMainDictDef);
+				sprintf(temp2, "%sdic\\%s", new_cmd_line, szMainDictDef);
+				if (IsFileAccessible(szMainDict))
+				{
+					// do nothing, it's OK
+				}
+				else if (IsFileAccessible(temp))
+				{
+					strcpy(szMainDict, temp);
+				}
+				else if (IsFileAccessible(temp2))
+				{
+					strcpy(szMainDict, temp2);
+				}
+
+				sprintf(temp, "%s%s", new_cmd_line, szForeignDictDef);
+				sprintf(temp2, "%sdic\\%s", new_cmd_line, szForeignDictDef);
+				if (IsFileAccessible(szForeignDict))
+				{
+					// do nothing, it's OK
+				}
+				else if (IsFileAccessible(temp))
+				{
+					strcpy(szForeignDict, temp);
+				}
+				else if (IsFileAccessible(temp2))
+				{
+					strcpy(szForeignDict, temp2);
+				}
+
+				sprintf(temp, "%s%s", new_cmd_line, szUserDictDef);
+				sprintf(temp2, "%sdic\\%s", new_cmd_line, szUserDictDef);
+				if (IsFileAccessible(szUserDict))
+				{
+					// do nothing, it's OK
+				}
+				else if (IsFileAccessible(temp))
+				{
+					strcpy(szUserDict, temp);
+				}
+				else if (IsFileAccessible(temp2))
+				{
+					strcpy(szUserDict, temp2);
+				}
+
+				sprintf(temp, "%s%s", new_cmd_line, szAbbrDictDef);
+				sprintf(temp2, "%sdic\\%s", new_cmd_line, szAbbrDictDef);
+				if (IsFileAccessible(szAbbrDict))
+				{
+					// do nothing, it's OK
+				}
+				else if (IsFileAccessible(temp))
+				{
+					strcpy(szAbbrDict, temp);
+				}
+				else if (IsFileAccessible(temp2))
+				{
+					strcpy(szAbbrDict, temp2);
+				}
+			}
 #endif //UNDER_CE
 #endif //  
 
