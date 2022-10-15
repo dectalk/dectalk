@@ -15,6 +15,11 @@ cd src/dapi/src
   if %errorlevel% neq 0 exit /b %errorlevel%
 cd ../../..
 
+cd src/dtalkml/src
+  nmake /f DTalkML.mak CFG="DTalkML - Win32 Release"
+  if %errorlevel% neq 0 exit /b %errorlevel%
+cd ../../..
+
 cd src/dapi/src
   nmake /f dic.mak CFG="dic - Win32 Release"
   if %errorlevel% neq 0 exit /b %errorlevel%
@@ -48,29 +53,9 @@ cd ../../../..
 cd src/samples/speak
   nmake /f speak.mak CFG="speak - Win32 Release"
   if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f speak.mak CFG="speak - Win32 Release Spanish"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f speak.mak CFG="speak - Win32 Release German"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f speak.mak CFG="speak - Win32 Release Latin American"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f speak.mak CFG="speak - Win32 Release United Kingdom"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f speak.mak CFG="speak - Win32 Release French"
-  if %errorlevel% neq 0 exit /b %errorlevel%
 cd ../../..
 
 cd src/samples/say
   nmake /f say.mak CFG="say - Win32 Release"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f say.mak CFG="say - Win32 Release Spanish"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f say.mak CFG="say - Win32 Release German"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f say.mak CFG="say - Win32 Release Latin American"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f say.mak CFG="say - Win32 Release United Kingdom"
-  if %errorlevel% neq 0 exit /b %errorlevel%
-  nmake /f say.mak CFG="say - Win32 Release French"
   if %errorlevel% neq 0 exit /b %errorlevel%
 cd ../../..
