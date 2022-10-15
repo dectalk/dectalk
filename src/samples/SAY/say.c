@@ -87,6 +87,8 @@ char        *outFile = NULL;              /* Name of output file         */
 char        *dictFile = NULL;             /* User dictionary to load     */
 LPTTS_HANDLE_T ttsHandlePtr = NULL;       /* DECtalk TTS handle          */
 BOOL        signalReceived = FALSE;       /* Set TRUE on CTRL/C or Break */
+LANG_ENUM   *dt_langs;                    /* DECtalk languages           */
+char        *lang = NULL;                 /* selected language           */
 
 /****************************************************************************/
 #ifdef BORLAND_C
@@ -98,6 +100,7 @@ int main( int argc, char **argv )
     MMRESULT status;
 
     int firstWordIndex;
+    unsigned int TTS_lang = 0;
 
     /* Set control handler and get stdio info */
 
@@ -105,6 +108,9 @@ int main( int argc, char **argv )
     hStderr = GetStdHandle( STD_ERROR_HANDLE );
     hStdin = GetStdHandle( STD_INPUT_HANDLE );
     hStdout = GetStdHandle( STD_OUTPUT_HANDLE );
+
+    /* Multi language */
+    TextToSpeechEnumLangs(&dt_langs);
     
     /* Parse the command line for options. */
         
@@ -113,6 +119,24 @@ int main( int argc, char **argv )
         return 0;
 
     /* Initialize DECtalk and check the status */
+
+        if (lang) {
+            TTS_lang = TextToSpeechStartLang(lang);
+            if ( TTS_lang & TTS_LANG_ERROR ) {
+                if (TTS_lang == TTS_NOT_SUPPORTED) {
+                    ErrorOut("DECtalk ML %s not supported.\n", lang);
+                } else if (TTS_lang == TTS_NOT_AVAILABLE){
+                    ErrorOut("%s is not currently installed.\n", lang);
+                }
+                else {
+                    ErrorOut("Unknown error whilst attempting to start %s.\n", lang);
+                }
+            }
+            else // success
+            {
+                TextToSpeechSelectLang(NULL,TTS_lang);
+            }
+        }
 
 	/* ETT 11/04/98 BATS #233:
 		check if user wants wavefile out even if audio device 
@@ -305,7 +329,13 @@ int ParseArgs( int ac, char **av )
         /* Process log file spec */
 
         else if ( av[i][1] == 'l' ) {
-            if ( i < (ac - 1) ) {
+            if (strcmp(av[i]+1, "lang") == 0) {
+                if (lang != NULL)
+                    ErrorOut("Sorry, only one language can be processed.\n");
+                i++;
+                lang = av[i];
+            }
+            else if ( i < (ac - 1) ) {
 
                 /* Get log mode */
 
@@ -553,6 +583,10 @@ void OutputHelp( void )
     PutStdOut( "\n" );
     PutStdOut( "Input Options:\n" );
     PutStdOut( "\n" );
+    if (dt_langs!=NULL && dt_langs->MultiLang==TRUE) {
+        PutStdOut( "    -lang lang        = Use specific language (us,uk,gr,sp,la,fr).\n" );
+        PutStdOut( "\n" );
+    }
     PutStdOut( "    -pre preText      = Text to be passed to DECtalk before the normal input.\n" );
     PutStdOut( "                        This is useful for passing initializing commands to\n" );
     PutStdOut( "                        DECtalk that would normally not be part of the input.\n" );
