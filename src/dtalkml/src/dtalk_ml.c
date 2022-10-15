@@ -1702,7 +1702,7 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 	result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_READ, &key);
 	/* Fake registry entries */
 	if (result != ERROR_SUCCESS) {
-		char lc[][2] = { "us", "fr", "gr", "la", "sp", "uk" };
+		char lc[][3] = { "us", "fr", "gr", "la", "sp", "uk" };
 		char ln[][32] = { "US: American English", "FR: French", "GR: German", "LA: Latin American Spanish", "SP: Castillian Spanish", "UK: British English" };
 		int n;
 
