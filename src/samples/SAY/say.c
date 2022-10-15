@@ -390,21 +390,61 @@ int ParseArgs( int ac, char **av )
 }
 
 
+#define REALLOC_SIZE 4096
+
 MMRESULT SpeakStdin( void )
 {
     DWORD numRead;
+    DWORD consoleMode = 0;
     BOOL readStatus;
+    BOOL isConsole;
     MMRESULT status;
-    char buf[2049];
+    int buf_len = 0;
+    int read_bytes = 0;
+    char *buf;
+
+    buf = malloc(REALLOC_SIZE*sizeof(char));
+    if (buf == NULL) {
+        fprintf(stderr, "Can't allocate memory!\n");
+        return 0;
+    }
+    buf_len = REALLOC_SIZE;
+    memset(buf, 0, buf_len);
+
+    if (!GetConsoleMode(hStdin, &consoleMode)) {
+        isConsole = 0;
+    } else {
+        isConsole = consoleMode & ENABLE_LINE_INPUT;
+    }
 
     do {
-        memset( buf, 0, sizeof(buf) );
-        readStatus = ReadFile( hStdin, buf, 2048, &numRead, NULL );
-        if ( (!readStatus) || (numRead == 0) )
+        readStatus = ReadFile( hStdin, buf + read_bytes, buf_len - read_bytes - 1, &numRead, NULL );
+        if ( (!readStatus) || ((numRead == 0) && (read_bytes == 0)))
             break;
 
+        read_bytes += numRead;
+        if (read_bytes == buf_len - 1 && ((!isConsole) || (buf[read_bytes-1] != '\n' && buf[read_bytes-1] != '\r'))) {
+             char *tmpbuf;
+
+             buf_len += REALLOC_SIZE;
+             tmpbuf = realloc(buf, buf_len*sizeof(char));
+             if (tmpbuf == NULL) {
+                 fprintf(stderr, "Can't allocate memory!\n");
+                 free(buf);
+                 return 0;
+             }
+             buf = tmpbuf;
+
+             memset(buf + read_bytes, 0, buf_len-read_bytes);
+             continue;
+        }
+
         status = TextToSpeechSpeak( ttsHandlePtr, buf, TTS_FORCE );         
+        memset(buf, 0, buf_len);
+        read_bytes = 0;
     } while ( readStatus );
+
+    free(buf);
 
     return status;
 }
