@@ -375,6 +375,13 @@ unsigned int load_dectalk(char *lang)
 	funcs = &next->funcs;
 	funcs->mod = (HMODULE) LoadLibrary(filename);
 
+#if defined WIN32 && !defined UNDER_CE
+	if (funcs->mod==NULL)
+	{
+		sprintf(filename,"lib\\dtalk_%s.dll",lang);
+		funcs->mod = (HMODULE) LoadLibrary(filename);
+	}
+#endif
 #if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS
 	if (funcs->mod==NULL)
 	{	fprintf(stderr,"dlopen error:%s\n",dlerror());
@@ -1693,7 +1700,28 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 #endif
 
 	result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, LANG_REG_LOC, 0, KEY_READ, &key);
-	if (result != ERROR_SUCCESS)	return 0;
+	/* Fake registry entries */
+	if (result != ERROR_SUCCESS) {
+		char lc[][2] = { "us", "fr", "gr", "la", "sp", "uk" };
+		char ln[][32] = { "US: American English", "FR: French", "GR: German", "LA: Latin American Spanish", "SP: Castillian Spanish", "UK: British English" };
+		int n;
+
+		if (((*langs) = malloc(sizeof(LANG_ENUM))) == NULL)	return 0;
+		keys = sizeof(lc)/sizeof(lc[0]);
+		if (((*langs)->Entries = calloc(keys,sizeof(LANG_ENTRY))) == NULL)
+		{	free(*langs);
+			(*langs) = NULL;
+			return 0;
+		}
+		(*langs)->Languages = keys;
+		(*langs)->MultiLang = TRUE;
+		for (n = 0; n < keys; n++) {
+			strcpy((*langs)->Entries[n].lang_code, lc[n]);
+			strcpy((*langs)->Entries[n].lang_name, ln[n]);
+		}
+
+		return (sizeof(LANG_ENUM));
+	}
 	result = RegQueryInfoKey(key, NULL, NULL, NULL, NULL, NULL, NULL, &keys, NULL, NULL, NULL, NULL);
 	if (result != ERROR_SUCCESS)	return 0;
 
