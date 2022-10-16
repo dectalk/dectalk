@@ -226,9 +226,9 @@ struct  dic_entry
 #define ADICT_DATA      (((pKsd_t->adic_data[DICT_LANG])))
 
 #define DICT_ACCESS(x)       ((struct dic_entry *)(&(pKsd_t->fdic_data[DICT_LANG][((U32 *)pKsd_t->fdic_index[DICT_LANG])[(x)]])))
-#define FDICT_ACCESS(x)      ((struct dic_entry *)(&(pKsd_t->foreigndic_data[DICT_LANG][((U32 *)pKsd_t->foreigndic_index[DICT_LANG])[(x)]])))
-#define UDICT_ACCESS(x)      ((struct dic_entry *)(&(pKsd_t->udic_data[DICT_LANG][((U32 *)pKsd_t->udic_index[DICT_LANG])[(x)]])))
-#define ADICT_ACCESS(x)      ((struct dic_entry *)(&(pKsd_t->adic_data[DICT_LANG][((U32 *)pKsd_t->adic_index[DICT_LANG])[(x)]])))
+#define FDICT_ACCESS(x)      ((struct dic_entry *)(&(pKsd_t->foreigndic_data[DICT_LANG][((S32 *)pKsd_t->foreigndic_index[DICT_LANG])[(x)]])))
+#define UDICT_ACCESS(x)      ((struct dic_entry *)(&(pKsd_t->udic_data[DICT_LANG][((S32 *)pKsd_t->udic_index[DICT_LANG])[(x)]])))
+#define ADICT_ACCESS(x)      ((struct dic_entry *)(&(pKsd_t->adic_data[DICT_LANG][((S32 *)pKsd_t->adic_index[DICT_LANG])[(x)]])))
 
 #define DICT_ENTRY      pKsd_t->fdic_entries[DICT_LANG]
 #define FDICT_ENTRY     pKsd_t->foreigndic_entries[DICT_LANG]
