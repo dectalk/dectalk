@@ -37,5 +37,8 @@ copy /y src\samples\speak\build\us\release\speak.exe dist\speak.exe
 @REM Copy over speak window binaries
 copy /y src\samples\say\build\us\release\say.exe dist\say.exe
 
+@REM Copy over windic window binary
+copy /y src\samples\windic\build\ml\release\windic.exe dist\windic.exe
+
 @REM Exit with exit code 0.
 exit /b 0

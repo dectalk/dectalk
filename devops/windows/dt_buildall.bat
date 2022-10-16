@@ -59,3 +59,8 @@ cd src/samples/say
   nmake /f say.mak CFG="say - Win32 Release"
   if %errorlevel% neq 0 exit /b %errorlevel%
 cd ../../..
+
+cd src/samples/windic
+  nmake /f windic.mak CFG="windic - Win32 Release"
+  if %errorlevel% neq 0 exit /b %errorlevel%
+cd ../../..
