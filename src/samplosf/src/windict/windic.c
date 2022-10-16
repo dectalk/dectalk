@@ -1423,6 +1423,10 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
  
   text = malloc(FileLen+1);
   if (text == NULL)
+    {
+      perror("Can't allocate memory");
+      return;
+    }
   if ( fread( text, 1, FileLen, fp ) != FileLen )
     {
       fprintf(stderr,"Could not read file.\n");
