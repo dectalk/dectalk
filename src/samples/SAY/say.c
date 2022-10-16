@@ -124,12 +124,15 @@ int main( int argc, char **argv )
             TTS_lang = TextToSpeechStartLang(lang);
             if ( TTS_lang & TTS_LANG_ERROR ) {
                 if (TTS_lang == TTS_NOT_SUPPORTED) {
-                    ErrorOut("DECtalk ML %s not supported.\n", lang);
+                    ErrorOut("DECtalk ML language not supported.\n");
+                    return 1;
                 } else if (TTS_lang == TTS_NOT_AVAILABLE){
-                    ErrorOut("%s is not currently installed.\n", lang);
+                    ErrorOut("Language is not currently installed.\n");
+                    return 1;
                 }
                 else {
-                    ErrorOut("Unknown error whilst attempting to start %s.\n", lang);
+                    ErrorOut("Unknown error whilst attempting to start language.\n");
+                    return 1;
                 }
             }
             else // success
@@ -330,8 +333,10 @@ int ParseArgs( int ac, char **av )
 
         else if ( av[i][1] == 'l' ) {
             if (strcmp(av[i]+1, "lang") == 0) {
-                if (lang != NULL)
+                if (lang != NULL) {
                     ErrorOut("Sorry, only one language can be processed.\n");
+                    return -1;
+                }
                 i++;
                 lang = av[i];
             }
