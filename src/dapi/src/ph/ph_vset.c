@@ -690,11 +690,7 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 	}
 	spdef->r4pb = pDph_t->curspdef[SPD_P4];	/* F7 -> F4p            */
 	spdef->r5pb = pDph_t->curspdef[SPD_P5];	/* F8 -> F5p            */
-#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	spdef->t0jit = pDph_t->curspdef[SPD_LA]<<3;
-#else
-	spdef->t0jit = pDph_t->curspdef[SPD_LA];
-#endif
 	//3/15/01 Changed to left shift rather than mult.  */
 	spdef->r5ca = pDph_t->curspdef[SPD_G1];	/* G1 -> G1 in dB       */
 	spdef->r4ca = pDph_t->curspdef[SPD_G2];	/* G2 -> G2 in dB       */
