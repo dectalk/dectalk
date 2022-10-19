@@ -1048,7 +1048,7 @@ CHAR szClassName[100];
 
 					  MessageBox( hWnd,
 								  szError,
-								  "OpenWaveOutFile µLaw",
+								  "OpenWaveOutFile ï¿½Law",
 								  MB_OK | MB_ICONSTOP );
 					}
 					 hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2903,7 +2903,12 @@ MMRESULT CreateTTSObject(char *pszInstanceName,PDWORD pdwInstanceID,
 
 	*pdwInstanceID = (DWORD)phTTSInst;	
 
+	#ifdef _WIN64
 	SetWindowLongPtr(*phWndTTS,GWLP_USERDATA,(LONG)phTTSInst);
+	#else
+	SetWindowLong(*phWndTTS,GWL_USERDATA,(LONG)phTTSInst);
+	#endif
+
 	return (mmStatus);
 }
 
@@ -2960,7 +2965,12 @@ LONG APIENTRY TTSWave16WndProc(HWND hWndTTS,
 	LPTTS_HANDLE_T phTTSWaveInst16 = NULL;
 	MMRESULT mmStatus = MMSYSERR_NOERROR;
 
+
+	#ifdef _WIN64
 	phTTSWaveInst16 = (LPTTS_HANDLE_T)GetWindowLongPtr(hWndTTS,GWLP_USERDATA);
+	#else
+	phTTSWaveInst16 = (LPTTS_HANDLE_T)GetWindowLong(hWndTTS,GWL_USERDATA);
+	#endif
 
 
 	switch(uiMessage)
