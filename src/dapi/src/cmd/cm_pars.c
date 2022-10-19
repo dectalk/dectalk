@@ -1269,6 +1269,9 @@ int cmd_loop(LPTTS_HANDLE_T phTTS, unsigned char input)
 	while (TRUE)
 #endif
 	{
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+		int old_state;
+#endif
 
 #if defined (WIN32) && defined (PRINTFDEBUG)
 		/* open debug window for window environement */
@@ -1346,10 +1349,27 @@ int cmd_loop(LPTTS_HANDLE_T phTTS, unsigned char input)
 #ifdef DEBUGPARS
 		printf("CMD_PARS: cm_pars_loop: First Char: char = %c %d insert= %d \n",pCmd_t->ParseChar,pCmd_t->ParseChar,pCmd_t->insertflag);
 #endif
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+		old_state = pCmd_t->parse_state;
+#endif
 		switch (pCmd_t->parse_state)
 		{
 			case STATE_NORMAL:
 				pCmd_t->cmd_index = 0xffff;
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+				/*
+				 * Replace . directly after closing bracket from phoneme with
+				 * the phoneme . and a forced sync.
+				 * Seems to replicate what happened in old versions (probably
+				 * also in the VOCAL-code above).
+				 */
+				if (pCmd_t->last_was_phoneme && pCmd_t->ParseChar == '.')
+				{
+					cm_phon_match(phTTS, '.');
+					cm_phon_match(phTTS, ']');
+					pCmd_t->ParseChar = 0x0b;
+				}
+#endif
 				if (pCmd_t->ParseChar == '[')
 				{
 #ifndef NEW_INDEXING    
@@ -1508,6 +1528,13 @@ int cmd_loop(LPTTS_HANDLE_T phTTS, unsigned char input)
 				break;
 
 		} /* end switch(pCmd_t->parse_state) */
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+		if (old_state == STATE_PHONEME) {
+			pCmd_t->last_was_phoneme = 1;
+		} else {
+			pCmd_t->last_was_phoneme = 0;
+		}
+#endif
 	} /* end while(TRUE) */
 #ifdef ARM7
 	return 0;

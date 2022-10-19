@@ -251,6 +251,9 @@ typedef struct CMD_TAG
 	unsigned int dcnt;
 	char heldchar[2];
 #endif
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+	int   last_was_phoneme;
+#endif
 
 } CMD_T;
 
