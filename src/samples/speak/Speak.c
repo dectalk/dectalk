@@ -956,15 +956,30 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					hWnd,  NULL, NULL, NULL);
 				
 				// subclass buttons
+				#ifdef _WIN64
 				opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[y*3+x].hWnd, GWLP_WNDPROC);
 				SetWindowLong (odButton[y*3+x].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+				#else
+				opVoiceControls = (WNDPROC)GetWindowLong(odButton[y*3+x].hWnd, GWL_WNDPROC);
+				SetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+				#endif
 			}
+			#ifdef _WIN64
 			opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[x + PLAY].hWnd, GWLP_WNDPROC);
 			SetWindowLong (odButton[x + PLAY].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+			#else
+			opVoiceControls = (WNDPROC)GetWindowLong(odButton[x + PLAY].hWnd, GWL_WNDPROC);
+			SetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+			#endif
 		}
 #ifdef _DEBUG
+		#ifdef _WIN64
 		opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[12].hWnd, GWLP_WNDPROC);
 		SetWindowLong (odButton[12].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+		#else
+		opVoiceControls = (WNDPROC)GetWindowLong(odButton[12].hWnd, GWL_WNDPROC);
+		SetWindowLong (odButton[12].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+		#endif
 #endif
 		
 		usePalette(hWnd);
@@ -4880,8 +4895,13 @@ BOOL APIENTRY AboutTypingProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lPar
 	{
 	case WM_INITDIALOG:
 		hDlgItem = GetDlgItem(hWnd, IDC_EDIT1);
+		#ifdef _WIN64
 		OldTypingDlgProc = GetWindowLongPtr(hDlgItem, GWLP_WNDPROC);
 		SetWindowLong(hDlgItem, GWLP_WNDPROC, (LONG) TypingDlgProc);
+		#else
+		OldTypingDlgProc = GetWindowLong(hDlgItem, GWL_WNDPROC);
+		SetWindowLong(hDlgItem, GWL_WNDPROC, (LONG) TypingDlgProc);
+		#endif
 		
 //		TextToSpeechShutdown(phTTS[tts_select]);
 //		TextToSpeechSelectLang(NULL, tts_select);
