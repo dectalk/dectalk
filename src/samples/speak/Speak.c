@@ -3975,21 +3975,27 @@ LRESULT _stdcall AppGetWindowsVersion( PTSTR pszEnvironment, PTSTR pszPlatform )
 			GetSystemInfo(&sysinfo);
 			switch (sysinfo.wProcessorArchitecture)
 			{
+			#ifdef PROCESSOR_ARCHITECTURE_AMD64
 			case PROCESSOR_ARCHITECTURE_AMD64:
 				pszProcessor = szProcessorAMD64;
 				break;
+			#endif
 
 			case PROCESSOR_ARCHITECTURE_INTEL:
 				pszProcessor = szProcessorIA32;
 				break;
 
+			#ifdef PROCESSOR_ARCHITECTURE_ARM64
 			case PROCESSOR_ARCHITECTURE_ARM64:
 				pszProcessor = szProcessorARM64;
 				break;
+			#endif
 
+			#ifdef PROCESSOR_ARCHITECTURE_ARM
 			case PROCESSOR_ARCHITECTURE_ARM:
 				pszProcessor = szProcessorARM;
 				break;
+			#endif
 				
 			case PROCESSOR_ARCHITECTURE_MIPS:
 				pszProcessor = szProcessorMIPS;
