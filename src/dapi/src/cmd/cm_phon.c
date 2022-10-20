@@ -171,14 +171,24 @@ int cm_phon_lookup_arpa(LPTTS_HANDLE_T phTTS, unsigned int ph1, unsigned int ph2
 #ifndef MSDOS
 			if (pCmd_t->international_phon_lang>=0)
 			{
-				PUSH_PHONE = i/2 | ((arpabet_lang_fonts[pCmd_t->international_phon_lang]) <<PSFONT);
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+				if (!pCmd_t->hold_phonemes)
+#endif
+				{
+					PUSH_PHONE = i/2 | ((arpabet_lang_fonts[pCmd_t->international_phon_lang]) <<PSFONT);
+				}
 				pCmd_t->international_phon_lang=-1;
 				pCmd_t->international_flag=-1;
 			}
 			else
 #endif
 			{
-				PUSH_PHONE = i/2;
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+				if (!pCmd_t->hold_phonemes)
+#endif
+				{
+					PUSH_PHONE = i/2;
+				}
 			}
 			return(2);
 		}
@@ -190,14 +200,24 @@ int cm_phon_lookup_arpa(LPTTS_HANDLE_T phTTS, unsigned int ph1, unsigned int ph2
 #ifndef MSDOS
 			if (pCmd_t->international_phon_lang>=0)
 			{
-				PUSH_PHONE = i/2 | ((arpabet_lang_fonts[pCmd_t->international_phon_lang]) <<PSFONT);
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+				if (!pCmd_t->hold_phonemes)
+#endif
+				{
+					PUSH_PHONE = i/2 | ((arpabet_lang_fonts[pCmd_t->international_phon_lang]) <<PSFONT);
+				}
 				pCmd_t->international_phon_lang=-1;
 				pCmd_t->international_flag=-1;
 			}
 			else
 #endif
 			{
-				PUSH_PHONE = i/2;
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+				if (!pCmd_t->hold_phonemes)
+#endif
+				{
+					PUSH_PHONE = i/2;
+				}
 			}
 			return(1);
 		}
@@ -209,14 +229,16 @@ int cm_phon_lookup_arpa(LPTTS_HANDLE_T phTTS, unsigned int ph1, unsigned int ph2
 #ifndef MSDOS
 			if (pCmd_t->international_phon_lang>=0)
 			{
-				PUSH_PHONE = i/2 | ((arpabet_lang_fonts[pCmd_t->international_phon_lang]) <<PSFONT);
+				if (!pCmd_t->hold_phonemes)
+					PUSH_PHONE = i/2 | ((arpabet_lang_fonts[pCmd_t->international_phon_lang]) <<PSFONT);
 				pCmd_t->international_phon_lang=-1;
 				pCmd_t->international_flag=-1;
 			}
 			else
 #endif
 			{
-				PUSH_PHONE = i/2;
+				if (!pCmd_t->hold_phonemes)
+					PUSH_PHONE = i/2;
 			}
 			return(1);
 		}
@@ -465,6 +487,166 @@ void cm_phon_flush(LPTTS_HANDLE_T phTTS)
 	pCmd_t->cmd_p_flag = 0;
 	pCmd_t->p_count = 0;               
 }
+
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+/*
+ * Hack for transforming e.g. REY to R EY:
+ *
+ * If we encounter an R as the first character of a phoneme, try if everythin
+ * else parses correctly until the next delimiter and if it does not, then
+ * insert a space after the R and try again. Old versions could cope with
+ * this, so try to replicate their behaviour.
+ *
+ * This version implements cm_phon_match but without actions, just checking
+ * if the phonemes are ok.
+ */
+int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
+{
+	PKSD_T pKsd_t = phTTS->pKernelShareData;
+	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+	int temp;
+
+	if(c == CR || c == LF || pKsd_t->text_flush)
+	{
+		return 1;
+	}
+#ifndef MSDOS
+	if (pCmd_t->international_phon_lang<0 && pCmd_t->international_flag>=0)
+	{
+		if (c=='_')
+		{
+			pCmd_t->international_temp=0;
+			pCmd_t->q_flag=0;
+			pCmd_t->international_phon_lang=pCmd_t->international_flag;
+			pCmd_t->international_flag=-1;
+			return;
+		}
+		else
+		{
+			pCmd_t->international_flag=-1;
+			pCmd_t->international_phon_lang=-1;
+			switch(cm_phon_lookup_arpa(phTTS, pCmd_t->q_flag,pCmd_t->international_temp))
+			{
+			case	0	:
+				return 0;
+				break;
+			case	1	:
+				pCmd_t->q_flag=pCmd_t->international_temp;
+				pCmd_t->international_temp=0;
+				return 1;
+				break;
+			case	2	:
+				pCmd_t->q_flag = 0;
+				pCmd_t->international_temp=0;
+				return 1;
+				break;
+			}
+		}
+	}
+#endif
+	if(pCmd_t->q_flag)
+	{
+		switch(c)
+		{
+		case ']':
+			if (pCmd_t->q_flag != ' ')
+			{
+				switch(cm_phon_lookup_arpa(phTTS, pCmd_t->q_flag,' '))
+				{
+
+					case	0	:
+						return 0;
+						break;
+
+					case	1	:
+					case	2	:
+						return 1;
+						break;
+				}
+			}
+			return 1;
+			break;
+		case ':':
+			if(cm_phon_lookup_arpa(phTTS, pCmd_t->q_flag,' ') == 2)
+			{
+				return 1;
+			}
+			else
+			{
+				return 0;
+			}
+			break;
+		default:
+#ifdef PHEDIT2  /* ET merged from PHEDIT2 */
+			if (pCmd_t->q_flag >= '0' && pCmd_t->q_flag <= '9' && c >= '0' && c <= '9') {
+				pCmd_t->q_flag = 0;
+			}
+			else {
+#endif
+#ifndef MSDOS
+				if (pCmd_t->international_phon_lang<0)
+					temp=cm_phon_lookup_language(phTTS,(unsigned char)pCmd_t->q_flag,(unsigned char)c); // NAL warning removal
+				else
+					temp=-1;
+				if (pCmd_t->international_flag<0 && temp>=0)
+				{
+					pCmd_t->international_flag=temp;
+					pCmd_t->international_temp=c;
+				}
+				else
+#endif
+				{
+					switch(cm_phon_lookup_arpa(phTTS, pCmd_t->q_flag,c))
+					{
+
+					case	0	:
+
+						return 0;
+						break;
+
+					case	1	:
+						pCmd_t->q_flag = c;
+						return 1;
+						break;
+
+					case	2	:
+
+						pCmd_t->q_flag = 0;
+						return 1;
+						break;
+					}
+				}
+#ifdef PHEDIT2
+			} /* else */
+#endif
+		} /* switch(c) */
+
+	} /* if(pCmd_t->q_flag) */
+	else
+	{
+		switch(c)
+		{
+		case ']':
+			return 1;
+			break;
+		case ':':
+			return 1;
+			break;
+		default:
+			if(pKsd_t->phoneme_mode  & PHONEME_ASCKY)
+			{
+				return 1;
+			}
+			else
+			{
+				pCmd_t->q_flag = c;
+				return 1;
+			}
+		}
+	}
+}
+#endif
+
 /*
  *	Function Name: cm_phon_match()	
  *
@@ -490,6 +672,77 @@ void cm_phon_match(LPTTS_HANDLE_T phTTS, unsigned int c)
 	{
 		return;
 	}
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+	/* Part of REY -> R EY transformation, see above for description */
+	if (!pCmd_t->hold_replay_ignore && (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R')) {
+		pCmd_t->hold_phonemes = 1;
+		pCmd_t->hold_count = 0;
+		pCmd_t->hold_international_flag = pCmd_t->international_flag;
+		pCmd_t->hold_international_temp = pCmd_t->international_temp;
+		pCmd_t->hold_international_phon_lang = pCmd_t->international_phon_lang;
+		pCmd_t->hold_q_flag = pCmd_t->q_flag;
+	}
+	if (pCmd_t->hold_phonemes) {
+		int i;
+		int ret;
+
+		if (((pCmd_t->q_flag == 0) && (c == ':' || c == ']' || c == '<')) || (pCmd_t->hold_count >= sizeof(pCmd_t->hold_strbuf)-1)) {
+			/* Everything was perfectly fine, replay */
+			pCmd_t->hold_phonemes = 0;
+			pCmd_t->international_flag = pCmd_t->hold_international_flag;
+			pCmd_t->international_temp = pCmd_t->hold_international_temp;
+			pCmd_t->international_phon_lang = pCmd_t->hold_international_phon_lang;
+			pCmd_t->q_flag = pCmd_t->hold_q_flag;
+			pCmd_t->hold_replay_ignore = 1;
+			for (i = 0; i < pCmd_t->hold_count; i++) {
+				//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
+				cm_phon_match(phTTS, pCmd_t->hold_strbuf[i]);
+				pCmd_t->hold_replay_ignore = 0;
+			}
+			cm_phon_match(phTTS, c);
+			pCmd_t->hold_count = 0;
+			return;
+		}
+
+		pCmd_t->hold_strbuf[pCmd_t->hold_count++] = c;
+		ret = cm_phon_check(phTTS, c);
+		if (!ret) {
+			/* Retry with space */
+			pCmd_t->hold_phonemes = 0;
+			pCmd_t->international_flag = pCmd_t->hold_international_flag;
+			pCmd_t->international_temp = pCmd_t->hold_international_temp;
+			pCmd_t->international_phon_lang = pCmd_t->hold_international_phon_lang;
+			pCmd_t->q_flag = pCmd_t->hold_q_flag;
+			//printf("Inserting space\n");
+			pCmd_t->hold_replay_ignore = 1;
+			cm_phon_match(phTTS, ' ');
+			pCmd_t->hold_replay_ignore = 0;
+			for (i = 0; i < pCmd_t->hold_count; i++) {
+				//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
+				cm_phon_match(phTTS, pCmd_t->hold_strbuf[i]);
+			}
+			pCmd_t->hold_count = 0;
+		} else if (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R') {
+			/* Anotrher R as first char, let's assume everything was fine, replay */
+			pCmd_t->hold_phonemes = 0;
+			pCmd_t->international_flag = pCmd_t->hold_international_flag;
+			pCmd_t->international_temp = pCmd_t->hold_international_temp;
+			pCmd_t->international_phon_lang = pCmd_t->hold_international_phon_lang;
+			pCmd_t->q_flag = pCmd_t->hold_q_flag;
+			pCmd_t->hold_replay_ignore = 1;
+			for (i = 0; i < pCmd_t->hold_count-1; i++) {
+				//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
+				cm_phon_match(phTTS, pCmd_t->hold_strbuf[i]);
+				pCmd_t->hold_replay_ignore = 0;
+			}
+			pCmd_t->hold_count = 0;
+			//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
+			cm_phon_match(phTTS, c); //need to do this last as we might recurse
+		}
+
+		return;
+	}
+#endif
 	if(pCmd_t->param_index && cm_phon_param_check(phTTS, c))
 	{
 		return;
@@ -530,6 +783,23 @@ void cm_phon_match(LPTTS_HANDLE_T phTTS, unsigned int c)
 			}
 		}
 	}
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+	/*
+	 * R was promoted from phoneme language selector to first symbol of
+	 * phoneme. We can recurse at this point as international_phon_lang
+	 * is now -1
+	 */
+	if (!pCmd_t->hold_replay_ignore && (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R')) {
+		pCmd_t->hold_phonemes = 1;
+		pCmd_t->hold_count = 0;
+		pCmd_t->hold_international_flag = pCmd_t->international_flag;
+		pCmd_t->hold_international_temp = pCmd_t->international_temp;
+		pCmd_t->hold_international_phon_lang = pCmd_t->international_phon_lang;
+		pCmd_t->hold_q_flag = pCmd_t->q_flag;
+		cm_phon_match(phTTS, c);
+		return;
+	}
+#endif
 #endif
 	if(pCmd_t->q_flag)
 	{

@@ -1691,6 +1691,11 @@ void cm_pars_new_state(PCMD_T pCmd_t, int state)
 
 	pCmd_t->p_count = 0;
 	pCmd_t->cmd_p_flag = 0;
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+	pCmd_t->hold_phonemes = 0;
+	pCmd_t->hold_count = 0;
+	pCmd_t->hold_replay_ignore = 0;
+#endif
 
 #ifdef DEBUGPARS
 		printf("CMD_PARS: cm_pars_new_state:\n");

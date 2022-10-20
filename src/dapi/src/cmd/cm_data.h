@@ -253,6 +253,14 @@ typedef struct CMD_TAG
 #endif
 #ifdef PARSER_HACK_FOR_OLD_SONGS
 	int   last_was_phoneme;
+	int   hold_phonemes;
+	char  hold_strbuf[4096];
+	int   hold_count;
+	int   hold_q_flag;
+	int   hold_international_flag;
+	int   hold_international_temp;
+	int   hold_international_phon_lang;
+	int   hold_replay_ignore;
 #endif
 
 } CMD_T;

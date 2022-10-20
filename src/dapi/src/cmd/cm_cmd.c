@@ -792,6 +792,11 @@ void cm_cmd_reset_comm(PCMD_T pCmd_t, unsigned int state)
 	pCmd_t->international_flag=-1;
 	pCmd_t->international_temp=0;
 	pCmd_t->international_phon_lang=-1;
+#ifdef PARSER_HACK_FOR_OLD_SONGS
+	pCmd_t->hold_phonemes = 0;
+	pCmd_t->hold_count = 0;
+	pCmd_t->hold_replay_ignore = 0;
+#endif
 }
 
 /* ******************************************************************
