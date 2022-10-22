@@ -519,7 +519,7 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 			pCmd_t->q_flag=0;
 			pCmd_t->international_phon_lang=pCmd_t->international_flag;
 			pCmd_t->international_flag=-1;
-			return;
+			return 1;
 		}
 		else
 		{
@@ -533,12 +533,10 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 			case	1	:
 				pCmd_t->q_flag=pCmd_t->international_temp;
 				pCmd_t->international_temp=0;
-				return 1;
 				break;
 			case	2	:
 				pCmd_t->q_flag = 0;
 				pCmd_t->international_temp=0;
-				return 1;
 				break;
 			}
 		}
@@ -559,19 +557,15 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 						break;
 
 					case	1	:
+						break;
 					case	2	:
-						return 1;
 						break;
 				}
 			}
 			return 1;
 			break;
 		case ':':
-			if(cm_phon_lookup_arpa(phTTS, pCmd_t->q_flag,' ') == 2)
-			{
-				return 1;
-			}
-			else
+			if(cm_phon_lookup_arpa(phTTS, pCmd_t->q_flag,' ') != 2)
 			{
 				return 0;
 			}
@@ -606,13 +600,11 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 
 					case	1	:
 						pCmd_t->q_flag = c;
-						return 1;
 						break;
 
 					case	2	:
 
 						pCmd_t->q_flag = 0;
-						return 1;
 						break;
 					}
 				}
@@ -627,23 +619,20 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 		switch(c)
 		{
 		case ']':
-			return 1;
 			break;
 		case ':':
-			return 1;
 			break;
 		default:
 			if(pKsd_t->phoneme_mode  & PHONEME_ASCKY)
 			{
-				return 1;
 			}
 			else
 			{
 				pCmd_t->q_flag = c;
-				return 1;
 			}
 		}
 	}
+	return 1;
 }
 #endif
 
@@ -704,6 +693,7 @@ void cm_phon_match(LPTTS_HANDLE_T phTTS, unsigned int c)
 			return;
 		}
 
+		//printf("Checking >%c<, qf: %c\n", c, pCmd_t->q_flag);
 		pCmd_t->hold_strbuf[pCmd_t->hold_count++] = c;
 		ret = cm_phon_check(phTTS, c);
 		if (!ret) {
