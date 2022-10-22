@@ -277,6 +277,8 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 
   if ( phTTS->dwOutputState == STATE_OUTPUT_AUDIO )
   {
+	char *tmp;
+
 	/******************************************************************/
 	/*  Wait for all previously queued text to be processed.          */
 	/******************************************************************/
@@ -345,7 +347,8 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	/*  the cmd_wav() function (this function).                       */
 	/******************************************************************/
 
-	if (_stricmp(strrchr(pCmd_t->pString[0],'.'),".au")==0)
+	tmp = strrchr(pCmd_t->pString[0],'.');
+	if (tmp && _stricmp(tmp,".au")==0)
 	{
 		is_au=1;
 		/* open the file */
