@@ -541,6 +541,14 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 			}
 		}
 	}
+	/*
+	 * If we get an r in the q_flag after the first char, need to return so
+	 * we can replay the buffer
+	 */
+	if (pCmd_t->hold_count > 1 &&
+	    (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R')) {
+		return 1;
+	}
 #endif
 	if(pCmd_t->q_flag)
 	{
