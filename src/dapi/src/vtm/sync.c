@@ -252,7 +252,7 @@ OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS)
 			PVISUAL_DATA pvdData = (PVISUAL_DATA)(dwSyncParams[2]); // tek 21sep98
 #endif
 #else
-			PVISUAL_DATA pvdData = (PVISUAL_DATA)((((long long)(dwSyncParams[1])) << 32) | (long long)(dwSyncParams[2])); // tek 21sep98
+			PVISUAL_DATA pvdData = (PVISUAL_DATA)((((QWORD)(dwSyncParams[1])) << 32) | (QWORD)(dwSyncParams[2])); // tek 21sep98
 #endif
 			dwSampleToWaitFor = (DWORD)((PVISUAL_DATA)(pvdData))->qTimeStamp&0x00000000FFFFFFFF; // NAL warning removal
 			// tek 03sep97 note that we always get a visual notification before we send any samples, 

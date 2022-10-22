@@ -1,9 +1,9 @@
 /************************************************************
  *
- *                           Copyright ©
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000-2001 Force Computers, a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright ï¿½
+ *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000-2001 Force Computers, a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -478,10 +478,10 @@ restart:if ( *dict_siz > 0 )
 	else
 #endif
 		{
-			dict_index_buffer = ((((long long)*dicMapStartAddr) + 8)); //start the index buffer at start address + 8 bytes
+			dict_index_buffer = ((((QWORD)*dicMapStartAddr) + 8)); //start the index buffer at start address + 8 bytes
 		}
 	  
-		dict_data_buffer = (unsigned char *)(pointer_list_size + ((long long)dict_index_buffer)); //start 	  	  
+		dict_data_buffer = (unsigned char *)(pointer_list_size + ((QWORD)dict_index_buffer)); //start 	  	  
 	}
 	else
 	{ 
