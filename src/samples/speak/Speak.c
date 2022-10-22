@@ -958,7 +958,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				// subclass buttons
 				#ifdef _WIN64
 				opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[y*3+x].hWnd, GWLP_WNDPROC);
-				SetWindowLong (odButton[y*3+x].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+				SetWindowLongPtr(odButton[y*3+x].hWnd, GWLP_WNDPROC, npVoiceControls);
 				#else
 				opVoiceControls = (WNDPROC)GetWindowLong(odButton[y*3+x].hWnd, GWL_WNDPROC);
 				SetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
@@ -966,7 +966,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 			}
 			#ifdef _WIN64
 			opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[x + PLAY].hWnd, GWLP_WNDPROC);
-			SetWindowLong (odButton[x + PLAY].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+			SetWindowLongPtr(odButton[x + PLAY].hWnd, GWLP_WNDPROC, npVoiceControls);
 			#else
 			opVoiceControls = (WNDPROC)GetWindowLong(odButton[x + PLAY].hWnd, GWL_WNDPROC);
 			SetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
@@ -975,7 +975,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 #ifdef _DEBUG
 		#ifdef _WIN64
 		opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[12].hWnd, GWLP_WNDPROC);
-		SetWindowLong (odButton[12].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+		SetWindowLongPtr(odButton[12].hWnd, GWLP_WNDPROC, npVoiceControls);
 		#else
 		opVoiceControls = (WNDPROC)GetWindowLong(odButton[12].hWnd, GWL_WNDPROC);
 		SetWindowLong (odButton[12].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
@@ -3139,7 +3139,8 @@ LRESULT CALLBACK npVoiceControls(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
             // tek 08oct96 we should reset the speaker and speed here.
             TextToSpeechSetRate(phTTS[tts_select],current_rate); // New rate returned in wSpos
 			
-			SendMessage(hSpeakText,
+			// TODO: Switch to the ANSI version of SendMessage
+			SendMessageA(hSpeakText,
 				WM_GETTEXT,
 				sizeof(szTextWindow),
 				(LPARAM)szTextWindow);
@@ -4897,7 +4898,7 @@ BOOL APIENTRY AboutTypingProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lPar
 		hDlgItem = GetDlgItem(hWnd, IDC_EDIT1);
 		#ifdef _WIN64
 		OldTypingDlgProc = GetWindowLongPtr(hDlgItem, GWLP_WNDPROC);
-		SetWindowLong(hDlgItem, GWLP_WNDPROC, (LONG) TypingDlgProc);
+		SetWindowLongPtr(hDlgItem, GWLP_WNDPROC, TypingDlgProc);
 		#else
 		OldTypingDlgProc = GetWindowLong(hDlgItem, GWL_WNDPROC);
 		SetWindowLong(hDlgItem, GWL_WNDPROC, (LONG) TypingDlgProc);

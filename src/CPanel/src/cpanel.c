@@ -111,14 +111,22 @@ BOOL create_CP_window(LPCPTHREAD thread) {
 	}
 
 	thread->MainWindow = handle;
+	#ifdef _WIN64
+	SetWindowLongPtr(handle, GWLP_USERDATA, thread);
+	#else
 	SetWindowLong(handle, GWL_USERDATA, (LONG) thread);
+	#endif
 	
 	handle = CreateWindow(WC_TABCONTROL, "DECtalk Control Panel",
 				CP_STYLE, CP_X_START, CP_Y_START, CP_X_SIZE, CP_Y_SIZE,
 				thread->MainWindow, WIN_MENU, NULL, NULL);
 
 	thread->CPWindow = handle;
+	#ifdef _WIN64
+	SetWindowLongPtr(handle, GWLP_USERDATA, thread);
+	#else
 	SetWindowLong(handle, GWL_USERDATA, (LONG) thread);
+	#endif
 
 	if (handle == NULL) {
 		err = GetLastError();
@@ -150,7 +158,11 @@ void CPUpdateAll(LPCPTHREAD thread) {
 //  WindowProc
 //
 LONG APIENTRY CPWinProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam) {
+	#ifdef _WIN64
+	LPCPTHREAD thread = (LPCPTHREAD) GetWindowLongPtr(hWnd, GWLP_USERDATA);
+	#else
 	LPCPTHREAD thread = (LPCPTHREAD) GetWindowLong(hWnd, GWL_USERDATA);
+	#endif
 
 	switch (uiMessage) {
 		case WM_NOTIFY:		/* Someone's talking about the CP */

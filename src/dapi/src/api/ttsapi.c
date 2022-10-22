@@ -9508,7 +9508,7 @@ static HWND InitTextToSpeechWindow( LPTTS_HANDLE_T phTTS )
 	
 	/*MVP : Store phTTS in Window extra memory for later use in Wndproc */
 	#ifdef _WIN64
-	SetWindowLongPtr(hWnd, GWLP_USERDATA,(LONG)phTTS);
+	SetWindowLongPtr(hWnd, GWLP_USERDATA, phTTS);
 	#else
 	SetWindowLong(hWnd, GWL_USERDATA,(LONG)phTTS);
 	#endif

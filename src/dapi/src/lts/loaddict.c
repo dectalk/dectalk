@@ -469,19 +469,19 @@ restart:if ( *dict_siz > 0 )
 
 #endif
 #ifdef CHEESY_DICT_COMPRESSION
-	if (dict_fc_entry!=NULL)
-	{
-		fc_entry = (int *)(((int)*dicMapStartAddr) + 12); //start the index buffer at start address + 8 bytes
+		if (dict_fc_entry!=NULL)
+		{
+			fc_entry = (int *)(((int)*dicMapStartAddr) + 12); //start the index buffer at start address + 8 bytes
 
-		dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 12 + fc_entries*4); //start the index buffer at start address + 8 bytes
-	}
+			dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 12 + fc_entries*4); //start the index buffer at start address + 8 bytes
+		}
 	else
 #endif
-	{
-		dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 8); //start the index buffer at start address + 8 bytes
-	}
+		{
+			dict_index_buffer = ((((long long)*dicMapStartAddr) + 8)); //start the index buffer at start address + 8 bytes
+		}
 	  
-		dict_data_buffer = (unsigned char *)(pointer_list_size + ((long)dict_index_buffer)); //start 	  	  
+		dict_data_buffer = (unsigned char *)(pointer_list_size + ((long long)dict_index_buffer)); //start 	  	  
 	}
 	else
 	{ 

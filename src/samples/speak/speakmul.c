@@ -408,7 +408,7 @@ int         iBitsPixel,iPlanes = 0;
 					// subclass buttons
 					#ifdef _WIN64
 					opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWLP_WNDPROC);
-					SetWindowLongPtr(odButton[y*3+x].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+					SetWindowLongPtr(odButton[y*3+x].hWnd, GWLP_WNDPROC, npVoiceControls);
 					#else
 					opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC);
 					SetWindowLong(odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
@@ -417,7 +417,7 @@ int         iBitsPixel,iPlanes = 0;
 				
 				#ifdef _WIN64
 				opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWLP_WNDPROC);
-				SetWindowLongPtr(odButton[x + PLAY].hWnd, GWLP_WNDPROC, (LONG)npVoiceControls);
+				SetWindowLongPtr(odButton[x + PLAY].hWnd, GWLP_WNDPROC, npVoiceControls);
 				#else
 				opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC);
 				SetWindowLong(odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
@@ -2915,7 +2915,7 @@ MMRESULT CreateTTSObject(char *pszInstanceName,PDWORD pdwInstanceID,
 	*pdwInstanceID = (DWORD)phTTSInst;	
 
 	#ifdef _WIN64
-	SetWindowLongPtr(*phWndTTS,GWLP_USERDATA,(LONG)phTTSInst);
+	SetWindowLongPtr(*phWndTTS, GWLP_USERDATA, phTTSInst);
 	#else
 	SetWindowLong(*phWndTTS,GWL_USERDATA,(LONG)phTTSInst);
 	#endif

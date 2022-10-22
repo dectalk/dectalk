@@ -53,11 +53,12 @@ typedef  ATYPE_T *  LPATYPE_T;
 #endif
 #endif
 
-#ifdef _WIN32
-
+#if defined(_WIN64)
+typedef  unsigned long long ATYPE_T;
+typedef  ATYPE_T *  LPATYPE_T;
+#elif defined(_WIN32)
 typedef  unsigned int  ATYPE_T;
 typedef  ATYPE_T *  LPATYPE_T;
-
 #endif
 
 #endif
