@@ -1,8 +1,8 @@
 /************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -252,7 +252,7 @@ OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS)
 			PVISUAL_DATA pvdData = (PVISUAL_DATA)(dwSyncParams[2]); // tek 21sep98
 #endif
 #else
-			PVISUAL_DATA pvdData = (PVISUAL_DATA)((((long)(dwSyncParams[1])) << 32) | (long)(dwSyncParams[2])); // tek 21sep98
+			PVISUAL_DATA pvdData = (PVISUAL_DATA)((((QWORD)(dwSyncParams[1])) << 32) | (QWORD)(dwSyncParams[2])); // tek 21sep98
 #endif
 			dwSampleToWaitFor = (DWORD)((PVISUAL_DATA)(pvdData))->qTimeStamp&0x00000000FFFFFFFF; // NAL warning removal
 			// tek 03sep97 note that we always get a visual notification before we send any samples, 

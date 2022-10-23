@@ -1,7 +1,7 @@
 /**********************************************************************/
-/*   					Copyright ©                                   */
-/*  Copyright © 2001 Force Computers Inc. A Solectron Company. All rights reserved. */
-/*  Copyright © SMART Modular Technologies 1999. All rights reserved. */
+/*   					Copyright Â©                                   */
+/*  Copyright Â© 2001 Force Computers Inc. A Solectron Company. All rights reserved. */
+/*  Copyright Â© SMART Modular Technologies 1999. All rights reserved. */
 /*  Copyright Digital Equipment Corporation, 1994,                    */
 /*  All rights reserved.                                              */
 /*                                                                    */
@@ -127,7 +127,7 @@
 typedef char                Int8;
 typedef short               Int16;
 typedef int                 Int32;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined _WIN64
 typedef long long                Int64;
 #else
 typedef long                Int64;
@@ -135,7 +135,7 @@ typedef long                Int64;
 typedef unsigned char       Uint8;
 typedef unsigned short      Uint16;
 typedef unsigned int        Uint32;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined _WIN64
 typedef unsigned long long  Uint64; 
 #else     
 typedef unsigned long       Uint64; 

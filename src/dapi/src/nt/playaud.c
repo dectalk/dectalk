@@ -4200,7 +4200,7 @@ OP_THREAD_ROUTINE( PlayAudioThreadMain, HPLAY_AUDIO_T pAudioHandle )
     ReadMessageQueue( pShm_t->pGlobalPlayAudioMessageQueue,
                       (LPATYPE_T)&pPlayAudio,
                       (LPATYPE_T)&uiMessage,
-                      &aParam );
+                      (LPATYPE_T)&aParam);
     uiResult = PlayAudioProcedure( pPlayAudio, uiMessage, aParam );
     /******************************************************************/
     /*  If this is not a driver message then put result into the      */

@@ -557,7 +557,11 @@ MMRESULT QueueAudio( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  If too many samples then exit with error status.                */
@@ -773,7 +777,11 @@ MMRESULT GetAudioVolume( HWND hWnd, LPDWORD pdwVolume )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Get the wave output device volume.                              */
@@ -868,7 +876,11 @@ MMRESULT GetAudioPosition( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Either get a quick coarse position or a slower but more         */
@@ -1079,7 +1091,11 @@ MMRESULT StatusAudio( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Range check the number of status values requested.              */
@@ -1191,7 +1207,11 @@ MMRESULT ResetAudio( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Return an error if NULL handle.                                 */
@@ -1292,7 +1312,11 @@ MMRESULT WaitForAudioToComplete( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Loop and wait for all queued audio samples to complete.         */
@@ -1371,7 +1395,11 @@ MMRESULT CloseAudio( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Cancel audio output and close the wave output device. The first */
@@ -1442,7 +1470,11 @@ static void DestroyAudioObjects( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Free the Audio Handle objects.                                  */
@@ -1637,7 +1669,11 @@ MMRESULT GetAudioParams( HWND hWnd, LPWAVEFORMATEX pWaveFormat )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Get the audio parameters.                                       */
@@ -1696,7 +1732,11 @@ MMRESULT SetAudioParams( HWND hWnd, LPWAVEFORMATEX pWaveFormat )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Set the audio parameters.                                       */
@@ -2298,9 +2338,11 @@ static LRESULT Process_WM_CREATE_Message( HWND hWnd, LPARAM lParam )
   /*  Attach the Audio parameter structure to the window handle.      */
   /********************************************************************/
 
-  SetWindowLong( hWnd,
-                 GWL_USERDATA,
-                 (LONG)pAudioParams );
+  #ifdef _WIN64
+    SetWindowLongPtr(hWnd, GWLP_USERDATA, pAudioParams);
+  #else
+    SetWindowLong(hWnd, GWL_USERDATA, (LONG)pAudioParams);
+  #endif
 
   /********************************************************************/
   /*  Get the size of the WAVEFORMATEX structure.                     */
@@ -2726,7 +2768,11 @@ static LRESULT Process_MM_WOM_OPEN_Message( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Get the selected wave output device ID number.                  */
@@ -3011,7 +3057,11 @@ static LRESULT Process_MM_WOM_DONE_Message( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Get the pointer to the wave header from the lParam of the       */
@@ -3179,7 +3229,11 @@ static LRESULT Process_MM_WOM_CLOSE_Message( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   pAudioParams->hWaveOut = NULL;
 
@@ -3289,7 +3343,11 @@ static LRESULT ProcessOpenWaveOutputDeviceMessage( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  If the wave output device is not closed then abort.             */
@@ -3638,7 +3696,11 @@ static LRESULT ProcessEnableErrorMessage( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   pAudioParams->bEnableErrorMessage = TRUE;
 
@@ -3891,7 +3953,11 @@ static LRESULT ProcessSetAudioVolumeMessage( HWND hWnd, DWORD dwVolume )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  If stereo volume capability exisits then use the passed volume  */
@@ -3948,7 +4014,11 @@ static LRESULT ProcessGetAudioVolumeMessage( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Get the wave output device ID number.                           */
@@ -3996,7 +4066,11 @@ static LRESULT ProcessGetAudioPositionMessage( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   EnterCriticalSection( pAudioParams->pcsAudioDeviceState );
 
@@ -4175,7 +4249,11 @@ static LRESULT ProcessPauseAudioMessage( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  If the wave output device is active then pause it. If it is not */
@@ -4241,7 +4319,11 @@ static LRESULT ProcessResumeAudioMessage( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  If the wave output device was paused then restart it.           */
@@ -4307,7 +4389,11 @@ static LRESULT ProcessResetAudioMessage( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Reset the audio queue to the empty state.                       */
@@ -4396,7 +4482,11 @@ static MMRESULT ProcessSetAudioParamsMessage( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  The wBitsPerSample element, the nChannels element, and the      */
@@ -4633,7 +4723,11 @@ static MMRESULT ProcessGetAudioParamsMessage( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Get the size of the WAVEFORMATEX structure including the        */

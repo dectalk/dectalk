@@ -2,8 +2,8 @@
 /*                                                                    */
 /*  COPYRIGHT NOTICE                                                  */
 /*                                                                    */
-/*	Copyright © 2002 Fonix Corporation. All rights reserved			  */
-/*  Copyright © 2000, 2001 Force Computers, Inc., a solectron Company. all rights reserved. */
+/*	Copyright ï¿½ 2002 Fonix Corporation. All rights reserved			  */
+/*  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a solectron Company. all rights reserved. */
 /*  Copyright (c) Digital Equipment Corporation, 1998                 */
 /*																	  */
 /*  All Rights reserved. Unpublished rights reserved under the        */
@@ -296,9 +296,9 @@ char *gl_emailfile = "EMail.txt";
 #endif	// DEMO
 
 #ifdef DEMO
-char *szAppName = "DTdemo";
+char *szAppName = TEXT("DTdemo");
 #else
-char *szAppName = "Speak";
+char *szAppName = TEXT("Speak");
 #endif
 
 /**********************************************************************/
@@ -444,7 +444,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	wndclass.hIcon         = LoadIcon(hInstance, MAKEINTRESOURCE( ICON_APP ));
 	wndclass.hCursor       = LoadCursor (NULL, IDC_ARROW) ;
 	wndclass.hbrBackground = GetStockObject (BLACK_BRUSH) ;
-	wndclass.lpszMenuName  = "SPEAK_MENU" ;
+	wndclass.lpszMenuName  = TEXT("SPEAK_MENU");
 	wndclass.lpszClassName = szAppName ;
 	
 	if ( ! RegisterClass( &wndclass ))
@@ -681,7 +681,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		menu_item.hbmpChecked = NULL;
 		menu_item.hbmpUnchecked = NULL;
 		menu_item.dwItemData = IDM_HIGHLIGHT;
-		menu_item.dwTypeData = "&Highlighting";
+		menu_item.dwTypeData = TEXT("&Highlighting");
 		menu_item.cch = strlen(menu_item.dwTypeData);
 		InsertMenuItem(sub_menu, 99, 1, &menu_item);
 	}
@@ -696,7 +696,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		menu_item.hbmpChecked = NULL;
 		menu_item.hbmpUnchecked = NULL;
 		menu_item.dwItemData = IDM_TYPING;
-		menu_item.dwTypeData = "&Typing Demo";
+		menu_item.dwTypeData = TEXT("&Typing Demo");
 		menu_item.cch = strlen(menu_item.dwTypeData);
 		InsertMenuItem(sub_menu, 99, 1, &menu_item);
 	}
@@ -711,7 +711,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		menu_item.hbmpChecked = NULL;
 		menu_item.hbmpUnchecked = NULL;
 		menu_item.dwItemData = ID_CPANEL;
-		menu_item.dwTypeData = "&Control Panel";
+		menu_item.dwTypeData = TEXT("&Control Panel");
 		menu_item.cch = strlen(menu_item.dwTypeData);
 		
 		main_menu = GetMenu(hWnd);
@@ -726,10 +726,10 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		if ( mmStatus )
 		{
 			if (mmStatus == MMSYSERR_ERROR)
-				MessageBox( hWnd, "Illegal dictionary format", "Load User Dictionary",
+				MessageBox( hWnd, TEXT("Illegal dictionary format"), TEXT("Load User Dictionary"),
 				MB_OK | MB_ICONSTOP );
 			else
-				MessageBox( hWnd, "Error in TTS Load Dictionary", "ERROR",
+				MessageBox( hWnd, TEXT("Error in TTS Load Dictionary"), TEXT("ERROR"),
 				MB_OK | MB_ICONSTOP );
 		}
 	}
@@ -742,7 +742,7 @@ int APIENTRY WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance,
 			DrawMenuBar( hWnd);
 			// reset the title in the title bar to reflect the
 			// new open file
-			sprintf(title, "%s - %s",szAppName, filename);
+			wsprintf(title, TEXT("%s - %s"), szAppName, filename);
 			SendMessage(hWnd,WM_SETTEXT,0,(LPARAM)title);
 			//SendMessage(hSpeakText,WM_SETTEXT,0,(LPARAM)pFileData);
 			//SendMessage(hSpeakText,WM_SETTEXT, 0, (LPARAM)FileBuf);
@@ -861,21 +861,21 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 	case WM_CREATE:
 		//MVP:06/20/96 Gray out Find Menu Item for W95.
 		
-		uiID_Error_Msg = RegisterWindowMessage("DECtalkErrorMessage");
-		uiMessage_Find_Replace = RegisterWindowMessage( "commdlg_FindReplace" );
+		uiID_Error_Msg = RegisterWindowMessage(TEXT("DECtalkErrorMessage"));
+		uiMessage_Find_Replace = RegisterWindowMessage(TEXT("commdlg_FindReplace"));
 		GetClientRect(hWnd, &lprc);
-		hSpeakText = CreateWindow("EDIT", "",
-			WS_CHILD |WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | WS_BORDER | ES_LEFT |
+		hSpeakText = CreateWindow(TEXT("EDIT"), TEXT(""),
+			WS_CHILD | WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | WS_BORDER | ES_LEFT |
 			ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL | ES_NOHIDESEL,
 			border * 2, border * 2 + fbHeight,
 			etWidth,
-			etHeight ,
-			hWnd, NULL,NULL, NULL) ;
-		SendMessage(hSpeakText,EM_LIMITTEXT,(WPARAM)0,(LPARAM)0);
+			etHeight,
+			hWnd, NULL, NULL, NULL) ;
+		SendMessage(hSpeakText, EM_LIMITTEXT, (WPARAM) 0, (LPARAM) 0);
 		
 		DECtalkSpeakWin = hSpeakText;
 		
-		hRate = CreateWindow("SCROLLBAR", "",
+		hRate = CreateWindow(TEXT("SCROLLBAR"), TEXT(""),
 			WS_CHILD | WS_VISIBLE | SBS_HORZ,
 			border + slWidth,
 			lprc.bottom - (2 * border + sbHeight + 10),
@@ -887,8 +887,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		SetScrollPos(hRate, SB_CTL, SPEAK_RATE , TRUE)  ;  //Set default rate
 		current_rate = SPEAK_RATE;
 		
-		sprintf(srate, "%d WPM",SPEAK_RATE);
-		hstRate = CreateWindow("STATIC", srate,
+		wsprintf(srate, TEXT("%d WPM"), SPEAK_RATE);
+		hstRate = CreateWindow(TEXT("STATIC"), srate,
 			WS_CHILD | WS_VISIBLE | SS_CENTER | WS_BORDER,
 			slWidth + border + sbWidth,
 			lprc.bottom - (2 * border + sbHeight + 10) ,
@@ -897,7 +897,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		
 		
 		
-		hstRateLabel = CreateWindow("STATIC", "Speaking Rate",
+		hstRateLabel = CreateWindow(TEXT("STATIC"), TEXT("Speaking Rate"),
 			WS_CHILD | WS_VISIBLE | SS_CENTER,
 			lprc.left + border ,
 			lprc.bottom - (2 * border + sbHeight + 10),
@@ -907,7 +907,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		for (x=9; x<12; x++){
 			odButton[x].lpbfNormalDib   = findHdib(2000 + x);
 			odButton[x].lpbfSelectedDib = findHdib(2100 + x);
-			odButton[x].hWnd = CreateWindow("BUTTON", "",
+			odButton[x].hWnd = CreateWindow(TEXT("BUTTON"), TEXT(""),
 				WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
 				(488 + ((x-9) * pbWidth)),
 				lprc.bottom -( pbHeight + border * 2),
@@ -919,7 +919,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		/* Reload button */
 		odButton[12].lpbfNormalDib   = findHdib(2000 + x);
 		odButton[12].lpbfSelectedDib = findHdib(2100 + x);
-		odButton[12].hWnd = CreateWindow("BUTTON", "",
+		odButton[12].hWnd = CreateWindow(TEXT("BUTTON"), TEXT(""),
 			WS_CHILD | WS_VISIBLE | BS_OWNERDRAW,
 			448, lprc.bottom -( pbHeight + border * 2),
 			pbWidth ,pbHeight ,
@@ -943,31 +943,46 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				odButton[y*3+x].lpbfSelectedDib = findHdib(2100 + dwUse16ColorBitmaps + y*3+x);
 				
 				// extract voice selection string from resource
-				uiStatus = LoadString(NULL,1000+y*3+x,odButton[y*3+x].szSelVoice,80);
+				uiStatus = LoadStringA(NULL,1000+y*3+x,odButton[y*3+x].szSelVoice,80);
 				
 				// extract voice test message from resource
-				uiStatus = LoadString(NULL,1100+y*3+x,odButton[y*3+x].szTest,80);
+				uiStatus = LoadStringA(NULL,1100+y*3+x,odButton[y*3+x].szTest,80);
 				
 				// create the owner draw buttons for the odButtons
-				odButton[y*3+x].hWnd = CreateWindow("BUTTON"," ",
+				odButton[y*3+x].hWnd = CreateWindow(TEXT("BUTTON"), TEXT(" "),
 					WS_CHILD | WS_VISIBLE | BS_OWNERDRAW  ,
 					(y*3+x) * fbWidth + 10 ,  border, //x * fbWidth + border , y * fbHeight + border,
 					fbWidth ,fbHeight ,
 					hWnd,  NULL, NULL, NULL);
 				
 				// subclass buttons
-				opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC);
+				#ifdef _WIN64
+				opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[y*3+x].hWnd, GWLP_WNDPROC);
+				SetWindowLongPtr(odButton[y*3+x].hWnd, GWLP_WNDPROC, npVoiceControls);
+				#else
+				opVoiceControls = (WNDPROC)GetWindowLong(odButton[y*3+x].hWnd, GWL_WNDPROC);
 				SetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+				#endif
 			}
-			opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC);
+			#ifdef _WIN64
+			opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[x + PLAY].hWnd, GWLP_WNDPROC);
+			SetWindowLongPtr(odButton[x + PLAY].hWnd, GWLP_WNDPROC, npVoiceControls);
+			#else
+			opVoiceControls = (WNDPROC)GetWindowLong(odButton[x + PLAY].hWnd, GWL_WNDPROC);
 			SetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+			#endif
 		}
 #ifdef _DEBUG
-		opVoiceControls = (WNDPROC)GetWindowLong (odButton[12].hWnd, GWL_WNDPROC);
+		#ifdef _WIN64
+		opVoiceControls = (WNDPROC)GetWindowLongPtr (odButton[12].hWnd, GWLP_WNDPROC);
+		SetWindowLongPtr(odButton[12].hWnd, GWLP_WNDPROC, npVoiceControls);
+		#else
+		opVoiceControls = (WNDPROC)GetWindowLong(odButton[12].hWnd, GWL_WNDPROC);
 		SetWindowLong (odButton[12].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+		#endif
 #endif
 		
-		usePalette(hWnd,"SPEAKPAL");
+		usePalette(hWnd);
 		
 		main_menu = GetMenu(hWnd);
 		sub_menu = GetSubMenu(main_menu, 0);
@@ -984,7 +999,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		// #ifdef ML // we are now using ML stuff as standard setting - NCS 16sept97
 		if(TextToSpeechEnumLangs(&languageINFO) == 0) 
 		{
-			MessageBox(NULL,"Unable to allocate Memory","Error",MB_OK);
+			MessageBox(NULL, TEXT("Unable to allocate Memory"), TEXT("Error"), MB_OK);
 			exit(-1);
 		}
 		
@@ -1029,7 +1044,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				current_language=IDM_ITALIAN;
 			}
 			else {
-				MessageBox(NULL,"UNIDENTIFIED DLL\nCan not continue with this program","Error",MB_OK);
+				MessageBox(NULL, TEXT("UNIDENTIFIED DLL\nCan not continue with this program"), TEXT("Error"), MB_OK);
 				exit(1);
 			}
 			menu_info.cbSize=sizeof(menu_info);
@@ -1103,50 +1118,50 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		
 		/* GL 10/02/1997 add UK english support */
 		if (us_on == FALSE && uk_on == FALSE && sp_on == FALSE && la_on == FALSE && gr_on == FALSE && fr_on == FALSE && it_on==FALSE) {
-			MessageBox(NULL,"No languages available","Error",MB_OK);
+			MessageBox(NULL, TEXT("No languages available"), TEXT("Error"), MB_OK);
 			exit(1);
 		}
 		if (la_on) {
 			tts_select = TTS_la;
 			for (x = 0; x < 9; x++) {
-				LoadString(NULL,1027+x,odButton[x].szTest,80);
+				LoadStringA(NULL,1027+x,odButton[x].szTest,80);
 			}
 		}
 		if (sp_on) {
 			tts_select = TTS_sp;
 			for (x = 0; x < 9; x++) {
-				LoadString(NULL,1018+x,odButton[x].szTest,80);
+				LoadStringA(NULL,1018+x,odButton[x].szTest,80);
 			}
 		}
 		if (gr_on) {
 			tts_select = TTS_gr;
 			for (x = 0; x < 9; x++) {
-				LoadString(NULL,1036+x,odButton[x].szTest,80);
+				LoadStringA(NULL,1036+x,odButton[x].szTest,80);
 			}
 		}
 		if (fr_on) {
 			tts_select = TTS_fr;
 			for (x = 0; x < 9; x++) {
-				LoadString(NULL,1045+x,odButton[x].szTest,80);
+				LoadStringA(NULL,1045+x,odButton[x].szTest,80);
 			}
 		}
 		if (it_on) {
 			tts_select = TTS_it;
 			for (x = 0; x < 9; x++) {
-				LoadString(NULL,1054+x,odButton[x].szTest,80);
+				LoadStringA(NULL,1054+x,odButton[x].szTest,80);
 			}
 		}
 		/* GL 10/02/1997 add UK english support */
 		if (uk_on) {
 			tts_select = TTS_uk;
 			for (x = 0; x < 9; x++) {
-				LoadString(NULL,1009+x,odButton[x].szTest,80);
+				LoadStringA(NULL,1009+x,odButton[x].szTest,80);
 			}
 		}
 		if (us_on) {
 			tts_select = TTS_us;
 			for (x = 0; x < 9; x++) {
-				LoadString(NULL,1009+x,odButton[x].szTest,80);
+				LoadStringA(NULL,1009+x,odButton[x].szTest,80);
 			}
 		}
 		
@@ -1200,23 +1215,23 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 		
 		if ((mmStatus == MMSYSERR_NODRIVER) || (mmStatus == WAVERR_BADFORMAT))
 		{
-			MessageBox( hWnd, "No compatible wave device present \n You can continue but only to write wave files", "Warning", MB_OK );
+			MessageBox(hWnd, TEXT("No compatible wave device present \n You can continue but only to write wave files"), TEXT("Warning"), MB_OK);
 			mmStatus = TextToSpeechStartup(hWnd, &phTTS[tts_select], 0, DO_NOT_USE_AUDIO_DEVICE );
 			if ( mmStatus == MMSYSERR_ERROR)
 			{
 #ifdef DEMO
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "DTDEMO ERROR", MB_OK );				
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("DTDEMO ERROR"), MB_OK);
 #else		
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "SPEAK ERROR", MB_OK );		
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("SPEAK ERROR"), MB_OK);
 #endif	
 				return( -1 );
 			}
 			else if ( mmStatus != MMSYSERR_NOERROR)
 			{
 #ifdef DEMO
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "DTDEMO ERROR", MB_OK );				
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("DTDEMO ERROR"), MB_OK);
 #else		
-				MessageBox( hWnd, "Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!", "SPEAK ERROR", MB_OK );		
+				MessageBox(hWnd, TEXT("Can't find DECtalk Dictionary \n dectalk.dic, Shutting down!"), TEXT("SPEAK ERROR"), MB_OK);
 #endif	
 				return( -1 );
 			}
@@ -1225,11 +1240,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 			{
 				sprintf( szError, "Error = %d", mmStatus );
 				
-				MessageBox(hWnd, szError, "TTS startup with no audio device",
+				MessageBox(hWnd, szError, TEXT("TTS startup with no audio device"),
 					MB_OK | MB_ICONSTOP );
-				
-				//MessageBox( hWnd, "Error starting up Text to Speech system",
-				//"Error", MB_OK );
 			}
 		}
 		
@@ -1241,7 +1253,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				mmStatus );
 			// ncs 06oct97 - error out of application if TextToSpeechStartUp Fails
 			// (actually changing the message of the error messageBox)
-			MessageBox(NULL, szError, "Speak cannot be started.",
+			MessageBox(NULL, szError, TEXT("Speak cannot be started."),
 				MB_OK | MB_ICONSTOP);
 			
 			
@@ -1249,7 +1261,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 			return( -1 );
 		} 
 		else if (mmStatus == 11) {
-			MessageBox(NULL, "Dictionary not found", "TTS startup failed",
+			MessageBox(NULL, TEXT("Dictionary not found"), TEXT("TTS startup failed"),
 				MB_OK | MB_ICONSTOP);
 			DestroyWindow(hWnd);
 			return( -1 );
@@ -1307,8 +1319,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 			if ( mmStatus )
 				
 				MessageBox( hWnd,
-				"Error in TTS Reset" ,
-				"ERROR",
+				TEXT("Error in TTS Reset") ,
+				TEXT("ERROR"),
 				MB_OK | MB_ICONSTOP );
 				/*bPaused = FALSE;
 				Infostruct.hwndItem = odButton[PAUSE].hWnd;
@@ -1322,7 +1334,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				DrawMenuBar( hWnd);
 				// reset the title in the title bar to reflect the
 				// new open file
-				sprintf(title, "%s - %s",szAppName, szFile);
+				wsprintf(title, TEXT("%s - %s"), szAppName, szFile);
 				strcpy(szFileSave, szFile);
 				SendMessage(hWnd,WM_SETTEXT,0,(LPARAM)title);
 				InvalidateRect( hSpeakText, NULL, TRUE );
@@ -1427,8 +1439,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				if ( mmStatus )
 					
 					MessageBox( hWnd,
-					"Error Setting Rate" ,
-					"ERROR",
+					TEXT("Error Setting Rate") ,
+					TEXT("ERROR"),
 					MB_OK | MB_ICONSTOP );
 				return FALSE;
 			}
@@ -1453,7 +1465,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					{
 					case IDM_SPANISH :
 					case IDM_ITALIAN:
-					case IDM_LATIN :	strcpy(WHAT_STRING,"qué?"); break;
+					case IDM_LATIN :	strcpy(WHAT_STRING,"quï¿½?"); break;
 					case IDM_GERMAN :	strcpy(WHAT_STRING,"wie bitte?"); break;
 					case IDM_FRENCH :   strcpy(WHAT_STRING,"ce qui?"); break;
 					case IDM_ENGLISH :
@@ -1462,11 +1474,10 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 						
 					}
 					mmStatus = TextToSpeechSpeak(phTTS[tts_select], WHAT_STRING, TTS_FORCE);
-					//MessageBox( hWnd, "No data selected", NULL, MB_OK );
 					if ( mmStatus )
 						MessageBox( hWnd,
-						"Error in TTS Speak" ,
-						"ERROR",
+						TEXT("Error in TTS Speak") ,
+						TEXT("ERROR"),
 						MB_OK | MB_ICONSTOP );
 					break;
 				}
@@ -1481,8 +1492,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					mmStatus = TextToSpeechSpeak(phTTS[tts_select], lpSelBuf, TTS_FORCE);
 					if ( mmStatus )
 						MessageBox( hWnd,
-						"Error in TTS Speak" ,
-						"ERROR",
+						TEXT("Error in TTS Speak") ,
+						TEXT("ERROR"),
 						MB_OK | MB_ICONSTOP );
 					free (lpSelBuf);
 					free (lpEditText);
@@ -1500,49 +1511,49 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 				{
 					
 				case ERROR_IN_AUDIO_WRITE:
-					MessageBox(hWnd, "Error in Writing Audio", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error in Writing Audio"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_OPENING_WAVE_OUTPUT_DEVICE:
 					MessageBox(hWnd,
-						"The wave device is in use by another application \n DECtalk will wait until the device is free.",
-						"Warning",MB_OK | MB_ICONSTOP);
+						TEXT("The wave device is in use by another application \n DECtalk will wait until the device is free."),
+						TEXT("Warning"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_GETTING_DEVICE_CAPABILITIES:
-					MessageBox(hWnd, "Error Getting Audio Device Caps", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Getting Audio Device Caps"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_READING_DICTIONARY:
-					MessageBox(hWnd, "Error Reading Dictionary File \n dectalk.dic", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Reading Dictionary File \n dectalk.dic"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_WRITING_FILE:
-					MessageBox(hWnd, "Error Writing File", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Writing File"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_ALLOCATING_INDEX_MARK_MEMORY:
-					MessageBox(hWnd, "Error allocating Index Mark Memory", "Async Error",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error allocating Index Mark Memory"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_OPENING_WAVE_FILE:
-					MessageBox(hWnd, "Error ", "Error Opening Wave File",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Opening Wave File"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_BAD_WAVE_FILE_FORMAT:
-					MessageBox(hWnd, "Error ", "Error Bad Wave File Format",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Bad Wave File Format"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_UNSUPPORTED_WAVE_FILE_FORMAT:
-					MessageBox(hWnd, "Error ", "Error Unsupported Wave File Format",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Unsupported Wave File Format"), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_UNSUPPORTED_WAVE_AUDIO_FORMAT:
-					MessageBox(hWnd, "Error Unsupported Wave Audio Format", "",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error Unsupported Wave Audio Format"), TEXT(""), MB_OK | MB_ICONSTOP);
 					break;
 					
 				case ERROR_READING_WAVE_FILE:
-					MessageBox(hWnd, "Error ", "Error Reading Wave File",MB_OK | MB_ICONSTOP);
+					MessageBox(hWnd, TEXT("Error"), TEXT("Error Reading Wave File"), MB_OK | MB_ICONSTOP);
 					break;
 				}
 			}
@@ -1561,8 +1572,8 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					if( lpfrText->Flags & FR_FINDNEXT )
 						if( !FindSearchString( hSpeakText, &dwOffset, lpfrText ))
 						{
-							sprintf( szError, "Search string \"%s\" was not found.", lpfrText->lpstrFindWhat );
-							MessageBox( hWnd, szError, "Find Error", MB_OK | MB_ICONEXCLAMATION );
+							wsprintf(szError, TEXT("Search string \"%s\" was not found."), lpfrText->lpstrFindWhat);
+							MessageBox(hWnd, szError, TEXT("Find Error"), MB_OK | MB_ICONEXCLAMATION);
 						}
 						
 						return( 0 );
@@ -1592,14 +1603,14 @@ LPVOID findHdib(INT id)
 	HRSRC hDibRes, hDibResInfo;
 	
 	// find our DIB in the resource
-	hDibResInfo = FindResource(NULL, MAKEINTRESOURCE(id), "DIB");
+	hDibResInfo = FindResource(NULL, MAKEINTRESOURCE(id), TEXT("DIB"));
 	if (hDibResInfo == NULL)
-		return (LPVOID)ErrMsg("Line %d Error = %d\nFindResource",__LINE__-2,GetLastError());
+		return (LPVOID)ErrMsg(TEXT("Line %d Error = %d\nFindResource"), __LINE__ - 2, GetLastError());
 	
 	// get a handle to the DIB
 	hDibRes = LoadResource(NULL, hDibResInfo);
 	if (hDibRes == NULL)
-		return (LPVOID)ErrMsg("Line %d Error = %d\nLoadResource",__LINE__,GetLastError());
+		return (LPVOID)ErrMsg(TEXT("Line %d Error = %d\nLoadResource"), __LINE__, GetLastError());
 	return (LockResource(hDibRes));
 }
 
@@ -1632,8 +1643,8 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 	RECT lprc;
 	MMRESULT mmStatus;
 	CHAR szError[132];
-	LPCTSTR lpszHelpFile = DTALK_HELP_FILE_NAME;
-	LPCTSTR lpszHelpTopic = "Speak applet, overview";
+	LPCTSTR lpszHelpFile = TEXT(DTALK_HELP_FILE_NAME);
+	LPCTSTR lpszHelpTopic = TEXT("Speak applet, overview");
 	HCURSOR hCursor ;
 	DWORD dwStart, dwEnd, dwTextLen;
 	LPSTR lpEditText;
@@ -1953,7 +1964,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  // reset the title in the title bar to reflect the
 				  // new open file
 				  SaveSaveAs = FALSE;
-				  sprintf(title, "%s - %s",szAppName, szFile);
+				  wsprintf(title, TEXT("%s - %s"), szAppName, szFile);
 				  SendMessage(hWnd,WM_SETTEXT,0,(LPARAM)title);
 				  InvalidateRect( hWnd, NULL, TRUE );
 				  TextToSpeechReset(phTTS[tts_select], FALSE); //Flush out data and reset TTS
@@ -1969,7 +1980,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if (AskToSave(hWnd))		// returns FALSE is yes or no TRUE if CANCEL
 					  break;					// Cancel pressed
 			  }								// Yes or No pressed
-			  sprintf(title, "%s - Untitled",szAppName);
+			  wsprintf(title, TEXT("%s - Untitled"), szAppName);
 			  SendMessage(hWnd,WM_SETTEXT,0,(LPARAM)title);
 			  SendMessage(hSpeakText, EM_SETSEL, (WPARAM)(INT)0L, (LPARAM)(INT)-1L);
 			  SendMessage(hSpeakText,WM_CLEAR,0,0L);
@@ -1984,7 +1995,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if (SaveFileAs ( hWnd) )
 				  {
 					  strcpy(szFile, OpenFileName.lpstrFile);
-					  sprintf(title, "%s - %s",szAppName, OpenFileName.lpstrFile);
+					  wsprintf(title, TEXT("%s - %s"), szAppName, OpenFileName.lpstrFile);
 					  SetWindowText( hWnd, title );
 					  SaveSaveAs = FALSE;
 					  DrawMenuBar ( hWnd );
@@ -2003,7 +2014,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 			  if (SaveFileAs ( hWnd) )
 			  {
 				  strcpy(szFile, OpenFileName.lpstrFile);
-				  sprintf(title, "%s - %s",szAppName, OpenFileName.lpstrFile);
+				  wsprintf(title, TEXT("%s - %s"), szAppName, OpenFileName.lpstrFile);
 				  SetWindowText( hWnd, title );
 				  DrawMenuBar ( hWnd );
 				  SaveSaveAs = FALSE;
@@ -2024,14 +2035,14 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  if (mmStatus == MMSYSERR_ERROR)
 						  
 						  MessageBox( hWnd,
-						  "Dictionary already loaded or illegal format" ,
-						  "Load User Dictionary",
+						  TEXT("Dictionary already loaded or illegal format"),
+						  TEXT("Load User Dictionary"),
 						  MB_OK | MB_ICONSTOP );
 					  
 					  else
 						  MessageBox( hWnd,
 						  szError,
-						  "Load User Dictionary",
+						  TEXT("Load User Dictionary"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  break;
@@ -2055,7 +2066,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  MessageBox( hWnd,
 					  szError,
-					  "Unload User Dictionary",
+					  TEXT("Unload User Dictionary"),
 					  MB_OK | MB_ICONSTOP );
 			  }
 			  break;
@@ -2071,7 +2082,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "OpenWaveOutFile 16 bit linear",
+						  TEXT("OpenWaveOutFile 16 bit linear"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2081,8 +2092,8 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if ( mmStatus )
 					  
 					  MessageBox( hWnd,
-					  "Error in TTS Close Wave File" ,
-					  "ERROR",
+					  TEXT("Error in TTS Close Wave File") ,
+					  TEXT("ERROR"),
 					  MB_OK | MB_ICONSTOP );
 				  ShowCursor  (FALSE) ;
 				  SetCursor (hCursor) ;
@@ -2092,7 +2103,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "CloseWaveOutFile",
+						  TEXT("CloseWaveOutFile"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 			  }
@@ -2110,7 +2121,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "OpenWaveOutFile 8 bit Linear",
+						  TEXT("OpenWaveOutFile 8 bit Linear"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2120,8 +2131,8 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if ( mmStatus )
 					  
 					  MessageBox( hWnd,
-					  "Error in TTS Close Wave File" ,
-					  "ERROR",
+					  TEXT("Error in TTS Close Wave File") ,
+					  TEXT("ERROR"),
 					  MB_OK | MB_ICONSTOP );
 				  
 				  ShowCursor  (FALSE) ;
@@ -2139,7 +2150,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  "OpenWaveOutFile µLaw",
+						  TEXT("OpenWaveOutFile ï¿½Law"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2149,8 +2160,8 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  if ( mmStatus )
 					  
 					  MessageBox( hWnd,
-					  "Error in TTS Close Wave File" ,
-					  "ERROR",
+					  TEXT("Error in TTS Close Wave File") ,
+					  TEXT("ERROR"),
 					  MB_OK | MB_ICONSTOP );
 				  ShowCursor  (FALSE) ;
 				  SetCursor (hCursor) ;
@@ -2254,7 +2265,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk English US", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk English US"), TEXT("SPEAK ERROR"), MB_OK);
 					  return(-1);
 				  }
 				  
@@ -2296,7 +2307,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk English UK", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk English UK"), TEXT("SPEAK ERROR"), MB_OK);
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2331,7 +2342,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk Spanish", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk Spanish"), TEXT("SPEAK ERROR"), MB_OK);
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2367,7 +2378,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk Latin American", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk Latin American"), TEXT("SPEAK ERROR"), MB_OK);
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2402,7 +2413,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk German", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk German"), TEXT("SPEAK ERROR"), MB_OK);
 					  return(-1);
 				  }
 				  mmStatus = TextToSpeechSetRate(phTTS[tts_select],(UINT)current_rate); // New rate returned in wSpos
@@ -2437,7 +2448,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk French", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk French"), TEXT("SPEAK ERROR"), MB_OK);
 					  return(-1);
 				  }
 				  
@@ -2477,7 +2488,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 				  
 				  if ( mmStatus != MMSYSERR_NOERROR)
 				  {
-					  MessageBox( hWnd, "Error starting DECtalk French", "SPEAK ERROR", MB_OK );		
+					  MessageBox( hWnd, TEXT("Error starting DECtalk French"), TEXT("SPEAK ERROR"), MB_OK);
 					  return(-1);
 				  }
 				  
@@ -2499,29 +2510,34 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 			  //#endif
 		  default:
 
+				// Check if the user has selected a voice.
 			  for (i=0; i<9; i++)
-				  if (lParam == (LPARAM)odButton[i].hWnd)
-				  {
-					  mmStatus = TextToSpeechSpeak(phTTS[tts_select], odButton[i].szSelVoice,TTS_NORMAL);
+					// If the button pressed is a voice...
+				  if (lParam == (LPARAM)odButton[i].hWnd) {
+						// Switch the voice to the selected one by passing in the `[:np]` style input
+					  mmStatus = TextToSpeechSpeak(phTTS[tts_select], odButton[i].szSelVoice, TTS_NORMAL);
 					  if ( mmStatus )
 						  MessageBox( hWnd,
-						  "Error in TTS Speak" ,
-						  "ERROR",
+						  TEXT("Error in TTS Speak") ,
+						  TEXT("ERROR"),
 						  MB_OK | MB_ICONSTOP );
-					  mmStatus = TextToSpeechSpeak(phTTS[tts_select], odButton[i].szTest,TTS_FORCE);	  
+
+						// Speak the name of the voice.
+					  mmStatus = TextToSpeechSpeak(phTTS[tts_select], odButton[i].szTest, TTS_FORCE);
+
 					  //SendMessage(hSpeakText, EM_GETSEL,(WPARAM) &dwStart,(LPARAM) &dwEnd);
 					  //SendMessage(hSpeakText, EM_SETSEL,(WPARAM)(INT) -1L,(LPARAM)(INT) -1L);
 					  SetFocus(hSpeakText);
 					  if ( mmStatus )
 #ifdef DEMO
 						  MessageBox( hWnd,
-						  "Error in DTdemo" ,
-						  "ERROR",
+						  TEXT("Error in DTdemo") ,
+						  TEXT("ERROR"),
 						  MB_OK | MB_ICONSTOP );
 #else
 					  MessageBox( hWnd,
-						  "Error in Speak" ,
-						  "ERROR",
+						  TEXT("Error in Speak") ,
+						  TEXT("ERROR"),
 						  MB_OK | MB_ICONSTOP );
 #endif	
 				  }
@@ -2563,34 +2579,35 @@ INT DrawControl(HWND hWnd, LPDRAWITEMSTRUCT lpInfo)
 	if (uiStatus == GDI_ERROR)
 		return ErrMsg ("Line %d Error = %d\nRealizePalette",__LINE__,GetLastError());
 	
-	for (i=0; i<13; i++)
+	for (i=0; i<13; i++) {
 		if (lpInfo->hwndItem == odButton[i].hWnd) {
 			lpbf = odButton[i].lpbfNormalDib;
-			if (lpInfo->itemState & ODS_SELECTED)
+			if (lpInfo->itemState & ODS_SELECTED) {
 				lpbf = odButton[i].lpbfSelectedDib;
+			}
 		}
-		if (lpInfo->hwndItem == odButton[PAUSE].hWnd) {   //Is this pause button?
-			
-			if (bPaused)
-				lpbf = odButton[PAUSE].lpbfSelectedDib;
-			else
-				lpbf = odButton[PAUSE].lpbfNormalDib;
+	}
+	if (lpInfo->hwndItem == odButton[PAUSE].hWnd) {   //Is this pause button?
+		if (bPaused) {
+			lpbf = odButton[PAUSE].lpbfSelectedDib;
+		} else {
+			lpbf = odButton[PAUSE].lpbfNormalDib;
 		}
-		lpbi = (LPVOID)((CHAR*)lpbf + sizeof(BITMAPFILEHEADER));
-		dibBits = (LPVOID)((CHAR*)lpbf + lpbf->bfOffBits);
-		
-		
-		// put our DIB on the screen
-		SetDIBitsToDevice((HDC)lpInfo->hDC,
-			(INT)0, (INT)0,
-			(DWORD)lpbi->biWidth,
-			(DWORD)lpbi->biHeight,
-			(INT)0, (INT)0,
-			(UINT)0, (UINT)lpbi->biHeight ,
-			(LPVOID)dibBits,
-			(LPBITMAPINFO)lpbi, (UINT)DIB_RGB_COLORS);
-		
-		return(0);
+	}
+	lpbi = (LPVOID)((CHAR*)lpbf + sizeof(BITMAPFILEHEADER));
+	dibBits = (LPVOID)((CHAR*)lpbf + lpbf->bfOffBits);
+	
+	// put our DIB on the screen
+	SetDIBitsToDevice((HDC)lpInfo->hDC,
+		(INT)0, (INT)0,
+		(DWORD)lpbi->biWidth,
+		(DWORD)lpbi->biHeight,
+		(INT)0, (INT)0,
+		(UINT)0, (UINT)lpbi->biHeight ,
+		(LPVOID)dibBits,
+		(LPBITMAPINFO)lpbi, (UINT)DIB_RGB_COLORS);
+	
+	return(0);
 }
 
 /* *******************************************************************
@@ -2627,9 +2644,9 @@ BOOL SpeakText( HWND hWnd )
 		next = mark_pos;
 	}
 	
-	dwTextLen = SendMessage(hSpeakText, WM_GETTEXTLENGTH, 0, 0);
-	lpEditText  = (char *)malloc((1 + dwTextLen) * sizeof(char)) ;
-	SendMessage(hSpeakText, WM_GETTEXT,(WPARAM) dwTextLen +1, (LPARAM) lpEditText);
+	dwTextLen = SendMessageA(hSpeakText, WM_GETTEXTLENGTH, 0, 0);
+	lpEditText = (char *)malloc((1 + dwTextLen) * sizeof(char)) ;
+	SendMessageA(hSpeakText, WM_GETTEXT, (WPARAM) dwTextLen + 1, (LPARAM) lpEditText);
 	
 	if (highlight) {
 		strcpy(lpEditIM,"[:i m 1]");
@@ -2683,7 +2700,7 @@ BOOL SpeakText( HWND hWnd )
 				mmStatus = TextToSpeechSpeak(phTTS[tts_select], lpEditIM, TTS_NORMAL);
 				if ( mmStatus ) {
 					sprintf( szError, "Error = %d", mmStatus );
-					MessageBox( hWnd, szError, "TextToSpeechSpeak", MB_OK | MB_ICONSTOP );
+					MessageBox( hWnd, szError, TEXT("TextToSpeechSpeak"), MB_OK | MB_ICONSTOP);
 					return TRUE;
 				}
 				ptr = 0;
@@ -2694,7 +2711,7 @@ BOOL SpeakText( HWND hWnd )
 			mmStatus = TextToSpeechSpeak(phTTS[tts_select], lpEditIM, TTS_NORMAL);
 			if ( mmStatus ) {
 				sprintf( szError, "Error = %d", mmStatus );
-				MessageBox( hWnd, szError, "TextToSpeechSpeak", MB_OK | MB_ICONSTOP );
+				MessageBox( hWnd, szError, TEXT("TextToSpeechSpeak"), MB_OK | MB_ICONSTOP);
 				return TRUE;
 			}
 			ptr = 0;
@@ -2703,7 +2720,7 @@ BOOL SpeakText( HWND hWnd )
 		mmStatus = TextToSpeechSpeak(phTTS[tts_select], "", TTS_FORCE);
 		if ( mmStatus ) {
 			sprintf( szError, "Error = %d", mmStatus );
-			MessageBox( hWnd, szError, "TextToSpeechSpeak", MB_OK | MB_ICONSTOP );
+			MessageBox( hWnd, szError, TEXT("TextToSpeechSpeak"), MB_OK | MB_ICONSTOP);
 			return TRUE;
 		}
 		
@@ -2712,25 +2729,23 @@ BOOL SpeakText( HWND hWnd )
 		if ( mmStatus )
 		{
 			sprintf( szError, "Error = %d", mmStatus );
-			MessageBox( hWnd, szError, "TextToSpeechSpeak", MB_OK | MB_ICONSTOP );
+			MessageBox( hWnd, szError, TEXT("TextToSpeechSpeak"), MB_OK | MB_ICONSTOP);
 			return TRUE;
 		}
 	} else {
-		
-	mmStatus = TextToSpeechSpeak(phTTS[tts_select], lpEditText, TTS_FORCE);
-	
+		mmStatus = TextToSpeechSpeak(phTTS[tts_select], lpEditText, TTS_FORCE);
 					
 		if ( mmStatus )
 			MessageBox( hWnd,
-			"Error in TTS Speak" ,
-			"ERROR",
+			TEXT("Error in TTS Speak"),
+			TEXT("ERROR"),
 			MB_OK | MB_ICONSTOP );
 		free(lpEditText);
 		
 		if ( mmStatus )
 		{
 			sprintf( szError, "Error = %d", mmStatus );
-			MessageBox( hWnd, szError, "TextToSpeechSpeak", MB_OK | MB_ICONSTOP );
+			MessageBox( hWnd, szError, TEXT("TextToSpeechSpeak"), MB_OK | MB_ICONSTOP);
 			return TRUE;
 		}
 	}
@@ -2765,10 +2780,10 @@ INT MyOpenFile( HANDLE hWnd, char szFile[], char szFileTitle[] )
 	OpenFileName.lpstrFileTitle		= szFileTitle;
 	OpenFileName.nMaxFileTitle		= 256;
 	OpenFileName.lpstrInitialDir	= NULL;
-	OpenFileName.lpstrTitle			= "Open a File";
+	OpenFileName.lpstrTitle			= TEXT("Open a File");
 	OpenFileName.nFileOffset		= 0;
 	OpenFileName.nFileExtension		= 0;
-	OpenFileName.lpstrDefExt		= "txt";
+	OpenFileName.lpstrDefExt		= TEXT("txt");
 	OpenFileName.lCustData			= 0;
 	OpenFileName.Flags				= OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 	
@@ -2821,7 +2836,7 @@ int MyReadFile( HWND hWnd, char *szReadFile )
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, (HANDLE)NULL ) ;
 	
 	if ( hFile == INVALID_HANDLE_VALUE ) {
-		MessageBox( hWnd, "File open failed.", NULL, MB_OK );
+		MessageBox( hWnd, TEXT("File open failed."), NULL, MB_OK);
 		return( TRUE );
 	}
 	
@@ -2830,7 +2845,7 @@ int MyReadFile( HWND hWnd, char *szReadFile )
 	if(dwFileSizeLow ==	0xFFFFFFFF &&
 		(dwError = GetLastError()) != NO_ERROR)
 	{
-		MessageBox(hWnd,"GetFileSize is Failed","Error",MB_OK|MB_ICONSTOP);
+		MessageBox(hWnd,TEXT("GetFileSize is Failed"), TEXT("Error"), MB_OK | MB_ICONSTOP);
 		return TRUE;
 	}
 	
@@ -2842,9 +2857,9 @@ int MyReadFile( HWND hWnd, char *szReadFile )
 		if( dwFileSizeLow > 0xFFFF || dwFileSizeHigh)
 		{
 #ifdef DEMO
-			MessageBox(hWnd,"Can not load files more than 64K size into DTdemo Editor under Windows'95","Information",MB_OK |MB_ICONSTOP);
+			MessageBox(hWnd,TEXT("Can not load files more than 64K size into DTdemo Editor under Windows'95"), TEXT("Information"), MB_OK | MB_ICONSTOP);
 #else
-			MessageBox(hWnd,"Can not load files more than 64K size into Speak Editor under Windows'95","Information",MB_OK |MB_ICONSTOP);
+			MessageBox(hWnd,TEXT("Can not load files more than 64K size into Speak Editor under Windows'95"), TEXT("Information"), MB_OK | MB_ICONSTOP);
 #endif	
 			return TRUE;
 		}
@@ -2859,31 +2874,31 @@ int MyReadFile( HWND hWnd, char *szReadFile )
 		//sprintf(szErrMsg,"The Error code returned by CreateFileMapping is %d\n",dwError);
 		//MessageBox( hWnd, szErrMsg, "ERROR", MB_OK | MB_ICONSTOP );
 		sprintf(szErrMsg,"Invalid File :%s %d",szReadFile,GetLastError());
-		MessageBox( hWnd, szErrMsg, "ERROR", MB_OK | MB_ICONSTOP );
+		MessageBox( hWnd, szErrMsg, TEXT("ERROR"), MB_OK | MB_ICONSTOP);
 		return TRUE;
 	}
 	pFileData = MapViewOfFile(hFileMap, FILE_MAP_READ, 0, 0, 0);
 	if(!pFileData)
 	{
-		MessageBox( hWnd, "MapViewOfFile in MyReadFile Failed", "ERROR", MB_OK | MB_ICONSTOP );
+		MessageBox( hWnd, TEXT("MapViewOfFile in MyReadFile Failed"), TEXT("ERROR"), MB_OK | MB_ICONSTOP);
 		return TRUE;
 	}
 	
 	if ((pFileDataPlusOne = malloc(dwFileSizeLow+1)) == NULL)
 	{
-		MessageBox(hWnd, "Insufficient memory to load file", "ERROR", MB_OK | MB_ICONSTOP);
+		MessageBox(hWnd, TEXT("Insufficient memory to load file"), TEXT("ERROR"), MB_OK | MB_ICONSTOP);
 		return TRUE;
 	}
 	
 	memcpy(pFileDataPlusOne, pFileData, dwFileSizeLow);
-	pFileDataPlusOne[dwFileSizeLow] = '\0';
+	pFileDataPlusOne[dwFileSizeLow] = TEXT('\0');
 	
 	SendMessage(hSpeakText, WM_SETTEXT, 0, (LPARAM) pFileDataPlusOne);
 	free(pFileDataPlusOne);
 	
 	if (! UnmapViewOfFile ( pFileData ))
 	{
-		MessageBox( hWnd, "File Unmap in MyReadFile Failed", "ERROR", MB_OK | MB_ICONSTOP );
+		MessageBox( hWnd, TEXT("File Unmap in MyReadFile Failed"), TEXT("ERROR"), MB_OK | MB_ICONSTOP);
 		return TRUE;
 	}
 jump:
@@ -2920,7 +2935,7 @@ BOOL AskToSave( HWND hWnd )
 	char szBuf[128];
 	
 	iResponse = MessageBox(hWnd,
-		"The Text in this file has changed. \n\n Do you wish to save the changes?",
+		TEXT("The Text in this file has changed. \n\n Do you wish to save the changes?"),
 		szAppName ,  MB_YESNOCANCEL | MB_ICONEXCLAMATION )  ;
 	switch (iResponse)
 	{
@@ -2985,10 +3000,10 @@ BOOL GetDictName( HWND hWnd )
 	OpenDictName.lpstrFileTitle		= szDictTitle;
 	OpenDictName.nMaxFileTitle		= 256;
 	OpenDictName.lpstrInitialDir	= NULL;
-	OpenDictName.lpstrTitle			= "Load a Dictionary";
+	OpenDictName.lpstrTitle			= TEXT("Load a Dictionary");
 	OpenDictName.nFileOffset		= 0;
 	OpenDictName.nFileExtension		= 0;
-	OpenDictName.lpstrDefExt		= "dic";
+	OpenDictName.lpstrDefExt		= TEXT("dic");
 	OpenDictName.lCustData			= 0;
 	OpenDictName.Flags				= OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 	
@@ -3070,7 +3085,7 @@ SHORT  HandleScrollBar(WPARAM wParam, SHORT wSpos)
 				 break;
 	}
 			 SetScrollPos(hRate, SB_CTL, wSpos , TRUE)  ; // Set Slider Control position
-			 wsprintf(szText,"%d WPM" ,wSpos );
+			 wsprintf(szText, TEXT("%d WPM"), wSpos);
 			 SetWindowText(hstRate,szText );   // Display Rate in Static control
 			 return (wSpos);
 }
@@ -3124,7 +3139,8 @@ LRESULT CALLBACK npVoiceControls(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
             // tek 08oct96 we should reset the speaker and speed here.
             TextToSpeechSetRate(phTTS[tts_select],current_rate); // New rate returned in wSpos
 			
-			SendMessage(hSpeakText,
+			// TODO: Switch to the ANSI version of SendMessage
+			SendMessageA(hSpeakText,
 				WM_GETTEXT,
 				sizeof(szTextWindow),
 				(LPARAM)szTextWindow);
@@ -3213,6 +3229,7 @@ BOOL APIENTRY AboutDlgProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam 
 {
 	HWND hDlgItem;
 	LPSTR pString;
+	LPSTR fString;
 	char szInstaller[MAX_STRING];
 	char szCompany[MAX_STRING];
 	
@@ -3229,10 +3246,11 @@ BOOL APIENTRY AboutDlgProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam 
 		/******************************************************************/
 		
 		pString = (LPSTR)malloc( MAX_STRING * sizeof(CHAR));
+		fString = (LPSTR)malloc( MAX_STRING * sizeof(CHAR));
 		
 		if ( pString == NULL )
 		{
-			MessageBox( hWnd, "Out of Memory", "Error", MB_OK );
+			MessageBox( hWnd, TEXT("Out of Memory"), TEXT("Error"), MB_OK );
 			return( TRUE );
 		}
 		
@@ -3250,25 +3268,24 @@ BOOL APIENTRY AboutDlgProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam 
 		
 		GetInstallationInfo( szInstaller, szCompany );
 		
-		AppGetWindowsVersion( NULL, pString );
 		hDlgItem = GetDlgItem( hWnd, IDD_ABOUT_REG_INSTALLER );
-		SetWindowText( hDlgItem, szInstaller );
+		SetWindowTextA( hDlgItem, szInstaller );
 		
-		AppGetWindowsVersion( NULL, pString );
 		hDlgItem = GetDlgItem( hWnd, IDD_ABOUT_REG_COMPANY );
-		SetWindowText( hDlgItem, szCompany );
+		SetWindowTextA( hDlgItem, szCompany );
 		
 		/******************************************************************/
 		/* Display the version of DECtalk DLL file                        */
 		/******************************************************************/
-		sprintf(pString, "%d.%02d (build %X)",DECtalk_maj_ver,DECtalk_min_ver,DECtalk_build);
+		wsprintf(fString, TEXT("%d.%02d (build %X)"), DECtalk_maj_ver, DECtalk_min_ver, DECtalk_build);
 		hDlgItem = GetDlgItem( hWnd, IDD_ABOUT_DECTALK_VERSION );
-		SetWindowText( hDlgItem, pString );
+		SetWindowText( hDlgItem, fString );
 		
 		hDlgItem = GetDlgItem( hWnd, IDD_ABOUT_DECTALK_VERSION_STR );
-		SetWindowText( hDlgItem, DECtalk_version );
+		SetWindowTextA( hDlgItem, DECtalk_version );
 		
-		free( pString );
+		free(pString);
+		free(fString);
 		
 		return( TRUE );
 		
@@ -3300,14 +3317,25 @@ BOOL APIENTRY AboutDlgProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lParam 
  *      Comments:
  *
  * *****************************************************************/
-INT ErrMsg(PSTR sz, ...)
+#ifdef UNICODE
+INT ErrMsg(PWSTR sz, ...)
 {
 	CHAR ach[128];
 	
-	//    wvsprintf (ach, sz, (LPSTR)(&sz+1));   /* Format the string */
+	wvsprintf (ach, sz, (LPWSTR)(&sz+1));   /* Format the string */
 	MessageBox (NULL, ach, NULL, MB_OK|MB_ICONEXCLAMATION|MB_APPLMODAL);
 	return FALSE;
 }
+#else
+INT ErrMsg(PSTR sz, ...)
+{
+	CHAR ach[128];
+
+	wvsprintf(ach, sz, (LPSTR)(&sz + 1));   /* Format the string */
+	MessageBox(NULL, ach, NULL, MB_OK | MB_ICONEXCLAMATION | MB_APPLMODAL);
+	return FALSE;
+}
+#endif
 
 /* *******************************************************************
  *      Function Name: usePalette()
@@ -3322,37 +3350,37 @@ INT ErrMsg(PSTR sz, ...)
  *      Comments:
  *
  * *****************************************************************/
-INT usePalette(HWND hWnd, CHAR *szPalResName)
+INT usePalette(HWND hWnd)
 {
 	LOGPALETTE  *pPalData;
 	HRSRC       hPalRes, hPalData;
 	UINT        uiStatus;
 	
 	//         myHdc = GetDC(hWnd);
-		  hPalRes = FindResource(hInst, szPalResName, "MYPALETTE");
+		  hPalRes = FindResource(hInst, TEXT("SPEAKPAL"), TEXT("MYPALETTE"));
 		  if (hPalRes == NULL)
-			  return ErrMsg("Line %d Error = %d\nFindResource",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nFindResource"), __LINE__, GetLastError());
 		  
 		  hPalData = LoadResource(NULL, hPalRes);
 		  if (hPalData == NULL)
-			  return ErrMsg("Line %d Error = %d\nLoadResource",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nLoadResource"), __LINE__, GetLastError());
 		  
 		  pPalData = (LPVOID)((CHAR*)LockResource(hPalData) + 0x14);
 		  
 		  hPalLogical = CreatePalette(pPalData);
 		  
 		  if (hPalLogical == NULL)
-			  return ErrMsg("Line %d Error = %d\nCreatePalette",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nCreatePalette"), __LINE__, GetLastError());
 		  
 		  //  Select our palette into the Device DC
 		  hPalOld = SelectPalette (myHdc, hPalLogical, FALSE);
 		  if (hPalOld == FALSE)
-			  return ErrMsg ("Line %d Error = %d\nSelectPalette",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nSelectPalette"), __LINE__, GetLastError());
 		  
 		  // Activate palette
 		  uiStatus = RealizePalette (myHdc);
 		  if (uiStatus == GDI_ERROR)
-			  return ErrMsg ("Line %d Error = %d\nRealizePalette",__LINE__,GetLastError());
+			  return ErrMsg(TEXT("Line %d Error = %d\nRealizePalette"), __LINE__, GetLastError());
 		  return(0);
 }
 
@@ -3944,7 +3972,10 @@ LRESULT _stdcall AppGetWindowsVersion( PTSTR pszEnvironment, PTSTR pszPlatform )
 #ifdef WIN32
 		{
 			static TCHAR    szFormatPlatform[]  = TEXT("%s%u, %u Processor(s)");
-			static TCHAR    szProcessorIntel[]  = TEXT("Intel ");
+			static TCHAR    szProcessorAMD64[]  = TEXT("AMD64 ");
+			static TCHAR    szProcessorARM64[]  = TEXT("ARM64 ");
+			static TCHAR    szProcessorARM[]  = TEXT("ARM ");
+			static TCHAR    szProcessorIA32[]  = TEXT("Intel ");
 			static TCHAR    szProcessorMIPS[]   = TEXT("MIPS R");
 			static TCHAR    szProcessorAlpha[]  = TEXT("DEC Alpha ");
 			static TCHAR    szProcessorDunno[]  = TEXT("Dunno zYz");
@@ -3960,9 +3991,27 @@ LRESULT _stdcall AppGetWindowsVersion( PTSTR pszEnvironment, PTSTR pszPlatform )
 			GetSystemInfo(&sysinfo);
 			switch (sysinfo.wProcessorArchitecture)
 			{
-			case PROCESSOR_ARCHITECTURE_INTEL:
-				pszProcessor = szProcessorIntel;
+			#ifdef PROCESSOR_ARCHITECTURE_AMD64
+			case PROCESSOR_ARCHITECTURE_AMD64:
+				pszProcessor = szProcessorAMD64;
 				break;
+			#endif
+
+			case PROCESSOR_ARCHITECTURE_INTEL:
+				pszProcessor = szProcessorIA32;
+				break;
+
+			#ifdef PROCESSOR_ARCHITECTURE_ARM64
+			case PROCESSOR_ARCHITECTURE_ARM64:
+				pszProcessor = szProcessorARM64;
+				break;
+			#endif
+
+			#ifdef PROCESSOR_ARCHITECTURE_ARM
+			case PROCESSOR_ARCHITECTURE_ARM:
+				pszProcessor = szProcessorARM;
+				break;
+			#endif
 				
 			case PROCESSOR_ARCHITECTURE_MIPS:
 				pszProcessor = szProcessorMIPS;
@@ -4847,8 +4896,13 @@ BOOL APIENTRY AboutTypingProc( HWND hWnd, UINT uiMsg, WPARAM wParam, LPARAM lPar
 	{
 	case WM_INITDIALOG:
 		hDlgItem = GetDlgItem(hWnd, IDC_EDIT1);
+		#ifdef _WIN64
+		OldTypingDlgProc = GetWindowLongPtr(hDlgItem, GWLP_WNDPROC);
+		SetWindowLongPtr(hDlgItem, GWLP_WNDPROC, TypingDlgProc);
+		#else
 		OldTypingDlgProc = GetWindowLong(hDlgItem, GWL_WNDPROC);
 		SetWindowLong(hDlgItem, GWL_WNDPROC, (LONG) TypingDlgProc);
+		#endif
 		
 //		TextToSpeechShutdown(phTTS[tts_select]);
 //		TextToSpeechSelectLang(NULL, tts_select);

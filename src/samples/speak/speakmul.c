@@ -387,36 +387,47 @@ int         iBitsPixel,iPlanes = 0;
 
 		  //
 
-		   for (x=0; x<3; x++) {
-			 for (y=0; y<3; y++){
-			   odButton[y*3+x].lpbfNormalDib   = findHdib(2000 + dwUse16ColorBitmaps + y*3+x);
-			   odButton[y*3+x].lpbfSelectedDib = findHdib(2100 + dwUse16ColorBitmaps + y*3+x);
+			for (x=0; x<3; x++) {
+				for (y=0; y<3; y++) {
+					odButton[y*3+x].lpbfNormalDib   = findHdib(2000 + dwUse16ColorBitmaps + y*3+x);
+					odButton[y*3+x].lpbfSelectedDib = findHdib(2100 + dwUse16ColorBitmaps + y*3+x);
 
-			   // extract voice selection string from resource
-			   uiStatus = LoadString(NULL,1000+y*3+x,odButton[y*3+x].szSelVoice,80);
+					// extract voice selection string from resource
+					uiStatus = LoadString(NULL,1000+y*3+x,odButton[y*3+x].szSelVoice,80);
 
-			   // extract voice test message from resource
-			   uiStatus = LoadString(NULL,1100+y*3+x,odButton[y*3+x].szTest,80);
+					// extract voice test message from resource
+					uiStatus = LoadString(NULL,1100+y*3+x,odButton[y*3+x].szTest,80);
 
-			   // create the owner draw buttons for the odButtons
-			   odButton[y*3+x].hWnd = CreateWindow("BUTTON"," ",
-							   WS_CHILD | WS_VISIBLE | BS_OWNERDRAW  ,
-							   (y*3+x) * fbWidth + 10 ,  border, //x * fbWidth + border , y * fbHeight + border,
-							   fbWidth ,fbHeight ,
-							   hWnd,  NULL, NULL, NULL);
+					// create the owner draw buttons for the odButtons
+					odButton[y*3+x].hWnd = CreateWindow("BUTTON"," ",
+									WS_CHILD | WS_VISIBLE | BS_OWNERDRAW  ,
+									(y*3+x) * fbWidth + 10 ,  border, //x * fbWidth + border , y * fbHeight + border,
+									fbWidth ,fbHeight ,
+									hWnd,  NULL, NULL, NULL);
 
-			   // subclass buttons
-			   opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC);
-			   SetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
-			 }
-			 opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC);
-			 SetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
-		   }
+					// subclass buttons
+					#ifdef _WIN64
+					opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWLP_WNDPROC);
+					SetWindowLongPtr(odButton[y*3+x].hWnd, GWLP_WNDPROC, npVoiceControls);
+					#else
+					opVoiceControls = (WNDPROC)GetWindowLong (odButton[y*3+x].hWnd, GWL_WNDPROC);
+					SetWindowLong(odButton[y*3+x].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+					#endif
+				}
+				
+				#ifdef _WIN64
+				opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWLP_WNDPROC);
+				SetWindowLongPtr(odButton[x + PLAY].hWnd, GWLP_WNDPROC, npVoiceControls);
+				#else
+				opVoiceControls = (WNDPROC)GetWindowLong (odButton[x + PLAY].hWnd, GWL_WNDPROC);
+				SetWindowLong(odButton[x + PLAY].hWnd, GWL_WNDPROC, (LONG)npVoiceControls);
+				#endif
+			}
 
 		   
-		   usePalette(hWnd,"SPEAKPAL");
+		usePalette(hWnd,"SPEAKPAL");
 
-		 mmStatus = TextToSpeechStartup( hWnd,
+		mmStatus = TextToSpeechStartup( hWnd,
 											 &phTTS,
 											 WAVE_MAPPER,
 											 REPORT_OPEN_ERROR);
@@ -1048,7 +1059,7 @@ CHAR szClassName[100];
 
 					  MessageBox( hWnd,
 								  szError,
-								  "OpenWaveOutFile µLaw",
+								  "OpenWaveOutFile ï¿½Law",
 								  MB_OK | MB_ICONSTOP );
 					}
 					 hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));
@@ -2903,7 +2914,12 @@ MMRESULT CreateTTSObject(char *pszInstanceName,PDWORD pdwInstanceID,
 
 	*pdwInstanceID = (DWORD)phTTSInst;	
 
+	#ifdef _WIN64
+	SetWindowLongPtr(*phWndTTS, GWLP_USERDATA, phTTSInst);
+	#else
 	SetWindowLong(*phWndTTS,GWL_USERDATA,(LONG)phTTSInst);
+	#endif
+
 	return (mmStatus);
 }
 
@@ -2960,7 +2976,12 @@ LONG APIENTRY TTSWave16WndProc(HWND hWndTTS,
 	LPTTS_HANDLE_T phTTSWaveInst16 = NULL;
 	MMRESULT mmStatus = MMSYSERR_NOERROR;
 
+
+	#ifdef _WIN64
+	phTTSWaveInst16 = (LPTTS_HANDLE_T)GetWindowLongPtr(hWndTTS,GWLP_USERDATA);
+	#else
 	phTTSWaveInst16 = (LPTTS_HANDLE_T)GetWindowLong(hWndTTS,GWL_USERDATA);
+	#endif
 
 
 	switch(uiMessage)

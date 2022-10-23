@@ -2731,8 +2731,8 @@ void SendVisualNotification(LPTTS_HANDLE_T phTTS, DWORD dwPhoneme, DWORD dwDurat
 		dwSyncParams[3]=(DWORD)pvdPacket;
 #endif
 #else
-		dwSyncParams[2]=(DWORD)((((long)(pvdPacket)) & 0xFFFFFFFF00000000) >> 32);
-		dwSyncParams[3]=(DWORD)(((long)(pvdPacket)) & 0x00000000FFFFFFFF);
+		dwSyncParams[2]=(DWORD)((((QWORD)(pvdPacket)) & 0xFFFFFFFF00000000) >> 32);
+		dwSyncParams[3]=(DWORD)(((QWORD)(pvdPacket)) & 0x00000000FFFFFFFF);
 #endif
 		write_pipe(pKsd_t->sync_pipe, dwSyncParams,4);
 		

@@ -1894,7 +1894,11 @@ MMRESULT StatusAudio( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Range check the number of status values requested.              */
@@ -2124,7 +2128,11 @@ static LRESULT Process_MM_WOM_CLOSE_Message( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   pAudioParams->hWaveOut = NULL;
 
@@ -2242,7 +2250,11 @@ static LRESULT ProcessGetAudioPositionMessage( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   EnterCriticalSection( pAudioParams->pcsAudioDeviceState );
 
@@ -2423,7 +2435,11 @@ static LRESULT ProcessResetAudioMessage( HWND hWnd )
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Reset the audio queue to the empty state.                       */
@@ -2512,7 +2528,11 @@ static MMRESULT ProcessSetAudioParamsMessage( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  The wBitsPerSample element, the nChannels element, and the      */
@@ -2749,7 +2769,11 @@ static MMRESULT ProcessGetAudioParamsMessage( HWND hWnd,
   /*  Get the Audio parameters for the window.                        */
   /********************************************************************/
 
+  #ifdef _WIN64
+  pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLongPtr( hWnd, GWLP_USERDATA );
+  #elif
   pAudioParams = (LPAUDIO_PARAMS_T)GetWindowLong( hWnd, GWL_USERDATA );
+  #endif
 
   /********************************************************************/
   /*  Get the size of the WAVEFORMATEX structure including the        */

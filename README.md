@@ -59,13 +59,13 @@ Do this by adding `C:\Program Files (x86)\Microsoft Visual Studio\VC98\Bin` to y
 <details>
 <summary>Compiling on Microsoft Windows</summary>
 
-The [`\devops\windows\dt_buildall.bat`](./devops/windows/dt_buildall.bat)
+The [`\devops\vs6\dt_buildall.bat`](./devops/vs6/dt_buildall.bat)
 file is a great place to get started if you want to build individual components of DECtalk.
 
-If you want to compile all files, execute the `\devops\windows\dt_buildall.bat` file
+If you want to compile all files, execute the `\devops\vs6\dt_buildall.bat` file
 from the root of the project folder.
 
-You can then collate all files together by executing the `\devops\windows\dt_copyfiles.bat` file.
+You can then collate all files together by executing the `\devops\vs6\dt_copyfiles.bat` file.
 
 </details>
 

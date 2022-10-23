@@ -36,7 +36,7 @@
 
 #include <stdio.h>
 #include <sys/types.h>
-#ifndef VXWORKS
+#if (!defined VXWORKS) && (!defined WIN32)
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #endif

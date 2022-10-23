@@ -2,8 +2,8 @@
  *                                                                    
  *  COPYRIGHT NOTICE                                                  
  *                                                                   
- *	Copyright © 2002 Fonix Corporation. All rights reserved.		 
- *	Copyright © 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved. 
+ *	Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.		 
+ *	Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved. 
  *  Copyright (c) Digital Equipment Corporation, 1993, 1998       
  *																
  *  All Rights reserved. Unpublished rights reserved under the    
@@ -3352,13 +3352,13 @@ phTTS->uiID_Start_Message =
 		TextToSpeechSpeak(phTTS, "DECtalk beta S D K version 4.4a is running. For evaluation only. ", TTS_FORCE);
 #endif //ENGLISH
 #ifdef SPANISH
-		TextToSpeechSpeak(phTTS, "DECtalk beta S d k versión 4.4a está corriendo. Para evaluación solamente.", TTS_FORCE);
+		TextToSpeechSpeak(phTTS, "DECtalk beta S d k versiï¿½n 4.4a estï¿½ corriendo. Para evaluaciï¿½n solamente.", TTS_FORCE);
 #endif //SPANISH
 #ifdef GERMAN
 		TextToSpeechSpeak(phTTS, "Dies ist das DECtalk S D K, beta Version 4.4 A. Unlizensierte Testversion.", TTS_FORCE);
 #endif //GERMAN
 #ifdef FRENCH
-		TextToSpeechSpeak(phTTS, "DECtalk bêta S D K version 4.4a fonctionne. Pour l'évaluation seulement.", TTS_FORCE);
+		TextToSpeechSpeak(phTTS, "DECtalk bï¿½ta S D K version 4.4a fonctionne. Pour l'ï¿½valuation seulement.", TTS_FORCE);
 #endif //ENGLISH
 #endif //DECTALKBETA430
 		
@@ -9507,8 +9507,12 @@ static HWND InitTextToSpeechWindow( LPTTS_HANDLE_T phTTS )
 		return( NULL );
 	
 	/*MVP : Store phTTS in Window extra memory for later use in Wndproc */
-	SetWindowLong(hWnd,GWL_USERDATA,(LONG)phTTS);
-	
+	#ifdef _WIN64
+	SetWindowLongPtr(hWnd, GWLP_USERDATA, phTTS);
+	#else
+	SetWindowLong(hWnd, GWL_USERDATA,(LONG)phTTS);
+	#endif
+
 	ShowWindow( hWnd, SW_HIDE );
 	
 	return( hWnd );
@@ -9537,7 +9541,11 @@ LPTTS_HANDLE_T phTTS;                    /* MVP : Avoided static behaviour throu
 										 from window extra memory,which was set
 when window was created */
 
-phTTS = (LPTTS_HANDLE_T)GetWindowLong(hWnd,GWL_USERDATA);
+	#ifdef _WIN64
+	phTTS = (LPTTS_HANDLE_T)GetWindowLongPtr(hWnd,GWLP_USERDATA);
+	#else
+	phTTS = (LPTTS_HANDLE_T)GetWindowLong(hWnd,GWL_USERDATA);
+	#endif
 
 switch( message )
 {

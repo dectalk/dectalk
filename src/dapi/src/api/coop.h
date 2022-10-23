@@ -330,22 +330,22 @@
 #endif	// ACI_LICENCE
 
 
-#ifdef ENGLISH_US
-
-#define DECTALK_LANGUAGE "US"
-
-#elif defined (ENGLISH_UK)
-#define DECTALK_LANGUAGE  "UK"
-#elif defined SPANISH
-#ifdef SPANISH_LA
-#define DECTALK_LANGUAGE "LA"
-#else
-#define DECTALK_LANGUAGE "SP"
-#endif
-#elif defined GERMAN
-#define DECTALK_LANGUAGE "GR"
+#if ENGLISH_US
+    #define DECTALK_LANGUAGE "US"
+#elif ENGLISH_UK
+    #define DECTALK_LANGUAGE  "UK"
+#elif SPANISH
+    #ifdef SPANISH_LA
+        #define DECTALK_LANGUAGE "LA"
+    #else
+        #define DECTALK_LANGUAGE "SP"
+    #endif
+#elif GERMAN
+    #define DECTALK_LANGUAGE "GR"
 #elif FRENCH
-#define DECTALK_LANGUAGE "FR"
+    #define DECTALK_LANGUAGE "FR"
+#else
+    #define DECTALK_LANGUAGE "US"
 #endif // LANGUAGES 
 
 #ifdef LICENINC_C

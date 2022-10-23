@@ -170,7 +170,7 @@ extern CHAR           achFileName[128]; /* File pathname                       *
 
 /***************** FUNCTION DECLARATIONS *******************/
 LPVOID           findHdib(INT id);
-INT              usePalette(HWND hWnd, CHAR* szPalResName);
+INT              usePalette(HWND hWnd);
 DWORD   PASCAL   lread(INT fh, VOID FAR *pv, DWORD ul);
 DWORD   PASCAL   lwrite(INT fh, VOID FAR *pv, DWORD ul);
 BOOL    CALLBACK DialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam);

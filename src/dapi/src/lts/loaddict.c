@@ -1,9 +1,9 @@
 /************************************************************
  *
- *                           Copyright ©
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000-2001 Force Computers, a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright Â©
+ *    Copyright Â© 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright Â© 2000-2001 Force Computers, a Solectron Company. All rights reserved.
+ *    Â© Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -469,19 +469,19 @@ restart:if ( *dict_siz > 0 )
 
 #endif
 #ifdef CHEESY_DICT_COMPRESSION
-	if (dict_fc_entry!=NULL)
-	{
-		fc_entry = (int *)(((int)*dicMapStartAddr) + 12); //start the index buffer at start address + 8 bytes
+		if (dict_fc_entry!=NULL)
+		{
+			fc_entry = (int *)(((int)*dicMapStartAddr) + 12); //start the index buffer at start address + 8 bytes
 
-		dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 12 + fc_entries*4); //start the index buffer at start address + 8 bytes
-	}
+			dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 12 + fc_entries*4); //start the index buffer at start address + 8 bytes
+		}
 	else
 #endif
-	{
-		dict_index_buffer = (int *)(((long)*dicMapStartAddr) + 8); //start the index buffer at start address + 8 bytes
-	}
+		{
+			dict_index_buffer = (int *)((((QWORD)*dicMapStartAddr) + 8)); //start the index buffer at start address + 8 bytes
+		}
 	  
-		dict_data_buffer = (unsigned char *)(pointer_list_size + ((long)dict_index_buffer)); //start 	  	  
+		dict_data_buffer = (unsigned char *)(pointer_list_size + ((QWORD)dict_index_buffer)); //start 	  	  
 	}
 	else
 	{ 

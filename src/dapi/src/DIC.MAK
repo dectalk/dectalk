@@ -73,7 +73,6 @@ CPP_PROJ=/nologo /ML /W3 /GX /O2 /I ".\api" /I ".\nt" /I ".\include" /I ".\dic" 
 .cxx{$(INTDIR)}.obj::
    $(CPP) @<<
    $(CPP_PROJ) $< 
-<<
 
 .c{$(INTDIR)}.sbr::
    $(CPP) @<<
