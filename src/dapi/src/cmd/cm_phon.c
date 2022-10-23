@@ -543,7 +543,9 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 	}
 	/*
 	 * If we get an r in the q_flag after the first char, need to return so
-	 * we can replay the buffer
+	 * we can replay the buffer. It is ok to return, as having the r in
+	 * q_flag will directly cause the replay. We will not ignore the
+	 * current char in c.
 	 */
 	if (pCmd_t->hold_count > 1 &&
 	    (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R')) {
@@ -565,8 +567,8 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 						break;
 
 					case	1	:
-						break;
 					case	2	:
+						pCmd_t->q_flag = 0;
 						break;
 				}
 			}
@@ -642,6 +644,77 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 	}
 	return 1;
 }
+
+int replay_buffer(LPTTS_HANDLE_T phTTS, unsigned int c, int insert_space, int check)
+{
+	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+	int hc = pCmd_t->hold_count;
+	int ret;
+	int i;
+
+	if (!check) {
+		pCmd_t->hold_phonemes = 0;
+	}
+	pCmd_t->international_flag = pCmd_t->hold_international_flag;
+	pCmd_t->international_temp = pCmd_t->hold_international_temp;
+	pCmd_t->international_phon_lang = pCmd_t->hold_international_phon_lang;
+	pCmd_t->q_flag = pCmd_t->hold_q_flag;
+#ifdef DEBUG_HACKS
+	if (insert_space) {
+		printf("%snserting space\n",(check?"Check i":"I"));
+	}
+#endif
+	pCmd_t->hold_replay_ignore = 1;
+	if (insert_space) {
+		if (check) {
+			pCmd_t->hold_count = -1;
+			ret = cm_phon_check(phTTS, ' ');
+			if (!ret) {
+				pCmd_t->hold_count = hc;
+				return 0;
+			}
+		} else {
+			cm_phon_match(phTTS, ' ');
+		}
+		pCmd_t->hold_replay_ignore = 0;
+	}
+	for (i = 0; i < hc; i++) {
+#ifdef DEBUG_HACKS
+		printf("%s >%c<, qf: %c\n", (check?"Replaying":"Checking"), pCmd_t->hold_strbuf[i], pCmd_t->q_flag);
+#endif
+		if (check) {
+			pCmd_t->hold_count++;
+			ret = cm_phon_check(phTTS, pCmd_t->hold_strbuf[i]);
+			if (!ret) {
+				pCmd_t->hold_count = hc;
+				return 0;
+			}
+		} else {
+			cm_phon_match(phTTS, pCmd_t->hold_strbuf[i]);
+		}
+		pCmd_t->hold_replay_ignore = 0;
+	}
+	pCmd_t->hold_count = 0;
+	if (c != 0) {
+#ifdef DEBUG_HACKS
+		printf("%s >%c<, qf: %c\n", (check?"Replaying":"Checking"), c, pCmd_t->q_flag);
+#endif
+		if (check) {
+			ret = cm_phon_check(phTTS, pCmd_t->hold_strbuf[i]);
+			if (!ret) {
+				pCmd_t->hold_count = hc;
+				return 0;
+			}
+		} else {
+			cm_phon_match(phTTS, c);
+		}
+	}
+	if (check) {
+		pCmd_t->hold_count = hc;
+	}
+	return 1;
+}
+
 #endif
 
 /*
@@ -683,59 +756,38 @@ void cm_phon_match(LPTTS_HANDLE_T phTTS, unsigned int c)
 		int i;
 		int ret;
 
-		if (((pCmd_t->q_flag == 0) && (c == ':' || c == ']' || c == '<')) || (pCmd_t->hold_count >= sizeof(pCmd_t->hold_strbuf)-1)) {
+		if (((pCmd_t->q_flag == 0) &&
+		     (c == ':' || c == ']' || c == '<' || c == '.' || c == ',' || c == '!' || c == '?' || c == ';' || c == ' '))
+		    || (pCmd_t->hold_count >= sizeof(pCmd_t->hold_strbuf)-1)) {
 			/* Everything was perfectly fine, replay */
-			pCmd_t->hold_phonemes = 0;
-			pCmd_t->international_flag = pCmd_t->hold_international_flag;
-			pCmd_t->international_temp = pCmd_t->hold_international_temp;
-			pCmd_t->international_phon_lang = pCmd_t->hold_international_phon_lang;
-			pCmd_t->q_flag = pCmd_t->hold_q_flag;
-			pCmd_t->hold_replay_ignore = 1;
-			for (i = 0; i < pCmd_t->hold_count; i++) {
-				//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
-				cm_phon_match(phTTS, pCmd_t->hold_strbuf[i]);
-				pCmd_t->hold_replay_ignore = 0;
-			}
-			cm_phon_match(phTTS, c);
-			pCmd_t->hold_count = 0;
+			replay_buffer(phTTS, c, 0, 0);
 			return;
 		}
 
-		//printf("Checking >%c<, qf: %c\n", c, pCmd_t->q_flag);
+#ifdef DEBUG_HACKS
+		printf("Checking >%c<, qf: %c\n", c, pCmd_t->q_flag);
+#endif
 		pCmd_t->hold_strbuf[pCmd_t->hold_count++] = c;
 		ret = cm_phon_check(phTTS, c);
 		if (!ret) {
-			/* Retry with space */
-			pCmd_t->hold_phonemes = 0;
-			pCmd_t->international_flag = pCmd_t->hold_international_flag;
-			pCmd_t->international_temp = pCmd_t->hold_international_temp;
-			pCmd_t->international_phon_lang = pCmd_t->hold_international_phon_lang;
-			pCmd_t->q_flag = pCmd_t->hold_q_flag;
-			//printf("Inserting space\n");
-			pCmd_t->hold_replay_ignore = 1;
-			cm_phon_match(phTTS, ' ');
-			pCmd_t->hold_replay_ignore = 0;
-			for (i = 0; i < pCmd_t->hold_count; i++) {
-				//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
-				cm_phon_match(phTTS, pCmd_t->hold_strbuf[i]);
-			}
-			pCmd_t->hold_count = 0;
-		} else if (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R') {
-			/* Anotrher R as first char, let's assume everything was fine, replay */
-			pCmd_t->hold_phonemes = 0;
-			pCmd_t->international_flag = pCmd_t->hold_international_flag;
-			pCmd_t->international_temp = pCmd_t->hold_international_temp;
-			pCmd_t->international_phon_lang = pCmd_t->hold_international_phon_lang;
-			pCmd_t->q_flag = pCmd_t->hold_q_flag;
-			pCmd_t->hold_replay_ignore = 1;
-			for (i = 0; i < pCmd_t->hold_count-1; i++) {
-				//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
-				cm_phon_match(phTTS, pCmd_t->hold_strbuf[i]);
-				pCmd_t->hold_replay_ignore = 0;
-			}
-			pCmd_t->hold_count = 0;
-			//printf("Replaying >%c<\n", pCmd_t->hold_strbuf[i]);
-			cm_phon_match(phTTS, c); //need to do this last as we might recurse
+			/* Recheck with space */
+			ret = replay_buffer(phTTS, 0, 1, 1);
+
+			/* Replay with or without space depending on check */
+			replay_buffer(phTTS, 0, ret, 0);
+		} else if (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R' ||
+			   c == ']' ||
+		           ((pCmd_t->q_flag == 0) &&
+		            (c == ':' || c == ']' || c == '<' || c == '.' || c == ',' || c == '!' || c == '?' || c == ';' || c == ' ')) ||
+		           (pCmd_t->hold_count >= sizeof(pCmd_t->hold_strbuf)-1)) {
+			/*
+			 * either another R as first char
+			 * or the end of a phoneme sequence
+			 * or a delimiter with no qflag
+			 *  -> let's assume everything was fine, replay
+			 */
+			pCmd_t->hold_count--;
+			replay_buffer(phTTS, c, 0, 0);
 		}
 
 		return;
