@@ -478,7 +478,7 @@ restart:if ( *dict_siz > 0 )
 	else
 #endif
 		{
-			dict_index_buffer = ((((QWORD)*dicMapStartAddr) + 8)); //start the index buffer at start address + 8 bytes
+			dict_index_buffer = (int *)((((QWORD)*dicMapStartAddr) + 8)); //start the index buffer at start address + 8 bytes
 		}
 	  
 		dict_data_buffer = (unsigned char *)(pointer_list_size + ((QWORD)dict_index_buffer)); //start 	  	  
