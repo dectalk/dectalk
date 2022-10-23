@@ -1358,14 +1358,20 @@ int cmd_loop(LPTTS_HANDLE_T phTTS, unsigned char input)
 				pCmd_t->cmd_index = 0xffff;
 #ifdef PARSER_HACK_FOR_OLD_SONGS
 				/*
-				 * Replace . directly after closing bracket from phoneme with
-				 * the phoneme . and a forced sync.
+				 * Replace punctuation directly after closing bracket from phoneme with
+				 * the punctuation inside the phoneme and a forced sync.
 				 * Seems to replicate what happened in old versions (probably
 				 * also in the VOCAL-code above).
 				 */
-				if (pCmd_t->last_was_phoneme && pCmd_t->ParseChar == '.')
+				if (pCmd_t->last_was_phoneme &&
+				    (pCmd_t->ParseChar == '.' ||
+				     pCmd_t->ParseChar == ',' ||
+				     pCmd_t->ParseChar == '?' ||
+				     pCmd_t->ParseChar == '!' ||
+				     pCmd_t->ParseChar == ':' ||
+				     pCmd_t->ParseChar == ';'))
 				{
-					cm_phon_match(phTTS, '.');
+					cm_phon_match(phTTS, pCmd_t->ParseChar);
 					cm_phon_match(phTTS, ']');
 					pCmd_t->ParseChar = 0x0b;
 				}
