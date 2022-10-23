@@ -9,6 +9,8 @@ These files were shared by their original developer [late Edward Bruckert](https
 
 ## Building
 
+### Linux
+
 <details>
 <summary>Setting up on Ubuntu Linux</summary>
 
@@ -46,8 +48,24 @@ To build DECtalk without setting up a local build environment, run `sudo docker-
 (and make sure you have Docker and docker-compose installed!)
 
 </details>
+
+### Windows
+
 <details>
-<summary>Setting up on Microsoft Windows</summary>
+<summary>Visual Studio 2022</summary>
+
+Install Visual Studio 2022, enabling the "Desktop development with C++" workload from the Visual Studio Installer.
+
+Optionally, also install the ARM64 build tools (untested) to create ARM64 binaries for Windows on ARM.
+
+You can then open [`\src\DECtalk.sln`](./src/DECtalk.sln) in Visual Studio.
+
+</details>
+
+<details>
+<summary>Visual Studio 6</summary>
+
+#### Setup
 
 There's a great article on CodeProject which explains how to install Visual Studio 6.0 from scratch.
 [Read it here](https://www.codeproject.com/Articles/1191047/Install-Visual-Studio-on-Windows)
@@ -55,9 +73,7 @@ There's a great article on CodeProject which explains how to install Visual Stud
 You will also need to add your `vcvars32.bat` file to the environment variables.
 Do this by adding `C:\Program Files (x86)\Microsoft Visual Studio\VC98\Bin` to your Windows system `PATH`.
 
-</details>
-<details>
-<summary>Compiling on Microsoft Windows</summary>
+#### Compilation
 
 The [`\devops\vs6\dt_buildall.bat`](./devops/vs6/dt_buildall.bat)
 file is a great place to get started if you want to build individual components of DECtalk.
