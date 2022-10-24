@@ -492,14 +492,46 @@ void cm_phon_flush(LPTTS_HANDLE_T phTTS)
 /*
  * Hack for transforming e.g. REY to R EY:
  *
- * If we encounter an R as the first character of a phoneme, try if everythin
- * else parses correctly until the next delimiter and if it does not, then
- * insert a space after the R and try again. Old versions could cope with
- * this, so try to replicate their behaviour.
- *
- * This version implements cm_phon_match but without actions, just checking
+ * If we encounter an uncertain phoneme (as in a phoneme which did not exist
+ * in earlier versions but the first character was a standalone phoneme),
+ * try if everythin else parses correctly until the next delimiter and if it
+ * does not, then insert a space after the first phoneme and try again.
+ */
+
+/* Phonemes which got added/changed in newer versions */
+char uncertain_phones[][2] = {
+	{'r', 'x'},
+	{'r', 'e'},
+	{'l', 'l'},
+	{'l', 'y'},
+};
+
+int check_uncertain_phones(char ph1, char ph2)
+{
+	int i;
+
+	if (ph1 >= 'A' && ph1 <= 'Z') {
+		ph1 = par_lower[(int)ph1];
+	}
+
+	if (ph2 >= 'A' && ph2 <= 'Z') {
+		ph2 = par_lower[(int)ph2];
+	}
+
+	for (i = 0; i < (sizeof(uncertain_phones)/sizeof(uncertain_phones[0])); i++) {
+		if ((ph1 == uncertain_phones[i][0]) && (ph2 == uncertain_phones[i][1])) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * This implements cm_phon_match but without actions, just checking
  * if the phonemes are ok.
  */
+
 int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 {
 	PKSD_T pKsd_t = phTTS->pKernelShareData;
@@ -542,13 +574,12 @@ int cm_phon_check(LPTTS_HANDLE_T phTTS, unsigned int c)
 		}
 	}
 	/*
-	 * If we get an r in the q_flag after the first char, need to return so
-	 * we can replay the buffer. It is ok to return, as having the r in
-	 * q_flag will directly cause the replay. We will not ignore the
-	 * current char in c.
+	 * If we get an uncertain phoneme, need to return so we can replay the
+	 * buffer. It is ok to return, as the uncertain phoneme will directly
+	 * cause the replay and we will not ignore the current char in c.
 	 */
 	if (pCmd_t->hold_count > 1 &&
-	    (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R')) {
+	    check_uncertain_phones(pCmd_t->q_flag, c)) {
 		return 1;
 	}
 #endif
@@ -714,7 +745,6 @@ int replay_buffer(LPTTS_HANDLE_T phTTS, unsigned int c, int insert_space, int ch
 	}
 	return 1;
 }
-
 #endif
 
 /*
@@ -744,7 +774,7 @@ void cm_phon_match(LPTTS_HANDLE_T phTTS, unsigned int c)
 	}
 #ifdef PARSER_HACK_FOR_OLD_SONGS
 	/* Part of REY -> R EY transformation, see above for description */
-	if (!pCmd_t->hold_replay_ignore && (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R')) {
+	if (!pCmd_t->hold_replay_ignore && check_uncertain_phones(pCmd_t->q_flag, c)) {
 		pCmd_t->hold_phonemes = 1;
 		pCmd_t->hold_count = 0;
 		pCmd_t->hold_international_flag = pCmd_t->international_flag;
@@ -775,13 +805,13 @@ void cm_phon_match(LPTTS_HANDLE_T phTTS, unsigned int c)
 
 			/* Replay with or without space depending on check */
 			replay_buffer(phTTS, 0, ret, 0);
-		} else if (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R' ||
+		} else if (check_uncertain_phones(pCmd_t->q_flag, c) ||
 			   c == ']' ||
 		           ((pCmd_t->q_flag == 0) &&
 		            (c == ':' || c == ']' || c == '<' || c == '.' || c == ',' || c == '!' || c == '?' || c == ';' || c == ' ')) ||
 		           (pCmd_t->hold_count >= sizeof(pCmd_t->hold_strbuf)-1)) {
 			/*
-			 * either another R as first char
+			 * either another uncertain phoneme
 			 * or the end of a phoneme sequence
 			 * or a delimiter with no qflag
 			 *  -> let's assume everything was fine, replay
@@ -835,11 +865,11 @@ void cm_phon_match(LPTTS_HANDLE_T phTTS, unsigned int c)
 	}
 #ifdef PARSER_HACK_FOR_OLD_SONGS
 	/*
-	 * R was promoted from phoneme language selector to first symbol of
-	 * phoneme. We can recurse at this point as international_phon_lang
+	 * an uncertain phoneme was promoted from phoneme language selector to
+	 * a phoneme. We can recurse at this point as international_phon_lang
 	 * is now -1
 	 */
-	if (!pCmd_t->hold_replay_ignore && (pCmd_t->q_flag == 'r' || pCmd_t->q_flag == 'R')) {
+	if (!pCmd_t->hold_replay_ignore && check_uncertain_phones(pCmd_t->q_flag, c)) {
 		pCmd_t->hold_phonemes = 1;
 		pCmd_t->hold_count = 0;
 		pCmd_t->hold_international_flag = pCmd_t->international_flag;
