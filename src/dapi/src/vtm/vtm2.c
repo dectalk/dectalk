@@ -1,10 +1,10 @@
 /* ********************************************************************************** */
 /* **********************************************************************************                                                                    
  *                DECtalk Vocal Tract Model                           
- *    Copyright ©  1984 by Dennis H. Klatt    			     
+ *    Copyright ï¿½  1984 by Dennis H. Klatt    			     
  *    Copyright (c) 1984 Digital Equipment Corporation, Maynard, Mass.   
- *    © SMART Modular Technologies 1999, 2000. All rights reserved.      
- *    Copyright © 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved
+ *    ï¿½ SMART Modular Technologies 1999, 2000. All rights reserved.      
+ *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved
  *
  *    This software is proprietary to and embodies the confidential
  *    technology of Force Computers Incorporated and other parties.
@@ -171,7 +171,7 @@ Eab 3/13/01 Modifcation to fix problem with skip compute save method and lessen 
 #else
 
 
-#if defined __linux__
+#if defined __linux__ || defined __EMSCRIPTEN__
 #define _inline inline
 #endif
 

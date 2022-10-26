@@ -3,8 +3,8 @@
  ***********************************************************************
  *
  *                           Copyright (c)
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
  *    (c) Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
@@ -153,11 +153,11 @@
 #ifdef __osf__
 #include "tts.h"
 #endif
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include "tts.h"
 #endif
-#ifdef ARM7
+#if defined ARM7 || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -648,7 +648,7 @@ void ERROR_func2(unsigned char *current_rule,
 	return;
 }
 
-const void (*(perform_action_funcs[0x20]))(unsigned char *current_rule,
+void (*(perform_action_funcs[0x20]))(unsigned char *current_rule,
 									 unsigned char *input_array,
 									 unsigned char *output_array,
 									 pindex_data_t input_indexes,

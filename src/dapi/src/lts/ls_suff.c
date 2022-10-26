@@ -1,10 +1,10 @@
 /*
  ***********************************************************************
  *                                                                      
- *                           Copyright ©                             
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers Inc. A Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.        
+ *                           Copyright ï¿½                             
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers Inc. A Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.        
  *                                                                      
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.    
  *    Government is subject to restrictions as set forth in subparagraph
@@ -72,7 +72,7 @@
 #if defined (ENGLISH) || defined (GERMAN)
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "opthread.h"
 #endif
 	
@@ -498,7 +498,7 @@ void ls_suff_print_fc(LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
   EnterCriticalSection( phTTS->pcsLogFile );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   /* GL 04/21/1997  change this as the latest OSF code */
   /* ToggleLogfileMutex( MUTEX_RESERVE ); */
   OP_LockMutex( phTTS->pcsLogFile );
@@ -630,7 +630,7 @@ void ls_suff_print_fc(LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
   LeaveCriticalSection( phTTS->pcsLogFile );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   /* GL 04/21/1997  change this as the latest OSF code */
   /*ToggleLogfileMutex( MUTEX_RELEASE );*/
   OP_UnlockMutex( phTTS->pcsLogFile );

@@ -95,7 +95,7 @@
 #include "kernp.h"
 #endif
 
-#if defined __linux__ ||defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ ||defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "dtmmedefs.h"
 #endif
 
@@ -220,7 +220,7 @@ extern FILE *fpODS_File;
 #endif //WIN32
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define _PIPE
 #include "opthread.h"
 #include "pipe.h"
@@ -253,7 +253,7 @@ extern FILE *fpODS_File;
 #endif // __osf__ || __linux__ || defined _SPARC_SOLARIS_
 
 /* GL 04/21/1997 add this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 typedef  PIPE_T  PIPE;
 typedef  LPPIPE_T  P_PIPE;
 #endif
@@ -316,7 +316,7 @@ typedef struct RING_struct {
 #define SPC_type_digitized              5
 #define SPC_type_mixed                  6
 #define SPC_type_index                  7
-#if defined _WIN32 || defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined _WIN32 || defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 /* tek 01aug97 index subtypes for the new messages */
 #define		SPC_subtype_bookmark	(0x0100) // this is already shifted.
 #define		SPC_subtype_wordpos		(0x0200)
@@ -325,7 +325,7 @@ typedef struct RING_struct {
 #define		SPC_subtype_sentence	(0x0500) // this is already shifted.
 #define		SPC_subtype_volume		(0x0600) // this is already shifted.
 #define		SPC_subtype_noise		(0x0700) // this is already shifted.
-#endif //_WIN32 || defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#endif //_WIN32 || defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 
 #define SPC_type_sync                   8
 #define SPC_type_flush                  9
@@ -608,7 +608,7 @@ struct share_data {
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	P_PIPE          cmd_pipe;               /* cmd input  */
 #ifndef SINGLE_THREADED
 	P_PIPE          vtm_pipe;               /* vtm input  */
@@ -1001,7 +1001,7 @@ void destroy_pipe( PIPE * );
 #endif // WIN32
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define _DEF_PIPES
 #include "opthread.h"
 #endif

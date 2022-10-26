@@ -1,10 +1,10 @@
 /* 
  ***********************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -109,7 +109,7 @@
 #include "cemm.h"
 #endif //UNDER_CE
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #endif
 
@@ -188,7 +188,7 @@ short TOT_ALLOPHONES = (PH_LAST_PH+1);  /* total number of phones */
 
 /* MVP : Function prototypes */
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 extern void spcfree(unsigned short *);
 #endif
 
@@ -250,7 +250,7 @@ int ph_main(LPTTS_HANDLE_T phTTS)
 #endif
 
 /* GL 04/21/1997  change to be the same as the latest OSF code */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef SINGLE_THREADED
 DWORD ph_main(LPTTS_HANDLE_T phTTS)
 #else
@@ -295,7 +295,7 @@ OP_THREAD_ROUTINE(ph_main, LPTTS_HANDLE_T phTTS)
 			pDph_t->phTTS=phTTS;
 #else
 	pKsd_t = phTTS->pKernelShareData;
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
     /* GL 04/21/1997  add this as the latest OSF code */
     /* Initialize thread error field to no error */
     phTTS->uiThreadError = MMSYSERR_NOERROR;
@@ -315,7 +315,7 @@ OP_THREAD_ROUTINE(ph_main, LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 		return (MMSYSERR_NOMEM);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		phTTS->uiThreadError = MMSYSERR_NOMEM;
         else
 #endif
@@ -346,7 +346,7 @@ OP_THREAD_ROUTINE(ph_main, LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 				return (MMSYSERR_NOMEM);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 			phTTS->uiThreadError = MMSYSERR_NOMEM;
 		
 #endif
@@ -358,7 +358,7 @@ OP_THREAD_ROUTINE(ph_main, LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 SetEvent (phTTS->hMallocSuccessEvent);	/* Malloc s are success,set the event */
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
         /* CP: Set the event, even if malloc eerror occurred. User
          * will look at uiThreadError for actual error code.
          */
@@ -725,7 +725,7 @@ SetEvent (phTTS->hMallocSuccessEvent);	/* Malloc s are success,set the event */
 #if defined (MSDOS) || defined (WIN32)
 	return 0;						/* No error MVP */
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef SINGLE_THREADED
 	return MMSYSERR_NOERROR;
 #else

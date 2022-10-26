@@ -4,7 +4,7 @@
 /*  COPYRIGHT NOTICE                                                  					*/
 /*                                                                    					*/
 /*  Copyright (c) Digital Equipment Corporation, 1998                 					*/
-/*  Copyright © 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.	*/
+/*  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.	*/
 /*																	  					*/
 /*  All Rights reserved. Unpublished rights reserved under the        					*/
 /*  copyright laws of the United States. Copyright is claimed in      					*/
@@ -78,6 +78,10 @@
 #endif
 #include "mmalloc.h"
 #include <stdio.h> // NAL warning removal
+
+#if defined __EMSCRIPTEN__
+#include "dtmmedefs.h"
+#endif
 
 #ifdef USE_MME_SERVER
 
@@ -600,7 +604,7 @@ static void PlaceMemoryOnFreeList( void * pMemory )
 
 #else
 
-#if !defined UNDER_CE && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined UNDER_CE && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
 /**********************************************************************/
 /*  Locked memory allocation functions for Windows NT and Windows 95. */
 /**********************************************************************/

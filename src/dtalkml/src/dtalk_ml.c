@@ -97,7 +97,7 @@
 _CRTIMP wchar_t __cdecl towupper(wchar_t);
 #endif
 
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define _UNIX_LIKE_
 #endif
 
@@ -107,7 +107,7 @@ _CRTIMP wchar_t __cdecl towupper(wchar_t);
 #include <sys/types.h>
 #include <pthread.h>
 #include "dtmmedefs.h"
-#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_ || defined __EMSCRIPTEN__
 #include "tts.h"
 #include <ctype.h>
 #include <linux/limits.h>

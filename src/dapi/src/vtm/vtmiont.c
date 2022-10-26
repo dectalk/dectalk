@@ -2,8 +2,8 @@
  *                                                 
  *  DECtalk Vocal Tract Model I/O for Windows/NT
  *                                              
- * Copyright © 2002 Fonix Corporation. All rights reserved.
- * Copyright © 2000-2001 Force Computer, Inc., a Solectron company. All rights reserved.
+ * Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ * Copyright ï¿½ 2000-2001 Force Computer, Inc., a Solectron company. All rights reserved.
  * Copyright (c) 1993-1998 Digital Equipment Corporation
  * 
  * This is an unpublished work, and is confidential and proprietary: 
@@ -97,7 +97,7 @@
  //#define HLSYN
 #include "dectalkf.h"
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "playaudd.h"
 #endif
 
@@ -370,7 +370,7 @@ char szTemp[256]="";
 /**********************************************************************/
 #ifdef WIN32
 DWORD __stdcall vtm_main( LPTTS_HANDLE_T phTTS )
-#elif defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#elif defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef SINGLE_THREADED
 DWORD vtm_main( LPTTS_HANDLE_T phTTS )
 #else
@@ -416,7 +416,7 @@ DWORD vtm_main( LPTTS_HANDLE_T phTTS )
   int temp=0;	
 
 #ifndef SINGLE_THREADED
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   /* Initialize thread error field to no error */
   phTTS->uiThreadError = MMSYSERR_NOERROR;
 #endif
@@ -453,7 +453,7 @@ DWORD vtm_main( LPTTS_HANDLE_T phTTS )
 #endif
 
   OP_SetEvent(phTTS->hMallocSuccessEvent);
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   if (phTTS->uiThreadError != MMSYSERR_NOERROR)
   {
       OP_ExitThread(&phTTS->uiThreadError);

@@ -88,7 +88,7 @@
 #include "playaud.h"
 #include "vtminst.h"            /* MVP MI */
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "playaudd.h"
 #include "opthread.h"
 #ifdef VXWORKS
@@ -99,7 +99,7 @@
 #endif
 #include <unistd.h>
 #include <stdlib.h>
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
 #include <mmsystem.h>
 #endif
 #include "port.h"
@@ -117,7 +117,7 @@
 extern DWORD timeGetTime(void);
 #endif
 #ifdef VTM_DEBUG
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #undef timeGetTime
 #define timeGetTime() (unsigned long)(time(NULL))
 #undef OutputDebugString
@@ -164,7 +164,7 @@ static DWORD WaitForAudioSampleToPlay( PKSD_T ,LPAUDIO_HANDLE_T, DWORD);
 #ifdef WIN32
 DWORD __stdcall sync_main( LPTTS_HANDLE_T phTTS )
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS)
 #endif
 {
@@ -180,7 +180,7 @@ OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS)
   //PVTM_T pVtm_t = phTTS->pVTMThreadData; // MGS warning removal
   LPARAM	lparmIndexValue=0; // 01aug97 bats 404 et al
   
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   /* Initialize thread error field to no error */
   phTTS->uiThreadError = MMSYSERR_NOERROR;
 #endif
@@ -232,7 +232,7 @@ OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 	SetEvent( phTTS->hSyncEvent );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	OP_SetEvent( phTTS->hSyncEvent );
 #endif
 	break;	// end of the basic SPC_type_sync
@@ -348,7 +348,7 @@ OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS)
 				  }
 				  ptTag.pmData.wDuration = (WORD)(pvdData->dwDuration);
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 				if (phTTS->uiID_Visual_Message!=0xDEADC0DE)
 #endif
 				{
@@ -513,7 +513,7 @@ OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS)
   OP_ExitThread(phTTS->uiThreadError);
   OP_THREAD_RETURN;
 #endif
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_ExitThread(&phTTS->uiThreadError);
   OP_THREAD_RETURN;
 #endif
@@ -576,7 +576,7 @@ static DWORD WaitForAudioSampleToPlay( PKSD_T pKsd_t ,
 	DWORD	dwTime=0;	// tek 08jan98 bats 546 this generally
 	// holds the current system time, but is
 	// not used for OSF.
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	struct timeval tv;
 #endif
 #ifdef VXWORKS
@@ -626,7 +626,7 @@ static DWORD WaitForAudioSampleToPlay( PKSD_T pKsd_t ,
 		// we only keep track of time on windows systems
 		dwTime = timeGetTime();
 #endif //WIN32
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		gettimeofday(&tv,NULL);
 		dwTime=(tv.tv_sec%1000000)*1000 + (tv.tv_usec/1000);
 #endif
@@ -757,7 +757,7 @@ static DWORD WaitForAudioSampleToPlay( PKSD_T pKsd_t ,
 			PumpModeMessage(pAudioHandle);
 				Sleep((DWORD)iSleepTimeInMsec );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 				OP_Sleep((DWORD)iSleepTimeInMsec );
 #endif
 			}

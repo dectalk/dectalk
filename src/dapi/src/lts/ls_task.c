@@ -1,11 +1,11 @@
 /*
  ***********************************************************************
  *          
- *                           Copyright ©
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
- *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    © SMART Modular Technologies 1999, 2000. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ?
+ *    Copyright ? 2002 Fonix Corporation. All rights reserved.
+ *    Copyright ? 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    ? SMART Modular Technologies 1999, 2000. All rights reserved.
+ *    ? Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -223,7 +223,7 @@ extern void ls_suff_print_fc(LPTTS_HANDLE_T phTTS);
 #define SPELL_WORD      2
 #define FINISHED_WORD   3
 
-#ifdef __linux__
+#ifdef __linux__ || defined __EMSCRIPTEN__
 #include <stdio.h>
 #endif
 
@@ -263,7 +263,7 @@ extern int in_winmain;
 * *****************************************************************/
      
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ 
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 void ls_task_main(LPTTS_HANDLE_T phTTS)
 #endif
 
@@ -293,7 +293,7 @@ void far ls_task_main(void)
 	/* MGS 6/16/97 BATS #387 Added to allow case to reach ls_task_process_word */
 #ifdef FRENCH
 //	char  c;       /* for current char of cword */
-//	int   Fini=0;  /* de 0 à 4 : end of cword analysis */
+//	int   Fini=0;  /* de 0 ? 4 : end of cword analysis */
 //	int   rbphone; /* phone due to right striping */
 //	int   sign;    /* sign if number */
 //	int   lflag;   /* attributes of cword : LSTRIP, RSTRIP, etc */
@@ -1743,27 +1743,27 @@ int ls_task_fix_german_vowels(PLTS_T pLts_t, LETTER *llp, LETTER **rlp)
 			switch (elp->l_ch)
 			{
 			case 'a':
-				elp->l_ch=(unsigned char)'ä';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'A':
-				elp->l_ch=(unsigned char)'Ä';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'o':
-				elp->l_ch=(unsigned char)'ö';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'O':
-				elp->l_ch=(unsigned char)'Ö';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'u':
-				elp->l_ch=(unsigned char)'ü';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'U':
-				elp->l_ch=(unsigned char)'Ü';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			}
@@ -3877,7 +3877,7 @@ int ls_task_plain_number_processing(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *r
 				return(FINISHED_WORD);
 			}
 #else
-		if (lp2+3 == rlp && lp2->l_ch==(unsigned char)'è' && (lp2+1)->l_ch=='m' 
+		if (lp2+3 == rlp && lp2->l_ch==(unsigned char)'?' && (lp2+1)->l_ch=='m' 
 			&& ((lp2+2)->l_ch=='e')) 
 			{
 				pLts_t->pflag= ls_proc_do_number (phTTS, llp, lp2, TRUE); /* TRUE for ordinal */
@@ -3892,7 +3892,7 @@ int ls_task_plain_number_processing(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *r
 			return (2);
 		} 
 		else if ( llp+4 == rlp && llp->l_ch=='1'    /* 1e2re */
-		&& (llp+1)->l_ch==(unsigned char)'è' && (llp+2)->l_ch=='r'
+		&& (llp+1)->l_ch==(unsigned char)'?' && (llp+2)->l_ch=='r'
 		&& (llp+3)->l_ch=='e' ) 
 		{
 			ls_util_send_phone_list (phTTS, premiere);
@@ -3902,8 +3902,8 @@ int ls_task_plain_number_processing(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *r
 		} 
 		else if (lp2+1 == rlp) 
 		{
-    /* there is 1 character after last digit like 10% or 10° */
-		if ( (c=lp2->l_ch)=='%' || c==(unsigned char)'°') 
+    /* there is 1 character after last digit like 10% or 10? */
+		if ( (c=lp2->l_ch)=='%' || c==(unsigned char)'?') 
 		{
 			ls_proc_do_sign (phTTS, pLts_t->sign);
 //			sendindex (llp, lp1);
@@ -3920,7 +3920,7 @@ int ls_task_plain_number_processing(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *r
 //			sendindex (lp2,rlp);
 //			Fini=2;
 		return (2);
-		} /* if % ou ° */
+		} /* if % ou ? */
       } /* else if one char after number */
 		}
 		
@@ -4392,7 +4392,7 @@ int ls_task_process_word(LPTTS_HANDLE_T phTTS,LETTER *llp, LETTER *rlp)
 	
 	if (lp1==rlp && Trouve_Voy) { /* analyse the entire word */
 		/* Trouve_Voy for last part :
-		   sous-officier, c'est-à-dire, tout-à-coup, vis-à-vis, dit-elle
+		   sous-officier, c'est-?-dire, tout-?-coup, vis-?-vis, dit-elle
 	       petit, papa
 		*/
 		if (ls_util_is_white(&(pLts_t->citem))) 
@@ -4750,7 +4750,7 @@ int find_next_marker(PLTS_T pLts_t,int pos)
 #include "proverbs.h"
 #endif
 
-#if defined ARM7 || defined __linux__ || defined SPARC_SOLARIS || defined __osf__
+#if defined ARM7 || defined __linux__ || defined SPARC_SOLARIS || defined __osf__ || defined __EMSCRIPTEN__
 #define stricmp strcasecmp
 #endif
 

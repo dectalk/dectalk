@@ -1,9 +1,9 @@
 /************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -128,7 +128,7 @@ extern "C" {
 /*  Defines for multiple operating systems.                           */
 /**********************************************************************/
 
-#if defined __unix__ || defined __osf__ || defined __linux__ || defined VXWORKS  || defined _SPARC_SOLARIS_
+#if defined __unix__ || defined __osf__ || defined __linux__ || defined VXWORKS  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define OP_POSIX
 #endif
 
@@ -147,7 +147,7 @@ extern "C" {
 /**********************************************************************/
 /*  UNIX and VMS (posix) include files.                               */
 /**********************************************************************/
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef __linux__
 #define DCE_COMPAT
 #endif
@@ -214,11 +214,11 @@ typedef  (void *(*start_routine)(void *))  THREAD_PROCEDURE_T;
 typedef  void *(*THREAD_PROCEDURE_T)(void *);
 #endif
 
-#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 typedef  void *(*THREAD_PROCEDURE_T)(void *);
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef OP_POSIX 
 typedef pthread_attr_t THREAD_ATTR_T;
 #else
@@ -423,7 +423,7 @@ void OP_ExitThread( THREAD_STATUS_T ThreadStatus );
 unsigned int OP_WaitForThreadTermination( HTHREAD_T pThread,
                                           PTHREAD_STATUS_T pThreadStatus );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
 unsigned int OP_WaitForThreadTermination( HTHREAD_T pThread,
                                           PTHREAD_STATUS_T pThreadStatus,
 					  unsigned int uiMilliSeconds );
@@ -456,7 +456,7 @@ BOOL ThreadLock(TLOCK *tlLock, DWORD dwTimeout);
 void ThreadUnlock(TLOCK *);	
 #endif
 
-#if defined __linux__
+#if defined __linux__ || defined __EMSCRIPTEN__
 typedef pthread_mutex_t TLOCK;
 #define DECLARE_TLOCK(x) pthread_mutex_t x=PTHREAD_MUTEX_INITIALIZER;
 

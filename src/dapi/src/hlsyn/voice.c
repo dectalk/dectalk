@@ -23,9 +23,8 @@
  *     7 Nov 1991  removed from sample.c
  */
 
-#include "flavor.h"
 #include <math.h>		/* needed for power function */
-#include "llsyn.h"
+#include "voice.h"
 
 /* Spectral Tilt Bandwidth table */
 static int tilt[42] =

@@ -1,7 +1,7 @@
 /*
 ** COPYRIGHT NOTICE 
-** Copyright © 2000, 2001 Force Computers Inc. A Solectron company. All rights reserved.    
-** Copyright © SMART Modular Technologies 1999. All rights reserved.    
+** Copyright ï¿½ 2000, 2001 Force Computers Inc. A Solectron company. All rights reserved.    
+** Copyright ï¿½ SMART Modular Technologies 1999. All rights reserved.    
 ** Copyright (c) Digital Equipment Corporation, 1993
 ** All Rights reserved. Unpublished rights reserved under the 
 ** copyright laws of the United States. Copyright is claimed in 
@@ -176,7 +176,7 @@
 ** 	Follows microsoft specs for the most part.
 ** 
 */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include <string.h>
 #endif

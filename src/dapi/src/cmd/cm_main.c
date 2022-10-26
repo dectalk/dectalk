@@ -1,10 +1,10 @@
 /*
  ***********************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers Inc., a Solectron company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers Inc., a Solectron company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -68,7 +68,7 @@
 #include "string.h"
 #endif
 
-#if (defined  __linux__) || (defined UNDER_CE) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if (defined  __linux__) || (defined UNDER_CE) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdlib.h>
 extern void FreeCMDThreadMemory(PCMD_T);
 #endif
@@ -124,7 +124,7 @@ int cmd_main(LPTTS_HANDLE_T phTTS)
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 OP_THREAD_ROUTINE( cmd_main, LPTTS_HANDLE_T phTTS )
 #endif
 
@@ -143,7 +143,7 @@ OP_THREAD_ROUTINE( cmd_main, LPTTS_HANDLE_T phTTS )
 	pKsd_t = phTTS->pKernelShareData;    
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
     /* Initialize thread error field to no error */
     phTTS->uiThreadError = MMSYSERR_NOERROR;
 #endif
@@ -171,7 +171,7 @@ OP_THREAD_ROUTINE( cmd_main, LPTTS_HANDLE_T phTTS )
 #endif
 #endif
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	if((pCmd_t= (PCMD_T) calloc(1,sizeof(CMD_T))) == NULL)
 	        phTTS->uiThreadError = MMSYSERR_NOMEM;
         else
@@ -214,7 +214,7 @@ OP_THREAD_ROUTINE( cmd_main, LPTTS_HANDLE_T phTTS )
 	}
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
     /* 
 	 * CP: Set the event, even if malloc eerror occurred. User
      * will look at uiThreadError for actual error code.
@@ -257,7 +257,7 @@ OP_THREAD_ROUTINE( cmd_main, LPTTS_HANDLE_T phTTS )
 	return 0;
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
     OP_ExitThread(MMSYSERR_NOERROR);
 	OP_THREAD_RETURN;
 #endif

@@ -1,0 +1,38 @@
+emcc -Wall ^
+  "../../samplosf/src/dtsamples/say.c" ^
+  "./public/dapi.wasm" ^
+  -I "../.." ^
+  -I "../../dapi/src" ^
+  -I "../../dapi/src/api" ^
+  -I "../../dapi/src/cmd" ^
+  -I "../../dapi/src/dic" ^
+  -I "../../dapi/src/include" ^
+  -I "../../dapi/src/kernel" ^
+  -I "../../dapi/src/lts" ^
+  -I "../../dapi/src/osf" ^
+  -I "../../dapi/src/ph" ^
+  -I "../../dapi/src/protos" ^
+  -I "../../dapi/src/vtm" ^
+  -I "../../dapi/src/nt" ^
+  -D _REENTRANT ^
+  -D NOMME ^
+  -D LTSSIM ^
+  -D TTSSIM ^
+  -D ANSI ^
+  -D BLD_DECTALK_DLL ^
+  -D ENGLISH ^
+  -D ENGLISH_US ^
+  -D ACCESS32 ^
+  -D TYPING_MODE ^
+  -D OS_SIXTY_FOUR_BIT ^
+  -D DISABLE_AUDIO ^
+  -s MAIN_MODULE=1 ^
+  -s ERROR_ON_UNDEFINED_SYMBOLS=0 ^
+  -s PROXY_TO_PTHREAD=1 ^
+  -s ALLOW_MEMORY_GROWTH=1 ^
+  -gsource-map ^
+  --source-map-base http://127.0.0.1:8080/ ^
+  --emit-symbol-map ^
+  -pthread ^
+  -g4 ^
+  -o ./public/say.html

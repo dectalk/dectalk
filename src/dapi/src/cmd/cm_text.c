@@ -1,10 +1,10 @@
 #ifndef VOCAL
 /************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -147,11 +147,12 @@ extern const unsigned short parser_char_types[];
 extern const unsigned char *par_illegal_cluster[];
 extern const unsigned char par_lower[];
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 // MGS		10/14/1999		BATS#876 fix for UK phone numbers (part of it) 
 extern int _far par_dict_lookup(PKSD_T, char *, int);
 #endif
 
+#ifndef NEW_BINARY_PARSER
 __inline void par_copy_index_list(pindex_data_t dest_index,
 								  int		    dest_pos,
 								  pindex_data_t src_index,
@@ -176,6 +177,7 @@ __inline int par_is_index_set(pindex_data_t indexes,
 	}
 	return(0);
 }
+#endif
 
 #ifdef EPSON_ARM7
 void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
@@ -521,7 +523,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 	else
 	{
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		/* GL 09/30/1997 BATS# 475 redesign the header detection code */
 		unsigned char header1[]={"From"};
 		unsigned char header2[]={"Return-Path:"};
@@ -546,7 +548,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
       	   ((header_buff[0] == 0xd && header_buff[1] == 0xa) || (header_buff[0] == 0xa)))
 #endif
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 		if ((pCmd_t->email_header == 1) && (header_buff[0] == 0xa))
 #endif
 		{   
@@ -573,7 +575,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 		&& (pCmd_t->clausebuf[pCmd_t->input_counter-2] == 0xd))
 #endif
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 		if (pCmd_t->clausebuf[pCmd_t->input_counter-1] == 0xa)
 #endif
 		{
@@ -639,7 +641,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 		else
 		{
 		  /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		  if ((pCmd_t->skip_mode != SKIP_email) &&
 		      ((pKsd_t->modeflag & MODE_EMAIL) != 0))
 		    {
@@ -792,27 +794,27 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 										switch(pCmd_t->clausebuf[j])
 										{
 										case 'a':
-											pCmd_t->clausebuf[j]=(unsigned char)'ä';
+											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
 											didit=1;
 											break;
 										case 'A':
-											pCmd_t->clausebuf[j]=(unsigned char)'Ä';
+											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
 											didit=1;
 											break;
 										case 'o':
-											pCmd_t->clausebuf[j]=(unsigned char)'ö';
+											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
 											didit=1;
 											break;
 										case 'O':
-											pCmd_t->clausebuf[j]=(unsigned char)'Ö';
+											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
 											didit=1;
 											break;
 										case 'u':
-											pCmd_t->clausebuf[j]=(unsigned char)'ü';
+											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
 											didit=1;
 											break;
 										case 'U':
-											pCmd_t->clausebuf[j]=(unsigned char)'Ü';
+											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
 											didit=1;
 											break;
 										}
@@ -842,7 +844,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 
 				temp_mode = 0x00000001 << pCmd_t->punct_mode;
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 				if ((pKsd_t->modeflag & MODE_EMAIL) != 0)
 				{

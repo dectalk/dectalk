@@ -1,9 +1,9 @@
 /************************************************************
  *
- *                           Copyright ©
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
- *    Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *    Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -122,7 +122,7 @@
 #endif 
 #include        "cm_def.h"
 #include        "pcport.h"
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 extern void flush_done(PKSD_T);
 #endif
 
@@ -1792,7 +1792,7 @@ unsigned int cm_pars_getseq(LPTTS_HANDLE_T phTTS)
   while(TRUE)
     {
       /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef CUP28PROJECT 
 	  //special temp hack for mit to read kjhkj,kjlkj as two phrases--no comma pronounced 
       if(pCmd_t->lastchar == ',')
@@ -1900,7 +1900,7 @@ unsigned int cm_pars_getseq(LPTTS_HANDLE_T phTTS)
 					 * this path.. tek 1/3/95 
 					 */
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 					read_pipe( pKsd_t->cmd_pipe, &inchar, 1 );
 					c = (int)inchar;
 					cm_util_type_out(phTTS, c);
@@ -2185,7 +2185,7 @@ int OutputCharacter( unsigned char c )
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 /*#include "dtmmedefs.h"*/
 #include "opthread.h"
 #include "tts.h"
@@ -2218,7 +2218,7 @@ void OutputCharacter( LPTTS_HANDLE_T phTTS,unsigned char c )
   EnterCriticalSection( phTTS->pcsLogFile );
 #endif
   
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   /* GL 04/21/1997  add this for OSF build */
   /* ToggleLogfileMutex( MUTEX_RESERVE ); */
   OP_LockMutex( phTTS->pcsLogFile );
@@ -2235,7 +2235,7 @@ void OutputCharacter( LPTTS_HANDLE_T phTTS,unsigned char c )
   LeaveCriticalSection( phTTS->pcsLogFile );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   /* GL 04/21/1997  change this for OSF build */
   /* ToggleLogfileMutex( MUTEX_RELEASE );*/
   OP_UnlockMutex( phTTS->pcsLogFile );

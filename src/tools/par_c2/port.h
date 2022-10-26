@@ -1,8 +1,8 @@
 /************************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
- *    © Digital Equipment Corporation 1995. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1995. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -101,7 +101,7 @@ typedef unsigned char U8;
  ************************************************************************
  * defines for DEC OSF/1 AXP & UNIXs
  */
-#if defined (__osf__) || defined (__linux__)
+#if defined (__osf__) || defined (__linux__) || defined __EMSCRIPTEN__
 
 /*#define ENGLISH_US 1*/
 
@@ -116,7 +116,7 @@ typedef unsigned char U8;
 #define far
 #define huge
 #define _huge
-#ifndef __linux__
+#if !(defined __linux__ || defined __EMSCRIPTEN__)
 #define volatile
 #endif
 
@@ -131,7 +131,7 @@ typedef unsigned char U8;
 #ifdef __osf__
 typedef unsigned long QWORD;
 #endif
-#ifdef __linux__
+#if defined __linux__ || defined __EMSCRIPTEN__
 typedef unsigned long long QWORD;
 typedef __int64_t __int64;
 #endif

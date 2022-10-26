@@ -1,6 +1,6 @@
 /************************************************************
- *                           Copyright ©
- *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *                           Copyright ï¿½
+ *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -65,7 +65,7 @@
 
 #include "opmmsys.h"
 #include "opatype.h"
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined __EMSCRIPTEN__
 #include "dtmmedefs.h"
 #endif
 

@@ -28,6 +28,7 @@
 #include "flavor.h"
 #include <math.h>		/* needed for power function */
 #include "llsyn.h"
+#include "voice.h"
 
 //Float next_voice_sample(LLSynth * synth, LLFrame * frame);
 

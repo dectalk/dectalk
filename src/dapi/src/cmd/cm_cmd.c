@@ -1,10 +1,10 @@
  /*
  ***********************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
  *    (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
@@ -523,7 +523,7 @@ void cm_cmd_build_param(LPTTS_HANDLE_T phTTS, unsigned int c)
 	 */
 
 	(pCmd_t->p_count) += 1;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	CURR_DEFAULT = FALSE;
 #else
 	CURR_DEFAULT = false;
@@ -862,7 +862,7 @@ void cm_cmd_error_comm(LPTTS_HANDLE_T phTTS, int type)
 					phTTS->dwOutputState = STATE_OUTPUT_NULL;
 			}
 			if (fprintf (phTTS->pLogFile,
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 				 "\n[:error %s]", es) < 0)
 #else
 				 "\n[:error %Fs]", es) < 0)

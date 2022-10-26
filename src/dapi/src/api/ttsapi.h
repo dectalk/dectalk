@@ -119,6 +119,10 @@
 #define MMSYSERR_LASTERROR    (MMSYSERR_BASE + 13) /* last error in range */
 
 
+#if defined __EMSCRIPTEN__
+#include "emscripten.h"
+#endif
+
 #include "tts.h"
 
 #if defined (BLD_DECTALK_DLL) || defined (LDS_BUILD)
@@ -149,7 +153,7 @@ extern "C" {
 /*  TextToSpeechOpenWaveOutFile(). Other formats are contained in     */
 /*  include file mmsystem.h.                                          */
 /**********************************************************************/
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "dtmmedefs.h"
 #endif
 
@@ -280,7 +284,7 @@ extern "C" {
 #define  TTS_FORCE   1
 
 /* GL 04/21/1997  add this as the latest OSF code */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_  || defined (CUP28PROJECT)
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_  || defined (CUP28PROJECT) || defined __EMSCRIPTEN__
 /**********************************************************************/
 /*  Symbol Definitions for callback message type                      */
 /**********************************************************************/
@@ -434,7 +438,7 @@ typedef TTS_BUFFER_T * LPTTS_BUFFER_T;
 #pragma pack (1)
 typedef struct {
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	unsigned char cThisPhoneme;   // the current phoneme
 	unsigned char cNextPhoneme;   // the next phoneme, if known
 #else
@@ -449,7 +453,7 @@ typedef struct {
 
 typedef struct {
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	unsigned short cThisPhoneme;   // the current phoneme
 	unsigned short cNextPhoneme;   // the next phoneme, if known
 #else
@@ -558,7 +562,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 #endif
 				);
 /* GL 04/21/1997  add this as the latest OSF code */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 MMRESULT TextToSpeechStartup( LPTTS_HANDLE_T * pphTTS,
 			      UINT ,
 			      DWORD ,
@@ -663,7 +667,7 @@ MMRESULT TextToSpeechGetVolume( LPTTS_HANDLE_T phTTS,int type, int *volume);
 #define VOLUME_ATTENUATION  2
 
 
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 /* ML add-ons */
 #ifdef UNDER_CE
 DWORD TextToSpeechVersion(LPTSTR* VersionStr);

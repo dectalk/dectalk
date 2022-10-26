@@ -1,7 +1,7 @@
 /*
  * 							@DEC_COPYRIGHT@
- *    Copyright © 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
- *    © SMART Modular Technologies 1999. All rights reserved.    
+ *    Copyright ï¿½ 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
+ *    ï¿½ SMART Modular Technologies 1999. All rights reserved.    
  */
 /*
  * HISTORY
@@ -228,7 +228,7 @@ OP_THREAD_ROUTINE(vtm_main, LPTTS_HANDLE_T phTTS)
   if((pVtm_t = (PVTM_T) calloc(1,sizeof(VTM_T))) == NULL)
     phTTS->uiThreadError = MMSYSERR_NOMEM;
   
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   /* 
    * CP: Set the event, even if malloc eerror occurred. User
    * will look at uiThreadError for actual error code.

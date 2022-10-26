@@ -1,9 +1,9 @@
 /************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -79,7 +79,7 @@
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 /*#include "dtmmedefs.h"*/
 /*#include "dtmmiodefs.h"*/
 #include <unistd.h>
@@ -90,7 +90,7 @@
 #include <string.h>
 #include "opthread.h"
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined __EMSCRIPTEN__
 #include <mmsystem.h>
 typedef long          HMMIO;          /* a handle to an open file */
 #endif /* __linux__ */
@@ -178,7 +178,7 @@ int cm_cmd_digitized(LPTTS_HANDLE_T phTTS)
 #define  SET_AUDIO_PARAMS_SLEEP_TIME   200
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 /**********************************************************************/
 /**********************************************************************/
@@ -290,7 +290,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	  free( pWaveFormat );
@@ -504,7 +504,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  OP_Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 	}
@@ -526,7 +526,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	}
@@ -581,7 +581,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	}
@@ -625,7 +625,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 	  iLength = mmioRead( hMmio, lpData, uiReadSize );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	  iLength = DTK_MMIO_READ( hMmio, lpData, (LONG)uiReadSize );
 #endif
 	}
@@ -732,7 +732,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	}
@@ -773,7 +773,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  OP_Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 	}
@@ -828,7 +828,7 @@ static HMMIO wave_file_open( char * file_name,
   hmmioIn = mmioOpen( file_name, NULL, MMIO_READ );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   hmmioIn = DTK_MMIO_OPEN( file_name, NULL, MMIO_READ );
 #endif
 
@@ -855,7 +855,7 @@ static HMMIO wave_file_open( char * file_name,
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   if ( DTK_MMIO_DESCEND(hmmioIn, &ckInRIFF, NULL, 0 ) != 0 )
   {
         DTK_MMIO_CLOSE(hmmioIn, 0 );
@@ -872,24 +872,20 @@ static HMMIO wave_file_open( char * file_name,
   /********************************************************************/
 
 #ifdef WIN32
-  if (( ckInRIFF.ckid != FOURCC_RIFF )
-   || ( ckInRIFF.fccType != mmioFOURCC( 'W', 'A', 'V', 'E' )))
-  {
-	mmioClose(hmmioIn, 0 );
+  if (( ckInRIFF.ckid != FOURCC_RIFF ) || ( ckInRIFF.fccType != mmioFOURCC( 'W', 'A', 'V', 'E' ))) {
+		mmioClose(hmmioIn, 0 );
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
-  if (( ckInRIFF.ckid != FOURCC_RIFF )
-   || ( ckInRIFF.fccType != DTK_MMIO_FOURCC( 'W', 'A', 'V', 'E' )))
-  {
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
+  if (( ckInRIFF.ckid != FOURCC_RIFF ) || ( ckInRIFF.fccType != DTK_MMIO_FOURCC( 'W', 'A', 'V', 'E' ))) {
     DTK_MMIO_CLOSE(hmmioIn, 0 );
 #endif
-	TextToSpeechErrorHandler( phTTS,
-							  ERROR_BAD_WAVE_FILE_FORMAT,
-							  MMSYSERR_ERROR );
-	*piError = CMD_bad_wave_file_format;
-	return( (long)NULL );
+		TextToSpeechErrorHandler( phTTS,
+									ERROR_BAD_WAVE_FILE_FORMAT,
+									MMSYSERR_ERROR );
+		*piError = CMD_bad_wave_file_format;
+		return( (long)NULL );
   }
 
   /********************************************************************/
@@ -902,7 +898,7 @@ static HMMIO wave_file_open( char * file_name,
 	mmioClose( hmmioIn, 0 );
 #endif
 /* GL 04/21/1997  change this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   ckIn.ckid = DTK_MMIO_FOURCC( 'f', 'm', 't', ' ' );
   if ( DTK_MMIO_DESCEND( hmmioIn, &ckIn, &ckInRIFF, MMIO_FINDCHUNK ) != 0 )
   {
@@ -939,7 +935,7 @@ static HMMIO wave_file_open( char * file_name,
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	    DTK_MMIO_CLOSE(hmmioIn, 0 );
 #endif
 
@@ -965,7 +961,7 @@ static HMMIO wave_file_open( char * file_name,
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   if ( dwSize != (DWORD) DTK_MMIO_READ( hmmioIn,
 								  (HPSTR)&pWaveFormat->wFormatTag,
 								  dwSize ))
@@ -990,7 +986,7 @@ static HMMIO wave_file_open( char * file_name,
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   if ( DTK_MMIO_ASCEND(hmmioIn, &ckIn, 0 ) != 0 )
   {
     DTK_MMIO_CLOSE(hmmioIn, 0 );
@@ -1016,7 +1012,7 @@ static HMMIO wave_file_open( char * file_name,
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
   ckIn.ckid = DTK_MMIO_FOURCC( 'd', 'a', 't', 'a' );
   if ( DTK_MMIO_DESCEND( hmmioIn, &ckIn, &ckInRIFF, MMIO_FINDCHUNK ) != 0 )
   {
