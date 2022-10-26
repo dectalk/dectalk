@@ -53,8 +53,8 @@ dnl build_cpu, build_vendor, build_os
 dnl host_cpu, host_vendor, host_os 
 dnl target_cpu, target_vendor, target_os 
 dnl      the individual parts of the canonical names (for convenience). 
-AC_CANONICAL_SYSTEM
-dnl AC_CANONICAL_SYSTEM requires config.guess and config.sub shell scripts
+AC_CANONICAL_TARGET
+dnl AC_CANONICAL_TARGET requires config.guess and config.sub shell scripts
 
 dnl Determine a C compiler to use. If CC is not already set in the environment,
 dnl check for gcc, and use cc if that's not found. Set output variable CC 
@@ -105,12 +105,14 @@ case "$target" in
 	powerpc-apple-*) DEFINES=" -DLTSSIM -D_APPLE_MAC_ -D_BIGENDIAN_ -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE -dynamic" ;;
 	arm-ipaq-linux-*) DEFINES=" -D_REENTRANT -D_GNU_SOURCE -DNOMME -D__ipaq__ -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" ;;
 	*-*-linux-*) DEFINES=" -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" ;;
+	*-apple-darwin*) DEFINES=" -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" ;;
 esac
 AC_SUBST(DEFINES)dnl
 
 LICENSE_DEFINES=""
 case "$target" in
 	*-*-linux-*) LICENSE_DEFINES="";;
+	*-apple-darwin*) LICENSE_DEFINES="";;
 	sparc-sun-*) LICENSE_DEFINES="-D_SPARC_SOLARIS_ -D_BIGENDIAN_";;
 	powerpc-apple-*) LICENSE_DEFINES="-D_SPARC_SOLARIS_ -D_BIGENDIAN_";;
 esac
@@ -129,6 +131,7 @@ case "$target" in
 	arm-*-linux-*) DEBUG_FLAGS=" -g -fPIC";;
 	x86_64-*-linux-*) DEBUG_FLAGS=" -g -fPIC" ;;
 	*-*-linux-*) DEBUG_FLAGS=" -g" ;;
+	*-apple-darwin*) DEBUG_FLAGS=" -g" ;;
 	sparc-sun-*) DEBUG_FLAGS=" -g" ;;
 	powerpc-apple-*) DEBUG_FLAGS=" -g" ;;
 esac
@@ -156,6 +159,7 @@ AC_SUBST(ALIGN_OPT)dnl
 WARN_FLAGS=" -threads -w1"
 case "$target" in
 	*-*-linux-*) WARN_FLAGS=" -Wall -Wno-missing-braces -Wno-pointer-sign -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function" ;;
+	*-apple-darwin*) WARN_FLAGS=" -Wall -Wno-missing-braces -Wno-pointer-sign -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function" ;;
 	powerpc-apple-*) WARN_FLAGS=" -Wall" ;;
 	sparc-sun-*) WARN_FLAGS=" " ;;
 esac
@@ -211,6 +215,7 @@ case "$target" in
 	sparc-sun-*) LINUX_AUDIO="\$(OUTPUT_DIR)/linux_audio.o" ;;
 	powerpc-apple-*) LINUX_AUDIO="\$(OUTPUT_DIR)/linux_audio.o" ;;
 	*-*-linux-*) LINUX_AUDIO="\$(OUTPUT_DIR)/linux_audio.o" ;;
+	*-apple-darwin*) LINUX_AUDIO="\$(OUTPUT_DIR)/linux_audio.o" ;;
 esac
 AC_SUBST(LINUX_AUDIO)dnl
 
@@ -220,6 +225,7 @@ case "$target" in
 	powerpc-apple-*) LINK_LINUX_AUDIO="" ;;
 	sparc-sun-*) LINK_LINUX_AUDIO="\$(OUTPUT_DIR_2)/linux_audio.o" ;;
 	*-*-linux-*) LINK_LINUX_AUDIO="\$(OUTPUT_DIR_2)/linux_audio.o" ;;
+	*-apple-darwin*) LINK_LINUX_AUDIO="\$(OUTPUT_DIR_2)/linux_audio.o" ;;
 esac
 AC_SUBST(LINK_LINUX_AUDIO)dnl
 
@@ -229,6 +235,7 @@ case "$target" in
 	powerpc-apple-*) LINK_PORT_AUDIO="portaudio/lib/libportaudio.a" ;;
 	sparc-sun-*) LINK_PORT_AUDIO="" ;;
 	*-*-linux-*) LINK_PORT_AUDIO="" ;;
+	*-apple-darwin*) LINK_PORT_AUDIO="" ;;
 esac
 AC_SUBST(LINK_PORT_AUDIO)dnl
 
@@ -245,6 +252,10 @@ case "$target" in
 			\$(OUTPUT_DIR)/init.o \$(OUTPUT_DIR)/crypt2.o \
 			\$(OUTPUT_DIR)/init_demo.o " ;;
 	*-*-linux-*)API_OBJ_IN="\$(OUTPUT_DIR)/ttsapi_mme.o \
+			\$(OUTPUT_DIR)/decstd97.o \$(OUTPUT_DIR)/ttsapi_demo.o\
+			\$(OUTPUT_DIR)/init.o \$(OUTPUT_DIR)/crypt2.o \
+			\$(OUTPUT_DIR)/init_demo.o " ;;
+	*-apple-darwin*)API_OBJ_IN="\$(OUTPUT_DIR)/ttsapi_mme.o \
 			\$(OUTPUT_DIR)/decstd97.o \$(OUTPUT_DIR)/ttsapi_demo.o\
 			\$(OUTPUT_DIR)/init.o \$(OUTPUT_DIR)/crypt2.o \
 			\$(OUTPUT_DIR)/init_demo.o " ;;
@@ -265,6 +276,10 @@ case "$target" in
               \$(NT_MME_OBJ) \$(OSF_OBJ) \$(OSF_TTS_OBJ) \$(VTM_OBJ) \
               \$(LTS_NORM_OBJS) \$(LTS_DEMO_OBJS)" ;;
 	*-*-linux-*)ALL_LIB_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \$(CMD_OBJ) \
+	      \$(LTS_OBJ) \$(PH_OBJ) \$(HL_OBJ) \$(KERNEL_OBJ) \$(NT_OBJ) \
+              \$(NT_MME_OBJ) \$(OSF_OBJ) \$(OSF_TTS_OBJ) \$(VTM_OBJ) \
+              \$(LTS_NORM_OBJS) \$(LTS_DEMO_OBJS)" ;;
+	*-apple-darwin*)ALL_LIB_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \$(CMD_OBJ) \
 	      \$(LTS_OBJ) \$(PH_OBJ) \$(HL_OBJ) \$(KERNEL_OBJ) \$(NT_OBJ) \
               \$(NT_MME_OBJ) \$(OSF_OBJ) \$(OSF_TTS_OBJ) \$(VTM_OBJ) \
               \$(LTS_NORM_OBJS) \$(LTS_DEMO_OBJS)" ;;
@@ -301,6 +316,9 @@ case "$target" in
 	powerpc-apple-*) DECTALK_TTS_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \
 	\$(CMD_OBJ) \$(LTS_OBJ) \$(LTS_NORM_OBJS) \$(PH_OBJ) \$(HL_OBJ) \$(KERNEL_OBJ) \
 	\$(NT_OBJ) \$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)" ;;
+	*-apple-darwin*) DECTALK_TTS_OBJS="\$(API_ALL_OBJ) \$(API_MME_OBJ) \
+	\$(CMD_OBJ) \$(LTS_OBJ) \$(LTS_NORM_OBJS) \$(PH_OBJ) \$(HL_OBJ) \$(KERNEL_OBJ) \
+	\$(NT_OBJ) \$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)" ;;
 esac
 AC_SUBST(DECTALK_TTS_OBJS)dnl
 AC_SUBST(DECTALK_MME_OBJS)dnl
@@ -318,6 +336,9 @@ case "$target" in
 	*-*-linux-*) DECTALK_DEMO_OBJS="\$(API_ALL_OBJ) \$(API_DEMO_OBJ) \
 	\$(CMD_OBJ) \$(LTS_OBJ) \$(LTS_DEMO_OBJS) \$(PH_OBJ) \$(HL_OBJ) \$(KERNEL_OBJ) \
 	\$(NT_OBJ) \$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)" ;;
+	*-apple-darwin*) DECTALK_DEMO_OBJS="\$(API_ALL_OBJ) \$(API_DEMO_OBJ) \
+	\$(CMD_OBJ) \$(LTS_OBJ) \$(LTS_DEMO_OBJS) \$(PH_OBJ) \$(HL_OBJ) \$(KERNEL_OBJ) \
+	\$(NT_OBJ) \$(NT_MME_OBJ) \$(OSF_OBJ) \$(VTM_OBJ)" ;;
 esac
 AC_SUBST(DECTALK_DEMO_OBJS)dnl
 
@@ -326,6 +347,7 @@ dnl always use the "-lpthread" NOT "-lpthreads" in linux
 MMELIBS=" -lmme"
 case "$target" in
 	*-*-linux-*) MMELIBS=" -lpthread -lm" ;;
+	*-apple-darwin*) MMELIBS=" -lpthread -lm" ;;
 	powerpc-apple-*) MMELIBS=" -lpthread" ;;
 	sparc-sun-*) MMELIBS=" " ;;
 esac
@@ -337,6 +359,7 @@ case "$target" in
 	*-*-linux-*) LIBS=" -lpthread -lm" ;;
 	powerpc-apple-*) LIBS=" -lpthread -L../../../dapi/src/portaudio/lib -lportaudio -framework CoreAudio -framework AudioToolbox" ;;
 	sparc-sun-*) LIBS=" " ;;
+	*-apple-darwin*) LIBS=" -lpthread -lm" ;;
 esac
 AC_SUBST(LIBS)dnl
 
@@ -346,6 +369,7 @@ case "$target" in
 	*-*-linux-*) DT_SO_LIBS=" -lpthread -lc" ;;
 	powerpc-apple-*) DT_SO_LIBS="-lpthread -Lportaudio/lib -lportaudio -framework CoreAudio -framework AudioToolbox" ;;
 	sparc-sun-*) DT_SO_LIBS=" \$(OUTPUT_DIR)/libtts_\$(LANG_CODE).a -lpthread -lc -lrt -lm" ;;
+	*-apple-darwin*) DT_SO_LIBS=" -lpthread -lc" ;;
 esac
 AC_SUBST(DT_SO_LIBS)dnl
 
@@ -354,6 +378,7 @@ case "$target" in
 	*-*-linux-*) SO_LOCATIONS="" ;;
 	sparc-sun-*) SO_LOCATIONS="" ;;
 	powerpc-apple-*) SO_LOCATIONS="" ;;
+	*-apple-darwin*) SO_LOCATIONS="" ;;
 esac
 AC_SUBST(SO_LOCATIONS)dnl
 
@@ -367,6 +392,8 @@ case "$target" in
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 	sparc-sun-*) DAPI_LD_SHARED="\$(LD) -G -Bsymbolic \
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
+	*-apple-darwin*) DAPI_LD_SHARED="\$(LD) -shared -Bsymbolic -soname \
+		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -lm" ;;
 esac
 AC_SUBST(DAPI_LD_SHARED)dnl
 
@@ -444,6 +471,7 @@ case "$target" in
 	sparc-sun-*) SPEAK_ALL="" ;;
 	powerpc-apple-*) SPEAK_ALL="" ;;
 	*-*-linux-*) SPEAK_ALL="" ;;
+	*-apple-darwin*) SPEAK_ALL="" ;;
 esac
 
 PKG_CHECK_MODULES(GTK, [gtk+-2.0], have_gtk2=yes, have_gtk2=no)
@@ -461,6 +489,7 @@ case "$target" in
 	sparc-sun-*) WINDICT_ALL="" ;;
 	powerpc-apple-*) WINDICT_ALL="" ;;
 	*-*-linux-*) WINDICT_ALL="" ;;
+	*-apple-darwin*) WINDICT_ALL="" ;;
 esac
 
 if test "${have_gtk2}" = "yes"; then
@@ -479,6 +508,9 @@ case "$target" in
 	powerpc-apple-*) DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \
 	\$(OUTPUT_DIR)/say_demo_\$(LANG_CODE) \
 	\$(OUTPUT_DIR)/dtmemory_demo_\$(LANG_CODE) \$(OUTPUT_DIR)/aclock" ;;
+	*-apple-darwin*) DTSAMPLE_ALL="\$(OUTPUT_DIR)/say \$(OUTPUT_DIR)/dtmemory \
+	\$(OUTPUT_DIR)/say_demo_\$(LANG_CODE) \
+	\$(OUTPUT_DIR)/dtmemory_demo_\$(LANG_CODE) \$(OUTPUT_DIR)/aclock \$(OUTPUT_DIR)/tunecheck \$(OUTPUT_DIR)/dump_vdf \$(OUTPUT_DIR)/mfg_load" ;;
 esac
 AC_SUBST(DTSAMPLE_ALL)dnl
 
@@ -488,6 +520,7 @@ case "$target" in
 	sparc-sun-*) SAMPLE_LINKFLAGS=" -lm " ;;
 	*-*-linux-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 	powerpc-apple-*) SAMPLE_LINKFLAGS=" -ldl " ;;
+	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl " ;;
 esac
 SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
 AC_SUBST(SAMPLE_LINKFLAGS)dnl
@@ -497,6 +530,7 @@ case "$target" in
 	*-*-linux-*) SAMPLE_DTLIB=" -ltts" ;;
 	sparc-sun-*) SAMPLE_DTLIB=" -ltts" ;;
 	powerpc-apple-*) SAMPLE_DTLIB=" -ltts" ;;
+	*-apple-darwin*) SAMPLE_DTLIB=" -ltts" ;;
 esac
 AC_SUBST(SAMPLE_DTLIB)dnl
 
@@ -525,5 +559,6 @@ if test "${am_cv_lib_iconv}" = "yes"; then
 fi
 AC_SUBST(ICONV_LIBS)dnl
 
-AC_OUTPUT(Makefile Makefile.sub dapi/src/Makefile dapi/src/Makefile.sub dapi/src/api/Makefile dapi/src/cmd/Makefile dapi/src/dic/Makefile dapi/src/kernel/Makefile dapi/src/lts/Makefile dapi/src/nt/Makefile dapi/src/osf/Makefile dapi/src/ph/Makefile dapi/src/vtm/Makefile dapi/src/hlsyn/Makefile dtalkml/src/Makefile samplosf/src/speak/Makefile samplosf/src/windict/Makefile samplosf/src/dtsamples/Makefile licunix/src/Makefile udicunix/src/Makefile)
+AC_CONFIG_FILES(Makefile Makefile.sub dapi/src/Makefile dapi/src/Makefile.sub dapi/src/api/Makefile dapi/src/cmd/Makefile dapi/src/dic/Makefile dapi/src/kernel/Makefile dapi/src/lts/Makefile dapi/src/nt/Makefile dapi/src/osf/Makefile dapi/src/ph/Makefile dapi/src/vtm/Makefile dapi/src/hlsyn/Makefile dtalkml/src/Makefile samplosf/src/speak/Makefile samplosf/src/windict/Makefile samplosf/src/dtsamples/Makefile licunix/src/Makefile udicunix/src/Makefile)
+AC_OUTPUT
 dnl AC_OUTPUT always has to be last
