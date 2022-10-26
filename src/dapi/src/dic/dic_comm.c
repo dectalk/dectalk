@@ -1,9 +1,9 @@
 /* 
  ***********************************************************************
  *            
- *                           Copyright ©
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -68,7 +68,7 @@
 #include <malloc.h>
 #include <fcntl.h>
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <sys/types.h>
 #include <sys/stat.h>
 #else

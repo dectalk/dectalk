@@ -1,10 +1,10 @@
 /* 
  ***********************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1995, 1998. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1995, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -150,7 +150,7 @@
 #include "ph_def.h"				/* the new all inclusive include file for ph */
 
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #endif
 
@@ -1616,7 +1616,7 @@ MMRESULT GetSpeakerParams(LPTTS_HANDLE_T phTTS, UINT uiIndex, SPDEFS **ppspCur,
 	(*ppspCur)->open_quo      = pDph_t->curspdef[SPD_OQ] - (pDph_t->tunedef[voice][SPD_OQ]);
 
 
-#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_) && !defined (i386)
+#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386)
 	(*ppspCur)->output_gain_mult   = pDph_t->curspdef[SPD_OS] - (pDph_t->tunedef[voice][SPD_OS]);
 #endif
 
@@ -1766,7 +1766,7 @@ MMRESULT GetSpeakerParams(LPTTS_HANDLE_T phTTS, UINT uiIndex, SPDEFS **ppspCur,
 	(*ppspDefault)->hat_rise           = cur_speaker[SPD_HR];
 	(*ppspDefault)->stress_rise        = cur_speaker[SPD_SR];
 	(*ppspDefault)->avg_glot_open      = cur_speaker[SPD_AGO];
-#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_) && !defined (i386)
+#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386)
 	(*ppspDefault)->output_gain_mult   = cur_speaker[SPD_OS];
 #endif
 
@@ -1843,7 +1843,7 @@ MMRESULT SetSpeakerParams(LPTTS_HANDLE_T phTTS, SPDEFS *pspSet)
 	pDph_t->curspdef[SPD_CHINK]  = pspSet->area_chink	 +	(pDph_t->tunedef[voice][SPD_CHINK]);
 	pDph_t->curspdef[SPD_OQ]  = pspSet->open_quo	 +	(pDph_t->tunedef[voice][SPD_OQ]);
 
-#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_) && !defined (i386)
+#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386)
 	pDph_t->curspdef[SPD_OS]  = pspSet->output_gain_mult + (pDph_t->tunedef[voice][SPD_OS]);;
 #endif
 

@@ -96,7 +96,7 @@
  *  051	MFG		02/30/2003		Fixed the wide- string convertion for the WinCe dictionary 
  ***************************************************************************/
 
-#ifndef WIN32
+#if !defined WIN32 && !defined __EMSCRIPTEN__
 // Only for the DECTALK_INSTALL_PREFIX, which is usually "/opt/dectalk"
 #include "config.h"
 #endif
@@ -182,7 +182,7 @@ int __stdcall lts_main( LPTTS_HANDLE_T phTTS )
 
 #endif // WIN32
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 /* GL 04/21/1997  change this for OSF build */
 #if defined __osf__ 
@@ -197,7 +197,7 @@ extern MMRESULT load_dictionary( void **, void **, unsigned int *, unsigned int 
 /* MGS 11/19/1997 commented out duplicate prototype */
 //extern lsa_util_init_lang();
 //extern void default_lang ();
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 extern void default_lang( PKSD_T pKsd_t,unsigned int lang_code, unsigned int ready_code );
 #endif
 //extern ls_task_main ();

@@ -2,9 +2,9 @@
 /*
  ********************************************************************************************
  *                                                                      
- *                           Copyright ©                              
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.    
+ *                           Copyright ï¿½                              
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.    
  *                                                                      
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.    
  *    Government is subject to restrictions as set forth in subparagraph
@@ -68,7 +68,7 @@
 #include "tts.h"
 #include <stdio.h> // NAL warning removal
 
-#ifdef ARM7
+#if defined ARM7 || defined __EMSCRIPTEN__
 #include "stdlib.h"
 #include "string.h"
 #endif

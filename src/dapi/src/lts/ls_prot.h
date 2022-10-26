@@ -1,10 +1,10 @@
 /*
  ***********************************************************************
  *                                                                      
- *                           Copyright ©                              
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
- *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    © Digital Equipment Corporation 1996,1997. All rights reserved.    
+ *                           Copyright ï¿½                              
+ *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996,1997. All rights reserved.    
  *                                                                      
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.    
  *    Government is subject to restrictions as set forth in subparagraph
@@ -39,7 +39,7 @@
  *  006 GL		11/20/1996		add zflag as the argument for German do_2_digits()
  *								pass TRUE if want "0" in "0x" to spell
  *  007 GL		04/21/1997		BATS#357  Add the code for __osf__ build 
- *  008 MGS		07/22/1997		BATS#412  fixed ½ and ¼ problem 
+ *  008 MGS		07/22/1997		BATS#412  fixed ï¿½ and ï¿½ problem 
  *  009	MGS		08/20/1997		Added kerzweil code for first word vowels stressing
  *  010 DR 		09/30/1997		UK BUILD:ADDED UK STUFF
  *  011	GL		10/01/1997		add one more argument for ufind_word() and
@@ -93,7 +93,7 @@ extern void ls_rule_do_lts(LPTTS_HANDLE_T phTTS, LETTER *lp2, LETTER *lp1);
 extern int ls_util_is_name(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *rlp);
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 extern  void ls_task_main(LPTTS_HANDLE_T phTTS);
 #endif
 

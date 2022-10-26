@@ -1,10 +1,10 @@
 /*
  ***********************************************************************
  *
- *                           Copyright ©
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
- *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved. 
- *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright ï¿½
+ *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved. 
+ *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -194,7 +194,7 @@
 #define SPD_OQ  	36
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 #define SPD_OS		37
 #define SPD_NM		38
 #define SPDEF		39

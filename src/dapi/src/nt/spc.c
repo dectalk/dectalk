@@ -2,9 +2,9 @@
  ***********************************************************************
  *
  *                           Copyright (c)
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
- *    Copyright © 2000-2001 Force computers Inc., a Solectron company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *    Copyright ï¿½ 2000-2001 Force computers Inc., a Solectron company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -53,7 +53,7 @@
 #include "ph_def.h"         /* MVP : Now phinst.h includes phdefs.h, php.h */
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include "opthread.h"
 #include "port.h"

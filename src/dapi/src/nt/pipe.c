@@ -1,10 +1,10 @@
 /*
  ***********************************************************************
  *
- *                           Copyright ©
- *    Copyright © 2002 Fonix Corporation. All rights reserved.
+ *                           Copyright ï¿½
+ *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
  *    Digital Equipment Corporation 1996, 1997. All rights reserved.
- *    Copyright © 2000, 2001 Force Computers Inc. A Solectron company. All rights reserved.
+ *    Copyright ï¿½ 2000, 2001 Force Computers Inc. A Solectron company. All rights reserved.
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
  *    (c) (1) (ii) of DFARS 252.227-7013, or in FAR 52.227-19, or in FAR
@@ -123,7 +123,7 @@ struct PIPE_TAG
   DT_HANDLE hNotPausedEvent;
   LPCRITICAL_SECTION pcsPipe;
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   HEVENT_T hNotEmptyEvent;
   HEVENT_T hNotFullEvent;
   HEVENT_T hNotPausedEvent;
@@ -266,7 +266,7 @@ LPPIPE_T create_pipe( UINT uiType, UINT uiPipeLength )
   pPipe->pcsPipe =
     ( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   pPipe->pcsPipe = OP_CreateMutex();
 #endif
 

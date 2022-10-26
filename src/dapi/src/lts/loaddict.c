@@ -66,7 +66,7 @@
 */
 #include <stdio.h>
 
-#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdarg.h>
 #include <stdlib.h>
 #include <sys/types.h>

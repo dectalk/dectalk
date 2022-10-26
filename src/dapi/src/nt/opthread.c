@@ -1,9 +1,9 @@
 /************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -130,7 +130,7 @@
 #endif
 
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 #include <stdlib.h>
 #ifdef VXWORKS
@@ -141,7 +141,7 @@
 #endif
 #include <unistd.h>
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <errno.h>
 #endif
 /**********************************************************************/
@@ -412,7 +412,7 @@ unsigned int OP_SetThreadPriority( HTHREAD_T pThread,
 #endif
 
 #ifdef OP_POSIX 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 #ifdef _PRE_PLATINUM_POSIX_
 
@@ -540,7 +540,7 @@ unsigned int OP_WaitForThreadTermination( HTHREAD_T pThread,
 #if defined WIN32 && !defined NOWIN
                                           PTHREAD_STATUS_T pThreadStatus )
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined NOWIN
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__|| defined NOWIN
      PTHREAD_STATUS_T pThreadStatus,
   unsigned int uiMilliSeconds )
 #endif
@@ -1172,7 +1172,7 @@ unsigned int OP_WaitForEvent( HEVENT_T pEvent,
   int retcode=0;
 
 #ifdef OP_POSIX
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   struct timespec WaitTime;
   struct timespec AbsoluteTime;
   struct timeval AbsoluteTime_v;
@@ -1223,7 +1223,7 @@ unsigned int OP_WaitForEvent( HEVENT_T pEvent,
       
       // ETT 07/21/1998 pthread_get_expiration_np not defined in linux
       // use workaround
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
       //returns usecs!
       gettimeofday(&AbsoluteTime_v, NULL);
       //TIMEVAL_TO_TIMESPEC(&AbsoluteTime_v,&AbsoluteTime);
@@ -1323,9 +1323,9 @@ unsigned int OP_WaitForEvent( HEVENT_T pEvent,
 void OP_Sleep( unsigned int uiMilliSeconds )
 {
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   struct timespec SleepTime;
   struct timespec Time;
 #else
@@ -1343,7 +1343,7 @@ void OP_Sleep( unsigned int uiMilliSeconds )
     pthread_yield();
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef _PRE_PLATINUM_POSIX_
     pthread_yield();
 #else
@@ -1408,7 +1408,7 @@ void OP_Sleep( unsigned int uiMilliSeconds )
 #define TL_ATTEMPTSPERSECOND (50)
 #define TL_MSPERATTEMPT (1000/TL_ATTEMPTSPERSECOND)
 
-#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 // tek 27may98 these are not implemented for u*ix yet.
 int ThreadLock(TLOCK *tlLock, unsigned int dwTimeout)

@@ -1,10 +1,10 @@
 /************************************************************
  *
- *                           Copyright ©
- *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright ï¿½
+ *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *    Copyright (c)Compaq Computer Corporation 1999. All rights reserved.
- *    © SMART Modular Technologies 1999. All rights reserved. 
- *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    ï¿½ SMART Modular Technologies 1999. All rights reserved. 
+ *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
  *   
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
@@ -185,7 +185,7 @@
 #endif
 #include <stdlib.h>
 
-#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <string.h>
 #include <sys/time.h>
 #ifndef _SPARC_SOLARIS_
@@ -241,6 +241,10 @@ LONG OSS_WaveInit(void);
 #ifdef AUD_DEBUG
 FILE *fpODS_File;
 #endif
+#endif
+
+#if defined __EMSCRIPTEN__
+#include "disable_audio.h";
 #endif
 
 #include "tts.h"
@@ -1681,7 +1685,7 @@ MMRESULT PA_DestroyPlayHandleEx( HPLAY_AUDIO_T pPlayAudio )
 #if defined WIN32 && !defined NOWIN  
 				       &ThreadStatus
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_  || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
 	                               &ThreadStatus, OP_INFINITE
 #endif
 				       );
@@ -1746,7 +1750,7 @@ MMRESULT PA_DestroyPlayHandleEx( HPLAY_AUDIO_T pPlayAudio )
 #if defined WIN32 && !defined NOWIN 
 					 &ThreadStatus
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
 					 &ThreadStatus, OP_INFINITE
 #endif
 					 );
@@ -6694,7 +6698,7 @@ static MMRESULT ProcessSetFormatMessage( HPLAY_AUDIO_T pPlayAudio,
 #if defined WIN32
 	 ( mmStatus == WAVERR_BADFORMAT )
 #endif
-#if defined __osf__ || defined __linux__   || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__   || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	 ( mmStatus == MMSYSERR_NOTSUPPORTED )
 #endif
 	 && ( pWaveFormat->wFormatTag == WAVE_FORMAT_PCM )

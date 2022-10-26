@@ -1,9 +1,9 @@
 /* 
  ***********************************************************************
  *                                                                      
- *                           Copyright ©                              
- *    Copyright © 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    © Digital Equipment Corporation 1996. All rights reserved.        
+ *                           Copyright ï¿½                              
+ *    Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996. All rights reserved.        
  *                                                                     
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.    
  *    Government is subject to restrictions as set forth in subparagraph
@@ -48,6 +48,10 @@
 #include <windows.h>
 #endif
 
+#ifdef __EMSCRIPTEN__
+  #include "string.h"
+#endif
+
 
 #include "port.h"
 #include "ph_defs.h"
@@ -70,7 +74,7 @@
 #define printf WINprintf
 #endif
 
-#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define WINprintf printf
 #endif /* defined (MSDOS) || defined (__osf__) || defined (__linux__) */
 
