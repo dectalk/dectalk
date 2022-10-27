@@ -616,7 +616,7 @@ static DWORD __stdcall TextToSpeechThreadMain( LPTTS_HANDLE_T );
 static OP_THREAD_ROUTINE(TextToSpeechThreadMain, LPTTS_HANDLE_T phTTS);
 #endif /* defined __osf__ || __linux__*/
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
 static HWND InitTextToSpeechWindow( LPTTS_HANDLE_T );
 
 #ifdef WIN32
@@ -1970,7 +1970,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		return( MMSYSERR_INVALPARAM );	
 
 #ifdef LICENSES
-#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define MAX_INSTANCES_EXCEEDED  (MMSYSERR_ALLOCATED) // tek 29jul96
 	if (!AddLicenseRef(&a32_lic))
 	{
@@ -2002,7 +2002,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	*/
 	if((pKsd_t = (PKSD_T) calloc(1,sizeof(KSD_T))) == NULL)
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2058,7 +2058,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 
 	if ( phTTS == NULL )
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2214,7 +2214,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2297,7 +2297,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2327,7 +2327,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2358,7 +2358,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2447,7 +2447,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2470,7 +2470,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2505,7 +2505,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2533,7 +2533,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		{
 			DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2554,7 +2554,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2573,7 +2573,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2588,7 +2588,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2604,7 +2604,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2621,7 +2621,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2636,7 +2636,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2652,7 +2652,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2941,7 +2941,7 @@ phTTS->uiID_Start_Message =
 		{
 			DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2986,7 +2986,7 @@ phTTS->uiID_Start_Message =
 		if ( mmStatus )
 		{
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -3045,7 +3045,7 @@ phTTS->uiID_Start_Message =
 		if ( mmStatus )
 		{
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -3116,7 +3116,7 @@ phTTS->uiID_Start_Message =
 		TRUE, vtm_main))== MMSYSERR_NOMEM)
 #endif
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3146,7 +3146,7 @@ phTTS->uiID_Start_Message =
 		TRUE, ph_main))== MMSYSERR_NOMEM)
 #endif
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3181,7 +3181,7 @@ phTTS->uiID_Start_Message =
 	if ((nReturnCode=lts_main(phTTS)))
 	{
 		DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3200,7 +3200,7 @@ phTTS->uiID_Start_Message =
 			nReturnCode == MMSYSERR_INVALPARAM ||
 			nReturnCode == MMSYSERR_ERROR )
 		{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3219,7 +3219,7 @@ phTTS->uiID_Start_Message =
 			TRUE, cmd_main))== MMSYSERR_NOMEM)
 #endif
 		{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3242,7 +3242,7 @@ phTTS->uiID_Start_Message =
 		if(nReturnCode == MMSYSERR_NOMEM ||
 			nReturnCode == MMSYSERR_ERROR)
 		{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3268,7 +3268,7 @@ phTTS->uiID_Start_Message =
 			if ( i > MAX_STARTUP_WAIT_COUNT )
 			{                                                            
 				DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 				ReleaseLicenseRef(&a32_lic);	
 /* tek 23sep96 give back the license unit */
@@ -3286,7 +3286,7 @@ phTTS->uiID_Start_Message =
 		/* GL 11/05/1997  for BATS#510 */
 		if ( pKsd_t->fdic_entries[pKsd_t->lang_curr] == 0xFFFFFFFF )
 		{
-#if defined WIN32 || defined __linux__   || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3305,7 +3305,7 @@ phTTS->uiID_Start_Message =
 			if ( i > MAX_STARTUP_WAIT_COUNT )
 			{
 				DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 				ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3317,7 +3317,7 @@ phTTS->uiID_Start_Message =
 		if ( phTTS->hThread_TXT == NULL )
 		{
 			DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3763,7 +3763,7 @@ MMRESULT TextToSpeechShutdown( LPTTS_HANDLE_T phTTS )
 #endif // 0
 	
 	// release the license count..
-#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 	ReleaseLicenseRef(&a32_lic);
 #endif //LICENSES
@@ -11491,7 +11491,7 @@ MMRESULT TextToSpeechGetFeatures(void)
 #endif
 	return feats;
 }
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs) 
 {	LPVERSION_INFO verinfo;
 

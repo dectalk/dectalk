@@ -639,7 +639,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 		else
 		{
 		  /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		  if ((pCmd_t->skip_mode != SKIP_email) &&
 		      ((pKsd_t->modeflag & MODE_EMAIL) != 0))
 		    {

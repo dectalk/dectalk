@@ -121,7 +121,7 @@ typedef unsigned char U8;
 #define far
 #define huge
 #define _huge
-#ifndef __linux__
+#if !(defined __linux__ || defined __EMSCRIPTEN__)
 #define volatile
 #endif
 

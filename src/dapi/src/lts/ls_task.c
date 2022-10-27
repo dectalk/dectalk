@@ -1743,27 +1743,27 @@ int ls_task_fix_german_vowels(PLTS_T pLts_t, LETTER *llp, LETTER **rlp)
 			switch (elp->l_ch)
 			{
 			case 'a':
-				elp->l_ch=(unsigned char)'ä';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'A':
-				elp->l_ch=(unsigned char)'Ä';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'o':
-				elp->l_ch=(unsigned char)'ö';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'O':
-				elp->l_ch=(unsigned char)'Ö';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'u':
-				elp->l_ch=(unsigned char)'ü';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			case 'U':
-				elp->l_ch=(unsigned char)'Ü';
+				elp->l_ch=(unsigned char)'?';
 				move=1;
 				break;
 			}

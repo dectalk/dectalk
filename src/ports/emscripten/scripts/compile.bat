@@ -1,5 +1,4 @@
-emcc -Wall ^
-  "./dectalk.c" ^
+emcc -Wall -fPIC ^
   "../../dapi/src/api/crypt2.c" ^
   "../../dapi/src/api/decstd97.c" ^
   "../../dapi/src/api/ttsapi.c" ^
@@ -58,12 +57,14 @@ emcc -Wall ^
   "../../dapi/src/lts/ls_speli.c" ^
   "../../dapi/src/lts/ls_suff.c" ^
   "../../dapi/src/lts/ls_suffi.c" ^
+  "../../dapi/src/osf/dtmmio.c" ^
+  "../../dapi/src/osf/loadable.c" ^
+  "../../dapi/src/osf/playstub.c" ^
   "../../dapi/src/nt/dbgwins.c" ^
   "../../dapi/src/nt/disable_audio.c" ^
   "../../dapi/src/nt/mmalloc.c" ^
   "../../dapi/src/nt/opthread.c" ^
   "../../dapi/src/nt/pipe.c" ^
-  "../../dapi/src/nt/playaud.c" ^
   "../../dapi/src/nt/spc.c" ^
   "../../dapi/src/ph/phinit.c" ^
   "../../dapi/src/ph/phlog.c" ^
@@ -87,6 +88,7 @@ emcc -Wall ^
   "../../dapi/src/vtm/sync.c" ^
   "../../dapi/src/vtm/vtm.c" ^
   "../../dapi/src/vtm/vtmiont.c" ^
+  -I "./src" ^
   -I "../.." ^
   -I "../../dapi/src" ^
   -I "../../dapi/src/api" ^
@@ -112,4 +114,14 @@ emcc -Wall ^
   -D TYPING_MODE ^
   -D USE_SDL ^
   -D OS_SIXTY_FOUR_BIT ^
-  -l openal
+  -D ACNA ^
+  -D DISABLE_AUDIO ^
+  -s SIDE_MODULE=1 ^
+  -s LINKABLE=1 ^
+  -s EXPORT_ALL=1 ^
+  -pthread ^
+  -gsource-map ^
+  --source-map-base http://127.0.0.1:8080/ ^
+  --emit-symbol-map ^
+  -g4 ^
+  -o ../../dapi.wasm

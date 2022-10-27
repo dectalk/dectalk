@@ -119,6 +119,10 @@
 #define MMSYSERR_LASTERROR    (MMSYSERR_BASE + 13) /* last error in range */
 
 
+#if defined __EMSCRIPTEN__
+#include "emscripten.h"
+#endif
+
 #include "tts.h"
 
 #if defined (BLD_DECTALK_DLL) || defined (LDS_BUILD)
@@ -149,7 +153,7 @@ extern "C" {
 /*  TextToSpeechOpenWaveOutFile(). Other formats are contained in     */
 /*  include file mmsystem.h.                                          */
 /**********************************************************************/
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "dtmmedefs.h"
 #endif
 

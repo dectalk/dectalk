@@ -326,7 +326,7 @@ THREAD_PRIORITY_T OP_GetThreadPriority( HTHREAD_T pThread )
 #endif
 
 #ifdef OP_POSIX 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 #ifdef _PRE_PLATINUM_POSIX_
 
@@ -540,7 +540,7 @@ unsigned int OP_WaitForThreadTermination( HTHREAD_T pThread,
 #if defined WIN32 && !defined NOWIN
                                           PTHREAD_STATUS_T pThreadStatus )
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__|| defined NOWIN
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
      PTHREAD_STATUS_T pThreadStatus,
   unsigned int uiMilliSeconds )
 #endif
@@ -555,7 +555,7 @@ if ( pThread != 0 )
   /******************************************************************/
   /*  Wait for the thread to exit.                                  */
   /******************************************************************/
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   if ( pthread_join((*pThread), pThreadStatus ) == 0 )   
 #else
     if ( pthread_join((*pThread), pThreadStatus ) != 0 )
@@ -593,7 +593,7 @@ if ( pThread != 0 )
 #ifdef WIN32
     WaitForSingleObject( pThread, INFINITE );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	WaitForSingleObject( pThread, uiMilliSeconds );
 #endif
 
@@ -660,7 +660,7 @@ HMUTEX_T OP_CreateMutex()
 #endif	/* ifdef WIN32 */
 #endif	/* ifdef OP_POSIX */
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef OP_POSIX
 #ifdef _PRE_PLATINUM_POSIX_
     if ( pthread_mutex_init( pMutex, 
@@ -679,7 +679,7 @@ HMUTEX_T OP_CreateMutex()
       pMutex = NULL;
     }
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
     pthread_mutexattr_destroy( &ThreadAttr );
 #else
     pthread_attr_destroy( &ThreadAttr );

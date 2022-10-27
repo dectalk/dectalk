@@ -178,7 +178,7 @@ int cm_cmd_digitized(LPTTS_HANDLE_T phTTS)
 #define  SET_AUDIO_PARAMS_SLEEP_TIME   200
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 /**********************************************************************/
 /**********************************************************************/
@@ -290,7 +290,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	  free( pWaveFormat );
@@ -504,7 +504,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  OP_Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 	}
@@ -526,7 +526,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	}
@@ -581,7 +581,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	}
@@ -625,7 +625,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 	  iLength = mmioRead( hMmio, lpData, uiReadSize );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	  iLength = DTK_MMIO_READ( hMmio, lpData, (LONG)uiReadSize );
 #endif
 	}
@@ -732,7 +732,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	mmioClose( hMmio, 0 );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	DTK_MMIO_CLOSE( hMmio, 0 );
 #endif
 	}
@@ -773,7 +773,7 @@ int cm_cmd_play(LPTTS_HANDLE_T phTTS)
 	  Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	  OP_Sleep( SET_AUDIO_PARAMS_SLEEP_TIME );
 #endif
 	}
@@ -935,7 +935,7 @@ static HMMIO wave_file_open( char * file_name,
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 	    DTK_MMIO_CLOSE(hmmioIn, 0 );
 #endif
 

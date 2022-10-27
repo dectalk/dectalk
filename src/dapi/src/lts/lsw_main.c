@@ -96,7 +96,7 @@
  *  051	MFG		02/30/2003		Fixed the wide- string convertion for the WinCe dictionary 
  ***************************************************************************/
 
-#if !defined WIN32 && !defined __EMSCRIPTEN__
+#if !defined WIN32
 // Only for the DECTALK_INSTALL_PREFIX, which is usually "/opt/dectalk"
 #include "config.h"
 #endif
@@ -116,10 +116,13 @@ LTS_T   Lts_t;
 #undef LSWMAIN_DIC
 #endif // ARM7
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdlib.h>
-#include <linux/limits.h>
 #include <libgen.h>
+#endif
+
+#ifdef __linux
+#include <linux/limits.h>
 #endif
 
 #ifdef WIN32
@@ -460,7 +463,7 @@ char ch_dictionary_file_name[500];
   
 #endif /* #ifdef WIN32 */
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   int nDicLoad;
   int fDicLoad;
 
@@ -1435,7 +1438,7 @@ int LTSLibMain( DT_HANDLE hInst,
 #endif
 
 
-#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef ENGLISH_US
 #define LINUX_DICT_TAG "US_dict:"
 #define LINUX_FDICT_TAG "US_fdict:"
