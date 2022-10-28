@@ -88,7 +88,6 @@ emcc -Wall -fPIC ^
   "../../dapi/src/vtm/sync.c" ^
   "../../dapi/src/vtm/vtm.c" ^
   "../../dapi/src/vtm/vtmiont.c" ^
-  -I "./src" ^
   -I "../.." ^
   -I "../../dapi/src" ^
   -I "../../dapi/src/api" ^
@@ -112,7 +111,6 @@ emcc -Wall -fPIC ^
   -D ENGLISH_US ^
   -D ACCESS32 ^
   -D TYPING_MODE ^
-  -D USE_SDL ^
   -D OS_SIXTY_FOUR_BIT ^
   -D ACNA ^
   -D DISABLE_AUDIO ^

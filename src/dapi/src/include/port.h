@@ -421,4 +421,16 @@ typedef long MMRESULT;
 
 #endif //ARM7
 
+/**
+ * Emscripten Support!
+ */
+#ifdef __EMSCRIPTEN__
+
+// Remove all __inline commands.
+#define _inline
+#define __inline
+
+#endif
+
+
 #endif /* _PORT_H */

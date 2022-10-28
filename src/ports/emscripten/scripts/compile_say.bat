@@ -1,7 +1,6 @@
 emcc -Wall ^
   "../../samplosf/src/dtsamples/say.c" ^
   "./public/dapi.wasm" ^
-  -I "./src" ^
   -I "../.." ^
   -I "../../dapi/src" ^
   -I "../../dapi/src/api" ^
@@ -25,7 +24,6 @@ emcc -Wall ^
   -D ENGLISH_US ^
   -D ACCESS32 ^
   -D TYPING_MODE ^
-  -D USE_SDL ^
   -D OS_SIXTY_FOUR_BIT ^
   -D DISABLE_AUDIO ^
   -s MAIN_MODULE=1 ^

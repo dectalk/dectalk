@@ -303,8 +303,8 @@ int main()
 #endif
 {
     #ifdef __EMSCRIPTEN__
-      int argc = 3;
-      char *argv[3] = {"dectalk", "-a", "\"test\""};
+      int argc = 5;
+      char *argv[5] = {"dectalk", "-a", "\"test\"", "-fo", "dtmemory.wav"};
     #endif
 
     char *buf;

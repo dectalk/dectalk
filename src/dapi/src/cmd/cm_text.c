@@ -152,6 +152,7 @@ extern const unsigned char par_lower[];
 extern int _far par_dict_lookup(PKSD_T, char *, int);
 #endif
 
+#ifndef NEW_BINARY_PARSER
 __inline void par_copy_index_list(pindex_data_t dest_index,
 								  int		    dest_pos,
 								  pindex_data_t src_index,
@@ -176,6 +177,7 @@ __inline int par_is_index_set(pindex_data_t indexes,
 	}
 	return(0);
 }
+#endif
 
 #ifdef EPSON_ARM7
 void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
