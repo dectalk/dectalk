@@ -188,7 +188,7 @@ short TOT_ALLOPHONES = (PH_LAST_PH+1);  /* total number of phones */
 
 /* MVP : Function prototypes */
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 extern void spcfree(unsigned short *);
 #endif
 
@@ -315,7 +315,7 @@ OP_THREAD_ROUTINE(ph_main, LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 		return (MMSYSERR_NOMEM);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		phTTS->uiThreadError = MMSYSERR_NOMEM;
         else
 #endif
@@ -346,7 +346,7 @@ OP_THREAD_ROUTINE(ph_main, LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 				return (MMSYSERR_NOMEM);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 			phTTS->uiThreadError = MMSYSERR_NOMEM;
 		
 #endif
@@ -358,7 +358,7 @@ OP_THREAD_ROUTINE(ph_main, LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 SetEvent (phTTS->hMallocSuccessEvent);	/* Malloc s are success,set the event */
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
         /* CP: Set the event, even if malloc eerror occurred. User
          * will look at uiThreadError for actual error code.
          */
@@ -725,7 +725,7 @@ SetEvent (phTTS->hMallocSuccessEvent);	/* Malloc s are success,set the event */
 #if defined (MSDOS) || defined (WIN32)
 	return 0;						/* No error MVP */
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef SINGLE_THREADED
 	return MMSYSERR_NOERROR;
 #else

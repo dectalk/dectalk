@@ -43,11 +43,11 @@
  */
 
 /* ETT 07/24/1998 watch out here */
-#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <io.h>          
 #endif
 
-#ifdef __linux__
+#ifdef __linux__ || defined __EMSCRIPTEN__
 #ifdef __arm__
 #include <asm/io.h>
 #else
@@ -58,7 +58,7 @@
 #include "port.h"
 #include <stdlib.h>
 
-#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
 #include <process.h>       
 #endif
 

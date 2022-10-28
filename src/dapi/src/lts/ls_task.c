@@ -223,7 +223,7 @@ extern void ls_suff_print_fc(LPTTS_HANDLE_T phTTS);
 #define SPELL_WORD      2
 #define FINISHED_WORD   3
 
-#ifdef __linux__
+#ifdef __linux__ || defined __EMSCRIPTEN__
 #include <stdio.h>
 #endif
 

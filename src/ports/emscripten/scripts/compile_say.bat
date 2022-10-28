@@ -1,6 +1,6 @@
 emcc -Wall ^
   "../../samplosf/src/dtsamples/say.c" ^
-  "./dist/dapi.wasm" ^
+  "./public/dapi.wasm" ^
   -I "./src" ^
   -I "../.." ^
   -I "../../dapi/src" ^
@@ -30,9 +30,11 @@ emcc -Wall ^
   -D DISABLE_AUDIO ^
   -s MAIN_MODULE=1 ^
   -s ERROR_ON_UNDEFINED_SYMBOLS=0 ^
-  -pthread ^
+  -s PROXY_TO_PTHREAD=1 ^
+  -s ALLOW_MEMORY_GROWTH=1 ^
   -gsource-map ^
   --source-map-base http://127.0.0.1:8080/ ^
   --emit-symbol-map ^
+  -pthread ^
   -g4 ^
-  -o ../../say.html
+  -o ./public/say.html

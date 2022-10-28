@@ -296,8 +296,17 @@ static void usage(char *progname)
 **
 ******************************************************************************/
 
+#ifndef __EMSCRIPTEN__
 int main( int argc, char *argv[] )
+#else
+int main()
+#endif
 {
+    #ifdef __EMSCRIPTEN__
+      int argc = 3;
+      char *argv[3] = {"dectalk", "-a", "\"test\""};
+    #endif
+
     char *buf;
     int buf_len = 0;
     char cli_text[4096];

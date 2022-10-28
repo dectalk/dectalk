@@ -225,7 +225,7 @@ HTHREAD_T OP_CreateThread( THREAD_STACK_SIZE_T StackSize,
 		return NULL;
     }
 #endif
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
 	if ( StackSize != 0 )
     {
 		if ( pthread_attr_setstacksize( &ThreadAttr, StackSize ))

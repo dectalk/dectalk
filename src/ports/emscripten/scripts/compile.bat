@@ -119,9 +119,12 @@ emcc -Wall -fPIC ^
   -s SIDE_MODULE=1 ^
   -s LINKABLE=1 ^
   -s EXPORT_ALL=1 ^
-  -pthread ^
+  -s PROXY_TO_PTHREAD=1 ^
+  -s ALLOW_MEMORY_GROWTH=1 ^
   -gsource-map ^
   --source-map-base http://127.0.0.1:8080/ ^
   --emit-symbol-map ^
+  -pthread ^
   -g4 ^
-  -o ../../dapi.wasm
+  -o ./public/dapi.wasm ^
+  --embed-file fs@

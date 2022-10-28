@@ -2271,7 +2271,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);
 #endif	/* LICENSES */
@@ -2387,7 +2387,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	
 	if ( pKsd_t->pcsSpcPktSave == NULL )
 	{
-#if defined WIN32 || defined __linux__
+#if defined WIN32 || defined __linux__ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic); // tek 23sep96
 #endif	/* LICENSES */
@@ -2417,7 +2417,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	
 	if ( pKsd_t->pcsVtmPipeRead == NULL )
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic); // tek 23sep96
 #endif	/* LICENSES */
@@ -3130,7 +3130,7 @@ phTTS->uiID_Start_Message =
 	if (ph_main(phTTS)==MMSYSERR_NOMEM)
 	{
 		DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -6458,7 +6458,7 @@ sprintf(szTemp,"TTSReset init threads at %ld\n",timeGetTime());
   // tek 22aug96 we still need to do a LAST_VOICE to make sure the VTM */
   // is in a nice state..
   {
-    //#if defined __osf__ || defined __linux__
+    //#if defined __osf__ || defined __linux__ || defined __EMSCRIPTEN__
     //	  unsigned short LastVoice=LAST_VOICE;
     //	  write_pipe( pKsd_t->lts_pipe, &LastVoice, 1 );
     //#endif
