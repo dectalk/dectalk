@@ -107,7 +107,7 @@
 **
 **     From command line type:
 **
-**     Usage: say [-h] [-s #] [-r #] [-d #] [-fi file] [-a "<text>"] [-fo file]
+**     Usage: say [-h] [-s #] [-r #] [-d #] [-fi file] [-a "<text>"] [-fo file] [-]
 **          -a  "text" speak text (quoted, multiple instances supported)
 **          -d  #      Select the audio device ( 0 or 1 )
 **          -e  #      Output wave file encoding; specify:
@@ -221,12 +221,12 @@ LANG_ENUM *dt_langs;
 
 static void usage(char *progname)
 {
-    fprintf(stderr, "\t%s will read text from stdin (default) or\n",progname);
-    fprintf(stderr, "\tcommand line or file and speak that text through the\n");
-    fprintf(stderr, "\tMME server using the highest quality audio device it\n");
-    fprintf(stderr, "\tfinds. You can override this option by using the -d \n");
+    fprintf(stderr, "\t%s will read text from stdin in typing-mode (default),\n",progname);
+    fprintf(stderr, "\tnon-typing mode or command line or file and speak that\n");
+    fprintf(stderr, "\ttext through the MME server using the highest quality audio\n");
+    fprintf(stderr, "\tdevice it finds. You can override this option by using the -d \n");
     fprintf(stderr, "\tcommand line option to select a particular audio device.\n\n");
-    fprintf(stderr,"Usage: %s [-h] [-s #] [-r #] [-d #] [-fo file] [-a \"<text>\"] [-fi file]\n",progname);
+    fprintf(stderr,"Usage: %s [-h] [-s #] [-r #] [-d #] [-fo file] [-a \"<text>\"] [-fi file] [-]\n",progname);
     fprintf(stderr,"          -a \"text\" speak text (quoted, multiple instances supported)\n");
     fprintf(stderr,"          -d  #      Select the audio device ( 0 or 1 )\n");
     fprintf(stderr,"          -e  #      Output wave file encoding; specify:\n");
@@ -260,6 +260,7 @@ static void usage(char *progname)
     fprintf(stderr,"                     \"The End\".\n" );
     fprintf(stderr,"                     The \"normal\" input is \"forced\" out before the postfix\n" );
     fprintf(stderr,"                     text is read.\n" );
+    fprintf(stderr,"          -          Read from stdin in line-mode (non-typing)\n");
     exit(-1);
 }
 
