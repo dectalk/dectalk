@@ -335,9 +335,13 @@ void ls_proc_do_3_digits(LPTTS_HANDLE_T phTTS, LETTER *lp)
 		ls_spel_spell(phTTS,lp, lp+3);
 	else 
 	{
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 		//BATS 863 which corrected the number before 
 		//a quatitiy (hudred thousand ect ) from stressed to unstressed
 		ls_util_send_phone_list(phTTS,upunits[lp->l_ch-'0']);
+#else
+		ls_util_send_phone_list(phTTS,punits[lp->l_ch-'0']);
+#endif
 		ls_util_send_phone(phTTS,WBOUND);
 		if ((lp+1)->l_ch=='0' && (lp+2)->l_ch=='0') 
 		{
@@ -373,9 +377,13 @@ void ls_proc_do_4_digits(LPTTS_HANDLE_T phTTS,LETTER *lp) // NAL warning removal
 		{
 			if ((lp+1)->l_ch == '0') 
 			{
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				//BATS 863 which corrected the number before 
 				//a quatitiy (hudred thousand ect ) from stressed to unstressed
 				ls_util_send_phone_list(phTTS,upunits[lp->l_ch-'0']);
+#else
+				ls_util_send_phone_list(phTTS,punits[lp->l_ch-'0']);
+#endif
 				ls_util_send_phone(phTTS,WBOUND);
 				ls_util_send_phone_list(phTTS,pthousand);
 			} 
@@ -422,9 +430,13 @@ void ls_proc_do_digit_group(LPTTS_HANDLE_T phTTS, unsigned char buf[3], int ofla
 {
 	if (buf[0] != '0') 
 	{
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 		//BATS 863 which corrected the number before 
 		//a quatitiy (hudred thousand ect ) from stressed to unstressed
 		ls_util_send_phone_list(phTTS,upunits[buf[0]-'0']);
+#else
+		ls_util_send_phone_list(phTTS,punits[buf[0]-'0']);
+#endif
 		ls_util_send_phone(phTTS,WBOUND);
 		ls_util_send_phone_list(phTTS,phundred);
 		if (buf[1]=='0' && buf[2]=='0') 
