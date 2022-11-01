@@ -241,5 +241,11 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 /* Changes to PH and VTM modules after 4.2/4.3 */
 #define CHANGES_AFTER_V43
 
+// Main output sample rate
+// 11025 - default DECtalk sample rate
+// 22050 - work in progress, breaks things
+#define  PC_SAMPLE_RATE     11025
+//#define  PC_SAMPLE_RATE     22050
+
 #endif // _DECTALK_H_
 

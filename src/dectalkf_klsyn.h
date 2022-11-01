@@ -253,6 +253,12 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 #define VTM1
 //#define FP_VTM
 
+// Main output sample rate
+// 11025 - default DECtalk sample rate
+// 22050 - work in progress, breaks things
+#define  PC_SAMPLE_RATE     11025
+//#define  PC_SAMPLE_RATE     22050
+
 // Which voice to use (default when not defined is 4.3)
 // VDF_DECTALKEXPRESS_42 -> DECtalk Express 4.2a
 // VDF_DECTALKEXPRESS_42CD -> DECtalk Express 4.2cd
