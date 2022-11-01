@@ -135,7 +135,11 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
+#if PC_SAMPLE_RATE == 11025
   if ( frequency > 4500 || bandwidth > 4950 ) {
+#else
+  if ( frequency > 9000 || bandwidth > 9900 ) {
+#endif
     *bcoef = 0;
     *ccoef = 0;
   } else
@@ -233,7 +237,11 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /********************************************************************/
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
+#if PC_SAMPLE_RATE == 11025
   if ( frequency > 4500 || bandwidth > 4950 ) {
+#else
+  if ( frequency > 9000 || bandwidth > 9900 ) {
+#endif
     frequency = 10000 >> 1;
     bandwidth = 10000 >> 2;
   }
@@ -327,7 +335,11 @@ S16 d2pole_pf( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
+#if PC_SAMPLE_RATE == 11025
   if ( frequency > 4500 || bandwidth > 4950 ) {
+#else
+  if ( frequency > 9000 || bandwidth > 9900 ) {
+#endif
     *bcoef = 0;
     *ccoef = 0;
     acoef = 0;

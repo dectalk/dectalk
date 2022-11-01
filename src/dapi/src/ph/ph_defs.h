@@ -114,6 +114,8 @@
 #include "esc.h"
 #include "cmd.h"
 
+#include "samprate.h"
+
 #define GEN_SIL 0x01E00
 
 //#define SUEB
@@ -686,8 +688,13 @@ SPD_CHIP;
 #define ZAPF    2500				   /* Magic f  value to zap b constant of diff eqn  */
 #define ZAPB    2048				   /* Magic bw value to zap c constant of diff eqn */
 #else
+#if PC_SAMPLE_RATE == 11025
 #define ZAPF	6000				   /* Magic f  value to zap b constant of diff eqn    */
 #define ZAPB	6000				   /* Magic bw value to zap c constant of diff eqn */
+#elif PC_SAMPLE_RATE == 22050
+#define ZAPF	12000				   /* Magic f  value to zap b constant of diff eqn    */
+#define ZAPB	12000				   /* Magic bw value to zap c constant of diff eqn */
+#endif
 #endif
 
 #define F2max   2500				   /* Limit to keep SPC from overloading */

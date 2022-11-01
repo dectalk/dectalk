@@ -649,7 +649,11 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 	}
 
 	spdef->r4cc = pDph_t->curspdef[SPD_B4];	/* B4 -> B4             */
+#if PC_SAMPLE_RATE == 11025
 	if (spdef->r4cb > 4950)
+#else
+	if (spdef->r4cb > 9900)
+#endif
 	{
 		spdef->r4cb = ZAPF;			   		/* F4 too big, zap it   */
 		spdef->r4cc = ZAPB;			   		/* and bw   			*/
@@ -682,7 +686,11 @@ void setspdef (LPTTS_HANDLE_T phTTS)
 #if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 	if (spdef->r5cb > (phTTS->pKernelShareData->uiSampleRate>>1))
 #else
+#if PC_SAMPLE_RATE == 11025
 	if (spdef->r5cb > 4950)
+#else
+	if (spdef->r5cb > 9900)
+#endif
 #endif
 	{
 		spdef->r5cb = ZAPF;			   		/* F5 too big, zap it   */
