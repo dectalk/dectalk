@@ -501,9 +501,6 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 5];
   }
   else
-#if PC_SAMPLE_RATE == 22050
-    if ( pVtm_t->SampleRate < 19000 )
-#endif
   {
 #ifdef HLSYN
     p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 13];
@@ -515,16 +512,6 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 6];
     p6_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A6inDB + 5];
   }
-#if PC_SAMPLE_RATE == 22050
-  else
-  {
-    p2_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A2inDB + 13];
-    p3_gain = pVtm_t->SpeakerFricationGain * dBtoLinear[A3inDB + 11];
-    p4_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A4inDB + 8];
-    p5_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A5inDB + 7];
-    p6_b0 = pVtm_t->SpeakerFricationGain * dBtoLinear[A6inDB + 6];
-  }
-#endif
 
   BypassNoiseGain = pVtm_t->SpeakerFricationGain * dBtoLinear[ABinDB + 5];
 
@@ -579,13 +566,6 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 		Noisef = (FLTPNT_T)0.25 * (FLTPNT_T)pVtm_t->randomx; /*flat_spectrum*/
 	
 
-#if PC_SAMPLE_RATE == 22050
-#warning need to scale Noise for 22kHz, most probably wrong
-    if (pVtm_t->SampleRate >= 19000.0 ) {
-	    Noisef *= 5;
-    }
-#endif
-
     /******************************************************************/
     /*  Tilt down aspiration noise spectrum at high freqs by low-pass */
     /*  filtering using a fliter with a zero at 5KHz to achieve a "soft" filter                                                  */
@@ -608,28 +588,12 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
     /******************************************************************/
 //according to notes this doesn;t work right unless inpout and output var 
 //are diff
-#if PC_SAMPLE_RATE == 22050
-#warning need to change lp-filter for noise at 22kHz, probably wrong
-    if (pVtm_t->SampleRate < 19000.0 ) {
-#endif
     MINIMUM_TWO_ZERO_FILTER( NoiseOutput,
                              Noise,
                              pVtm_t->NoiseDelay_1,
                              pVtm_t->NoiseDelay_2,
                              Noise_b1,
                              Noise_b2 );
-#if PC_SAMPLE_RATE == 22050
-    }
-    else
-    {
-    MINIMUM_TWO_ZERO_FILTER( NoiseOutput,
-                             Noise,
-                             pVtm_t->NoiseDelay_1,
-                             pVtm_t->NoiseDelay_2,
-                             Noise_b1*2,
-                             Noise_b2*2 );
-    }
-#endif
     
     Noise = NoiseOutput;
 #endif
@@ -894,9 +858,17 @@ if(uiNs == nopen)
         /*  lookup.                                                   */
         /**************************************************************/
 #ifndef NEW_VTM
-        pVtm_t->Nasal_b0 = Nasal_b0_calc(FZinHZ);
-        pVtm_t->Nasal_b1 = Nasal_b1_calc(FZinHZ);
-        pVtm_t->Nasal_b2 = Nasal_b2_calc(FZinHZ);
+	{
+		FLTPNT_T nasal_gain = 1.0;
+#if PC_SAMPLE_RATE == 22050
+		if (pVtm_t->SampleRate >= 19000.0 ) {
+			nasal_gain = 0.03;
+		}
+#endif
+		pVtm_t->Nasal_b0 = Nasal_b0_calc(FZinHZ, nasal_gain);
+		pVtm_t->Nasal_b1 = Nasal_b1_calc(FZinHZ, nasal_gain);
+		pVtm_t->Nasal_b2 = Nasal_b2_calc(FZinHZ, nasal_gain);
+	}
 #else
 
   DESIGN_TWO_POLE_FILTER( pVtm_t->NasalResonator_a1,
@@ -1133,13 +1105,6 @@ if(uiNs == nopen)
     /******************************************************************/
 
 	
-#if PC_SAMPLE_RATE == 22050
-#warning Need to scale noise for parallel vocal tract, probably wrong
-    if (pVtm_t->SampleRate >= 19000.0 ) {
-      Noise *= 5;
-    }
-#endif
-
     /******************************************************************/
     /*  Sixth Formant of Parallel Vocal Tract.                        */
     /******************************************************************/
@@ -1490,8 +1455,8 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 #if PC_SAMPLE_RATE == 22050
   else
   {
-    flp = 948*2;
-    blp = 615*2;
+    flp = 948;
+    blp = 615/2;
   }
 #endif
 
@@ -1723,13 +1688,6 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 
   iDeltaGainInDB = (int)pSpeakerDefinition->osgain;
   pVtm_t->OutputScaleFactor = OUTPUT_SCALE_FACTOR;
-
-#if PC_SAMPLE_RATE == 22050
-#warning need to modify scale factor for 22kHz
-  if ( pVtm_t->SampleRate > 11025) {
-    pVtm_t->OutputScaleFactor /= 30;
-  }
-#endif
 
   if ( iDeltaGainInDB <= 0 )
   {

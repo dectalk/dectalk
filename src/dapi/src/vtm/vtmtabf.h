@@ -373,15 +373,15 @@ FLTPNT_T B0[] = {
 #if 1
 #define Nasal_BW 80.0
 #define Nasal_T (1.0/10000.0)
-#define Nasal_Gain 1.0
+//#define Nasal_Gain 1.0
 #define Nasal_a1_calc (-exp(-2.0 * M_PI * Nasal_BW * Nasal_T))
 #define Nasal_a2_calc(FZinHZ) (2.0 * exp(-M_PI * Nasal_BW * Nasal_T) * cos(2.0 * M_PI * (FZinHZ) * Nasal_T))
 #define Nasal_b0T_calc(FZinHZ) (1.0 - Nasal_a1_calc - Nasal_a2_calc(FZinHZ))
 
-#define Nasal_b0_calc(FZinHZ) (Nasal_Gain / Nasal_b0T_calc(FZinHZ))
+#define Nasal_b0_calc(FZinHZ, Nasal_Gain) (Nasal_Gain / Nasal_b0T_calc(FZinHZ))
 /* These seem to be reversed?! */
-#define Nasal_b1_calc(FZinHZ) (-Nasal_a2_calc(FZinHZ) * Nasal_b0_calc(FZinHZ))
-#define Nasal_b2_calc(FZinHZ) (-Nasal_a1_calc * Nasal_b0_calc(FZinHZ))
+#define Nasal_b1_calc(FZinHZ, Nasal_Gain) (-Nasal_a2_calc(FZinHZ) * Nasal_b0_calc(FZinHZ, Nasal_Gain))
+#define Nasal_b2_calc(FZinHZ, Nasal_Gain) (-Nasal_a1_calc * Nasal_b0_calc(FZinHZ, Nasal_Gain))
 #else
 #define Nasal_b0_calc(FZinHZ) (Nasal_b0_Table[((int)( 0.125 * FZinHZ ))])
 #define Nasal_b1_calc(FZinHZ) (Nasal_b1_Table[((int)( 0.125 * FZinHZ ))])
