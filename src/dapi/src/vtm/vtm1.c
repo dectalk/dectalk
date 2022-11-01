@@ -1647,14 +1647,11 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
     break;
 
   case NO_SAMPLE_RATE_CHANGE:
+  default:
 
     flp = 860;
     blp = 558;
     rlpg = 2400; /* Q4.12 -> 0.5859375 */
-    break;
-
-  default:
-
     break;
   }
 
