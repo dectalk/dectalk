@@ -1,6 +1,7 @@
 /*
  * Manual tuning file
  */
+#include <samprate.h>
 const short paul_8_tune[SPDEF] =
 {
 	0,				/* SEX */
@@ -418,7 +419,11 @@ const short paul_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
 	0,				/* Output gain multiplier  */
+#else
+	0,				/* Output gain multiplier  */
+#endif
 }; /* PAUL */
 
 const short betty_tune[SPDEF] =
@@ -460,7 +465,11 @@ const short betty_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	15,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* BETTY */
 
 const short harry_tune[SPDEF] =
@@ -502,7 +511,11 @@ const short harry_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	-6,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* HARRY */
 
 const short frank_tune[SPDEF] =
@@ -544,7 +557,11 @@ const short frank_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	2,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* FRANK */
 
 const short kit_tune[SPDEF] =
@@ -586,7 +603,11 @@ const short kit_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	60,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* KIT */
 
 const short ursula_tune[SPDEF] =
@@ -628,7 +649,11 @@ const short ursula_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	12,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* URSULA */
 
 const short rita_tune[SPDEF] =
@@ -670,7 +695,11 @@ const short rita_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	9,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* RITA */
 
 const short wendy_tune[SPDEF] =
@@ -712,7 +741,11 @@ const short wendy_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	9,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* WENDY */
 
 const short dennis_tune[SPDEF] =
@@ -754,6 +787,10 @@ const short dennis_tune[SPDEF] =
 	0,				/* unvow */
 	0,				/* chink area */
 	0,				/* open quotient*/
+#if PC_SAMPLE_RATE == 22050
+	-12,				/* Output gain multiplier  */
+#else
 	0,				/* Output gain multiplier  */
+#endif
 }; /* DENNIS */
 

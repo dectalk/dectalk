@@ -1041,9 +1041,15 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 #if PC_SAMPLE_RATE != 11025
 	else {
 		/* Gain: 93 -> 11025, 3 -> 22050 */
-		pVtm_t->rnza = Nasal_azero_calc(FZinHZ, 3);
-		pVtm_t->rnzb = Nasal_bzero_calc(FZinHZ, 3);
-		pVtm_t->rnzc = Nasal_czero_calc(FZinHZ, 3);
+		float gain = 3.0;
+
+		if (pVtm_t->SpeakerGain != 0) {
+			gain += (float)pVtm_t->SpeakerGain / 3;
+		}
+
+		pVtm_t->rnza = Nasal_azero_calc(FZinHZ, gain);
+		pVtm_t->rnzb = Nasal_bzero_calc(FZinHZ, gain);
+		pVtm_t->rnzc = Nasal_czero_calc(FZinHZ, gain);
 	}
 #endif
       } 
@@ -1844,6 +1850,13 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   apg = ((SPD_CHIP *)spdeftochip)->apgain;     /*  22                  */
   pVtm_t->APgain = amptable[apg];
 
+
+  /********************************************************************/
+  /*  Overall speaker gain                                            */
+  /********************************************************************/
+
+  pVtm_t->SpeakerGain = ((SPD_CHIP *)spdeftochip)->osgain;
+
   phTTS->pKernelShareData->uiCurrentSpeaker = (DWORD)((SPD_CHIP *)spdeftochip)->speaker;
 #ifdef COMPRESSION
   // set the initial gain fairly low, it will quickly set itself.
@@ -1917,6 +1930,8 @@ void InitializeVTM(LPTTS_HANDLE_T phTTS)
 	pVtm_t->vlast = 0;    /*  Last output sample of the tilt filter.              */
 
 	pVtm_t->one_minus_decay = 0;    /* Second sample of the tilt filter.          */
+
+	pVtm_t->SpeakerGain = 0;	/* Overall speaker gain */
 }
 
 
