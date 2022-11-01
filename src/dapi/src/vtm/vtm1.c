@@ -319,8 +319,8 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   S16 r4pa;      /*  "a" coef for parallel 4th formant                  */
   S16 r5pa;      /*  "a" coef for parallel 5th formant                  */
   S16 r6pa;      /*  "a" coef for parallel 6th formant                  */
-  S16 r6pb = -5702; /*MVP :According to me it is a constant BILL       /*  "b" coefficient */
-  S16 r6pc = -1995; /*MVP :According to me it is a constant BILL       /*  "c" coefficient */
+  S16 r6pb = -5702; /*MVP :According to me it is a constant BILL, "b" coefficient */
+  S16 r6pc = -1995; /*MVP :According to me it is a constant BILL, "c" coefficient */
 
 
 #ifdef NEW_VTM
@@ -335,7 +335,7 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
 	S16 ampsum;
     S16 OPENQ;		/* Open quotient */
 	S16 abrethoff;
-	//* dynamic breathiness related to open quoient */
+	/* dynamic breathiness related to open quoient */
  		
 #endif
   
