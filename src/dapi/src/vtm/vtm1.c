@@ -1624,7 +1624,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   
   
 
-#ifdef CHANGES_AFTER_V43
+#if defined(CHANGES_AFTER_V43) || PC_SAMPLE_RATE != 11025
   switch( pVtm_t->uiSampleRateChange )
   {
   case SAMPLE_RATE_INCREASE:
