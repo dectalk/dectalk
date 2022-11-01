@@ -260,22 +260,22 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   S32 temp1;      /* MVP MI moved from vtm.h */
   S16 b2p;       /*  Bandwidth of parallel 2th formant *//* MVP MI moved from vtm.h */
   S16 b3p;       /*  Bandwidth of parallel 3th formant *//* MVP MI moved from vtm.h */
-  S16 out;       /*  Output signal from the vocal tract model*/ 
+  S32 out;       /*  Output signal from the vocal tract model*/ 
   S16 nsr4;      /*  Counter of 4 samples in glottal source loop        */ 
   U32 ns;        /*  Number of samples into current frame            */
   S16 r3pg;      /*  amp of parameter F3 for iir filter                 */
   S16 r2pg;      /*  amp of parameter F2 for iir filter                 */
   S16 ABlin;     /*  AB linear ampl. control                            */
   S16 APlin;     /*  AP linear ampl. control                            */
-  S16 voice;     /*  Current sample of voicing waveform                 */ 
+  S32 voice;     /*  Current sample of voicing waveform                 */ 
   S16 noise;     /*  Output of random number generator                  */
   S16 input;
 #ifdef NEW_NOISE
   S16 noiseb;	//eab 10/12/98 New noise variable
   S16 noisef;
 #endif
-  S16 about;     /*  Output signal from bypass path          */
-  S16 rnzout;    /*  Output signal from nasal zero           */
+  S32 about;     /*  Output signal from bypass path          */
+  S32 rnzout;    /*  Output signal from nasal zero           */
   S16 T0inS4;    /*  Voicing fund freq in Hz*10, 500 to 1650 */
 
 #ifdef NEW_VTM
