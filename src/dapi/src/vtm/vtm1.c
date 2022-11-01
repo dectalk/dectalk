@@ -136,6 +136,15 @@
 #if 0
 #include "vtm.h"        /*  Variables used by the vocal tract model   */
 #endif
+
+/* Can't lookup values when not 11025, need to calculate on the fly */
+#if PC_SAMPLE_RATE != 11025
+#include <math.h>
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+#endif
+
 #include "vtmtable.h"   /*  Tables used by the vocal tract model      */
 #include "vtmfunc.h"    /*  Functions used by the vocal tract model   */
 #include "tts.h"            /* MVP MI */
@@ -1016,6 +1025,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	/**************************************************************/
 	//pVtm_t->temp =FZinHZ;
 
+#if PC_SAMPLE_RATE == 11025
 	pVtm_t->temp = ( FZinHZ >> 3 ) - 31;
 
 	if ( pVtm_t->temp > 34 )
@@ -1024,6 +1034,11 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	pVtm_t->rnza = azero_tab[pVtm_t->temp];
 	pVtm_t->rnzb = bzero_tab[pVtm_t->temp];
 	pVtm_t->rnzc = czero_tab[pVtm_t->temp];
+#else
+	pVtm_t->rnza = Nasal_azero_calc(FZinHZ);
+	pVtm_t->rnzb = Nasal_bzero_calc(FZinHZ);
+	pVtm_t->rnzc = Nasal_czero_calc(FZinHZ);
+#endif
       } 
 #else
 
@@ -1359,6 +1374,9 @@ by 3 db by simply limiting peak excursions whwen they occur */
 		}
 	}
 #else //COMPRESSION
+#if PC_SAMPLE_RATE != 11025
+    out >>= 5;
+#endif
     if ( out > 16383 )
 		out = 16383;
      else if ( out < -16384 )
@@ -2030,7 +2048,11 @@ int r;
 /*    Let r  =  exp(-pi bw t) */
 /*    To get rid of transcendentals for chip implementation, see above: */
 
+#if PC_SAMPLE_RATE == 11025
 		r = radius_table[bw >> 3];
+#else
+		r = radius_calc(bw);
+#endif
 		
 
     
@@ -2044,7 +2066,11 @@ int r;
 /*    Let b = r * 2*cos(2 pi f t) */
 /*    To get rid of transcendentals for chip implementation, see above: */
 
+#if PC_SAMPLE_RATE == 11025
 		 bcoef = frac4mul( r, cosine_table[ f >> 3 ] );
+#else
+		 bcoef = frac4mul( r, cosine_calc( f ) );
+#endif
 
 /*    Let a = 1.0 - b - c */
 

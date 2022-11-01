@@ -146,13 +146,21 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
     /*  calculate radius = exp( -pi * T * bandwidth ).                */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
     radius = radius_table[bandwidth >> 3];
+#else
+    radius = radius_calc(bandwidth);
+#endif
 
     /******************************************************************/
     /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )             */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
     *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
+#else
+    *bcoef = frac4mul( radius, cosine_calc( frequency ) );
+#endif
 
     /******************************************************************/
     /*  Let ccoef = - r^2                                             */
@@ -234,13 +242,21 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /*  calculate radius = exp( -pi * T * bandwidth ).                  */
   /********************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
   radius = radius_table[bandwidth >> 3];
+#else
+  radius = radius_calc(bandwidth);
+#endif
 
   /********************************************************************/
   /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )               */
   /********************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
   *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
+#else
+  *bcoef = frac4mul( radius, cosine_calc( frequency ) );
+#endif
 
   /********************************************************************/
   /*  Let ccoef = - r^2                                               */
@@ -324,13 +340,21 @@ S16 d2pole_pf( PVTM_T pVtm_t,
     /*  calculate radius = exp( -pi * T * bandwidth ).                */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
     radius = radius_table[bandwidth >> 3];
+#else
+    radius = radius_calc(bandwidth);
+#endif
 
     /******************************************************************/
     /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )             */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
     *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
+#else
+    *bcoef = frac4mul( radius, cosine_calc( frequency ) );
+#endif
 
     /******************************************************************/
     /*  Let ccoef = - r^2                                             */
@@ -369,13 +393,21 @@ void Notch_fc( PVTM_T pVtm_t,
     /*  calculate radius = exp( -pi * T * bandwidth ).                */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
     radius = radius_table[bandwidth >> 3];
+#else
+    radius = radius_calc(bandwidth);
+#endif
 
     /******************************************************************/
     /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )             */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
     *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
+#else
+    *bcoef = frac4mul( radius, cosine_calc( frequency ) );
+#endif
 
     /******************************************************************/
     /*  Let ccoef = - r^2                                             */
@@ -387,7 +419,11 @@ void Notch_fc( PVTM_T pVtm_t,
     /*  Let acoef = 1.0 - bcoef - ccoef                               */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 11025
     *acoef = - frac4mul(gain,cosine_table[ frequency >> 3 ]);
+#else
+    *acoef = - frac4mul(gain,cosine_calc( frequency ));
+#endif
   
    
 }
