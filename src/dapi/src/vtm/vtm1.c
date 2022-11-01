@@ -1025,19 +1025,26 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	/**************************************************************/
 	//pVtm_t->temp =FZinHZ;
 
-#if PC_SAMPLE_RATE == 11025
-	pVtm_t->temp = ( FZinHZ >> 3 ) - 31;
+#if PC_SAMPLE_RATE != 11025
+	if ( pVtm_t->SampleRate <= 11025)
+#endif
+	{
+		pVtm_t->temp = ( FZinHZ >> 3 ) - 31;
 
-	if ( pVtm_t->temp > 34 )
-	  pVtm_t->temp = 34;
+		if ( pVtm_t->temp > 34 )
+		  pVtm_t->temp = 34;
 
-	pVtm_t->rnza = azero_tab[pVtm_t->temp];
-	pVtm_t->rnzb = bzero_tab[pVtm_t->temp];
-	pVtm_t->rnzc = czero_tab[pVtm_t->temp];
-#else
-	pVtm_t->rnza = Nasal_azero_calc(FZinHZ);
-	pVtm_t->rnzb = Nasal_bzero_calc(FZinHZ);
-	pVtm_t->rnzc = Nasal_czero_calc(FZinHZ);
+		pVtm_t->rnza = azero_tab[pVtm_t->temp];
+		pVtm_t->rnzb = bzero_tab[pVtm_t->temp];
+		pVtm_t->rnzc = czero_tab[pVtm_t->temp];
+	}
+#if PC_SAMPLE_RATE != 11025
+	else {
+		/* Gain: 93 -> 11025, 3 -> 22050 */
+		pVtm_t->rnza = Nasal_azero_calc(FZinHZ, 3);
+		pVtm_t->rnzb = Nasal_bzero_calc(FZinHZ, 3);
+		pVtm_t->rnzc = Nasal_czero_calc(FZinHZ, 3);
+	}
 #endif
       } 
 #else
@@ -1374,9 +1381,6 @@ by 3 db by simply limiting peak excursions whwen they occur */
 		}
 	}
 #else //COMPRESSION
-#if PC_SAMPLE_RATE != 11025
-    out >>= 5;
-#endif
     if ( out > 16383 )
 		out = 16383;
      else if ( out < -16384 )

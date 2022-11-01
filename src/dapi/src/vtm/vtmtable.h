@@ -163,14 +163,14 @@ const S16 B0[224] = {
 
 #define Nasal_BW 80.0
 #define Nasal_T (1.0/10000.0)
-#define Nasal_ZGAIN 93
+//#define Nasal_ZGAIN 93
 #define Nasal_C ((2 * Nasal_BW) - 4096)
 #define Nasal_B(FZinHZ) ((8192 - 2 * Nasal_BW) * cos(2.0 * M_PI * (FZinHZ) * Nasal_T))
 #define Nasal_A(FZinHZ) (4096 - Nasal_C - Nasal_B(FZinHZ))
 
-#define Nasal_azero_calc(FZinHZ) (4096 * Nasal_ZGAIN / Nasal_A(FZinHZ))
-#define Nasal_bzero_calc(FZinHZ) (-Nasal_B(FZinHZ) * Nasal_ZGAIN / Nasal_A(FZinHZ))
-#define Nasal_czero_calc(FZinHZ) (-Nasal_C * Nasal_ZGAIN / Nasal_A(FZinHZ))
+#define Nasal_azero_calc(FZinHZ, Nasal_ZGAIN) (4096 * Nasal_ZGAIN / Nasal_A(FZinHZ))
+#define Nasal_bzero_calc(FZinHZ, Nasal_ZGAIN) (-Nasal_B(FZinHZ) * Nasal_ZGAIN / Nasal_A(FZinHZ))
+#define Nasal_czero_calc(FZinHZ, Nasal_ZGAIN) (-Nasal_C * Nasal_ZGAIN / Nasal_A(FZinHZ))
 
 const S16 azero_tab[35] = {
         3864, 3611, 3405, 3207, 3018,
