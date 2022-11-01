@@ -1441,22 +1441,22 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 
   if ( pVtm_t->SampleRate < 9500.0 )
   {
-    flp = 948;
-    blp = 800;
+    flp = 698;
+    blp = 453;
   }
   else
 #if PC_SAMPLE_RATE == 22050
     if (pVtm_t->SampleRate < 19000.0 )
 #endif
   {
-    flp = 948;
-    blp = 615;
+    flp = 948; /* 860 * 1.1025 */
+    blp = 615; /* 558 * 1.1025 */
   }
 #if PC_SAMPLE_RATE == 22050
   else
   {
-    flp = 948;
-    blp = 615/2;
+    flp = 860 * SampleRateScale;
+    blp = 558 * SampleRateScale;
   }
 #endif
 

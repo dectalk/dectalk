@@ -1656,8 +1656,13 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   {
   case SAMPLE_RATE_INCREASE:
 
-    flp = 948;
-    blp = 615;
+#if PC_SAMPLE_RATE == 11025
+    flp = 948; /* 860 * 1.1025 */
+    blp = 615; /* 558 * 1.1025 */
+#else
+    flp = frac1mul( pVtm_t->rate_scale, 860) << 1;
+    blp = frac1mul( pVtm_t->rate_scale, 558) << 1;
+#endif
     rlpg = 2400; /* Q4.12 -> 0.5859375 */
     break;
 
