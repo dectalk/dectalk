@@ -898,7 +898,11 @@ void phalloph (LPTTS_HANDLE_T phTTS)
 				}
 			
 				/* And flap the initial /t/ of 'to' if preceeding syllabic */
+#if defined(HLSYN) || defined(CHANGES_AFTER_V43)
 				else if ((Cite_It) == 0 && ((phone_feature(pDph_t,last_outph) & FSYLL) IS_PLUS)
+#else
+				else if ((pKsd_t->modeflag & MODE_CITATION) == 0 && ((phone_feature(pDph_t,last_outph) & FSYLL) IS_PLUS)
+#endif
 						 && ((phone_feature(pDph_t,last_outph) & FNASAL) IS_MINUS))
 				{
 #ifndef NWSNOAA
