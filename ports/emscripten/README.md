@@ -2,8 +2,6 @@
 
 An emscripten/web port of Fonix DECtalk.
 
-## Temporary Usage Details
-
-1. Run `.\compile.bat` and `.\compile_say.bat` within the `/src/ports/emscripten` folder
-2. Run a HTTP server in `/src`
-3. Open `say.html` in your web browser.
+1. Run `yarn build:all` at least once
+2. Run `yarn start` to start a webserver on port 3000
+3. Run `yarn compile` if you change the dapi/`say.c` file.
