@@ -150,7 +150,9 @@
  /*
   * Standard header files
   */
+#if !defined WIN32 && !defined __EMSCRIPTEN__
 #include "config.h"
+#endif
 
 #if defined __sparc
 #include <pthread.h>
@@ -167,6 +169,7 @@
 #endif
 #ifdef __EMSCRIPTEN__
   #include "ttsapi.h"
+  #include <emscripten.h>
 #else
   #include <dtk/ttsapi.h>
 #endif
@@ -296,17 +299,8 @@ static void usage(char *progname)
 **
 ******************************************************************************/
 
-#ifndef __EMSCRIPTEN__
 int main( int argc, char *argv[] )
-#else
-int main()
-#endif
 {
-    #ifdef __EMSCRIPTEN__
-      int argc = 5;
-      char *argv[5] = {"dectalk", "-a", "\"test\"", "-fo", "dtmemory.wav"};
-    #endif
-
     char *buf;
     int buf_len = 0;
     char cli_text[4096];
@@ -838,6 +832,13 @@ int main()
     /***********************************************/
     if ( TextToSpeechShutdown( ttsHandle ) != MMSYSERR_NOERROR )
 	fprintf(stderr,"TextToSpeechShutdown failed.\n");
+
+#ifdef __EMSCRIPTEN__
+  EM_ASM(
+    alert('hello world!');
+    throw 'all done';
+  );
+#endif
 
     exit(0);
 }
