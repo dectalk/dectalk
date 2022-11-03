@@ -1495,7 +1495,7 @@ preturn_value_t par_process_input(PKSD_T pKsd_t,
 					if (DT_DBG(CMD_DBG,0x0010))
 					{
 #ifndef ARM7_NOSWI
-						printf("Rule hit:R%d\n",current_rule_R_value);
+						printf("Rule hit:R%d, output: %s\n",current_rule_R_value, output_array);
 #endif
 					}
 #endif
