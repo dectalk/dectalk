@@ -2,7 +2,7 @@
 *                                                                       	
 *  COPYRIGHT NOTICE                                                     	
 *   
-*  Copyright © 2001 Force Computers, Inc., a Solectron Company. All rights reserved.	
+*  Copyright ï¿½ 2001 Force Computers, Inc., a Solectron Company. All rights reserved.	
 *																			
 *  All Rights reserved. Unpublished rights reserved under the           	
 *  copyright laws of the United States. Copyright is claimed in      		
