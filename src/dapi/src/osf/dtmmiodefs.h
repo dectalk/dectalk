@@ -1,7 +1,7 @@
 /**********************************************************************/
-/*                            Copyright ï¿½                             */
-/*  Copyright ï¿½ 2000, 2001 Force Computers Inc. A Solectron company. All rights Reserved. */
-/*  Copyright ï¿½ SMART Modular Technologies 1999. All rights reserved. */
+/*                            Copyright ©                             */
+/*  Copyright © 2000, 2001 Force Computers Inc. A Solectron company. All rights Reserved. */
+/*  Copyright © SMART Modular Technologies 1999. All rights reserved. */
 /*  Copyright Digital Equipment Corporation, 1994,                    */
 /*  All rights reserved.                                              */
 /*                                                                    */

@@ -4,7 +4,7 @@
 /*  COPYRIGHT NOTICE                                                  					*/
 /*                                                                    					*/
 /*  Copyright (c) Digital Equipment Corporation, 1998                 					*/
-/*  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.	*/
+/*  Copyright © 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.	*/
 /*																	  					*/
 /*  All Rights reserved. Unpublished rights reserved under the        					*/
 /*  copyright laws of the United States. Copyright is claimed in      					*/

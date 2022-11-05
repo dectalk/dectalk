@@ -1,10 +1,10 @@
  /*
  ***********************************************************************
  *
- *                           Copyright ï¿½
- *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved. 
- *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved. 
- *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ©
+ *	  Copyright © 2002 Fonix Corporation. All rights reserved. 
+ *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved. 
+ *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -1913,9 +1913,9 @@ int cm_cmd_power(LPTTS_HANDLE_T phTTS)
 				if (pKsd_t->lang_curr == LANG_british)
 				   cm_util_say_string(pKsd_t, "Battery okay. ", 1);
 				if (pKsd_t->lang_curr == LANG_spanish)
-					cm_util_say_string(pKsd_t, "Baterï¿½a corriendo bien. ", 1);
+					cm_util_say_string(pKsd_t, "Batería corriendo bien. ", 1);
 				if (pKsd_t->lang_curr == LANG_latin_american)
-					cm_util_say_string(pKsd_t, "Baterï¿½a corriendo bien. ", 1);
+					cm_util_say_string(pKsd_t, "Batería corriendo bien. ", 1);
 				if (pKsd_t->lang_curr == LANG_german)
                                         cm_util_say_string(pKsd_t, "Battieren sind voll. ", 1);
 				return(CMD_success);
@@ -1924,11 +1924,11 @@ int cm_cmd_power(LPTTS_HANDLE_T phTTS)
 			if (pKsd_t->lang_curr == LANG_english)
 				cm_util_say_string(pKsd_t, "Battery is low. ", 1);
 			if (pKsd_t->lang_curr == LANG_spanish)
-				cm_util_say_string(pKsd_t, "Bajo en baterï¿½a. ", 1);
+				cm_util_say_string(pKsd_t, "Bajo en batería. ", 1);
 			if (pKsd_t->lang_curr == LANG_british)
 				cm_util_say_string(pKsd_t, "Battery is low. ", 1);
 			if (pKsd_t->lang_curr == LANG_latin_american)
-				cm_util_say_string(pKsd_t, "Bajo en baterï¿½a. ", 1);
+				cm_util_say_string(pKsd_t, "Bajo en batería. ", 1);
 			if (pKsd_t->lang_curr == LANG_german)
                                 cm_util_say_string(pKsd_t, "Batterien sind schwach. ", 1);
 			return(CMD_success);
@@ -1992,11 +1992,11 @@ int cm_cmd_power(LPTTS_HANDLE_T phTTS)
 				if (pKsd_t->lang_curr == LANG_english)
 				   cm_util_say_string(pKsd_t, "Battery okay.[:sync]", 0);
 				if (pKsd_t->lang_curr == LANG_spanish)
-					cm_util_say_string(pKsd_t, "Baterï¿½a corriendo bien.[:sync]", 0);
+					cm_util_say_string(pKsd_t, "Batería corriendo bien.[:sync]", 0);
 				if (pKsd_t->lang_curr == LANG_british)
 				   cm_util_say_string(pKsd_t, "Battery okay.[:sync]", 0);
 				if (pKsd_t->lang_curr == LANG_latin_american)
-					cm_util_say_string(pKsd_t, "Baterï¿½a corriendo bien.[:sync]", 0);
+					cm_util_say_string(pKsd_t, "Batería corriendo bien.[:sync]", 0);
 				if (pKsd_t->lang_curr == LANG_german)
                                    cm_util_say_string(pKsd_t, "Battieren sind voll.[:sync]", 0);
 				return(CMD_success);
@@ -2005,11 +2005,11 @@ int cm_cmd_power(LPTTS_HANDLE_T phTTS)
 			if (pKsd_t->lang_curr == LANG_english)
 				cm_util_say_string(pKsd_t, "Battery is low.[:sync]", 0);
 			if (pKsd_t->lang_curr == LANG_spanish)
-				cm_util_say_string(pKsd_t, "Bajo en baterï¿½a.[:sync]", 0);
+				cm_util_say_string(pKsd_t, "Bajo en batería.[:sync]", 0);
 			if (pKsd_t->lang_curr == LANG_british)
 				cm_util_say_string(pKsd_t, "Battery is low.[:sync]", 0);
 			if (pKsd_t->lang_curr == LANG_latin_american)
-				cm_util_say_string(pKsd_t, "Bajo en baterï¿½a.[:sync]", 0);
+				cm_util_say_string(pKsd_t, "Bajo en batería.[:sync]", 0);
 			if (pKsd_t->lang_curr == LANG_german)
                                 cm_util_say_string(pKsd_t, "Batterien sind schwach.[:sync]", 0);
 

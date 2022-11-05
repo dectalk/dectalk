@@ -1,11 +1,11 @@
 /*
  ***********************************************************************
  *                                                                      
- *                           Copyright ï¿½                              
- *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
- *    Copyright ï¿½ 2000-2001 Force Computers, a Solectron Company. All rights reserved.
- *    ï¿½ SMART Modular Technologies 1999. All rights reserved.    
- *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ©                              
+ *    Copyright © 2002 Fonix Corporation. All rights reserved.
+ *    Copyright © 2000-2001 Force Computers, a Solectron Company. All rights reserved.
+ *    © SMART Modular Technologies 1999. All rights reserved.    
+ *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
  *                                                                      
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.    
  *    Government is subject to restrictions as set forth in subparagraph
@@ -83,7 +83,7 @@
  *  031	GL		03/21/1997	    for BATS#308
  *							    add LTD 4200 debug switch for data dump.
  *  032 GL      04/21/1997      BATS#357  Add the code for __osf__ build 
- *  033 MGS     07/22/1997      BATS#412  fixed ï¿½ and ï¿½ problem 
+ *  033 MGS     07/22/1997      BATS#412  fixed ½ and ¼ problem 
  *  034 GL      09/24/1997      BATS#470  Add LDS debug switch 
  *  035 DR      09/30/1997		UK BUILD: added some uk stoff 
  *  036 MGS		10/17/97		Edited to pass form class to ph

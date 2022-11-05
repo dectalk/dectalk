@@ -1,10 +1,10 @@
 /*
  ***********************************************************************
  *                                                                      
- *                           Copyright ï¿½                              
- *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
- *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    ï¿½ Digital Equipment Corporation 1996,1997. All rights reserved.    
+ *                           Copyright ©                              
+ *    Copyright © 2002 Fonix Corporation. All rights reserved.
+ *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    © Digital Equipment Corporation 1996,1997. All rights reserved.    
  *                                                                      
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.    
  *    Government is subject to restrictions as set forth in subparagraph
@@ -39,7 +39,7 @@
  *  006 GL		11/20/1996		add zflag as the argument for German do_2_digits()
  *								pass TRUE if want "0" in "0x" to spell
  *  007 GL		04/21/1997		BATS#357  Add the code for __osf__ build 
- *  008 MGS		07/22/1997		BATS#412  fixed ï¿½ and ï¿½ problem 
+ *  008 MGS		07/22/1997		BATS#412  fixed ½ and ¼ problem 
  *  009	MGS		08/20/1997		Added kerzweil code for first word vowels stressing
  *  010 DR 		09/30/1997		UK BUILD:ADDED UK STUFF
  *  011	GL		10/01/1997		add one more argument for ufind_word() and

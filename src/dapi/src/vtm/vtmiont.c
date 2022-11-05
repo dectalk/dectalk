@@ -2,8 +2,8 @@
  *                                                 
  *  DECtalk Vocal Tract Model I/O for Windows/NT
  *                                              
- * Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
- * Copyright ï¿½ 2000-2001 Force Computer, Inc., a Solectron company. All rights reserved.
+ * Copyright © 2002 Fonix Corporation. All rights reserved.
+ * Copyright © 2000-2001 Force Computer, Inc., a Solectron company. All rights reserved.
  * Copyright (c) 1993-1998 Digital Equipment Corporation
  * 
  * This is an unpublished work, and is confidential and proprietary: 

@@ -1,9 +1,9 @@
 /* 
  ***********************************************************************
  *
- *                           Copyright ï¿½
- *    Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    ï¿½ Digital Equipment Corporation 1995. All rights reserved.
+ *                           Copyright ©
+ *    Copyright © 2000, 2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    © Digital Equipment Corporation 1995. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph

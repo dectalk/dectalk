@@ -1,10 +1,10 @@
 #ifndef VOCAL
 /************************************************************
  *
- *                           Copyright ï¿½
- *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
- *	  Copyright ï¿½ 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
- *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright ©
+ *	  Copyright © 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright © 2000-2001 Force Computers Inc., a Solectron company. All rights reserved.
+ *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -794,27 +794,27 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 										switch(pCmd_t->clausebuf[j])
 										{
 										case 'a':
-											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
+											pCmd_t->clausebuf[j]=(unsigned char)'ä';
 											didit=1;
 											break;
 										case 'A':
-											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
+											pCmd_t->clausebuf[j]=(unsigned char)'Ä';
 											didit=1;
 											break;
 										case 'o':
-											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
+											pCmd_t->clausebuf[j]=(unsigned char)'ö';
 											didit=1;
 											break;
 										case 'O':
-											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
+											pCmd_t->clausebuf[j]=(unsigned char)'Ö';
 											didit=1;
 											break;
 										case 'u':
-											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
+											pCmd_t->clausebuf[j]=(unsigned char)'ü';
 											didit=1;
 											break;
 										case 'U':
-											pCmd_t->clausebuf[j]=(unsigned char)'ï¿½';
+											pCmd_t->clausebuf[j]=(unsigned char)'Ü';
 											didit=1;
 											break;
 										}

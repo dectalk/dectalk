@@ -3,8 +3,8 @@
  ***********************************************************************
  *
  *                           Copyright (c)
- *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
- *	  Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *	  Copyright © 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright © 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
  *    (c) Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
