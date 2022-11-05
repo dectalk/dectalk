@@ -152,8 +152,7 @@ extern const unsigned char par_lower[];
 extern int _far par_dict_lookup(PKSD_T, char *, int);
 #endif
 
-#ifndef NEW_BINARY_PARSER
-__inline void par_copy_index_list(pindex_data_t dest_index,
+__inline void par_copy_index_list_cm_text(pindex_data_t dest_index,
 								  int		    dest_pos,
 								  pindex_data_t src_index,
 								  int		    src_pos,
@@ -161,14 +160,14 @@ __inline void par_copy_index_list(pindex_data_t dest_index,
 {
 	memcpy(dest_index[dest_pos].index,src_index[src_pos].index,length*sizeof(index_data_t));
 }
-__inline void par_copy_index(pindex_data_t dest_index,
+__inline void par_copy_index_cm_text(pindex_data_t dest_index,
 							 int		   dest_pos,
 							 pindex_data_t src_index,
 							 int		   src_pos)
 {
 	memcpy(dest_index[dest_pos].index,src_index[src_pos].index,sizeof(index_data_t));
 }
-__inline int par_is_index_set(pindex_data_t indexes,
+__inline int par_is_index_set_cm_text(pindex_data_t indexes,
 								int pos)
 {
 	if (indexes[pos].index[0]!=0 || indexes[pos].index[1]!=0 || indexes[pos].index[2]!=0)
@@ -177,7 +176,6 @@ __inline int par_is_index_set(pindex_data_t indexes,
 	}
 	return(0);
 }
-#endif
 
 #ifdef EPSON_ARM7
 void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
@@ -726,7 +724,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 				strcpy(pCmd_t->clausebuf,pCmd_t->output_buf);
 #ifdef NEW_INDEXING
 				/* put the indexes from the output into the input */
-				par_copy_index_list(pCmd_t->input_indexes,0,pCmd_t->output_indexes,0,PAR_MAX_INPUT_ARRAY);
+				par_copy_index_list_cm_text(pCmd_t->input_indexes,0,pCmd_t->output_indexes,0,PAR_MAX_INPUT_ARRAY);
 #endif
                 /* save parser_flag */
 				parser_flag = pCmd_t->ret_value.parser_flag;	
@@ -922,7 +920,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 #ifdef NEW_INDEXING
 				/* put the indexes from the output into the input */
 #if !defined ARM7 || (defined ARM7 && defined ACCESS_SOLUTIONS)
-				par_copy_index_list(pCmd_t->input_indexes,0,pCmd_t->output_indexes,0,PAR_MAX_INPUT_ARRAY);
+				par_copy_index_list_cm_text(pCmd_t->input_indexes,0,pCmd_t->output_indexes,0,PAR_MAX_INPUT_ARRAY);
 #endif
 #endif
         	} /* if skip_mode != SKIP_punct */
@@ -1144,7 +1142,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 				}
 			}
 #if !defined ARM7 || (defined ARM7 && defined ACCESS_SOLUTIONS)
-			if (par_is_index_set(pCmd_t->output_indexes,i))
+			if (par_is_index_set_cm_text(pCmd_t->output_indexes,i))
 			  {
 			    /* debug switch */
 			    if (DT_DBG(CMD_DBG,0x008))
@@ -1170,7 +1168,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 #endif // ARM7_NOSWI
 			      }
 				// MGS 10/14/1999 BATS#900 fixed indexing with spanish phone nubmer rules
-				if (i > 0 && pCmd_t->output_buf[i-1] !=' ' && !par_is_index_set(pCmd_t->output_indexes,i-1))
+				if (i > 0 && pCmd_t->output_buf[i-1] !=' ' && !par_is_index_set_cm_text(pCmd_t->output_indexes,i-1))
 				{
 					if ((i+2)<pCmd_t->ret_value.output_offset && 
 						!(char_types[pCmd_t->output_buf[i+1]] & MARK_clause) && 
@@ -1251,7 +1249,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 #ifdef NEW_INDEXING
 #if !defined ARM7 || (defined ARM7 && defined ACCESS_SOLUTIONS)
 				/* move the indexes too */
-				par_copy_index(pCmd_t->input_indexes,j,pCmd_t->input_indexes,i);
+				par_copy_index_cm_text(pCmd_t->input_indexes,j,pCmd_t->input_indexes,i);
 #endif
 #endif
 			}
