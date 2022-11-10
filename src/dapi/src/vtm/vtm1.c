@@ -1260,7 +1260,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
     /*  Sixth Formant of Parallel Vocal Tract                         */
     /******************************************************************/
 
-    two_pole_filter( noise, pVtm_t->r6pd1, pVtm_t->r6pd2, r6pa,r6pb, r6pc );
+    two_pole_filter( noise, pVtm_t->r6pd1, pVtm_t->r6pd2, r6pa, pVtm_t->r6pb, pVtm_t->r6pc );
 
     out = pVtm_t->r6pd1 - out;
 #ifndef LOWEST
@@ -1723,6 +1723,39 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   b5p = 500;
 
   d2pole_pf( pVtm_t,&pVtm_t->R5pb, &pVtm_t->r5pc, f5p, b5p, 0 );
+
+  /********************************************************************/
+  /*  Parallel sixth formant                                          */
+  /********************************************************************/
+
+#if PC_SAMPLE_RATE == 11025
+  /*
+   * Constants from Dennis Klatt, not used:
+   * 005 16-Apr-85 	DK  Set R6PB = -3728, R6PC = -851
+   *                    		( F = 4900, BW = 2500 )
+   */
+  //pVtm_t->r6pb = -3728;
+  //pVtm_t->r6pc = -851;
+
+  /*
+   * Actually used constants, seem F = 10760, BW=2524
+   */
+  //d2pole_pf(pVtm_t, &pVtm_t->r6pb, &pVtm_t->r6pc, 10760, 2524, 0);
+  pVtm_t->r6pb = -5702;
+  pVtm_t->r6pc = -1995;
+
+#else
+  /* Values from vtm_fa: */
+  /********************************************************************/
+  /*  Parallel 6th formant.                                           */
+  /*  Resonator constant "p6_b0" is set in function                   */
+  /*  speech_waveform_generator() from A6inDB.                        */
+  /*  f6p = 4884.0 Hz. and b6p = 1145.0 Hz.                           */
+  /*  It is not necessary to change these with a nominal change in    */
+  /*  sample rate.                                                    */
+  /********************************************************************/
+  d2pole_pf(pVtm_t, &pVtm_t->r6pb, &pVtm_t->r6pc, 4884, 1145, 0);
+#endif
 
   /********************************************************************/
   /*  End of set coeficients of speaker definition controlled         */

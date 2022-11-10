@@ -484,8 +484,8 @@ S16 r4pc;      /*  "c" coefficient                                    */
 S16 R5pb;      /*  "b" coefficient                                    */
 S16 r5pc;      /*  "c" coefficient                                    */
 
-/*S16 r6pb; *//*MVP : According to me it is a constant BILL "b" coefficient*/
-/*S16 r6pc; *//*MVP : According to me it is a constant BILL "c" coefficient                                    */
+S16 r6pb;      /*  "b" coefficient                                    */
+S16 r6pc;      /*  "c" coefficient                                    */
 
 S16 R1ca;      /*  "a" coefficient for cascade 1st formant            */
 S16 r1cb;      /*  "b" coefficient                                    */
