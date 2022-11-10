@@ -289,6 +289,9 @@ FLTPNT_T p4_a2;
 
 FLTPNT_T p5_a1;
 FLTPNT_T p5_a2;
+
+FLTPNT_T p6_a1;
+FLTPNT_T p6_a2;
   /********************************************************************/
   /*  Coefficients of cascade resonators for formants 2 through 6.    */
   /********************************************************************/

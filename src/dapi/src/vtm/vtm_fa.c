@@ -160,8 +160,11 @@
   /*  sample rate.                                                    */
   /********************************************************************/
 
-#define  p6_a1 (FLTPNT_T)(-1.39208984375)
-#define  p6_a2 (FLTPNT_T)(-0.487060546875)
+//These seem to not actually correspond to the comment above and are now
+//set depending on PC_SAMPLE_RATE at compile time and might be calculated
+//at runtime (when PC_SAMPLE_RATE != 11025):
+//#define  p6_a1 (FLTPNT_T)(-1.39208984375)
+//#define  p6_a2 (FLTPNT_T)(-0.487060546875)
 
   /********************************************************************/
   /*  Coefficients for fixed nasal formant.                           */
@@ -1113,8 +1116,8 @@ if(uiNs == nopen)
                      Noise,
                      pVtm_t->p6_Delay_1,
                      pVtm_t->p6_Delay_2,
-                     p6_a1,
-                     p6_a2,
+                     pVtm_t->p6_a1,
+                     pVtm_t->p6_a2,
                      p6_b0 );
 
     Output = NoiseOutput - Output;
@@ -1517,6 +1520,29 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   b5p = 500;
 
   DESIGN_TWO_POLE_FILTER( pVtm_t->p5_a1, pVtm_t->p5_a2, Temp, f5p, b5p );
+
+  /********************************************************************/
+  /*  Parallel sixth formant                                          */
+  /********************************************************************/
+#if PC_SAMPLE_RATE == 11025
+  /*
+   * Hardcoded constants for parallel sixth formant, seem to be about:
+   * F = 10770, B = 2525
+   */
+  //DESIGN_TWO_POLE_FILTER( pVtm_t->p6_a1, pVtm_t->p6_a2, Temp, 10770.0, 2525.0);
+  pVtm_t->p6_a1=(FLTPNT_T)(-1.39208984375);
+  pVtm_t->p6_a2=(FLTPNT_T)(-0.487060546875);
+#else
+  /********************************************************************/
+  /*  Parallel 6th formant.                                           */
+  /*  Resonator constant "p6_b0" is set in function                   */
+  /*  speech_waveform_generator() from A6inDB.                        */
+  /*  f6p = 4884.0 Hz. and b6p = 1145.0 Hz.                           */
+  /*  It is not necessary to change these with a nominal change in    */
+  /*  sample rate.                                                    */
+  /********************************************************************/
+  DESIGN_TWO_POLE_FILTER( pVtm_t->p6_a1, pVtm_t->p6_a2, Temp, 4884.0, 1145.0);
+#endif
 
   /********************************************************************/
   /*  End of set coeficients of speaker definition controlled         */
