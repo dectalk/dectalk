@@ -1606,6 +1606,17 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
     break;
   }
 
+  /******************************************************************/
+  /*  Coefficients for Pi-rotated anti-resonator. (This is the      */
+  /*  same as an ordinary anti-resonator except for the c           */
+  /*  coefficient has it's sign flipped).                           */
+  /*  Frequency = 3500, Bandwidth = 1600.                           */
+  /******************************************************************/
+  // This produces the correct result @10kHz, but sounds strange at
+  // other sample rates, so just use the constants above:
+  //d2pole_pf( pVtm_t, &pVtm_t->noiseb, &noisec, 3500, 1600, 0 );
+  //noisec = -noisec;
+
   /********************************************************************/
   /*  Parallel 6th formant                                            */
   /*  Resonator constant "r6pa" is set elsewhere from A6inDB.         */
