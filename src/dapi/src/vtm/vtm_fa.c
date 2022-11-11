@@ -1523,24 +1523,20 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 
   /********************************************************************/
   /*  Parallel sixth formant                                          */
-  /********************************************************************/
-#if PC_SAMPLE_RATE == 11025
-  /*
-   * Hardcoded constants for parallel sixth formant, seem to be about:
-   * F = 10770, B = 2525
-   */
-  //DESIGN_TWO_POLE_FILTER( pVtm_t->p6_a1, pVtm_t->p6_a2, Temp, 10770.0, 2525.0);
-  pVtm_t->p6_a1=(FLTPNT_T)(-1.39208984375);
-  pVtm_t->p6_a2=(FLTPNT_T)(-0.487060546875);
-#else
-  /********************************************************************/
-  /*  Parallel 6th formant.                                           */
   /*  Resonator constant "p6_b0" is set in function                   */
   /*  speech_waveform_generator() from A6inDB.                        */
   /*  f6p = 4884.0 Hz. and b6p = 1145.0 Hz.                           */
   /*  It is not necessary to change these with a nominal change in    */
   /*  sample rate.                                                    */
   /********************************************************************/
+#if PC_SAMPLE_RATE == 11025
+  /*
+   * Hardcoded constants for parallel sixth formant:
+   * F = 4884, BW = 1145 @10kHz
+   */
+  pVtm_t->p6_a1=(FLTPNT_T)(-1.39208984375);
+  pVtm_t->p6_a2=(FLTPNT_T)(-0.487060546875);
+#else
   DESIGN_TWO_POLE_FILTER( pVtm_t->p6_a1, pVtm_t->p6_a2, Temp, 4884.0, 1145.0);
 #endif
 

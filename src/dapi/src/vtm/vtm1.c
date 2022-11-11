@@ -1726,11 +1726,16 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
 
   /********************************************************************/
   /*  Parallel sixth formant                                          */
+  /*  Resonator constant "r6pa" is set in function                    */
+  /*  speech_waveform_generator() from A6inDB.                        */
+  /*  f6p = 4884.0 Hz. and b6p = 1145.0 Hz.                           */
+  /*  It is not necessary to change these with a nominal change in    */
+  /*  sample rate.                                                    */
   /********************************************************************/
 
 #if PC_SAMPLE_RATE == 11025
   /*
-   * Constants from Dennis Klatt, not used:
+   * Different constants from Dennis Klatt, not used:
    * 005 16-Apr-85 	DK  Set R6PB = -3728, R6PC = -851
    *                    		( F = 4900, BW = 2500 )
    */
@@ -1738,22 +1743,11 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   //pVtm_t->r6pc = -851;
 
   /*
-   * Actually used constants, seem F = 10760, BW=2524
+   * Actually used constants, F = 4884, BW = 1145 @10kHz
    */
-  //d2pole_pf(pVtm_t, &pVtm_t->r6pb, &pVtm_t->r6pc, 10760, 2524, 0);
   pVtm_t->r6pb = -5702;
   pVtm_t->r6pc = -1995;
-
 #else
-  /* Values from vtm_fa: */
-  /********************************************************************/
-  /*  Parallel 6th formant.                                           */
-  /*  Resonator constant "p6_b0" is set in function                   */
-  /*  speech_waveform_generator() from A6inDB.                        */
-  /*  f6p = 4884.0 Hz. and b6p = 1145.0 Hz.                           */
-  /*  It is not necessary to change these with a nominal change in    */
-  /*  sample rate.                                                    */
-  /********************************************************************/
   d2pole_pf(pVtm_t, &pVtm_t->r6pb, &pVtm_t->r6pc, 4884, 1145, 0);
 #endif
 
