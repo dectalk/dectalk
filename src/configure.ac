@@ -552,10 +552,18 @@ fi
 AC_SUBST(AUDIO_DEFINES)dnl
 AC_SUBST(AUDIO_LIBS)dnl
 
-AM_ICONV
 ICONV_LIBS=""
-if test "${am_cv_lib_iconv}" = "yes"; then
-	ICONV_LIBS=-liconv
+AC_CHECK_FUNC(iconv,[have_iconv=yes],[have_iconv=no])
+AC_CHECK_FUNC(iconv_open,[have_iconv_open=yes],[have_iconv_open=no])
+if test "${have_iconv}" = "yes" && test "${have_iconv_open}" = "yes" ; then
+	AC_DEFINE([HAVE_ICONV],[1],[Define to 1 if iconv exists])
+else
+	AC_CHECK_LIB(iconv,iconv,have_iconv=yes,have_iconv=no)
+	AC_CHECK_LIB(iconv,iconv_open,have_iconv_open=yes,have_iconv_open=no)
+	if test "${have_iconv}" = "yes" && test "${have_iconv_open}" = "yes" ; then
+		ICONV_LIBS=-liconv
+		AC_DEFINE([HAVE_ICONV],[1],[Define to 1 if iconv exists])
+	fi
 fi
 AC_SUBST(ICONV_LIBS)dnl
 
