@@ -130,7 +130,7 @@
 #endif
 
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 #include <stdlib.h>
 #ifdef VXWORKS
@@ -141,7 +141,7 @@
 #endif
 #include <unistd.h>
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <errno.h>
 #endif
 /**********************************************************************/
@@ -225,7 +225,7 @@ HTHREAD_T OP_CreateThread( THREAD_STACK_SIZE_T StackSize,
 		return NULL;
     }
 #endif
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
 	if ( StackSize != 0 )
     {
 		if ( pthread_attr_setstacksize( &ThreadAttr, StackSize ))
@@ -326,7 +326,7 @@ THREAD_PRIORITY_T OP_GetThreadPriority( HTHREAD_T pThread )
 #endif
 
 #ifdef OP_POSIX 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 #ifdef _PRE_PLATINUM_POSIX_
 
@@ -412,7 +412,7 @@ unsigned int OP_SetThreadPriority( HTHREAD_T pThread,
 #endif
 
 #ifdef OP_POSIX 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 #ifdef _PRE_PLATINUM_POSIX_
 
@@ -540,7 +540,7 @@ unsigned int OP_WaitForThreadTermination( HTHREAD_T pThread,
 #if defined WIN32 && !defined NOWIN
                                           PTHREAD_STATUS_T pThreadStatus )
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined NOWIN
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
      PTHREAD_STATUS_T pThreadStatus,
   unsigned int uiMilliSeconds )
 #endif
@@ -555,7 +555,7 @@ if ( pThread != 0 )
   /******************************************************************/
   /*  Wait for the thread to exit.                                  */
   /******************************************************************/
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   if ( pthread_join((*pThread), pThreadStatus ) == 0 )   
 #else
     if ( pthread_join((*pThread), pThreadStatus ) != 0 )
@@ -593,7 +593,7 @@ if ( pThread != 0 )
 #ifdef WIN32
     WaitForSingleObject( pThread, INFINITE );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	WaitForSingleObject( pThread, uiMilliSeconds );
 #endif
 
@@ -660,7 +660,7 @@ HMUTEX_T OP_CreateMutex()
 #endif	/* ifdef WIN32 */
 #endif	/* ifdef OP_POSIX */
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef OP_POSIX
 #ifdef _PRE_PLATINUM_POSIX_
     if ( pthread_mutex_init( pMutex, 
@@ -679,7 +679,7 @@ HMUTEX_T OP_CreateMutex()
       pMutex = NULL;
     }
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
     pthread_mutexattr_destroy( &ThreadAttr );
 #else
     pthread_attr_destroy( &ThreadAttr );
@@ -1172,7 +1172,7 @@ unsigned int OP_WaitForEvent( HEVENT_T pEvent,
   int retcode=0;
 
 #ifdef OP_POSIX
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   struct timespec WaitTime;
   struct timespec AbsoluteTime;
   struct timeval AbsoluteTime_v;
@@ -1223,7 +1223,7 @@ unsigned int OP_WaitForEvent( HEVENT_T pEvent,
       
       // ETT 07/21/1998 pthread_get_expiration_np not defined in linux
       // use workaround
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
       //returns usecs!
       gettimeofday(&AbsoluteTime_v, NULL);
       //TIMEVAL_TO_TIMESPEC(&AbsoluteTime_v,&AbsoluteTime);
@@ -1323,9 +1323,9 @@ unsigned int OP_WaitForEvent( HEVENT_T pEvent,
 void OP_Sleep( unsigned int uiMilliSeconds )
 {
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   struct timespec SleepTime;
   struct timespec Time;
 #else
@@ -1343,7 +1343,7 @@ void OP_Sleep( unsigned int uiMilliSeconds )
     pthread_yield();
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifdef _PRE_PLATINUM_POSIX_
     pthread_yield();
 #else
@@ -1408,7 +1408,7 @@ void OP_Sleep( unsigned int uiMilliSeconds )
 #define TL_ATTEMPTSPERSECOND (50)
 #define TL_MSPERATTEMPT (1000/TL_ATTEMPTSPERSECOND)
 
-#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 // tek 27may98 these are not implemented for u*ix yet.
 int ThreadLock(TLOCK *tlLock, unsigned int dwTimeout)

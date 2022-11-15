@@ -153,11 +153,11 @@
 #ifdef __osf__
 #include "tts.h"
 #endif
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include "tts.h"
 #endif
-#ifdef ARM7
+#if defined ARM7 || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -648,7 +648,7 @@ void ERROR_func2(unsigned char *current_rule,
 	return;
 }
 
-const void (*(perform_action_funcs[0x20]))(unsigned char *current_rule,
+void (*(perform_action_funcs[0x20]))(unsigned char *current_rule,
 									 unsigned char *input_array,
 									 unsigned char *output_array,
 									 pindex_data_t input_indexes,

@@ -176,7 +176,7 @@
 ** 	Follows microsoft specs for the most part.
 ** 
 */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include <string.h>
 #endif

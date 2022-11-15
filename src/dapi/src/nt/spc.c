@@ -53,7 +53,7 @@
 #include "ph_def.h"         /* MVP : Now phinst.h includes phdefs.h, php.h */
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #include "opthread.h"
 #include "port.h"

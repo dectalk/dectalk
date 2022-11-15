@@ -74,7 +74,7 @@
 #include "cemm.h"
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
 #include "opthread.h"
 #include "port.h"
 #endif
@@ -123,7 +123,7 @@ struct PIPE_TAG
   DT_HANDLE hNotPausedEvent;
   LPCRITICAL_SECTION pcsPipe;
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   HEVENT_T hNotEmptyEvent;
   HEVENT_T hNotFullEvent;
   HEVENT_T hNotPausedEvent;
@@ -266,7 +266,7 @@ LPPIPE_T create_pipe( UINT uiType, UINT uiPipeLength )
   pPipe->pcsPipe =
     ( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   pPipe->pcsPipe = OP_CreateMutex();
 #endif
 
@@ -311,7 +311,7 @@ LPPIPE_T create_pipe( UINT uiType, UINT uiPipeLength )
 #ifdef WIN32
   pPipe->hNotEmptyEvent = CreateEvent( NULL, TRUE, FALSE, NULL );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   pPipe->hNotEmptyEvent = OP_CreateEvent( TRUE, FALSE );
 #endif
 
@@ -322,7 +322,7 @@ LPPIPE_T create_pipe( UINT uiType, UINT uiPipeLength )
 #ifdef WIN32
     DeleteCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	OP_DestroyMutex( pPipe->pcsPipe );
 #endif
     free( pPipe );
@@ -337,7 +337,7 @@ LPPIPE_T create_pipe( UINT uiType, UINT uiPipeLength )
 #ifdef WIN32
   pPipe->hNotFullEvent = CreateEvent( NULL, TRUE, TRUE, NULL );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   pPipe->hNotFullEvent = OP_CreateEvent( TRUE, TRUE );
 #endif
 
@@ -349,7 +349,7 @@ LPPIPE_T create_pipe( UINT uiType, UINT uiPipeLength )
     DeleteCriticalSection( pPipe->pcsPipe );
     CloseHandle( pPipe->hNotEmptyEvent );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
     OP_DestroyMutex( pPipe->pcsPipe );
     OP_DestroyEvent( pPipe->hNotEmptyEvent );
 #endif
@@ -396,7 +396,7 @@ void write_pipe( LPPIPE_T pPipe, unsigned char * pItems, UINT uiNumberToWrite )
   UINT i;
   UINT uiRemaining;
   /* check the pipe guards.. */
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE && !defined __EMSCRIPTEN__
   assert ( ( pPipe->usGuard1 == GUARD1) 
 	  &&( pPipe->usGuard2 == GUARD2) );
 #endif
@@ -410,7 +410,7 @@ void write_pipe( LPPIPE_T pPipe, unsigned char * pItems, UINT uiNumberToWrite )
 #ifdef WIN32
   EnterCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_LockMutex( pPipe->pcsPipe );
 #endif
 
@@ -434,7 +434,7 @@ void write_pipe( LPPIPE_T pPipe, unsigned char * pItems, UINT uiNumberToWrite )
     EnterCriticalSection( pPipe->pcsPipe );
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	OP_ResetEvent( pPipe->hNotFullEvent );
 
     OP_UnlockMutex( pPipe->pcsPipe );
@@ -722,7 +722,7 @@ void write_pipe( LPPIPE_T pPipe, unsigned char * pItems, UINT uiNumberToWrite )
 #ifdef WIN32
   SetEvent( pPipe->hNotEmptyEvent );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_SetEvent( pPipe->hNotEmptyEvent );
 #endif
 
@@ -734,7 +734,7 @@ void write_pipe( LPPIPE_T pPipe, unsigned char * pItems, UINT uiNumberToWrite )
 #ifdef WIN32
   LeaveCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_UnlockMutex( pPipe->pcsPipe );
 #endif
 
@@ -785,7 +785,7 @@ void read_pipeEx( LPPIPE_T *pPipe, unsigned char * pItems, UINT uiNumberToRead )
 	int ret;
 	/* check the pipe guards.. */
 	
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE && !defined __EMSCRIPTEN__
 	assert ( ( (*pPipe)->usGuard1 == GUARD1) 
 		&&( (*pPipe)->usGuard2 == GUARD2) );
 #endif
@@ -967,7 +967,7 @@ void read_pipeEx( LPPIPE_T *pPipe, unsigned char * pItems, UINT uiNumberToRead )
 #endif
 #endif
 		
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		OP_ExitThread(0);
 		OP_THREAD_RETURN;
 #endif
@@ -1269,7 +1269,7 @@ void read_pipeEx( LPPIPE_T *pPipe, unsigned char * pItems, UINT uiNumberToRead )
 #ifdef WIN32
 	SetEvent( (*pPipe)->hNotFullEvent );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	OP_SetEvent( (*pPipe)->hNotFullEvent );
 #endif
 	
@@ -1281,7 +1281,7 @@ void read_pipeEx( LPPIPE_T *pPipe, unsigned char * pItems, UINT uiNumberToRead )
 #ifdef WIN32
 	LeaveCriticalSection( (*pPipe)->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	OP_UnlockMutex( (*pPipe)->pcsPipe );
 #endif
 	
@@ -1318,7 +1318,7 @@ void pause_pipe( LPPIPE_T pPipe )
   /********************************************************************/
  /* check the pipe guards.. */
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE && !defined __EMSCRIPTEN__
   assert ( ( pPipe->usGuard1 == GUARD1) 
 	  &&( pPipe->usGuard2 == GUARD2) );
 #endif
@@ -1327,7 +1327,7 @@ void pause_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   EnterCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_LockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1339,7 +1339,7 @@ void pause_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   ResetEvent( pPipe->hNotPausedEvent );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_ResetEvent( pPipe->hNotPausedEvent );
 #endif
 
@@ -1353,7 +1353,7 @@ void pause_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   LeaveCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_UnlockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1387,7 +1387,7 @@ void resume_pipe( LPPIPE_T pPipe )
 {
 
  /* check the pipe guards.. */
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE && !defined __EMSCRIPTEN__
 	assert ( ( pPipe->usGuard1 == GUARD1) 
 	  &&( pPipe->usGuard2 == GUARD2) );
 #endif
@@ -1401,7 +1401,7 @@ void resume_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   EnterCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_LockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1413,7 +1413,7 @@ void resume_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   SetEvent( pPipe->hNotPausedEvent );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_SetEvent( pPipe->hNotPausedEvent );
 #endif
 
@@ -1425,7 +1425,7 @@ void resume_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   LeaveCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_UnlockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1460,7 +1460,7 @@ void exit_pipe( LPPIPE_T pPipe )
 {
 
  /* check the pipe guards.. */
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE && !defined __EMSCRIPTEN__
   assert ( ( pPipe->usGuard1 == GUARD1) 
 	  &&( pPipe->usGuard2 == GUARD2) );
 #endif
@@ -1474,7 +1474,7 @@ void exit_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   EnterCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_LockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1492,7 +1492,7 @@ void exit_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   LeaveCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_UnlockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1535,7 +1535,7 @@ void reset_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   EnterCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_LockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1559,7 +1559,7 @@ void reset_pipe( LPPIPE_T pPipe )
   SetEvent( pPipe->hNotFullEvent );
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_ResetEvent( pPipe->hNotEmptyEvent );
 
   OP_SetEvent( pPipe->hNotFullEvent );
@@ -1573,7 +1573,7 @@ void reset_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   LeaveCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_UnlockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1607,7 +1607,7 @@ void destroy_pipe( LPPIPE_T pPipe )
 {
  /* check the pipe guards.. */
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined UNDER_CE && !defined __EMSCRIPTEN__
 	assert ( ( pPipe->usGuard1 == GUARD1) 
 	  &&( pPipe->usGuard2 == GUARD2) );
 #endif
@@ -1620,7 +1620,7 @@ void destroy_pipe( LPPIPE_T pPipe )
 #ifdef WIN32
   DeleteCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_DestroyMutex( pPipe->pcsPipe );
 #endif
 
@@ -1634,7 +1634,7 @@ void destroy_pipe( LPPIPE_T pPipe )
 
   CloseHandle( pPipe->hNotFullEvent );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_DestroyEvent( pPipe->hNotEmptyEvent );
 
   OP_DestroyEvent( pPipe->hNotFullEvent );
@@ -1691,7 +1691,7 @@ UINT pipe_count( LPPIPE_T pPipe )
 #ifdef WIN32
   EnterCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_LockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1709,7 +1709,7 @@ UINT pipe_count( LPPIPE_T pPipe )
 #ifdef WIN32
   LeaveCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_UnlockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1753,7 +1753,7 @@ void SWFlushPipe( LPPIPE_T pPipe )
 #ifdef WIN32
   EnterCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_LockMutex( pPipe->pcsPipe );
 #endif
 
@@ -1771,7 +1771,7 @@ void SWFlushPipe( LPPIPE_T pPipe )
   SetEvent( pPipe->hNotFullEvent );
   LeaveCriticalSection( pPipe->pcsPipe );
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   OP_ResetEvent( pPipe->hNotEmptyEvent );
   OP_SetEvent( pPipe->hNotFullEvent );
   OP_UnlockMutex( pPipe->pcsPipe );

@@ -127,7 +127,7 @@
 typedef char                Int8;
 typedef short               Int16;
 typedef int                 Int32;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined _WIN64
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined _WIN64 || defined __EMSCRIPTEN__
 typedef long long                Int64;
 #else
 typedef long                Int64;
@@ -135,7 +135,7 @@ typedef long                Int64;
 typedef unsigned char       Uint8;
 typedef unsigned short      Uint16;
 typedef unsigned int        Uint32;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined _WIN64
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined _WIN64 || defined __EMSCRIPTEN__
 typedef unsigned long long  Uint64; 
 #else     
 typedef unsigned long       Uint64; 
@@ -146,7 +146,7 @@ typedef short               Char16;
 #ifdef  __osf__
 typedef Uint32      	    DWORD;
 #endif
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifndef _DWORD
 #define _DWORD
 typedef Uint32      	    DWORD;
@@ -190,7 +190,7 @@ typedef Uint16      	    WORD;
 #endif
 
 typedef Int32               INT;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 typedef long                LONG;
 #else
 typedef Int64               LONG;

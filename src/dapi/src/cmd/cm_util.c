@@ -87,7 +87,7 @@
 #include "opthread.h"
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "opthread.h"
 extern void usa_init(PKSD_T);
 #endif
@@ -347,7 +347,7 @@ void cm_util_say_string(PKSD_T pKsd_t, unsigned char _far *instr, short mode)
 
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_  || defined __EMSCRIPTEN__ || defined ARM7
 /*
  *      Function Name: cm_util_dtpc_tones() 
  *
@@ -429,7 +429,7 @@ int cm_util_dtpc_tones( LPTTS_HANDLE_T phTTS,
   pipe[5] = 0;
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifndef SINGLE_THREADED
   cm_util_write_pipe( pKsd_t, pKsd_t->vtm_pipe, pipe, 6 );
 #else

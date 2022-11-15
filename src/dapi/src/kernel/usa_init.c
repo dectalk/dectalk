@@ -40,7 +40,7 @@
 #include "port.h"
 #include "dectalkf.h"
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ 
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_  || defined __EMSCRIPTEN__
 #include <stdlib.h>
 #endif
 
@@ -184,7 +184,7 @@ const unsigned int arpabet_lang_fonts[] = {
  * #define USADEBUG 1
  */
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 extern void default_lang( PKSD_T , unsigned int, unsigned int);
 #endif
 

@@ -523,7 +523,7 @@ void cm_cmd_build_param(LPTTS_HANDLE_T phTTS, unsigned int c)
 	 */
 
 	(pCmd_t->p_count) += 1;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	CURR_DEFAULT = FALSE;
 #else
 	CURR_DEFAULT = false;
@@ -862,7 +862,7 @@ void cm_cmd_error_comm(LPTTS_HANDLE_T phTTS, int type)
 					phTTS->dwOutputState = STATE_OUTPUT_NULL;
 			}
 			if (fprintf (phTTS->pLogFile,
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 				 "\n[:error %s]", es) < 0)
 #else
 				 "\n[:error %Fs]", es) < 0)

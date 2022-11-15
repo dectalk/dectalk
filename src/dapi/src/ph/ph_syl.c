@@ -383,7 +383,7 @@ static short syl_find_affix (PDPH_T pDph_t, int *ph)
 #include <mmsystem.h>
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 /* GL 04/21/1997  change to be the same as the latest OSF code */
 /*#include "dtmmedefs.h"*/
 #include "opthread.h"
@@ -429,7 +429,7 @@ void logsyllable (LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 	EnterCriticalSection (phTTS->pcsLogFile);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	/* GL 04/21/1997  change this as the latest OSF code */
 	/*ToggleLogfileMutex (MUTEX_RESERVE);*/
 	OP_LockMutex( phTTS->pcsLogFile );
@@ -583,7 +583,7 @@ void logsyllable (LPTTS_HANDLE_T phTTS)
 #ifdef WIN32
 	LeaveCriticalSection (phTTS->pcsLogFile);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	/* GL 04/21/1997  change this as the latest OSF code */
 	/* ToggleLogfileMutex (MUTEX_RELEASE);*/
 	OP_UnlockMutex( phTTS->pcsLogFile );
@@ -615,7 +615,7 @@ static int ph_syllab (PDPH_T pDph_t, int j)
 	k = 0;
 	while (true)
 	{
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		len = syl_find_affix (pDph_t, &(pDph_t->phone_struct[j]));
 #else
         len = syl_find_affix (pDph_t, &(pDph_t->phone_struct[j])); // NAL warning removal
@@ -642,7 +642,7 @@ static int ph_syllab (PDPH_T pDph_t, int j)
 			/* 
 			 *  Find vowel ...
 			 */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 			len = syl_find_vowel (&(pDph_t->phone_struct[j]));
 #else
                         len = syl_find_vowel ( &(pDph_t->phone_struct[j])); // NAL warning removal
@@ -671,7 +671,7 @@ static int ph_syllab (PDPH_T pDph_t, int j)
 			 */
 
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 
 
 			len = syl_find_cons( &(pDph_t->phone_struct[j]));

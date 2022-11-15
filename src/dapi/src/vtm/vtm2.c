@@ -171,7 +171,7 @@ Eab 3/13/01 Modifcation to fix problem with skip compute save method and lessen 
 #else
 
 
-#if defined __linux__
+#if defined __linux__ || defined __EMSCRIPTEN__
 #define _inline inline
 #endif
 

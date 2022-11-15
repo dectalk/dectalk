@@ -66,7 +66,7 @@
 */
 #include <stdio.h>
 
-#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include <stdarg.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -127,7 +127,7 @@ void unload_dictionary( void **dict_index, void **dict_data, unsigned int *dict_
 		return;
 #endif // WIN32
 
-#if defined __linux__ || defined __osf__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined __osf__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		munmap(*dicMapStartAddr,(long)*dicMapObject);
 		close((long)*dicFileHandle);
 		*dicMapStartAddr=NULL;
@@ -449,7 +449,7 @@ restart:if ( *dict_siz > 0 )
 	  
 #endif // WIN32
 
-#if defined __linux__ || defined __osf__  || defined _SPARC_SOLARIS_//|| defined VXWORKS
+#if defined __linux__ || defined __osf__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ //|| defined VXWORKS
 		fclose(dict_file);
 		// open the file */
 		*dicFileHandle=(DT_HANDLE)(long)open(dict_nam,O_RDONLY);

@@ -135,7 +135,7 @@ typedef struct QUEUE_TAG
 
 typedef QUEUE_T * LPQUEUE_T;
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 typedef UINT HWAVEOUT;
 #endif
 

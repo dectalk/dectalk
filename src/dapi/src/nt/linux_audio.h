@@ -36,7 +36,7 @@
  * 006	MGS		06/19/2001	Solaris Port BATS#972
  ***********************************************************************/
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #ifndef LINUX_AUDIO_H
 #define LINUX_AUDIO_H
 

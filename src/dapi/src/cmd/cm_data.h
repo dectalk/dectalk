@@ -84,7 +84,7 @@ struct  dtpc_command
 	unsigned char   *c_format;                      /* format of command params */
 	int             n_params;                       /* number of params */
 	unsigned int    esc_value;                      /* value for escaped version */
-	int             (*c_routine)(PVOID);            /* pointer to execution code */
+	int             (*c_routine)(LPTTS_HANDLE_T);            /* pointer to execution code */
 };
 
 

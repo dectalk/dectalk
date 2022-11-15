@@ -166,7 +166,7 @@ char                   *logspnames[] =
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #include "opthread.h"
 #endif
 
@@ -217,7 +217,7 @@ logclaus (LPTTS_HANDLE_T phTTS,
 #ifdef WIN32
 		EnterCriticalSection (phTTS->pcsLogFile);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		/* GL 04/21/1997  change this as the latest OSF code */
 		/* ToggleLogfileMutex (MUTEX_RESERVE);*/
 		OP_LockMutex( phTTS->pcsLogFile );
@@ -260,7 +260,7 @@ logclaus (LPTTS_HANDLE_T phTTS,
 #ifdef WIN32
 		LeaveCriticalSection (phTTS->pcsLogFile);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		/* GL 04/21/1997  change this as the latest OSF code */
 		/* ToggleLogfileMutex (MUTEX_RESERVE);*/
 		OP_UnlockMutex( phTTS->pcsLogFile );
@@ -348,7 +348,7 @@ logitem (LPTTS_HANDLE_T phTTS, register short buf[])
 
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	WAIT_PRINT;
 #endif
 
@@ -356,7 +356,7 @@ logitem (LPTTS_HANDLE_T phTTS, register short buf[])
 	EnterCriticalSection (phTTS->pcsLogFile);
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	/* GL 04/21/1997  change this as the latest OSF code */
 	/* ToggleLogfileMutex (MUTEX_RESERVE);*/
 	OP_LockMutex( phTTS->pcsLogFile );
@@ -572,7 +572,7 @@ logitem (LPTTS_HANDLE_T phTTS, register short buf[])
 #ifdef WIN32
 	LeaveCriticalSection (phTTS->pcsLogFile);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 		/* GL 04/21/1997  change this as the latest OSF code */
 		/* ToggleLogfileMutex (MUTEX_RESERVE);*/
 		OP_UnlockMutex( phTTS->pcsLogFile );
@@ -612,7 +612,7 @@ dologphoneme (LPTTS_HANDLE_T phTTS, short phone, short dur, short f0)
 	EnterCriticalSection (phTTS->pcsLogFile);
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	/* GL 04/21/1997  change this as the latest OSF code */
 	/* ToggleLogfileMutex (MUTEX_RESERVE);*/
 	OP_LockMutex( phTTS->pcsLogFile );
@@ -849,7 +849,7 @@ dologphoneme (LPTTS_HANDLE_T phTTS, short phone, short dur, short f0)
 #ifdef WIN32
 	LeaveCriticalSection (phTTS->pcsLogFile);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	/* GL 04/21/1997  change this as the latest OSF code */
 	/* ToggleLogfileMutex (MUTEX_RESERVE);*/
 	OP_UnlockMutex( phTTS->pcsLogFile );

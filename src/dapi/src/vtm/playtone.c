@@ -80,7 +80,7 @@
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #if defined __osf__
 #include "dtmmedefs.h"
 #endif

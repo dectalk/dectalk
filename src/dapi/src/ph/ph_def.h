@@ -48,6 +48,10 @@
 #include <windows.h>
 #endif
 
+#ifdef __EMSCRIPTEN__
+  #include "string.h"
+#endif
+
 
 #include "port.h"
 #include "ph_defs.h"
@@ -70,7 +74,7 @@
 #define printf WINprintf
 #endif
 
-#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define WINprintf printf
 #endif /* defined (MSDOS) || defined (__osf__) || defined (__linux__) */
 

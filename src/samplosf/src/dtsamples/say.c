@@ -150,7 +150,9 @@
  /*
   * Standard header files
   */
+#if !defined WIN32 && !defined __EMSCRIPTEN__
 #include "config.h"
+#endif
 
 #if defined __sparc
 #include <pthread.h>
@@ -158,14 +160,19 @@
 #include <stdio.h>
 //#include <fcntl.h>
 #include <errno.h>
-#if defined __linux__ || defined VXWORKS || defined __sparc
+#if defined __linux__ || defined VXWORKS || defined __sparc || defined __EMSCRIPTEN__
 #include <string.h>
 #include <stdlib.h>
 #endif
 #ifdef __osf__
 #include <mme/mmsystem.h>
 #endif
-#include <dtk/ttsapi.h>
+#ifdef __EMSCRIPTEN__
+  #include "ttsapi.h"
+  #include <emscripten.h>
+#else
+  #include <dtk/ttsapi.h>
+#endif
 #ifdef HAVE_ICONV
 #include <langinfo.h>
 #include <iconv.h>
@@ -192,7 +199,7 @@ iconv_t cd;
   */
 MMRESULT OpenOutputWaveFile( char * fname, int encoding );
 MMRESULT CloseOutputWaveFile( );
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 int play_file( char *file_name, int isAPipe );
 #endif
 #ifdef HAVE_ICONV
@@ -581,28 +588,32 @@ int main( int argc, char *argv[] )
 
     switch (status)
     {
-	case MMSYSERR_NODRIVER:
-		fprintf(stderr, "say: Could not find any wave devices\n");
-		fprintf(stderr, "say: Is the MM server ready? \n");
-		fprintf(stderr, "say: Exiting\n");
-		exit(1);
-		
-	case MMSYSERR_NOTENABLED:
-		fprintf(stderr,"say: DECtalk license not found.\n");
-		fprintf(stderr, "say: Exiting\n");
-		exit(1);
-		
-	case MMSYSERR_ALLOCATED:
-		fprintf(stderr,"say: DECtalk has exceeded license quota.\n");
-		fprintf(stderr, "say: Exiting\n");
-		exit(1);
-		
-	case MMSYSERR_NOERROR:
-		break;
-		
-	default:
-		fprintf(stderr,"\n%s: TextToSpeechStartup failed with code %d, exiting.\n","main",status);
-		exit(-1);
+      case MMSYSERR_NODRIVER:
+        fprintf(stderr, "say: Could not find any wave devices\n");
+        fprintf(stderr, "say: Is the MM server ready? \n");
+        fprintf(stderr, "say: Exiting\n");
+        exit(1);
+        
+      case MMSYSERR_NOTENABLED:
+        fprintf(stderr, "say: DECtalk license not found.\n");
+        fprintf(stderr, "say: Exiting\n");
+        exit(1);
+        
+      case MMSYSERR_ALLOCATED:
+        fprintf(stderr, "say: DECtalk has exceeded license quota.\n");
+        fprintf(stderr, "say: Exiting\n");
+        exit(1);
+
+      case MMSYSERR_NOMEM:
+        fprintf(stderr, "say: DECtalk has ran out of memory.\n");
+        exit(1);
+        
+      case MMSYSERR_NOERROR:
+        break;
+        
+      default:
+        fprintf(stderr,"\n%s: TextToSpeechStartup failed with code %d, exiting.\n","main",status);
+        exit(-1);
     }
 
     /***********************************************/
@@ -784,7 +795,7 @@ int main( int argc, char *argv[] )
           /**********************************************/
           /* Play the specified file 			*/
           /**********************************************/
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 	  play_file( argv[file_arg_index], 0 );
 #else
 	  play_file( argv[file_arg_index] );
@@ -822,6 +833,13 @@ int main( int argc, char *argv[] )
     /***********************************************/
     if ( TextToSpeechShutdown( ttsHandle ) != MMSYSERR_NOERROR )
 	fprintf(stderr,"TextToSpeechShutdown failed.\n");
+
+#ifdef __EMSCRIPTEN__
+  EM_ASM(
+    alert('hello world!');
+    throw 'all done';
+  );
+#endif
 
     exit(0);
 }

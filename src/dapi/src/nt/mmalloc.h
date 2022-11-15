@@ -69,7 +69,7 @@
 extern "C" {
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
   //#define HANDLE int
 #define HGLOBAL DT_HANDLE
 #define GMEM_MOVEABLE 0x0002

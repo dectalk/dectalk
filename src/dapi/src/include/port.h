@@ -103,7 +103,7 @@ typedef unsigned char U8;
  ************************************************************************
  * defines for DEC OSF/1 AXP & UNIXs
  */
-#if defined (__osf__) || defined (__linux__)
+#if defined (__osf__) || defined (__linux__) || defined (__EMSCRIPTEN__)
 
 /*#define ENGLISH_US 1*/
 
@@ -121,7 +121,7 @@ typedef unsigned char U8;
 #define far
 #define huge
 #define _huge
-#ifndef __linux__
+#if !(defined __linux__ || defined __EMSCRIPTEN__)
 #define volatile
 #endif
 
@@ -136,7 +136,7 @@ typedef unsigned char U8;
 #ifdef __osf__
 typedef unsigned long QWORD;
 #endif
-#ifdef __linux__
+#if defined __linux__ || defined __EMSCRIPTEN__
 typedef unsigned long long QWORD;
 #endif
 
@@ -420,5 +420,17 @@ typedef long MMRESULT;
 
 
 #endif //ARM7
+
+/**
+ * Emscripten Support!
+ */
+#ifdef __EMSCRIPTEN__
+
+// Remove all __inline commands.
+#define _inline
+#define __inline
+
+#endif
+
 
 #endif /* _PORT_H */

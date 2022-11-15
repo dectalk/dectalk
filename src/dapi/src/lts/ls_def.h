@@ -136,7 +136,7 @@
 #ifdef WIN32
 #define printf WINprintf
 #endif
-#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
 #define WINprintf printf
 #endif
 #endif
