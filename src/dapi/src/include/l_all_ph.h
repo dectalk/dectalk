@@ -340,6 +340,8 @@
 #define US_TOT_ALLOPHONES	56
 #undef US_DF
 #define US_DF US_T
+#elif defined(VOICE_ROM_DECTALK_43)
+#define US_TOT_ALLOPHONES	57
 #else
 #define US_TOT_ALLOPHONES	71
 #endif
