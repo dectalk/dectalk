@@ -335,7 +335,14 @@
 #ifndef PHEDIT2
 #ifndef TOT_ALLOPHONES
 //#define TOT_ALLOPHONES	57
+/* DTC-03 rom only contains 56 phonemes, no hebrew and no US_DF */
+#if defined(VOICE_ROM_TC_03_03JAN89)
+#define US_TOT_ALLOPHONES	56
+#undef US_DF
+#define US_DF US_T
+#else
 #define US_TOT_ALLOPHONES	71
+#endif
 #define UK_TOT_ALLOPHONES	57
 #define GR_TOT_ALLOPHONES  (62)  /* total number of phones */
 #define LA_TOT_ALLOPHONES  (39)  /* Last allophone + 1     */

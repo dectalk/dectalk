@@ -275,9 +275,11 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 //#define VDF_BETA5
 
 // Which voice rom to use
+// VOICE_ROM_TC_03_03JAN89 -> voice rom from DTC-03, 03 Jan 1989
 // VOICE_ROM_1997 -> voice rom from around 1997, probably 4.60
 // VOICE_ROM_1996 -> voice rom from around 1996, unknown version
 // nothing -> voice rom generated from 88_mal and 88_fem
+//#define VOICE_ROM_TC_03_03JAN89
 //#define VOICE_ROM_1997
 #define VOICE_ROM_1996
 
