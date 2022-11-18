@@ -60,7 +60,7 @@
 #include "p_us_rom_1997.c"
 #elif defined(VOICE_ROM_1996)
 #include "p_us_rom_1996.c"
-#elif defined(VOICE_ROM_TC_03_03JAN89)
+#elif defined(VOICE_ROM_DTC_03_03JAN89)
 #include "p_us_rom_dtc_03_03Jan89.c"
 #else
 #include "p_us_rom.c"
