@@ -58,7 +58,7 @@
 
 #include "dectalkf.h"
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "ttsapi.h"
 #endif
 
@@ -192,7 +192,7 @@ extern int 	OutputCharacter( unsigned char c );
 extern void OutputCharacter( LPTTS_HANDLE_T phTTS,unsigned char c );
 #endif
 
-#if defined (WIN32) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern  void save_index(PKSD_T pKsd_t,unsigned int sym,unsigned int type,unsigned int value,unsigned int how);
 /* 
  * MVP : This function is used only in PH subsystem
@@ -206,14 +206,14 @@ extern  void flush_done(PKSD_T pKsd_t);
 extern  void set_gpio( int );
 extern  void clr_gpio( int );
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 extern  int putseq(struct SEQ_struct __far *sp);
 #endif
 
 extern  int putn(unsigned int n);
 extern  int puthex(unsigned int n);
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern  int putstring(char *str);
 #endif
 #endif //defined (WIN32) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__

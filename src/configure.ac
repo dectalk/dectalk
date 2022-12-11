@@ -392,8 +392,8 @@ case "$target" in
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 	sparc-sun-*) DAPI_LD_SHARED="\$(LD) -G -Bsymbolic \
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
-	*-apple-darwin*) DAPI_LD_SHARED="\$(LD) -shared -Bsymbolic -soname \
-		libtts_\$(LANG_CODE).so -o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -lm" ;;
+	*-apple-darwin*) DAPI_LD_SHARED="\$(CC) -dynamic -dynamiclib -dylib \
+		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 esac
 AC_SUBST(DAPI_LD_SHARED)dnl
 
@@ -404,7 +404,7 @@ dnl: see how simple this is for linux?
 ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
 	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
-	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm"
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc -rpath=\\\$\$ORIGIN/ -rpath=\\\$\$ORIGIN/../lib/ -lm"
 case "$target" in
 	alpha-dec-osf4.0) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
 		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
@@ -415,6 +415,10 @@ case "$target" in
 		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
 		../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a -lc -lots -lpthreads" ;;
 	powerpc-apple-*) ML_TTS_SO="\$(CC) -dynamic -dynamiclib -dylib \
+	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc" ;;
+        *-apple-darwin*) ML_TTS_SO="\$(CC) -dynamic -dynamiclib -dylib \
 	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc" ;;
@@ -522,7 +526,7 @@ case "$target" in
 	powerpc-apple-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl " ;;
 esac
-SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
+SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,-rpath,\\\$\$ORIGIN/lib/ -Wl,-rpath,\\\$\$ORIGIN/../lib/"
 AC_SUBST(SAMPLE_LINKFLAGS)dnl
 
 SAMPLE_DTLIB=" -lttsmme"
@@ -542,8 +546,9 @@ AC_ARG_ENABLE(audio, [  --disable-audio	Disable system audio output (/dev/dsp or
 if test "${with_audio}" = "yes"; then
 	PKG_CHECK_MODULES(PULSE, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
 	if test "${have_libpulsesimple}" = "yes"; then
-		AUDIO_DEFINES="-DUSE_PULSEAUDIO"
-		AUDIO_LIBS="-lpulse-simple"
+		AUDIO_DEFINES="-DUSE_PULSEAUDIO ${PULSE_CFLAGS}"
+		AUDIO_LIBS="${PULSE_LIBS}"
+
 	fi
 
 else

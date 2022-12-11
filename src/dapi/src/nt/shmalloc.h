@@ -4,13 +4,15 @@
  */
 #include <stdlib.h>
 #ifndef VXWORKS
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #endif
 #include <stdio.h>
 #ifdef __arm__
 #define _MIT_POSIX_THREADS 1
 #endif
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 #include <pthread.h>
 #endif
 #include "opthread.h"

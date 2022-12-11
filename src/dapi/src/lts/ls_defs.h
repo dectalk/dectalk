@@ -87,7 +87,7 @@
 
 #include "esc.h"
 
-#if !defined VXWORKS && defined __linux__ && !defined _SPARC_SOLARIS_
+#if !defined VXWORKS && defined __linux__ && !defined _SPARC_SOLARIS_ && !defined (__APPLE__)
 #define NULL    ((void *)0)
 #endif
 /* #define NULL 0 */

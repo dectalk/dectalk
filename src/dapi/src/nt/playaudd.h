@@ -32,7 +32,7 @@
 #include "port.h"
 #include "opatype.h"
 #include "opmmsys.h"
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "port.h"
 #include "dtmmedefs.h"
 #undef USE_MME_SERVER  //just to make sure.
@@ -73,7 +73,7 @@ typedef struct PLAY_RING_TAG
 typedef PLAY_RING_T * LPPLAY_RING_T;
 
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 typedef void* HWAVEOUT;
 
 struct wavehdr_tag {

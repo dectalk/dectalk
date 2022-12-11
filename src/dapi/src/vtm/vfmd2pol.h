@@ -40,7 +40,7 @@
 /*                                                                    */
 /**********************************************************************/
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 extern FLTPNT_T InverseSampleRateScale;
 #endif
 

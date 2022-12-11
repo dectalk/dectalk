@@ -61,7 +61,9 @@
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <string.h>
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #include "myalloc.h"
 #include "audioapi.h"
 #include "samprate.h"	//MVP:03/18/96 Definition of MULAW_SAMPLE_RATE 
@@ -135,7 +137,7 @@ typedef struct QUEUE_TAG
 
 typedef QUEUE_T * LPQUEUE_T;
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 typedef UINT HWAVEOUT;
 #endif
 

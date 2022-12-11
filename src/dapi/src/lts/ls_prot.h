@@ -93,7 +93,7 @@ extern void ls_rule_do_lts(LPTTS_HANDLE_T phTTS, LETTER *lp2, LETTER *lp1);
 extern int ls_util_is_name(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *rlp);
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern  void ls_task_main(LPTTS_HANDLE_T phTTS);
 #endif
 

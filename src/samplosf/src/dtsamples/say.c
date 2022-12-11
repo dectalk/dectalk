@@ -160,7 +160,7 @@
 #include <stdio.h>
 //#include <fcntl.h>
 #include <errno.h>
-#if defined __linux__ || defined VXWORKS || defined __sparc || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined __sparc || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <string.h>
 #include <stdlib.h>
 #endif
@@ -173,6 +173,7 @@
 #else
   #include <dtk/ttsapi.h>
 #endif
+#undef HAVE_ICONV /* WillJR880 added to allow successful build in ARM64/Apple. Work needed */
 #ifdef HAVE_ICONV
 #include <langinfo.h>
 #include <iconv.h>
@@ -199,7 +200,7 @@ iconv_t cd;
   */
 MMRESULT OpenOutputWaveFile( char * fname, int encoding );
 MMRESULT CloseOutputWaveFile( );
-#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 int play_file( char *file_name, int isAPipe );
 #endif
 #ifdef HAVE_ICONV
@@ -795,7 +796,7 @@ int main( int argc, char *argv[] )
           /**********************************************/
           /* Play the specified file 			*/
           /**********************************************/
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  play_file( argv[file_arg_index], 0 );
 #else
 	  play_file( argv[file_arg_index] );

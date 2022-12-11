@@ -141,7 +141,7 @@
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "tts.h"
 #include <stdlib.h>
 #endif
@@ -212,7 +212,7 @@ extern dict_pointers_t dict_point[];
 extern S16 dict_index_table[];
 extern unsigned char dict_data_table[];
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern void cm_util_flush_init(LPTTS_HANDLE_T);
 #endif
 

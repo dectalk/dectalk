@@ -54,7 +54,7 @@
  * 020	CAB		05/23/2002		Removed warnings
  */
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern int ls_rule_show_phone(PHONE*, PHONE*, char*);
 #else
 int ls_rule_show_phone(PHONE*, PHONE*, char*); // NAL warning removal

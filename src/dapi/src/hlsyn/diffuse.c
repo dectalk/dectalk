@@ -26,8 +26,9 @@
 #include "flavor.h"
 
 #include <stdlib.h>
-#include <malloc.h>
-
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 typedef unsigned char byte;
 
 // This macro calculates the rounded pixel value, the error, and then

@@ -52,6 +52,9 @@
 #include <mmsystem.h>   // includes multimedia extensions
 #include "dtmemory.h"   // includes dtmemory header file
 #include "ttsapi.h"     // includes TextToSpeech API definitions
+#if defined (__APPLE__)
+#include <stdlib.h>
+#endif
 
 //
 // Global variables and constants for the server defined here

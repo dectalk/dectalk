@@ -323,7 +323,7 @@
 
 /* 6. Various constants  */
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ 
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 #define NSAMP_FRAME     71			/* # of samples per output frame 11 KHz. */
 
 #ifdef NEW_VTM

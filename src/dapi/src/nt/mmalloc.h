@@ -69,7 +69,7 @@
 extern "C" {
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   //#define HANDLE int
 #define HGLOBAL DT_HANDLE
 #define GMEM_MOVEABLE 0x0002
@@ -100,7 +100,7 @@ extern "C" {
 #define  ALLOCATE_SERVER_MEM( SizeInBytes )     malloc( SizeInBytes )
 #define  FREE_SERVER_MEM( SizeInBytes )         free( SizeInBytes )
 
-#if defined UNDER_CE || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined UNDER_CE || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
  
 #define  ALLOCATE_SERVER_BUFFER( SizeInBytes )  malloc( SizeInBytes )
 #define  FREE_SERVER_BUFFER( SizeInBytes )      free( SizeInBytes )
@@ -114,7 +114,7 @@ extern "C" {
 
 #endif
 
-#if defined UNDER_CE || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined UNDER_CE || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 
 #define  ALLOCATE_LOCKED_MEMORY( SizeInBytes )  malloc( SizeInBytes )
 #define  FREE_LOCKED_MEMORY( SizeInBytes )      free( SizeInBytes )
@@ -133,7 +133,7 @@ extern "C" {
 /*  Function prototypes.                                              */
 /**********************************************************************/
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ || defined (__APPLE__)
 void * mallocLock( unsigned int uiSize );
 #ifndef MSDOS
 void * reallocLock( void * pMem, size_t size );

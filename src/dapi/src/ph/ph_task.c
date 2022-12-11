@@ -150,8 +150,12 @@
 #include "ph_def.h"				/* the new all inclusive include file for ph */
 
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <stdlib.h>
+#endif
+
+#if defined (__APPLE__)
+#include <string.h>
 #endif
 
 #if defined(WIN32) && !defined(UNDER_CE)
@@ -1616,7 +1620,7 @@ MMRESULT GetSpeakerParams(LPTTS_HANDLE_T phTTS, UINT uiIndex, SPDEFS **ppspCur,
 	(*ppspCur)->open_quo      = pDph_t->curspdef[SPD_OQ] - (pDph_t->tunedef[voice][SPD_OQ]);
 
 
-#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386)
+#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386) && !defined (__APPLE__)
 	(*ppspCur)->output_gain_mult   = pDph_t->curspdef[SPD_OS] - (pDph_t->tunedef[voice][SPD_OS]);
 #endif
 
@@ -1766,7 +1770,7 @@ MMRESULT GetSpeakerParams(LPTTS_HANDLE_T phTTS, UINT uiIndex, SPDEFS **ppspCur,
 	(*ppspDefault)->hat_rise           = cur_speaker[SPD_HR];
 	(*ppspDefault)->stress_rise        = cur_speaker[SPD_SR];
 	(*ppspDefault)->avg_glot_open      = cur_speaker[SPD_AGO];
-#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386)
+#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386) && !defined (__APPLE__)
 	(*ppspDefault)->output_gain_mult   = cur_speaker[SPD_OS];
 #endif
 
@@ -1843,7 +1847,7 @@ MMRESULT SetSpeakerParams(LPTTS_HANDLE_T phTTS, SPDEFS *pspSet)
 	pDph_t->curspdef[SPD_CHINK]  = pspSet->area_chink	 +	(pDph_t->tunedef[voice][SPD_CHINK]);
 	pDph_t->curspdef[SPD_OQ]  = pspSet->open_quo	 +	(pDph_t->tunedef[voice][SPD_OQ]);
 
-#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386)
+#if (defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__) && !defined (i386) && !defined (__APPLE__)
 	pDph_t->curspdef[SPD_OS]  = pspSet->output_gain_mult + (pDph_t->tunedef[voice][SPD_OS]);;
 #endif
 

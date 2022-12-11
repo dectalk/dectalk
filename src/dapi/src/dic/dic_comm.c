@@ -43,7 +43,7 @@
  */
 
 /* ETT 07/24/1998 watch out here */
-#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 #include <io.h>          
 #endif
 
@@ -58,17 +58,19 @@
 #include "port.h"
 #include <stdlib.h>
 
-#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined (__osf__) && !defined (__linux__) && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 #include <process.h>       
 #endif
 
 #include <stdio.h>
 
 #ifndef VMS
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #include <fcntl.h>
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #else
@@ -85,7 +87,6 @@
 #include <string.h>
 #include <time.h>
 #include "dic.h"
-
 
 /*
  * general defines ...
@@ -361,7 +362,7 @@ int main(int argc, char ** argv)
    }
 	
 /*   if ((tfp = tmpfile()) == NULL) mfg_debug*/
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
    snprintf(tmpf, sizeof(tmpf), "%s.%lu", TMPFILE, getpid());
 #else
    sprintf(tmpf, "%s", TMPFILE);
@@ -868,7 +869,7 @@ int main(int argc, char ** argv)
    //printf("\r                                              ");
  
    fclose(tfp);
-#if defined (__osf__) || defined (__linux__)  || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__)  || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
    unlink(tmpf);
 #else
    _unlink(tmpf);

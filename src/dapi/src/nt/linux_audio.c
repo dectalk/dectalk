@@ -50,7 +50,7 @@
 /* FIXME: GetNumDevs, GetVolume, etc. 
  */
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 #ifndef LINUX_AUDIO_C
 #define LINUX_AUDIO_C
 
@@ -71,7 +71,9 @@
 #include <sys/stat.h> 
 #include <poll.h>
 #else
+#if !defined (__APPLE__)
 #include <sys/soundcard.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h> 
 #endif
@@ -1087,7 +1089,7 @@ UINT32 waveOutGetID(HWAVEOUT hWaveOut, UINT32 * lpuDeviceID)
  * Returns TRUE in case of buffer underrun.
  */
 
-#ifdef _SPARC_SOLARIS_
+#if defined _SPARC_SOLARIS_ || defined (__APPLE__)
 typedef struct audio_buf_info_t 
 {
 int fragments;

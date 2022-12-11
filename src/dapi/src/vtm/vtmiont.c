@@ -97,7 +97,7 @@
  //#define HLSYN
 #include "dectalkf.h"
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "playaudd.h"
 #endif
 
@@ -123,7 +123,13 @@
 #include <stdlib.h>
 #include <string.h>
 #else
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
+#endif
+
+#if defined (__APPLE__)
+#include <stdlib.h>
 #endif
 
 #include "port.h"
@@ -370,7 +376,7 @@ char szTemp[256]="";
 /**********************************************************************/
 #ifdef WIN32
 DWORD __stdcall vtm_main( LPTTS_HANDLE_T phTTS )
-#elif defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#elif defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef SINGLE_THREADED
 DWORD vtm_main( LPTTS_HANDLE_T phTTS )
 #else
@@ -416,7 +422,7 @@ DWORD vtm_main( LPTTS_HANDLE_T phTTS )
   int temp=0;	
 
 #ifndef SINGLE_THREADED
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   /* Initialize thread error field to no error */
   phTTS->uiThreadError = MMSYSERR_NOERROR;
 #endif
@@ -453,7 +459,7 @@ DWORD vtm_main( LPTTS_HANDLE_T phTTS )
 #endif
 
   OP_SetEvent(phTTS->hMallocSuccessEvent);
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   if (phTTS->uiThreadError != MMSYSERR_NOERROR)
   {
       OP_ExitThread(&phTTS->uiThreadError);

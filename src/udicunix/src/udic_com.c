@@ -51,7 +51,7 @@
 #include <stdio.h>
 /*#include <conio.h> // removed tek 11feb99 */
 #include <time.h>
-#ifndef _APPLE_MAC_
+#if !defined (__APPLE__)
 #include <malloc.h>
 #endif
 
@@ -158,7 +158,7 @@ int look_for_prefix(char p1, char p2);
 main(int argc,char *argv[])
 
 {
-#if defined __linux__ || defined __osf__ || defined __ppc__
+#if defined __linux__ || defined __osf__ || defined __ppc__ || defined (__APPLE__)
 	char	fnam_t[255], fnam_d[255];
 #else
 	char	fnam_t[_MAX_FNAME], fnam_d[_MAX_FNAME];

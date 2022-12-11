@@ -144,7 +144,7 @@
 
 
 
-#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 #define NSAMP_FRAME     51              /* # of samples per output frame 8 KHz. */
 #else
 #define NSAMP_FRAME     64              /* # of samples per output frame 10 KHz. */

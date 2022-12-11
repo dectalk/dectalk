@@ -64,8 +64,13 @@
 #define TRUE 1
 #define FALSE 0
 #else
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #endif
+#endif
+#if defined (__APPLE__)
+#include <stdlib.h>
 #endif
 #include "dectalkf.h"
 #include "kernel.h"	   /* For PKSD_T definition */
@@ -80,7 +85,7 @@
 #endif
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #if defined __osf__
 #include "dtmmedefs.h"
 #endif

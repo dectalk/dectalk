@@ -353,6 +353,7 @@ typedef struct
    NULL				/* 31) */
    };
 
+#if 0 /* WillJR880 - this isn't right but it got the build to work for now */
  char *conj[32] = 	/* conjunction semantic features */
    {				/* examples... */
    NULL,			/* 0)  */
@@ -388,6 +389,7 @@ typedef struct
    NULL,			/* 30) */
    NULL				/* 31) */
    };
+#endif
 
  char *ed[32] =		/* -ed verb semantic features */
    {				/* examples... */
@@ -1194,6 +1196,7 @@ char *form_class[32] =		/* form classes */
 */
        
 /* this looks unused, but I'm leaving tables in to be safe... 8/30/95  JDB */       
+#if 0
 char **feature_table[32] =
    {
    adj,				/* 0)  adjective */
@@ -1229,7 +1232,7 @@ char **feature_table[32] =
    contraction,		/* 30) contraction */
    NULL,			/* 31) homograph */
    };                                
-
+#endif
 
 /* 07/08/1998 GL for BATS#706 include fc_def.tab to catch form class definition */
 #include "fc_def.tab"

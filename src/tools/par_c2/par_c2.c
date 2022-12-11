@@ -463,7 +463,7 @@ dict_names reverse_dict_list(dict_names dict_list)
  */
 int dict_node_icmp(dict_node p,dict_node q)
 {
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
 	return(strcasecmp(p->data->search_graph,q->data->search_graph));
 #else
 	return(stricmp(p->data->search_graph,q->data->search_graph));
@@ -1083,7 +1083,7 @@ par_print_rule_error(rule,(*index));
 			exit(1);      
 		}
 		p=dict_list;
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
 		while (p!=NULL && strcasecmp(dict_name,p->dict_name))
 #else
 		while (p!=NULL && stricmp(dict_name,p->dict_name))
@@ -3622,7 +3622,7 @@ int main(int argc,char *argv[])
 		}
 	  if (input_line[0]==SECTION_MARKER)
 	  {
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
 		  if (strncasecmp(input_line+1,"rule",4)==0)
 #else
 		  if (strnicmp(input_line+1,"rule",4)==0)
@@ -3643,7 +3643,7 @@ int main(int argc,char *argv[])
 			  rule_sections[++rule_sections[0]]=rule_count+1;
 			  section=RULE_SECTION;
 		  }
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
 		  if (strncasecmp(input_line+1,"dict",4)==0)
 #else
 		  if (strnicmp(input_line+1,"dict",4)==0)

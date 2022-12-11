@@ -134,7 +134,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <fcntl.h>
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
 #include <limits.h>
 #else
 #include <sys/limits.h>
@@ -142,7 +142,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/stat.h>
-#ifndef __linux__
+#if !defined __linux__ || !defined (__APPLE__)
 #include <mme/mmsystem.h>
 #endif
 /***************************************************************************
@@ -685,7 +685,7 @@ char *argv[];
     /****************************************************/
     /* Check if the MME server is running...		*/
     /****************************************************/
-#ifndef __linux__    
+#if !defined __linux__ || !defined (__APPLE__)    
     num_wave_out_devices = waveOutGetNumDevs();
 
     if (num_wave_out_devices <= 0) 
@@ -724,7 +724,7 @@ char *argv[];
     /* Open the UID files (the output of the UIL 	*/
     /* compiler) in the hierarchy.			*/
     /****************************************************/
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
     if ( MrmOpenHierarchyPerDisplay(XtDisplay(topshell),db_filename_num,
 				    db_filename_vec,NULL,&s_MrmHierarchy) 
 	 != MrmSUCCESS) {

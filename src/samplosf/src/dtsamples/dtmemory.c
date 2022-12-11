@@ -92,10 +92,15 @@
 #include <dtk/dtmmedefs.h>
 #include <dtk/ttsapi.h>
 #include <time.h>
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 #include <stdlib.h> /* for atoi(), malloc() */
 #include <unistd.h> /* for sleep() */
 #endif
+
+#if defined (__APPLE__)
+#include <string.h> 
+#endif
+
 /**************************************************/
 /* Macro define's				  */
 /**************************************************/
@@ -216,7 +221,7 @@ main( int argc, char *argv[] )
     unsigned int devOptions = 0;
     long UserParams	= 0;
     LPTTS_BUFFER_T pLastSpeechBuffer[1];
-#if defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 int playFile( char *file_name );
 #endif
     /************************************************************/

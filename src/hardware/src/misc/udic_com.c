@@ -155,7 +155,7 @@ int look_for_prefix(char p1, char p2);
 main(int argc,char *argv[])
 
 {
-#if defined __linux__ || defined __osf__
+#if defined __linux__ || defined __osf__ || defined (__APPLE__)
 	char	fnam_t[255], fnam_d[255];
 #else
 	char	fnam_t[_MAX_FNAME], fnam_d[_MAX_FNAME];

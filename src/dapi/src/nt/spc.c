@@ -46,14 +46,16 @@
 #include "dectalkf.h"
 #ifdef WIN32
 #include <windows.h>
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #include <stdio.h>
 #include "port.h"
 #include "kernel.h"
 #include "ph_def.h"         /* MVP : Now phinst.h includes phdefs.h, php.h */
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <stdlib.h>
 #include "opthread.h"
 #include "port.h"

@@ -20,7 +20,9 @@
 /**********************************************************************/
 
 #include <windows.h>
-#include <malloc.h>    /* This is needed to declare type 'size_t'     */
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif   /* This is needed to declare type 'size_t'     */
 
 /**********************************************************************/
 /*                                                                    */

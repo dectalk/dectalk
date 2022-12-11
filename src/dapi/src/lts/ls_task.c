@@ -223,7 +223,7 @@ extern void ls_suff_print_fc(LPTTS_HANDLE_T phTTS);
 #define SPELL_WORD      2
 #define FINISHED_WORD   3
 
-#ifdef __linux__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <stdio.h>
 #endif
 
@@ -263,7 +263,7 @@ extern int in_winmain;
 * *****************************************************************/
      
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 void ls_task_main(LPTTS_HANDLE_T phTTS)
 #endif
 
@@ -4750,7 +4750,7 @@ int find_next_marker(PLTS_T pLts_t,int pos)
 #include "proverbs.h"
 #endif
 
-#if defined ARM7 || defined __linux__ || defined SPARC_SOLARIS || defined __osf__ || defined __EMSCRIPTEN__
+#if defined ARM7 || defined __linux__ || defined SPARC_SOLARIS || defined __osf__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define stricmp strcasecmp
 #endif
 

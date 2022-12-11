@@ -181,11 +181,13 @@
 #ifdef VXWORKS
 #include <string.h>
 #else
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #endif
 #include <stdlib.h>
 
-#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <string.h>
 #include <sys/time.h>
 #ifndef _SPARC_SOLARIS_
@@ -212,7 +214,7 @@
 #endif //TYPING_MODE
 
 #ifdef AUD_DEBUG
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 static unsigned int timeGetTime()
 {
         struct timeval tv;
@@ -234,7 +236,7 @@ static unsigned int timeGetTime()
 #include "cemm.h"
 #endif //UNDER_CE
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 //  linux home brew audio API
 #include "linux_audio.h"
 LONG OSS_WaveInit(void);
@@ -300,7 +302,7 @@ typedef  unsigned int  SENDRET_T;
 #else
 #define  STARTUP_BUFFER_SECONDS         0.1
 #endif
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef __ipaq__
 #define  MAXIMUM_WRITE_LENGTH           8192
 #define  AUDIO_BUFFER_SIZE  \
@@ -770,7 +772,7 @@ MMRESULT PA_CreatePlayHandleEx( HPLAY_AUDIO_T * ppPlayAudio,
 
   pShm_t->uiGlobalPlayAudioInstance++;
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   OSS_WaveInit();
 #endif
 
@@ -1685,7 +1687,7 @@ MMRESULT PA_DestroyPlayHandleEx( HPLAY_AUDIO_T pPlayAudio )
 #if defined WIN32 && !defined NOWIN  
 				       &ThreadStatus
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	                               &ThreadStatus, OP_INFINITE
 #endif
 				       );
@@ -1750,7 +1752,7 @@ MMRESULT PA_DestroyPlayHandleEx( HPLAY_AUDIO_T pPlayAudio )
 #if defined WIN32 && !defined NOWIN 
 					 &ThreadStatus
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 					 &ThreadStatus, OP_INFINITE
 #endif
 					 );
@@ -2062,7 +2064,7 @@ MMRESULT PA_Queue( HPLAY_AUDIO_T pPlayAudio,
   DWORD dwRemaining;
   LPPLAY_RING_T pPlayAudioRing;
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   struct timespec tv;
 #endif
 
@@ -2124,7 +2126,7 @@ MMRESULT PA_Queue( HPLAY_AUDIO_T pPlayAudio,
     OP_ResetEvent( pPlayAudio->hevQueueNotFull );
 
     OP_WaitForEvent( pPlayAudio->hevQueueNotFull, OP_INFINITE );
-#if defined __linux__ || defined VXWORKS || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined __EMSCRIPTEN__ || defined (__APPLE__)
 //necessary for proper multithreading, this may be fixed in newer kernels
     tv.tv_sec=0;
     tv.tv_nsec=1;
@@ -2657,7 +2659,7 @@ MMRESULT PA_SetFormat( HPLAY_AUDIO_T pPlayAudio,
 
 MMRESULT PA_GetVolume( HPLAY_AUDIO_T pPlayAudio, LPDWORD pdwVolume )
 {
-#if !defined _WIN32 && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ // NAL warning removal
+#if !defined _WIN32 && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ || defined (__APPLE__) // NAL warning removal
   LPDWORD pdwVol;
 #endif
 
@@ -2672,7 +2674,7 @@ MMRESULT PA_GetVolume( HPLAY_AUDIO_T pPlayAudio, LPDWORD pdwVolume )
   if ( pPlayAudio == NULL )
     return MMSYSERR_INVALHANDLE;
 
-#if defined _WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined _WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 
   mmStatus = waveOutGetVolume((HWAVEOUT)pPlayAudio->uiSelectedDeviceID,pdwVolume);
 #else // not win32 or linux; do it the slow way.
@@ -4590,7 +4592,7 @@ static void StartAudioPlaying( HPLAY_AUDIO_T pPlayAudio )
   unsigned int uiQueueCount=0;
   unsigned int uiWriteLength=0;
   LPPLAY_RING_T pPlayAudioRing;
-#ifdef __linux__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   struct timespec tv;
 #endif
 
@@ -4854,7 +4856,7 @@ static void StartAudioPlaying( HPLAY_AUDIO_T pPlayAudio )
   // finally release the mutex here.
   OP_UnlockMutex(pPlayAudio->hmxQueueCount);
 	
-#ifdef __linux__  || defined __EMSCRIPTEN__
+#if defined __linux__  || defined __EMSCRIPTEN__ || defined (__APPLE__)
 //necessary for proper multithreading, this may be fixed in newer kernels
     tv.tv_sec=0;
     tv.tv_nsec=1;
@@ -4906,7 +4908,7 @@ static ATYPE_T Process_MM_WOM_DONE_Message( HPLAY_AUDIO_T pPlayAudio,
   LPWAVEHDR pWaveHdr;
   LPPLAY_RING_T pPlayAudioRing;
 
-#ifdef __linux__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   struct timespec tv;
 #endif
 
@@ -5229,7 +5231,7 @@ static ATYPE_T Process_MM_WOM_DONE_Message( HPLAY_AUDIO_T pPlayAudio,
   OP_SetEvent( pPlayAudio->hevQueueNotFull );
   //tek 06nov97 finally release the mutex here.
   OP_UnlockMutex( pPlayAudio->hmxQueueCount );
-#ifdef __linux__  || defined __EMSCRIPTEN__
+#if defined __linux__  || defined __EMSCRIPTEN__ || defined (__APPLE__)
 //necessary for proper multithreading, this may be fixed in newer kernels
   tv.tv_sec=0;
   tv.tv_nsec=1;
@@ -6698,7 +6700,7 @@ static MMRESULT ProcessSetFormatMessage( HPLAY_AUDIO_T pPlayAudio,
 #if defined WIN32
 	 ( mmStatus == WAVERR_BADFORMAT )
 #endif
-#if defined __osf__ || defined __linux__   || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__   || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	 ( mmStatus == MMSYSERR_NOTSUPPORTED )
 #endif
 	 && ( pWaveFormat->wFormatTag == WAVE_FORMAT_PCM )
