@@ -398,7 +398,16 @@ esac
 AC_SUBST(DAPI_LD_SHARED)dnl
 
 ML_ALL="../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.so"
+case "$target" in
+        *-apple-darwin*) ML_ALL="../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.dylib" ;;
+esac
 AC_SUBST(ML_ALL)dnl
+
+ML_SONAME="libtts.so"
+case "$target" in
+        *-apple-darwin*) ML_SONAME="libtts.dylib" ;;
+esac
+AC_SUBST(ML_SONAME)dnl
 
 dnl: see how simple this is for linux?
 ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
@@ -421,7 +430,8 @@ case "$target" in
         *-apple-darwin*) ML_TTS_SO="\$(CC) -dynamic -dynamiclib -dylib \
 	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
-	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc" ;;
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc \
+	-Wl,-rpath -Wl,@loader_path/ -Wl,-rpath -Wl,@loader_path/../lib/ -Wl,-install_name,@rpath/libtts.dylib" ;;
 	sparc-sun-*) ML_TTS_SO="\$(LD) -G -Bsymbolic \
 	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
@@ -527,6 +537,9 @@ case "$target" in
 	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl " ;;
 esac
 SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,-rpath,\\\$\$ORIGIN/lib/ -Wl,-rpath,\\\$\$ORIGIN/../lib/"
+case "$target" in
+	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,-rpath,@loader_path/lib/ -Wl,-rpath,@loader_path/../lib/" ;;
+esac
 AC_SUBST(SAMPLE_LINKFLAGS)dnl
 
 SAMPLE_DTLIB=" -lttsmme"
