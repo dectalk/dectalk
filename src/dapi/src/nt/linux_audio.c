@@ -98,12 +98,12 @@
 #ifdef _SPARC_SOLARIS_
 #define SOUND_DEV "/dev/audio"
 #else
-#ifndef USE_PULSEAUDIO
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
 #define SOUND_DEV "/dev/dsp"
 #endif
 #endif
 
-#ifndef USE_PULSEAUDIO
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
 #define MIXER_DEV "/dev/mixer"
 #endif
 
@@ -243,7 +243,7 @@ DWORD WINAPI GetTickCount(void)
     return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - server_startticks;
 }
 
-#ifndef USE_PULSEAUDIO
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
 char *GetAudioDev(char *name)
 {
 	FILE *infile;
@@ -333,6 +333,21 @@ LONG OSS_WaveInit(void)
   memset(&WOutDev[0].caps, 0, sizeof(WOutDev[0].caps));
 
 #ifdef USE_PULSEAUDIO
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2M08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2S08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2M16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2S16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1M08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1S08;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1M16;
+  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1S16;
+  return 0;
+#elif defined (__APPLE__) && !defined(USE_PULSEAUDIO)
+  /* FIXME: Implement native audio on MacOS, dummy for now */
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M16;
@@ -1134,7 +1149,8 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
    info.fragstotal=16;
    info.bytes=12406;
 #else
-#ifndef USE_PULSEAUDIO
+   /* FIXME: Implement native audio on MacOS */
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
     if (ioctl(wwo->unixdev, SNDCTL_DSP_GETOSPACE, &info) < 0) {
       ERR("ioctl failed (%s)\n", strerror(errno));
       return FALSE;
@@ -1183,7 +1199,12 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 	    
       /* write end of current wave hdr */
 #ifndef USE_PULSEAUDIO
+#ifndef __APPLE__
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, toWrite);
+#else
+      /* FIXME: Implement native audio on MacOS */
+      count = toWrite;
+#endif //__APPLE__
 #else
       count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, toWrite, NULL);
       if (count == 0)
@@ -1235,7 +1256,12 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       continue; /* try to go to use next wavehdr */
     }  else	{
 #ifndef USE_PULSEAUDIO
+#ifndef __APPLE__
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, wwo->dwRemain);
+#else
+      /* FIXME: Implement native audio on MacOS */
+      count = wwo->dwRemain;
+#endif //__APPLE__
 #else
       count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, wwo->dwRemain, NULL);
       if (count == 0)
@@ -1354,7 +1380,12 @@ static	void	wodPlayer_Reset(WINE_WAVEOUT* wwo, WORD uDevID, BOOL reset)
 #ifdef USE_PULSEAUDIO
   if (pa_simple_flush(wwo->pa_conn, NULL) != 0)
 #else
+#if defined (__APPLE__)
+  /* FIXME: Implement native audio on MacOS */
+  if(0)
+#else
   if (ioctl(wwo->unixdev, SNDCTL_DSP_RESET, 0) == -1) 
+#endif //__APPLE__
 #endif
 #endif
   {
@@ -1573,6 +1604,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	dwFlags &= ~WAVE_DIRECTSOUND;
 
 #ifndef USE_PULSEAUDIO
+#ifndef __APPLE__
     GetAudioDev(audio_dev);
 
     if (access(audio_dev, 0) != 0)
@@ -1589,6 +1621,11 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	}
     fcntl(audio, F_SETFD, 1); /* set close on exec flag */
     wwo->unixdev = audio;
+#else
+    /* FIXME: Implement native audio on MacOS */
+    fprintf(stderr,"MacOS: audio output without Pulseaudio currently not implemented!\n");
+    wwo->unixdev = STDOUT_FILENO;
+#endif
 #else
     if (lpDesc->lpFormat->wBitsPerSample == 8) {
 	    pa_ss.format = PA_SAMPLE_U8;
@@ -1683,7 +1720,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	ioctl(audio,AUDIO_SETINFO,&audio_info);
 
 #else
-#ifndef USE_PULSEAUDIO
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
     IOCTL(audio, SNDCTL_DSP_SETFRAGMENT, audio_fragment);
 /* First size and stereo then samplerate */
 	IOCTL(audio, SNDCTL_DSP_SAMPLESIZE, format);
@@ -1706,6 +1743,9 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 #if defined(USE_PULSEAUDIO)
     wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #elif defined(_SPARC_SOLARIS_)
+    wwo->dwFragmentSize = 1024; /* set this to a useful value */
+#elif defined(__APPLE__)
+    /* FIXME: Implement native audio on MacOS */
     wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #else
     /* even if we set fragment size above, read it again, just in case */
@@ -1792,8 +1832,13 @@ static DWORD wodClose(WORD wDevID)
 	}
 
 #ifndef USE_PULSEAUDIO
+#ifndef __APPLE__
+        /* FIXME: Implement native audio on MacOS */
+        return MMSYSERR_NOERROR;
+#else
 	close(wwo->unixdev);
 	wwo->unixdev = -1;
+#endif
 #else
 	pa_simple_drain(wwo->pa_conn, &err);
 	pa_simple_free(wwo->pa_conn);
@@ -2033,7 +2078,7 @@ static DWORD wodGetPosition(WORD wDevID, LPMMTIME lpTime, DWORD uSize)
  */
 static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
 {
-#ifndef USE_PULSEAUDIO
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
 	int 	mixer;
     int		volume;
     DWORD	left, right;
@@ -2083,6 +2128,7 @@ static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
 #else
 	return MMSYSERR_NOTENABLED;
 #endif //PULSEAUDIO
+	return MMSYSERR_NOTENABLED;
 }
 
 
@@ -2091,7 +2137,7 @@ static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
  */
 static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 {
-#ifndef USE_PULSEAUDIO
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
 	int 	mixer;
 	int		volume;
     DWORD	left, right;
@@ -2156,6 +2202,7 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 #else
 	return MMSYSERR_NOTENABLED;
 #endif //PULSEAUDIO
+	return MMSYSERR_NOTENABLED;
 }
 
 /**************************************************************************
@@ -2164,7 +2211,7 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 static	DWORD	wodGetNumDevs(void)
 {
     DWORD	ret = 1;
-#ifndef USE_PULSEAUDIO
+#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
     char audio_dev[500];
     int audio;
     
