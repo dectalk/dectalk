@@ -711,6 +711,9 @@ static void send_pars (LPTTS_HANDLE_T phTTS)
 #else
 		pDph_t->delaypars = (short _far *) spcget (SPC_type_voice);
 #endif
+		pDph_t->delaypars[OUT_TLT] = 0;
+		pDph_t->delaypars[OUT_T0] = 0;
+		pDph_t->delaypars[OUT_AV] = 0;
 	}
 	else
 	{
