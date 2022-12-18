@@ -90,6 +90,8 @@
 #endif
 #ifdef USE_PULSEAUDIO
 #include <pulse/simple.h>
+#elif defined(__APPLE__)
+#include "AudioToolbox/AudioToolbox.h"
 #endif
 #include "linux_audio.h"
 
@@ -108,6 +110,11 @@
 #endif
 
 #define AUDIO_DEV_TAG "AUDIODEV:"
+
+#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+#define AQBUFFERS       4
+#define AQBUFFERSIZE    1024
+#endif
 
 #define IOCTL(a,b,c)		((-1==ioctl(a,b,&c))&&(perror("ioctl:"#b":"#c),0))
 #define MAX_WAVEOUTDRV 	(1)
@@ -155,6 +162,11 @@ typedef struct {
 typedef struct {
 #ifdef USE_PULSEAUDIO
     pa_simple      *pa_conn;
+#elif defined(__APPLE__)
+    AudioQueueRef  aqueueref;
+    AudioQueueBufferRef aqueue_bufref[AQBUFFERS];
+    int            aqueue_buffree;
+    HMUTEX_T       aqueue_crst;
 #else
     int            unixdev;
 #endif
@@ -324,6 +336,8 @@ LONG OSS_WaveInit(void)
     {
 #ifdef USE_PULSEAUDIO
       WOutDev[i].pa_conn = NULL;
+#elif defined(__APPLE__)
+      WOutDev[i].aqueueref = NULL;
 #else
       WOutDev[i].unixdev = -1;
 #endif
@@ -332,22 +346,8 @@ LONG OSS_WaveInit(void)
   /* FIXME: only one device is supported */
   memset(&WOutDev[0].caps, 0, sizeof(WOutDev[0].caps));
 
-#ifdef USE_PULSEAUDIO
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M08;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S08;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M16;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S16;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2M08;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2S08;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2M16;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_2S16;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1M08;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1S08;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1M16;
-  WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1S16;
-  return 0;
-#elif defined (__APPLE__) && !defined(USE_PULSEAUDIO)
-  /* FIXME: Implement native audio on MacOS, dummy for now */
+/* Use the same capabilities for both Pulseaudio and native MacOS AudioToolbox */
+#if defined(USE_PULSEAUDIO) || defined(__APPLE__)
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M16;
@@ -1123,8 +1123,14 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
   struct pollfd		fds[1];
   int return_val;
 #endif
+#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+  OSStatus            os_status;
+  AudioQueueBufferRef aqueue_bufref;
+  int                 i;
+#endif
 
-#ifdef USE_PULSEAUDIO
+/* Use fake fragments for both Pulseaudio and native MacOS AudioToolbox */
+#if defined(USE_PULSEAUDIO)
   info.fragments=4;
 #endif
   for (;;) {
@@ -1149,17 +1155,23 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
    info.fragstotal=16;
    info.bytes=12406;
 #else
-   /* FIXME: Implement native audio on MacOS */
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
-    if (ioctl(wwo->unixdev, SNDCTL_DSP_GETOSPACE, &info) < 0) {
-      ERR("ioctl failed (%s)\n", strerror(errno));
-      return FALSE;
-    }
-#else
+#if defined(USE_PULSEAUDIO)
     info.fragments--;
     info.fragsize=1024;
     info.fragstotal=16;
     info.bytes=12406;
+#elif defined(__APPLE__)
+    OP_LockMutex(wwo->aqueue_crst);
+    info.fragments = wwo->aqueue_buffree;
+    OP_UnlockMutex(wwo->aqueue_crst);
+    info.fragsize=AQBUFFERSIZE;
+    info.fragstotal=AQBUFFERS;
+    info.bytes=info.fragments*info.fragsize;
+#else
+    if (ioctl(wwo->unixdev, SNDCTL_DSP_GETOSPACE, &info) < 0) {
+      ERR("ioctl failed (%s)\n", strerror(errno));
+      return FALSE;
+    }
 #endif
 #endif
 	
@@ -1202,8 +1214,29 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 #ifndef __APPLE__
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, toWrite);
 #else
-      /* FIXME: Implement native audio on MacOS */
       count = toWrite;
+      aqueue_bufref = NULL;
+      OP_LockMutex(wwo->aqueue_crst);
+      for (i = 0; i < AQBUFFERS; i++) {
+        if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
+          aqueue_bufref = wwo->aqueue_bufref[i];
+          wwo->aqueue_bufref[i]->mAudioDataByteSize = count;
+          wwo->aqueue_buffree--;
+          break;
+        }
+      }
+      OP_UnlockMutex(wwo->aqueue_crst);
+      if (aqueue_bufref != NULL) {
+        memcpy(aqueue_bufref->mAudioData, lpData + wwo->dwOffCurrHdr, count);
+
+        os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
+        if (os_status != 0) {
+            fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
+            AudioQueueFreeBuffer(wwo->aqueueref, aqueue_bufref);
+        }
+      } else {
+        count = 0;
+      }
 #endif //__APPLE__
 #else
       count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, toWrite, NULL);
@@ -1259,8 +1292,29 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 #ifndef __APPLE__
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, wwo->dwRemain);
 #else
-      /* FIXME: Implement native audio on MacOS */
       count = wwo->dwRemain;
+      aqueue_bufref = NULL;
+      OP_LockMutex(wwo->aqueue_crst);
+      for (i = 0; i < AQBUFFERS; i++) {
+        if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
+          aqueue_bufref = wwo->aqueue_bufref[i];
+          wwo->aqueue_bufref[i]->mAudioDataByteSize = count;
+          wwo->aqueue_buffree--;
+          break;
+        }
+      }
+      OP_UnlockMutex(wwo->aqueue_crst);
+      if (aqueue_bufref != NULL) {
+        memcpy(aqueue_bufref->mAudioData, lpData + wwo->dwOffCurrHdr, count);
+
+        os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
+        if (os_status != 0) {
+            fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
+            AudioQueueFreeBuffer(wwo->aqueueref, aqueue_bufref);
+        }
+      } else {
+        count = 0;
+      }
 #endif //__APPLE__
 #else
       count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, wwo->dwRemain, NULL);
@@ -1287,6 +1341,19 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
     }
   }
 }
+
+#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+void audioCallback(void *wwoptr, AudioQueueRef aqueueref, AudioQueueBufferRef bref)
+{
+  WINE_WAVEOUT  *wwo = wwoptr;
+  OSStatus      os_status;
+
+  OP_LockMutex(wwo->aqueue_crst);
+  wwo->aqueue_buffree++;
+  bref->mAudioDataByteSize = 0;
+  OP_UnlockMutex(wwo->aqueue_crst);
+}
+#endif
 
 
 int wodPlayer_Message(WINE_WAVEOUT *wwo, int msg, unsigned long param)
@@ -1381,8 +1448,7 @@ static	void	wodPlayer_Reset(WINE_WAVEOUT* wwo, WORD uDevID, BOOL reset)
   if (pa_simple_flush(wwo->pa_conn, NULL) != 0)
 #else
 #if defined (__APPLE__)
-  /* FIXME: Implement native audio on MacOS */
-  if(0)
+  if(AudioQueueFlush(wwo->aqueueref) != 0)
 #else
   if (ioctl(wwo->unixdev, SNDCTL_DSP_RESET, 0) == -1) 
 #endif //__APPLE__
@@ -1567,6 +1633,11 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 #endif
 #ifdef USE_PULSEAUDIO
     pa_sample_spec	pa_ss;
+#elif defined(__APPLE__)
+    AudioStreamBasicDescription	streamdesc = { 0 };
+    OSStatus            os_status;
+    AudioQueueBufferRef aqueue_bufref;
+    int                 i;
 #endif
     WINE_WAVEOUT*	wwo;
 
@@ -1622,9 +1693,50 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     fcntl(audio, F_SETFD, 1); /* set close on exec flag */
     wwo->unixdev = audio;
 #else
-    /* FIXME: Implement native audio on MacOS */
-    fprintf(stderr,"MacOS: audio output without Pulseaudio currently not implemented!\n");
-    wwo->unixdev = STDOUT_FILENO;
+    streamdesc.mFormatID = kAudioFormatLinearPCM;
+    if (lpDesc->lpFormat->wBitsPerSample == 8) {
+        streamdesc.mFormatFlags = kAudioFormatFlagIsPacked;
+        streamdesc.mBitsPerChannel = 8;
+    } else {
+        streamdesc.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+        streamdesc.mBitsPerChannel = 16;
+    }
+    streamdesc.mChannelsPerFrame = lpDesc->lpFormat->nChannels;
+    streamdesc.mSampleRate = lpDesc->lpFormat->nSamplesPerSec;
+    streamdesc.mBytesPerFrame = (streamdesc.mBitsPerChannel * streamdesc.mChannelsPerFrame) / 8;
+    streamdesc.mFramesPerPacket = 1;
+    streamdesc.mBytesPerPacket = streamdesc.mBytesPerFrame * streamdesc.mFramesPerPacket;
+
+    os_status = AudioQueueNewOutput(&streamdesc, audioCallback, wwo, NULL,
+                        kCFRunLoopCommonModes, 0, &wwo->aqueueref);
+    if (os_status != 0) {
+        fprintf(stderr, "AudioQueueNewOutput: %d\n", os_status);
+	return MMSYSERR_NOTENABLED;
+    }
+
+    wwo->aqueue_crst = OP_CreateMutex();
+    OP_LockMutex(wwo->aqueue_crst);
+    for (i = 0; i < AQBUFFERS; i++) {
+      os_status = AudioQueueAllocateBuffer(wwo->aqueueref, AQBUFFERSIZE, &wwo->aqueue_bufref[i]);
+      if (os_status != 0) {
+          fprintf(stderr, "AudioQueueAllocateBuffer: %d\n", os_status);
+          AudioQueueDispose(wwo->aqueueref, 0);
+          wwo->aqueueref = NULL;
+          OP_UnlockMutex(wwo->aqueue_crst);
+          return MMSYSERR_NOTENABLED;
+      }
+      wwo->aqueue_bufref[i]->mAudioDataByteSize = 0;
+    }
+    wwo->aqueue_buffree = AQBUFFERS;
+    OP_UnlockMutex(wwo->aqueue_crst);
+
+    os_status = AudioQueueStart(wwo->aqueueref, NULL);
+    if (os_status != 0) {
+        fprintf(stderr, "AudioQueueStart: %d\n", os_status);
+        AudioQueueDispose(wwo->aqueueref, 0);
+        wwo->aqueueref = NULL;
+	return MMSYSERR_NOTENABLED;
+    }
 #endif
 #else
     if (lpDesc->lpFormat->wBitsPerSample == 8) {
@@ -1745,8 +1857,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 #elif defined(_SPARC_SOLARIS_)
     wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #elif defined(__APPLE__)
-    /* FIXME: Implement native audio on MacOS */
-    wwo->dwFragmentSize = 1024; /* set this to a useful value */
+    wwo->dwFragmentSize = AQBUFFERSIZE;
 #else
     /* even if we set fragment size above, read it again, just in case */
     IOCTL(audio, SNDCTL_DSP_GETBLKSIZE, fragment_size);
@@ -1808,6 +1919,8 @@ static DWORD wodClose(WORD wDevID)
     
 #ifdef USE_PULSEAUDIO
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#elif defined(__APPLE__)
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
 #else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
 #endif
@@ -1832,9 +1945,10 @@ static DWORD wodClose(WORD wDevID)
 	}
 
 #ifndef USE_PULSEAUDIO
-#ifndef __APPLE__
-        /* FIXME: Implement native audio on MacOS */
-        return MMSYSERR_NOERROR;
+#ifdef __APPLE__
+        AudioQueueDispose(wwo->aqueueref, 0);
+        wwo->aqueueref = NULL;
+        OP_DestroyMutex(wwo->aqueue_crst);
 #else
 	close(wwo->unixdev);
 	wwo->unixdev = -1;
@@ -1864,6 +1978,8 @@ static DWORD wodWrite(WORD wDevID, LPWAVEHDR lpWaveHdr, DWORD dwSize)
     /* first, do the sanity checks... */
 #ifdef USE_PULSEAUDIO
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#elif defined(__APPLE__)
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
 #else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
 #endif
@@ -1937,6 +2053,8 @@ static DWORD wodPause(WORD wDevID)
     
 #ifdef USE_PULSEAUDIO
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#elif defined(__APPLE__)
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
 #else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
 #endif
@@ -1960,6 +2078,8 @@ static DWORD wodRestart(WORD wDevID)
     
 #ifdef USE_PULSEAUDIO
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#elif defined(__APPLE__)
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
 #else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
 #endif
@@ -1993,6 +2113,8 @@ static DWORD wodReset(WORD wDevID)
     
 #ifdef USE_PULSEAUDIO
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#elif defined(__APPLE__)
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
 #else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
 #endif
@@ -2021,6 +2143,8 @@ static DWORD wodGetPosition(WORD wDevID, LPMMTIME lpTime, DWORD uSize)
     
 #ifdef USE_PULSEAUDIO
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
+#elif defined(__APPLE__)
+    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
 #else
     if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
 #endif

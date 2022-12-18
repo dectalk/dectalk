@@ -562,6 +562,10 @@ if test "${with_audio}" = "yes"; then
 		AUDIO_DEFINES="-DUSE_PULSEAUDIO ${PULSE_CFLAGS}"
 		AUDIO_LIBS="${PULSE_LIBS}"
 
+	else
+		case "$target" in
+			*-apple-darwin*) AUDIO_LIBS="-Wl,-framework -Wl,AudioToolbox -Wl,-framework -Wl,CoreFoundation" ;;
+		esac
 	fi
 
 else
