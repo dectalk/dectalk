@@ -575,11 +575,16 @@ BOOL init(void)
 	wsprintf(lang,TEXT("US"));
 #elif defined _UNIX_LIKE_
 
-#if defined __linux__ || defined (__APPLE__)
+#if defined(__linux__) || defined (__APPLE__)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -593,7 +598,12 @@ BOOL init(void)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -1542,11 +1552,16 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 
 	FILE *config_file = NULL;
 
-#if defined __linux__ || defined (__APPLE__)
+#if defined(__linux__) || defined (__APPLE__)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -1560,7 +1575,12 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
