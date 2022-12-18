@@ -173,7 +173,6 @@
 #else
   #include <dtk/ttsapi.h>
 #endif
-#undef HAVE_ICONV /* WillJR880 added to allow successful build in ARM64/Apple. Work needed */
 #ifdef HAVE_ICONV
 #include <langinfo.h>
 #include <iconv.h>
