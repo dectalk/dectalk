@@ -9,7 +9,7 @@ We're currently living out in [Discord](https://discordapp.com/invite/wHgdmf4) -
 ## Branches of Interest
 
 - `master` Literally just the source code dumped into the `/src` folder.
-- `develop` Working Linux/Windows binaries with i386, x64_64 and aarch64 builds working.
+- `develop` Working Linux/Windows binaries (i386, x86_64 and aarch64), MacOS/iOS (Apple Silicon and Intel).
 
 ## Building
 
@@ -86,6 +86,34 @@ If you want to compile all files, execute the `\devops\vs6\dt_buildall.bat` file
 from the root of the project folder.
 
 You can then collate all files together by executing the `\devops\vs6\dt_copyfiles.bat` file.
+
+</details>
+
+### MacOS
+<details>
+<summary>Xcode command line tools</summary>
+
+#### Setup
+Install Xcode command line tools. From the terminal:
+
+```% xcode-select --install```
+
+Or you may trigger an install by typing any of the following from the terminal:
+
+```git```
+
+```clang```
+
+```gcc```
+
+
+#### Compilation
+```
+./configure
+make -j
+```
+
+The built files will be found in the `/dist` folder.
 
 </details>
 
