@@ -181,6 +181,7 @@ typedef struct {
     
     DWORD          dwLastFragDone; /* time in ms, when last played fragment will be actually played */
     DWORD          dwPlayedTotal;  /* number of bytes played since opening */
+    unsigned long long qwFragBytes;
 
     /* info on current lpQueueHdr->lpWaveHdr */
     DWORD          dwOffCurrHdr; /* offset in lpPlayPtr->lpData for fragments */
@@ -200,6 +201,7 @@ typedef struct {
     /* DirectSound stuff */
     LPBYTE         mapping;
     DWORD          maplen;
+    int            server_startticks;
 } WINE_WAVEOUT;
 
 #ifdef WAVEIN_NEEDED
@@ -222,7 +224,6 @@ typedef struct {
 } WINE_WAVEIN;
 #endif
 
-static int server_startticks=0;
 
 static WINE_WAVEOUT    WOutDev[MAX_WAVEOUTDRV];
 // MGS the next variable is not used in dectalks audio output
@@ -248,11 +249,11 @@ static WINE_WAVEIN	WInDev    [MAX_WAVEINDRV ];
  * Returns the number of milliseconds, modulo 2^32, since the start
  * of the wineserver.
  */
-DWORD WINAPI GetTickCount(void)
+DWORD WINAPI GetTickCount(WINE_WAVEOUT* wwo)
 {
     struct timeval t;
     gettimeofday( &t, NULL );
-    return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - server_startticks;
+    return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - wwo->server_startticks;
 }
 
 #if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
@@ -328,8 +329,6 @@ LONG OSS_WaveInit(void)
 
     
   /* start with output device */
-
-  server_startticks=GetTickCount();
 
   /* initialize all device handles to -1 */
   for (i = 0; i < MAX_WAVEOUTDRV; ++i)
@@ -1247,14 +1246,17 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       //OP_Sleep(1);
 	    
       if (count > 0 || toWrite == 0) {
-	DWORD	tc = GetTickCount();
+	DWORD	tc = GetTickCount(wwo);
 
-	if (wwo->dwLastFragDone /* + guard time ?? */ < tc) 
-	  wwo->dwLastFragDone = tc;
+	if (wwo->dwLastFragDone /* + guard time ?? */ < tc) {
+          wwo->server_startticks = 0;
+          wwo->server_startticks = GetTickCount(wwo);
+	}
+	wwo->qwFragBytes += toWrite;
 #ifdef __ipaq__
-	wwo->dwLastFragDone += (toWrite * 1000) / ((wwo->format.wf.nAvgBytesPerSec) <<1);
+	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / ((wwo->format.wf.nAvgBytesPerSec) <<1);
 #else
-	wwo->dwLastFragDone += (toWrite * 1000) / wwo->format.wf.nAvgBytesPerSec;
+	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / wwo->format.wf.nAvgBytesPerSec;
 #endif
 
 	lpWaveHdr->reserved = wwo->dwLastFragDone;
@@ -1324,14 +1326,17 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       //OP_Sleep(1);
       TRACE("write(%p[%5lu], %5lu) => %d\n", lpData, wwo->dwOffCurrHdr, wwo->dwRemain, count);
       if (count > 0) {
-	DWORD	tc = GetTickCount();
+	DWORD	tc = GetTickCount(wwo);
 
-	if (wwo->dwLastFragDone /* + guard time ?? */ < tc) 
-	  wwo->dwLastFragDone = tc;
+	if (wwo->dwLastFragDone /* + guard time ?? */ < tc) {
+          wwo->server_startticks = 0;
+          wwo->server_startticks = GetTickCount(wwo);
+	}
+	wwo->qwFragBytes += wwo->dwRemain;
 #ifdef __ipaq__
-	wwo->dwLastFragDone += (wwo->dwRemain * 1000) / ((wwo->format.wf.nAvgBytesPerSec) <<1);
+	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / ((wwo->format.wf.nAvgBytesPerSec) <<1);
 #else
-	wwo->dwLastFragDone += (wwo->dwRemain * 1000) / wwo->format.wf.nAvgBytesPerSec;
+	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / wwo->format.wf.nAvgBytesPerSec;
 #endif
 	TRACE("Tagging frag with %08lx\n", wwo->dwLastFragDone);
 
@@ -1407,7 +1412,7 @@ int wodPlayer_RetrieveMessage(WINE_WAVEOUT *wwo, int *msg, unsigned long *param)
 static	void	wodPlayer_Notify(WINE_WAVEOUT* wwo, WORD uDevID, BOOL force)
 {
   LPWAVEHDR		lpWaveHdr;
-  DWORD		tc = GetTickCount();
+  DWORD		tc = GetTickCount(wwo);
 
   while (wwo->lpQueuePtr && 
 	 (force || 
@@ -1512,7 +1517,7 @@ void wodPlayer(LPVOID pmt)
       dwSleepTime = 100;
     else
       {
-	tc = GetTickCount();
+	tc = GetTickCount(wwo);
 	if (tc < wwo->dwLastFragDone)
 	  {
 	    /* calculate sleep time depending on when the last fragment
@@ -1522,9 +1527,12 @@ void wodPlayer(LPVOID pmt)
 	      dwSleepTime = 50;
 	  }
 	else
-	  dwSleepTime = 0;
+	  dwSleepTime = 1;
       }
 
+    if (dwSleepTime == 0) {
+      dwSleepTime = 1;
+    }
     TRACE("imhere[1]\n");
     if (dwSleepTime) {
       TRACE("wodPlayer sleep time = %d\n",dwSleepTime);
@@ -1575,6 +1583,9 @@ void wodPlayer(LPVOID pmt)
     }
     if (wwo->state == WINE_WS_PLAYING) {
       TRACE("before wodPlayer_WritFragments\n");
+      if (wwo->server_startticks == 0) {
+        wwo->server_startticks=GetTickCount(wwo);
+      }
       wodPlayer_WriteFragments(wwo);
       TRACE("after wodPlayer_WriteFragments\n");
     }
@@ -1901,6 +1912,8 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 		WARN("can't notify client !\n");
 		return MMSYSERR_INVALPARAM;
 	}
+    wwo->server_startticks = 0;
+    wwo->qwFragBytes = 0;
     return MMSYSERR_NOERROR;
 }
 
