@@ -1357,6 +1357,8 @@ void audioCallback(void *wwoptr, AudioQueueRef aqueueref, AudioQueueBufferRef br
   wwo->aqueue_buffree++;
   bref->mAudioDataByteSize = 0;
   OP_UnlockMutex(wwo->aqueue_crst);
+  /* Signal a free buffer */
+  SetEvent(wwo->msg_event);
 }
 #endif
 
