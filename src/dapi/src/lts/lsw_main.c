@@ -1524,8 +1524,14 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 #elif defined(__APPLE__)
-		uint32_t size = sizeof(p);
-		ssize_t count = _NSGetExecutablePath(p, &size);
+		char ep[PATH_MAX] = {};
+		uint32_t size = sizeof(ep);
+		ssize_t count = -1;
+		if (_NSGetExecutablePath(ep, &size) == 0) {
+			if (realpath(ep, p) != NULL) {
+				count = strlen(p);
+			}
+		}
 #endif
 		if (count != -1) {
 			char *cfg;
@@ -1545,8 +1551,14 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 #elif defined(__APPLE__)
-		uint32_t size = sizeof(p);
-		ssize_t count = _NSGetExecutablePath(p, &size);
+		char ep[PATH_MAX] = {};
+		uint32_t size = sizeof(ep);
+		ssize_t count = -1;
+		if (_NSGetExecutablePath(ep, &size) == 0) {
+			if (realpath(ep, p) != NULL) {
+				count = strlen(p);
+			}
+		}
 #endif
 		if (count != -1) {
 			char *cfg;
@@ -1592,8 +1604,14 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #if defined(__linux__)
 					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 #elif defined(__APPLE__)
-					uint32_t size = sizeof(p);
-					ssize_t count = _NSGetExecutablePath(p, &size);
+					char ep[PATH_MAX] = {};
+					uint32_t size = sizeof(ep);
+					ssize_t count = -1;
+					if (_NSGetExecutablePath(ep, &size) == 0) {
+						if (realpath(ep, p) != NULL) {
+							count = strlen(p);
+						}
+					}
 #endif
 					if (count != -1) {
 						char *dict;
@@ -1622,8 +1640,14 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #if defined(__linux__)
 			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 #elif defined(__APPLE__)
-			uint32_t size = sizeof(p);
-			ssize_t count = _NSGetExecutablePath(p, &size);
+			char ep[PATH_MAX] = {};
+			uint32_t size = sizeof(ep);
+			ssize_t count = -1;
+			if (_NSGetExecutablePath(ep, &size) == 0) {
+				if (realpath(ep, p) != NULL) {
+					count = strlen(p);
+				}
+			}
 #endif
 			if (count != -1) {
 				char *dict;
@@ -1656,8 +1680,14 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #if defined(__linux__)
 					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 #elif defined(__APPLE__)
-					uint32_t size = sizeof(p);
-					ssize_t count = _NSGetExecutablePath(p, &size);
+					char ep[PATH_MAX] = {};
+					uint32_t size = sizeof(ep);
+					ssize_t count = -1;
+					if (_NSGetExecutablePath(ep, &size) == 0) {
+						if (realpath(ep, p) != NULL) {
+							count = strlen(p);
+						}
+					}
 #endif
 					if (count != -1) {
 						char *dict;
@@ -1686,8 +1716,14 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 #if defined(__linux__)
 			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
 #elif defined(__APPLE__)
-			uint32_t size = sizeof(p);
-			ssize_t count = _NSGetExecutablePath(p, &size);
+			char ep[PATH_MAX] = {};
+			uint32_t size = sizeof(ep);
+			ssize_t count = -1;
+			if (_NSGetExecutablePath(ep, &size) == 0) {
+				if (realpath(ep, p) != NULL) {
+					count = strlen(p);
+				}
+			}
 #endif
 			if (count != -1) {
 				char *dict;
