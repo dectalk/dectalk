@@ -413,7 +413,7 @@ dnl: see how simple this is for linux?
 ML_TTS_SO="\$(LD) -shared -Bsymbolic -soname libtts.so \
 	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
-	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc -rpath=\\\$\$ORIGIN/ -rpath=\\\$\$ORIGIN/../lib/ -lm"
+	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc --rpath=\\\$\$ORIGIN/ --rpath=\\\$\$ORIGIN/../lib/ -lm"
 case "$target" in
 	alpha-dec-osf4.0) ML_TTS_SO="\$(LD) \$(LD_FLAGS) -shared -update_registry ./so_locations \
 		-soname libtts.so -o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
@@ -536,7 +536,7 @@ case "$target" in
 	powerpc-apple-*) SAMPLE_LINKFLAGS=" -ldl " ;;
 	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl " ;;
 esac
-SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,-rpath,\\\$\$ORIGIN/lib/ -Wl,-rpath,\\\$\$ORIGIN/../lib/"
+SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
 case "$target" in
 	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,-rpath,@loader_path/lib/ -Wl,-rpath,@loader_path/../lib/" ;;
 esac
@@ -560,8 +560,7 @@ if test "${with_audio}" = "yes"; then
 	PKG_CHECK_MODULES(PULSE, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
 	if test "${have_libpulsesimple}" = "yes"; then
 		AUDIO_DEFINES="-DUSE_PULSEAUDIO ${PULSE_CFLAGS}"
-		AUDIO_LIBS="${PULSE_LIBS}"
-
+		AUDIO_LIBS="`${PKG_CONFIG} --libs-only-L libpulse-simple` `${PKG_CONFIG} --libs-only-l libpulse-simple`"
 	else
 		case "$target" in
 			*-apple-darwin*) AUDIO_LIBS="-Wl,-framework -Wl,AudioToolbox -Wl,-framework -Wl,CoreFoundation" ;;
