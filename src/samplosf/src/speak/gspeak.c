@@ -758,7 +758,7 @@ int main (int argc, char *argv[])
 
 #ifndef DEMO
 
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
   if (config_file==NULL)
   {
 	  char p[PATH_MAX] = {};
@@ -818,7 +818,7 @@ int main (int argc, char *argv[])
         memset(bitmap_path,0,500);
         bitmap_name[strlen(bitmap_name)-1]='\0';
         strcpy(bitmap_path,bitmap_name+14);
-#ifdef __linux
+#if defined __linux || defined (__APPLE__)
 	if (exe_path && (bitmap_path[0] != '/')) {
 	   char p[PATH_MAX] = {};
 	   ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
@@ -1947,7 +1947,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   
   style = gtk_widget_get_style(window);
 
-#ifdef __linux__
+#if defined __linux__ || defined (__APPLE__)
   if (config_file==NULL)
   {
 	  char p[PATH_MAX] = {};
@@ -2003,7 +2003,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
         memset(bitmap_path,0,500);
         bitmap_name[strlen(bitmap_name)-1]='\0';
         strcpy(bitmap_path,bitmap_name+14);
-#ifdef __linux
+#if defined __linux || defined (__APPLE__)
 	if ((access(bitmap_path, R_OK) == -1) && (bitmap_path[0] != '/')) {
 	   char p[PATH_MAX] = {};
 	   ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);

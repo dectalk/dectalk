@@ -45,7 +45,7 @@
 #define WIN_TYPE 2
 
 /* things in here may be platform-specific; caveat emptor */
-#if defined __linux__  || defined __osf__ /* gcc on linux x86, actually.. */
+#if defined __linux__  || defined __osf__ || defined (__APPLE__) /* gcc on linux x86, actually.. */ 
 #define STRNICMP(x,y,z) strncasecmp(x,y,z)
 #endif /*__linux__*/
 #ifdef _MSC_VER /* msvc */

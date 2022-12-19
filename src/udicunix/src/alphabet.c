@@ -49,7 +49,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdio.h>
-#ifndef __ppc__
+#if !defined (__APPLE__)
 #include <malloc.h>
 #endif
 #include <string.h>
@@ -72,7 +72,7 @@ void ReadAndAlphabetize(char *szFilename)
 
 {
 
-#if defined __osf__ || defined __linux__ ||defined __ppc__
+#if defined __osf__ || defined __linux__ ||defined __ppc__ || defined (__APPLE__)
 	char fnam_t[255]="";	
 #else
 	char fnam_t[_MAX_FNAME]="";	

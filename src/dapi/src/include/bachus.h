@@ -47,7 +47,7 @@ typedef short int  SHORT;
 #endif
 typedef unsigned char uBOOL;
 
-#ifndef ARM7
+#if !defined ARM7 && !defined (__APPLE__)
 typedef int  BOOL;
 #endif
 #endif

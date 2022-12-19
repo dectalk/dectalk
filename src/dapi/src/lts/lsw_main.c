@@ -116,13 +116,16 @@ LTS_T   Lts_t;
 #undef LSWMAIN_DIC
 #endif // ARM7
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <stdlib.h>
 #include <libgen.h>
 #endif
 
 #ifdef __linux
 #include <linux/limits.h>
+#endif
+#if defined (__APPLE__)
+#include <limits.h>
 #endif
 
 #ifdef WIN32
@@ -185,7 +188,7 @@ int __stdcall lts_main( LPTTS_HANDLE_T phTTS )
 
 #endif // WIN32
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 
 /* GL 04/21/1997  change this for OSF build */
 #if defined __osf__ 
@@ -200,7 +203,7 @@ extern MMRESULT load_dictionary( void **, void **, unsigned int *, unsigned int 
 /* MGS 11/19/1997 commented out duplicate prototype */
 //extern lsa_util_init_lang();
 //extern void default_lang ();
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern void default_lang( PKSD_T pKsd_t,unsigned int lang_code, unsigned int ready_code );
 #endif
 //extern ls_task_main ();
@@ -463,7 +466,7 @@ char ch_dictionary_file_name[500];
   
 #endif /* #ifdef WIN32 */
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   int nDicLoad;
   int fDicLoad;
 
@@ -1438,7 +1441,7 @@ int LTSLibMain( DT_HANDLE hInst,
 #endif
 
 
-#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined __osf__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef ENGLISH_US
 #define LINUX_DICT_TAG "US_dict:"
 #define LINUX_FDICT_TAG "US_fdict:"
@@ -1514,11 +1517,16 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 	foreign_dict_name[0]='\0';
 	user_dict_name[0]='\0';
 
-#ifdef __linux__
+#if defined (__linux__) || defined (__APPLE__)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -1534,7 +1542,12 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -1573,10 +1586,15 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 			{
 				line[strlen(line)-1]='\0';
 				strcpy(main_dict_name,line+8);
-#ifdef __linux__
+#if defined(__linux__) || defined (__APPLE__)
 				if (exe_path && (main_dict_name[0] != '/')) {
 					char p[PATH_MAX] = {};
+#if defined(__linux__)
 					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+					uint32_t size = sizeof(p);
+					ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 					if (count != -1) {
 						char *dict;
 						dict = dirname(p);
@@ -1598,10 +1616,15 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 		fprintf(stderr,"libtts.so: Using default dictionary name\n");
 #endif
 		strcpy(main_dict_name,DEF_LINUX_MAIN_DICT);
-#ifdef __linux__
+#if defined(__linux__) || defined (__APPLE__)
 		if (exe_path && (main_dict_name[0] != '/')) {
 			char p[PATH_MAX] = {};
+#if defined(__linux__)
 			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+			uint32_t size = sizeof(p);
+			ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 			if (count != -1) {
 				char *dict;
 				dict = dirname(p);
@@ -1627,10 +1650,15 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 			{
 				line[strlen(line)-1]='\0';
 				strcpy(foreign_dict_name,line+9);
-#ifdef __linux__
+#if defined(__linux__) || defined (__APPLE__)
 				if (exe_path && (foreign_dict_name[0] != '/')) {
 					char p[PATH_MAX] = {};
+#if defined(__linux__)
 					ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+					uint32_t size = sizeof(p);
+					ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 					if (count != -1) {
 						char *dict;
 						dict = dirname(p);
@@ -1652,10 +1680,15 @@ int linux_get_dict_names(char *main_dict_name,char *user_dict_name, char *foreig
 		//fprintf(stderr,"libtts.so: Using default foreign dictionary name\n");
 #endif
 		strcpy(foreign_dict_name,DEF_LINUX_FOREIGN_DICT);
-#ifdef __linux__
+#if defined(__linux__) || defined (__APPLE__)
 		if (exe_path && (foreign_dict_name[0] != '/')) {
 			char p[PATH_MAX] = {};
+#if defined(__linux__)
 			ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+			uint32_t size = sizeof(p);
+			ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 			if (count != -1) {
 				char *dict;
 				dict = dirname(p);

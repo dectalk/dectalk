@@ -24,7 +24,7 @@
 /*  Digital UNIX. and Linux                                           */
 /**********************************************************************/
 
-#if defined __unix__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_
+#if defined __unix__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 
 typedef  long  ATYPE_T;
 typedef  ATYPE_T *  LPATYPE_T;

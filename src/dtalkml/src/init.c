@@ -19,7 +19,7 @@
 
 #include "shmalloc.h"
 
-#if !defined __linux__ && !defined _SPARC_SOLARIS_ && !defined _APPLE_MAC_ /* we don't use this stuf in linux */
+#if !defined __linux__ && !defined _SPARC_SOLARIS_ && !defined (__APPLE__) /* we don't use this stuf in linux */
 
 pshared_mem_t pShm_t;
 int shared_mem_id;

@@ -77,7 +77,11 @@ unsigned char copyright[]="Copyright (c)1994 Digital Equipment Corporation";
 #include <termios.h>
 #include <unistd.h>
 #include <time.h>
+#if defined __linux__
 #include <linux/limits.h>
+#elif defined (__APPLE__)
+#include <limits.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>

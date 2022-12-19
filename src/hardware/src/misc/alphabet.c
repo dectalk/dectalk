@@ -70,7 +70,7 @@ void ReadAndAlphabetize(char *szFilename)
 
 {
 
-#if defined __osf__ || defined __linux__
+#if defined __osf__ || defined __linux__ || defined (__APPLE__)
 	char fnam_t[255]="";	
 #else
 	char fnam_t[_MAX_FNAME]="";	

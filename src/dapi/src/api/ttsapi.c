@@ -298,15 +298,19 @@
 #include <stdlib.h>    //MVP: For the routine atol()
 #include <string.h>
 
-#ifndef VXWORKS
+#if !defined VXWORKS && !defined (__APPLE__) 
 #include <malloc.h>
+#endif
+
+#if defined (__APPLE__)
+#include <stdlib.h>
 #endif
 
 #if defined(_WIN32_WCE) && (_WIN32_WCE == 200)
 #include <time.h> // NAL warning removal
 #endif
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined __APPLE__
 #include <mmsystem.h>
 #endif
 
@@ -316,7 +320,7 @@
 #include "defs.h"
 #include "esc.h"
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "playaudd.h"	// pick up the struct defs so we can load MsecPerSample
 #endif	/* defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ */
 
@@ -348,7 +352,7 @@
 
 #include "ttsfeat.h"
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <sys/types.h>
 #ifndef VXWORKS
 #include <sys/ipc.h>
@@ -379,7 +383,7 @@ void DrainPipes(LPTTS_HANDLE_T phTTS); //tek 04sep96
 /*  Symbol definitions.                                               */
 /**********************************************************************/
 #ifdef API_DEBUG
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 FILE *fpODS_File=NULL;
 #undef timeGetTime
 #include <sys/time.h>
@@ -412,7 +416,7 @@ WS_SYSMENU)
 #define  CUSTR_STR_VERSION		""   // CJL - Customer String
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 //#define EnterCriticalSection OP_LockMutex
 //#define LeaveCriticalSection OP_UnlockMutex
 #define CreateEvent(a,b,c,d) OP_CreateEvent(b,c)
@@ -423,7 +427,7 @@ WS_SYSMENU)
 #define ULONG unsigned long int
 #endif	/* defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef ENGLISH_US
 #define CUSTR_STR_VERSION "US"
 #endif	/* ENGLISH_US */
@@ -513,7 +517,7 @@ extern int __stdcall vtm_main(LPVOID);
 extern int __stdcall sync_main(LPVOID);
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 OP_THREAD_ROUTINE(cmd_main, LPTTS_HANDLE_T phTTS);
 
 int lts_main( LPTTS_HANDLE_T phTTS);
@@ -528,7 +532,7 @@ OP_THREAD_ROUTINE(sync_main, LPTTS_HANDLE_T phTTS);
 // tek 12nov97 this prototype somehow got out of sync with the
 // actual module definition!?!
 // ETT: fixme? these should all be the same right??!
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern int load_dictionary( void**, void **, unsigned int*,unsigned int*, char*, int,DT_HANDLE,
 								DT_HANDLE,
 								LPVOID*,
@@ -567,7 +571,7 @@ extern void cmd_init( LPTTS_HANDLE_T ,BOOL );
 extern void FreeCMDThreadMemory(PVOID);
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 extern void FreeCMDThreadMemory(PCMD_T pCmd_t);
 void pthread_init (void);
 #endif /* defined __osf__ || __linux__ */
@@ -612,11 +616,11 @@ static void SetSpeaker( LPTTS_HANDLE_T,SPEAKER_T );
 static DWORD __stdcall TextToSpeechThreadMain( LPTTS_HANDLE_T );
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 static OP_THREAD_ROUTINE(TextToSpeechThreadMain, LPTTS_HANDLE_T phTTS);
 #endif /* defined __osf__ || __linux__*/
 
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 static HWND InitTextToSpeechWindow( LPTTS_HANDLE_T );
 
 #ifdef WIN32
@@ -638,7 +642,7 @@ static void FixMemoryLockup( LPTTS_HANDLE_T phTTS );
 static MMRESULT WaitForEmptyPipes( LPTTS_HANDLE_T, DWORD, BOOL );
 /*MVP : generic Dectalk system thread create function */
 
-#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 typedef unsigned int ( __stdcall * start_address )(void *);
 
 static int StartDecTalkSystemThread(LPTTS_HANDLE_T phTTS,PHANDLE ppDecTalkThread,
@@ -690,7 +694,7 @@ volatile int		gnInstanceCounter = 0;	//tek 27may98 needs to be volatile
 DECLARE_TLOCK		(tl_gnInstanceCounter); //tek 27may98 bats 689
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 int                       gnInstanceCounter = 0;
 #endif /* defined __osf__ || defined __linux__ */
 
@@ -1335,7 +1339,7 @@ void ReleaseLicenseRef(int *a32_lic)
 
 
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__	/* __linux__ (1) */
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)	/* __linux__ (1) */
 #ifdef LICENSES		/* LICENSES (1) */ 
 
 #define SHMEMSIZE 1024
@@ -1365,7 +1369,7 @@ typedef struct license_struct
 } license_struct_t;
 
 /** *** Global to keep track of whether we've mapped the license shmem *** */
-#if defined __linux__  || defined __EMSCRIPTEN__
+#if defined __linux__  || defined __EMSCRIPTEN__ || defined (__APPLE__)
 pthread_mutex_t loaded_license_mutex_l=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t *loaded_license_mutex=&loaded_license_mutex_l;
 #endif
@@ -1927,7 +1931,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 {
 	MMRESULT mmStatus;
 	UINT i;
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	int  productIndex; /* Index into product license list */
 #endif	/* defined __osf__ || defined __linux__ */
 	
@@ -1970,7 +1974,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		return( MMSYSERR_INVALPARAM );	
 
 #ifdef LICENSES
-#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define MAX_INSTANCES_EXCEEDED  (MMSYSERR_ALLOCATED) // tek 29jul96
 	if (!AddLicenseRef(&a32_lic))
 	{
@@ -2002,7 +2006,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	*/
 	if((pKsd_t = (PKSD_T) calloc(1,sizeof(KSD_T))) == NULL)
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2058,7 +2062,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 
 	if ( phTTS == NULL )
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2106,7 +2110,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	phTTS->uiLastTextMsgNumber = 0;
 	phTTS->uiFlushMsgNumber = 0;
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->uiLastQueuedTextMsgNumber = 0; // tek 01sep98
 	phTTS->uiTextThreadExit = FALSE;
 	phTTS->bInReset = FALSE;
@@ -2158,7 +2162,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 #endif
 	phTTS->hThread_SYNC = NULL;	
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->hTextInQueueEvent = NULL;
 	phTTS->pcsTextMsgList = NULL;
 #endif	/* defined __osf__ || defined __linux__ */
@@ -2194,7 +2198,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	phTTS->hmxCallback = NULL;
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsCallback = NULL;
 #endif	/* defined __osf__ || defined __linux__ */
 
@@ -2206,7 +2210,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsQueuedSampleCount = OP_CreateMutex();
 #endif	/* defined __osf__ || defined __linux__ */
 
@@ -2214,7 +2218,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2239,7 +2243,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif	/* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsBufferPipe = OP_CreateMutex();
 #endif	/* defined __osf__ || defined __linux__ */
 
@@ -2247,7 +2251,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);
 #endif	/* LICENSES */
@@ -2263,7 +2267,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	/********************************************************************/
 	/*  Create the 'Text List' mutex.                                   */
 	/********************************************************************/
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	
 	phTTS->pcsTextMsgList = OP_CreateMutex();
 	
@@ -2271,7 +2275,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);
 #endif	/* LICENSES */
@@ -2289,7 +2293,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif	/* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsLastQueuedTextMsgNumber = OP_CreateMutex();
 #endif /* defined __osf__ || defined __linux__ */
 	
@@ -2297,7 +2301,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2318,7 +2322,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsFlushMsgNumber = OP_CreateMutex();
 #endif	/* defined __osf__ || defined __linux__ */
 	
@@ -2327,7 +2331,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2349,7 +2353,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsQueuedCharacterCount = OP_CreateMutex();
 #endif	/* defined __osf__ || defined __linux__ */
 
@@ -2358,7 +2362,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif /* LICENSES */
@@ -2381,13 +2385,13 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	pKsd_t->pcsSpcPktSave =
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	pKsd_t->pcsSpcPktSave=OP_CreateMutex();
 #endif
 	
 	if ( pKsd_t->pcsSpcPktSave == NULL )
 	{
-#if defined WIN32 || defined __linux__ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic); // tek 23sep96
 #endif	/* LICENSES */
@@ -2411,13 +2415,13 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	pKsd_t->pcsVtmPipeRead =
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	pKsd_t->pcsVtmPipeRead=OP_CreateMutex();
 #endif
 	
 	if ( pKsd_t->pcsVtmPipeRead == NULL )
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic); // tek 23sep96
 #endif	/* LICENSES */
@@ -2439,7 +2443,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif /* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsLogFile = OP_CreateMutex();
 #endif /* defined __osf__ || defined __linux__ */
 	
@@ -2447,7 +2451,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2479,7 +2483,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		return( MMSYSERR_NOMEM );
 	}
 	
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	
 	/********************************************************************/
 	/*  Create a "Text in Queue" event. The initial state is not signaled.*/
@@ -2505,7 +2509,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2525,7 +2529,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		if ( phTTS->hmxCallback == NULL )
 #endif	/* WIN32 */
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			phTTS->pcsCallback = OP_CreateMutex();
 		if ( phTTS->pcsCallback == NULL )
 #endif	/* defined __osf__ || defined __linux__ */
@@ -2533,7 +2537,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 		{
 			DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2554,7 +2558,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2573,7 +2577,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2588,7 +2592,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2604,7 +2608,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2621,7 +2625,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2636,7 +2640,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2652,7 +2656,7 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2941,7 +2945,7 @@ phTTS->uiID_Start_Message =
 		{
 			DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -2986,7 +2990,7 @@ phTTS->uiID_Start_Message =
 		if ( mmStatus )
 		{
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -3045,7 +3049,7 @@ phTTS->uiID_Start_Message =
 		if ( mmStatus )
 		{
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif	/* LICENSES */
@@ -3082,11 +3086,11 @@ phTTS->uiID_Start_Message =
 		FALSE,(start_address)sync_main))== MMSYSERR_NOMEM)
 #endif	/* WIN32 */
 
-#if defined __osf__ || defined __linux__  || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__  || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		FALSE, sync_main))== MMSYSERR_NOMEM)
 #endif
 	{
-#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif // LICENSES
@@ -3098,7 +3102,7 @@ phTTS->uiID_Start_Message =
 	{
 		DeleteTextToSpeechObjects( phTTS );
 
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3112,11 +3116,11 @@ phTTS->uiID_Start_Message =
 #ifdef WIN32
 		TRUE,(start_address)vtm_main))== MMSYSERR_NOMEM)
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		TRUE, vtm_main))== MMSYSERR_NOMEM)
 #endif
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3130,7 +3134,7 @@ phTTS->uiID_Start_Message =
 	if (ph_main(phTTS)==MMSYSERR_NOMEM)
 	{
 		DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3142,11 +3146,11 @@ phTTS->uiID_Start_Message =
 #ifdef WIN32
 		TRUE, (start_address)ph_main))== MMSYSERR_NOMEM)
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		TRUE, ph_main))== MMSYSERR_NOMEM)
 #endif
 	{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 		ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3181,7 +3185,7 @@ phTTS->uiID_Start_Message =
 	if ((nReturnCode=lts_main(phTTS)))
 	{
 		DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3193,14 +3197,14 @@ phTTS->uiID_Start_Message =
 #ifdef WIN32
 		TRUE,(start_address)lts_main);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		TRUE, lts_main);			
 #endif
 		if(nReturnCode == MMSYSERR_NOMEM ||
 			nReturnCode == MMSYSERR_INVALPARAM ||
 			nReturnCode == MMSYSERR_ERROR )
 		{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3215,11 +3219,11 @@ phTTS->uiID_Start_Message =
 #ifdef WIN32
 			TRUE,(start_address)cmd_main))== MMSYSERR_NOMEM)
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			TRUE, cmd_main))== MMSYSERR_NOMEM)
 #endif
 		{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3236,13 +3240,13 @@ phTTS->uiID_Start_Message =
 #ifdef WIN32
 			TRUE,(start_address)TextToSpeechThreadMain);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		TRUE, TextToSpeechThreadMain);
 #endif
 		if(nReturnCode == MMSYSERR_NOMEM ||
 			nReturnCode == MMSYSERR_ERROR)
 		{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3268,7 +3272,7 @@ phTTS->uiID_Start_Message =
 			if ( i > MAX_STARTUP_WAIT_COUNT )
 			{                                                            
 				DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 				ReleaseLicenseRef(&a32_lic);	
 /* tek 23sep96 give back the license unit */
@@ -3286,7 +3290,7 @@ phTTS->uiID_Start_Message =
 		/* GL 11/05/1997  for BATS#510 */
 		if ( pKsd_t->fdic_entries[pKsd_t->lang_curr] == 0xFFFFFFFF )
 		{
-#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3305,7 +3309,7 @@ phTTS->uiID_Start_Message =
 			if ( i > MAX_STARTUP_WAIT_COUNT )
 			{
 				DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 				ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3317,7 +3321,7 @@ phTTS->uiID_Start_Message =
 		if ( phTTS->hThread_TXT == NULL )
 		{
 			DeleteTextToSpeechObjects( phTTS );
-#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 			ReleaseLicenseRef(&a32_lic);	// tek 23sep96 give back the license unit
 #endif //LICENSES
@@ -3343,7 +3347,7 @@ phTTS->uiID_Start_Message =
 		
 		//MVP: Increment InstanceCounter on successful creation of a speech object.
 		//gnInstanceCounter++; // tek bats 668 12may98 this is done by the dic loader.
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		gnInstanceCounter++;
 #endif
 		
@@ -3587,14 +3591,14 @@ VOID DefaultTTSCallbackRoutine(LONG lParam1,
 static int StartDecTalkSystemThread(LPTTS_HANDLE_T phTTS,PHANDLE ppDecTalkThread,
 BOOL bMalloc, start_address ThreadFunction )
 #endif
-#if defined __osf__ || defined __linux__  || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__  || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 static int StartDecTalkSystemThread(LPTTS_HANDLE_T phTTS, HTHREAD_T *ppDecTalkThread,
 BOOL bMalloc, OP_THREAD_ROUTINE(ThreadFunction, LPTTS_HANDLE_T phTTS))
 #endif
 {
 	UINT IDThread;
 	DWORD cNumObjects =2;
-#if !defined __osf__ && !defined __linux__   && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __osf__ && !defined __linux__   && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ || defined (__APPLE__)
 	DT_HANDLE WaitObjArray[2];
 	ULONG exit_code ;
 #endif
@@ -3609,7 +3613,7 @@ BOOL bMalloc, OP_THREAD_ROUTINE(ThreadFunction, LPTTS_HANDLE_T phTTS))
 								&IDThread
 								);
 #endif
-#if defined __osf__ || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	*ppDecTalkThread = OP_CreateThread(0,
 					   (void *(*)(void *))ThreadFunction,             
 					   (void *)phTTS);
@@ -3628,7 +3632,7 @@ BOOL bMalloc, OP_THREAD_ROUTINE(ThreadFunction, LPTTS_HANDLE_T phTTS))
 	
 	if(bMalloc == FALSE)          /* No dynamic memory allocations within thread main function */
 		return MMSYSERR_NOERROR;  /*No errors */
-#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 	WaitObjArray[0] = *ppDecTalkThread;
 	WaitObjArray[1] = phTTS->hMallocSuccessEvent;
 	
@@ -3636,11 +3640,11 @@ BOOL bMalloc, OP_THREAD_ROUTINE(ThreadFunction, LPTTS_HANDLE_T phTTS))
 	
 	GetExitCodeThread(*ppDecTalkThread,&exit_code);
 #endif /* __osf__ && __linux__ */
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	OP_WaitForEvent( phTTS->hMallocSuccessEvent, OP_INFINITE );
 #endif
 	
-#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 	if(exit_code == MMSYSERR_NOMEM ||
 		exit_code == MMSYSERR_INVALPARAM ||
 		exit_code == MMSYSERR_ERROR )
@@ -3651,7 +3655,7 @@ BOOL bMalloc, OP_THREAD_ROUTINE(ThreadFunction, LPTTS_HANDLE_T phTTS))
 	
 	return MMSYSERR_NOERROR;    /*No errors */
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	if (phTTS->uiThreadError != MMSYSERR_NOERROR)
 		DeleteTextToSpeechObjects( phTTS );
 	
@@ -3763,7 +3767,7 @@ MMRESULT TextToSpeechShutdown( LPTTS_HANDLE_T phTTS )
 #endif // 0
 	
 	// release the license count..
-#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef LICENSES
 	ReleaseLicenseRef(&a32_lic);
 #endif //LICENSES
@@ -3816,7 +3820,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	static TCHAR wndclass[255];
 #endif
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	THREAD_STATUS_T ThreadStatus;
 #endif
 	
@@ -3840,7 +3844,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 			
 			CloseHandle( phTTS->hThread_SYNC );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_WaitForThreadTermination( phTTS->hThread_SYNC,
 				&ThreadStatus,
 				TIMEOUT_INTERVAL_IN_MSEC );
@@ -3864,7 +3868,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 
 			CloseHandle( phTTS->hThread_VTM );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_WaitForThreadTermination( phTTS->hThread_VTM,
 				&ThreadStatus,
 				TIMEOUT_INTERVAL_IN_MSEC );
@@ -3892,7 +3896,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 
 			CloseHandle( phTTS->hThread_PH );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_WaitForThreadTermination( phTTS->hThread_PH,
 				&ThreadStatus,
 				TIMEOUT_INTERVAL_IN_MSEC );
@@ -3917,7 +3921,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 												
 			CloseHandle( phTTS->hThread_LTS );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_WaitForThreadTermination( phTTS->hThread_LTS,
 				&ThreadStatus,
 				TIMEOUT_INTERVAL_IN_MSEC );
@@ -3945,7 +3949,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 
 			CloseHandle( phTTS->hThread_CMD );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_SetEvent( phTTS->hSyncEvent );
 	
 			OP_WaitForThreadTermination( phTTS->hThread_CMD,
@@ -4004,7 +4008,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
   
   if ( phTTS->hThread_TXT != NULL )
   {
-#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined NOWIN
+#if !defined __osf__ && !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined NOWIN && !defined (__APPLE__)
 	  MMRESULT mmStatus=0;
 	  SendMessage( phTTS->hTextToSpeechWnd,
 		  ID_TTS_Destroy,
@@ -4020,7 +4024,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 #endif
 	  mmStatus = UnregisterClass(wndclass,hInstance);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	  phTTS->uiTextThreadExit = TRUE;
 	  OP_SetEvent(phTTS->hTextInQueueEvent);
 	  OP_WaitForThreadTermination(phTTS->hThread_TXT, 
@@ -4039,7 +4043,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 	  CloseHandle( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyEvent( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
   }
@@ -4053,12 +4057,12 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 	  CloseHandle( phTTS->hSyncEvent );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyEvent( phTTS->hSyncEvent );
 #endif
   }
   
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
   
   /********************************************************************/
   /*  Free the handle to the "TextInQueue" event.                     */
@@ -4080,7 +4084,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 	  CloseHandle(phTTS->hMallocSuccessEvent);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyEvent(phTTS->hMallocSuccessEvent);
 #endif
 	  phTTS->hMallocSuccessEvent = NULL;
@@ -4098,7 +4102,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  phTTS->hmxCallback = NULL;
   }
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   if (phTTS->pcsCallback != NULL)
   {
 	  OP_DestroyMutex(phTTS->pcsCallback);
@@ -4117,7 +4121,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( phTTS->pcsLogFile );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex( phTTS->pcsLogFile );
 #endif 
 	  
@@ -4134,7 +4138,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( phTTS->pcsQueuedCharacterCount );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex( phTTS->pcsQueuedCharacterCount );
 #endif
   }
@@ -4152,7 +4156,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( pKsd_t->pcsSpcPktSave );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex(pKsd_t->pcsSpcPktSave);
 #endif
 	  pKsd_t->pcsSpcPktSave = NULL;
@@ -4171,7 +4175,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( phTTS->pcsFlushMsgNumber );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex( phTTS->pcsFlushMsgNumber );
 #endif
   }
@@ -4188,12 +4192,12 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( phTTS->pcsBufferPipe );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex( phTTS->pcsBufferPipe );
 #endif
   }
   
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
   /********************************************************************/
   /*  Delete the Text Msg mutex.                                      */
   /********************************************************************/
@@ -4215,7 +4219,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( phTTS->pcsLastQueuedTextMsgNumber );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex( phTTS->pcsLastQueuedTextMsgNumber );
 #endif
   }
@@ -4231,7 +4235,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( phTTS->pcsQueuedSampleCount );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex( phTTS->pcsQueuedSampleCount );
 #endif
   }
@@ -4245,7 +4249,7 @@ static void DeleteTextToSpeechObjects( LPTTS_HANDLE_T phTTS )
 	  
 	  free( pKsd_t->pcsVtmPipeRead );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	  OP_DestroyMutex( pKsd_t->pcsVtmPipeRead );
 #endif
 	  pKsd_t->pcsVtmPipeRead = NULL;
@@ -4495,7 +4499,7 @@ WideStringtoAsciiString(string, pszTextString, (wcslen(pszTextString)+4));
 	}
 #endif // WIN32
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	if ( phTTS==NULL)
 		return( MMSYSERR_INVALHANDLE );
 	
@@ -4688,7 +4692,7 @@ MMRESULT TextToSpeechSpeakEx( LPTTS_HANDLE_T phTTS,
 	UINT uiLength;
 	unsigned char * pTextBuffer;
 	TEXT_MSG_T * pTextMsg;
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	LPTEXT_MSG_T pNextTextMsg;
 #endif
 	const char cForce = (char)((PFASCII<<PSFONT)+0xb);
@@ -4704,7 +4708,7 @@ MMRESULT TextToSpeechSpeakEx( LPTTS_HANDLE_T phTTS,
 	if ( IsBadWritePtr( phTTS, sizeof(phTTS)||(phTTS == NULL)))
 		return( MMSYSERR_INVALHANDLE );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	if (phTTS == NULL)
 		return( MMSYSERR_INVALHANDLE );
 #endif
@@ -4731,7 +4735,7 @@ MMRESULT TextToSpeechSpeakEx( LPTTS_HANDLE_T phTTS,
 	if ( pTextMsg == NULL )
 		return( MMSYSERR_NOMEM );
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	pTextMsg->pLink = NULL;
 #endif
 	
@@ -4881,7 +4885,7 @@ MMRESULT TextToSpeechSpeakEx( LPTTS_HANDLE_T phTTS,
 #endif //OLEDECTALK
 	}
 #endif // WIN32
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 	/********************************************************************/
 	/*  Add the text message to the text-message linked list.           */
 	/********************************************************************/
@@ -5971,7 +5975,7 @@ MMRESULT TextToSpeechReset( LPTTS_HANDLE_T phTTS, BOOL bReset )
   /*   Set the InReset flag                                           */
   /********************************************************************/
   
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef TYPING_MODE	// 09jun97 tek
   BOOL	bWasTyping=FALSE;
   
@@ -6288,7 +6292,7 @@ OutputDebugString(szTemp);
 #ifdef WIN32
 			WaitForSingleObject(phTTS->hSyncEvent,INFINITE);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_WaitForEvent(phTTS->hSyncEvent, OP_INFINITE);
 #endif
 			//                while ( ! phTTS->bSendingBuffer )
@@ -7399,7 +7403,7 @@ WideStringtoAsciiString(chFileName, szFileName, 128);
 	/* GL 11/05/1997  for BATS#510 */
 	// ETT: fixme? why is the linux one different?????!
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 return( load_dictionary((void **)&(pKsd_t->udic_index[pKsd_t->lang_curr]),
 (void **)&(pKsd_t->udic_data[pKsd_t->lang_curr]),
 (unsigned int *)&(pKsd_t->udic_entries[pKsd_t->lang_curr]),
@@ -7678,7 +7682,7 @@ MMRESULT TextToSpeechOpenInMemory( LPTTS_HANDLE_T phTTS,
 	phTTS->pcsMemoryBuffer =
 		( LPCRITICAL_SECTION )malloc( sizeof( CRITICAL_SECTION ));
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	phTTS->pcsMemoryBuffer = OP_CreateMutex();
 #endif
 	
@@ -7789,7 +7793,7 @@ MMRESULT TextToSpeechCloseInMemory( LPTTS_HANDLE_T phTTS )
 		
 		free( phTTS->pcsMemoryBuffer );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		OP_DestroyMutex( phTTS->pcsMemoryBuffer );
 #endif
 	}
@@ -7910,7 +7914,7 @@ MMRESULT TextToSpeechAddBuffer( LPTTS_HANDLE_T phTTS,
 	//LockPipe( phTTS->pKernelShareData->buffer_pipe );
 	OP_LockMutex( phTTS->pcsBufferPipe);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	OP_LockMutex( phTTS->pcsBufferPipe);
 #endif
 	// check the state again as this could have been waiting on the mutex
@@ -7932,7 +7936,7 @@ MMRESULT TextToSpeechAddBuffer( LPTTS_HANDLE_T phTTS,
 	OP_UnlockMutex( phTTS->pcsBufferPipe );
 //	UnlockPipe( phTTS->pKernelShareData->buffer_pipe );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	OP_UnlockMutex( phTTS->pcsBufferPipe );
 #endif
 	return( MMSYSERR_NOERROR );
@@ -8261,7 +8265,7 @@ MMRESULT TextToSpeechCloseLogFile( LPTTS_HANDLE_T phTTS )
 
 
 #endif // WIN32
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	/********************************************************************/
 	/*  Disable writing to the log file.                                */
 	/********************************************************************/
@@ -8679,7 +8683,7 @@ void SendBuffer( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 					WaitForSingleObject( phTTS->hNotEmptyingVtmPipeEvent, INFINITE );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 					OP_WaitForEvent( phTTS->hNotEmptyingVtmPipeEvent, OP_INFINITE );
 #endif
 
@@ -8739,7 +8743,7 @@ void SendBuffer( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 				WaitForSingleObject( phTTS->hNotEmptyingVtmPipeEvent, INFINITE );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 				OP_WaitForEvent( phTTS->hNotEmptyingVtmPipeEvent, OP_INFINITE );
 #endif
 
@@ -8768,7 +8772,7 @@ void SendBuffer( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 		SetEvent( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		OP_SetEvent( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
 	}
@@ -8815,7 +8819,7 @@ void ReturnRemainingBuffers( LPTTS_HANDLE_T phTTS )
     //LockPipe(phTTS->pKernelShareData->buffer_pipe);
     OP_LockMutex(phTTS->pcsBufferPipe);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
     OP_LockMutex(phTTS->pcsBufferPipe);
 #endif
 	
@@ -8861,7 +8865,7 @@ void ReturnRemainingBuffers( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 			WaitForSingleObject( phTTS->hNotEmptyingVtmPipeEvent, INFINITE );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_WaitForEvent( phTTS->hNotEmptyingVtmPipeEvent, OP_INFINITE );
 #endif
 		}
@@ -9225,7 +9229,7 @@ static DWORD __stdcall TextToSpeechThreadMain( LPTTS_HANDLE_T phTTS )
 	return( FALSE );
 }
 #endif // WIN32 && !defined NOWIN
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 
 static OP_THREAD_ROUTINE(TextToSpeechThreadMain, LPTTS_HANDLE_T phTTS)
 {
@@ -10195,7 +10199,7 @@ MMRESULT WaitForLtsFlush( LPTTS_HANDLE_T phTTS,	DWORD dwWaitTimeInMsec)
 			Sleep( uiSleepTime );
 			dwTotalTimeInMsec += uiSleepTime;
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			if (uiSleepTime==1)
 			{
 				sched_yield();
@@ -10362,7 +10366,7 @@ static void FixMemoryLockup( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 					ResetEvent( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 					OP_ResetEvent( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
 					
@@ -10375,7 +10379,7 @@ static void FixMemoryLockup( LPTTS_HANDLE_T phTTS )
 #ifdef WIN32
 					SetEvent( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 					OP_SetEvent( phTTS->hNotEmptyingVtmPipeEvent );
 #endif
 					if (phTTS->bInReset)
@@ -10514,7 +10518,7 @@ static MMRESULT WaitForEmptyPipes( LPTTS_HANDLE_T phTTS,
 #ifdef WIN32
 			SetEvent( phTTS->hSyncEvent );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		OP_SetEvent( phTTS->hSyncEvent );
 #endif
 		
@@ -10599,7 +10603,7 @@ static MMRESULT WaitForEmptyPipes( LPTTS_HANDLE_T phTTS,
 			
 			dwTotalTimeInMsec += (uiSleepTime);
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 			OP_Sleep( WAIT_PIPE_SLEEP_TIME );
 			
 			dwTotalTimeInMsec += WAIT_PIPE_SLEEP_TIME;
@@ -10720,7 +10724,7 @@ unsigned int PlayAudioCallbackRoutine( HPLAY_AUDIO_T pPlayAudio,
 	/********************************************************************/
 	/*  Get the DECtalk error message.                                  */
 	/********************************************************************/
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	uiID_Error_Msg = ((LPTTS_HANDLE_T)aInstance)->uiID_Error_Message;
 #endif
 	
@@ -10824,7 +10828,7 @@ void Report_TTS_Status( LPTTS_HANDLE_T ttsHandle,
 }
 #endif //WIN32
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 void Report_TTS_Status( LPTTS_HANDLE_T phTTS,
 					   UINT uiMsg,
 					   long lParam1,
@@ -10862,7 +10866,7 @@ ULONG TextToSpeechVersion(LPSTR* VersionStr)
 #endif
 #endif
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 unsigned int TextToSpeechVersion(LPSTR* VersionStr)
 #endif
 {
@@ -10883,7 +10887,7 @@ unsigned int TextToSpeechVersion(LPSTR* VersionStr)
 #ifdef WIN32
 	return (DTALK_DBG_VERSION << 31) + (DTALK_MAJ_VERSION << 24) + (DTALK_MIN_VERSION << 16) + (DLL_MAJ_VERSION << 8) + DLL_MIN_VERSION;
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	return (DTALK_MAJ_VERSION << 24) + (DTALK_MIN_VERSION << 16) + (DLL_MAJ_VERSION << 8) + DLL_MIN_VERSION;
 #endif
 }
@@ -10902,14 +10906,14 @@ void TextToSpeechControlPanel(LPTTS_HANDLE_T ttsHandle)
 #ifdef WIN32
 ULONG TextToSpeechGetLastError(LPTTS_HANDLE_T phTTS)
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 unsigned int TextToSpeechGetLastError(LPTTS_HANDLE_T phTTS)
 #endif
 {
 	return phTTS->LastError;
 }
 
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 
 //void TextToSpeechTyping(LPTTS_HANDLE_T phTTS, char key) {
 	//return;
@@ -11029,7 +11033,7 @@ void TextToSpeechTyping(LPTTS_HANDLE_T phTTS, wchar_t key) {  /* BATS#657 JL */
 
 unsigned long TextToSpeechReserved1(unsigned char *voices, U8 voice, BOOL bEightk, BOOL bReadData)
 {
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	return FALSE;
 #else
 
@@ -11119,7 +11123,7 @@ unsigned long TextToSpeechReserved1(unsigned char *voices, U8 voice, BOOL bEight
 /**********************************************************************/
 ULONG TextToSpeechReserved2(LPTTS_HANDLE_T phTTS, ULONG *gains)
 {
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	return FALSE;
 #else
 
@@ -11168,7 +11172,7 @@ long UserDictionaryHit(LPTTS_HANDLE_T phTTS, struct dic_entry *entry);
 /**********************************************************************/
 U32 TextToSpeechReserved3(LPTTS_HANDLE_T phTTS, int type, char *data, int max_size)
 {
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	return FALSE;
 #else
 
@@ -11361,7 +11365,7 @@ WideStringtoAsciiString(chFileName, szFileName, 128);
 #ifdef WIN32
 ULONG TextToSpeechVersionEx(LPVERSION_INFO *ver)
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 DWORD TextToSpeechVersionEx(LPVERSION_INFO *ver)
 #endif
 {
@@ -11478,7 +11482,7 @@ BOOL TextToSpeechSelectLang(LPTTS_HANDLE_T tts, unsigned int id) {
 #ifdef WIN32
 DWORD TextToSpeechGetFeatures(void)
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 MMRESULT TextToSpeechGetFeatures(void)
 #endif  
 {
@@ -11491,7 +11495,7 @@ MMRESULT TextToSpeechGetFeatures(void)
 #endif
 	return feats;
 }
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs) 
 {	LPVERSION_INFO verinfo;
 
@@ -12110,7 +12114,7 @@ MMRESULT TextToSpeechGetVolume( LPTTS_HANDLE_T phTTS,int type, int *volume)
 
 MMRESULT TextToSpeechVisualMarks( LPTTS_HANDLE_T phTTS,int value)
 {
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	if (value)
 	{
 		phTTS->uiID_Visual_Message=TTS_MSG_VISUAL ;

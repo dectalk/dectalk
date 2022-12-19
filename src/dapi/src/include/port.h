@@ -103,7 +103,7 @@ typedef unsigned char U8;
  ************************************************************************
  * defines for DEC OSF/1 AXP & UNIXs
  */
-#if defined (__osf__) || defined (__linux__) || defined (__EMSCRIPTEN__)
+#if defined (__osf__) || defined (__linux__) || defined (__EMSCRIPTEN__) || defined (__APPLE__)
 
 /*#define ENGLISH_US 1*/
 
@@ -121,7 +121,7 @@ typedef unsigned char U8;
 #define far
 #define huge
 #define _huge
-#if !(defined __linux__ || defined __EMSCRIPTEN__)
+#if !(defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__))
 #define volatile
 #endif
 
@@ -136,7 +136,7 @@ typedef unsigned char U8;
 #ifdef __osf__
 typedef unsigned long QWORD;
 #endif
-#if defined __linux__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 typedef unsigned long long QWORD;
 #endif
 

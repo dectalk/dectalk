@@ -61,7 +61,7 @@
 #include "dectalkf.h"
 #include "cm_def.h"
 
-#ifdef ARM7
+#ifdef ARM7 || defined (__APPLE__)
 #include "string.h"
 #endif
 
@@ -523,7 +523,7 @@ void cm_cmd_build_param(LPTTS_HANDLE_T phTTS, unsigned int c)
 	 */
 
 	(pCmd_t->p_count) += 1;
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	CURR_DEFAULT = FALSE;
 #else
 	CURR_DEFAULT = false;
@@ -862,7 +862,7 @@ void cm_cmd_error_comm(LPTTS_HANDLE_T phTTS, int type)
 					phTTS->dwOutputState = STATE_OUTPUT_NULL;
 			}
 			if (fprintf (phTTS->pLogFile,
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 				 "\n[:error %s]", es) < 0)
 #else
 				 "\n[:error %Fs]", es) < 0)

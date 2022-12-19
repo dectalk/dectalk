@@ -52,14 +52,16 @@
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "opthread.h"
 #endif
 
 #include  <math.h>
 #ifndef VXWORKS
 #ifndef ARM7
+#if !defined (__APPLE__)
 #include  <malloc.h>
+#endif
 #endif
 #endif
 #include  "defs.h"
@@ -74,6 +76,9 @@
 #include "string.h"
 #endif
 
+#if defined (__APPLE__)
+#include <stdlib.h>
+#endif
 
 #ifdef WIN32
 #include "playaud.h"
@@ -97,7 +102,7 @@ void wait_semaphore( int * );
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 void wait_semaphore( P_SEMAPHORE );
 #endif
 
@@ -817,7 +822,7 @@ void kernel_enable( PKSD_T pKsd_t, unsigned int flags )
 void wait_semaphore( int * semaphore )
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 void wait_semaphore( P_SEMAPHORE semaphore )
 #endif
 
@@ -877,7 +882,7 @@ void sleep( unsigned int uiTimeInMsec )
 /**********************************************************************/
 /**********************************************************************/
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__ || defined (__APPLE__)
 int putseq( void *sp )
 {
   return(0);
@@ -897,7 +902,7 @@ extern int putseq( struct SEQ_struct __far *sp )
 
 #define  MAX_VOLUME  99
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined ARM7 || defined __EMSCRIPTEN__ || defined (__APPLE__)
 static int dwVolumeTable[MAX_VOLUME+1] =
 {
  0, 32768, 32768, 32768, 33792,
@@ -1179,7 +1184,7 @@ void StereoVolumeControl( LPTTS_HANDLE_T phTTS,
   /*LPTTS_HANDLE_T phTTS;*/
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   /*phTTS = TextToSpeechGetHandle();*/
   PA_GetVolume( phTTS->pAudioHandle, &dwStereoVolume );
 #endif
@@ -1256,7 +1261,7 @@ void StereoVolumeControl( LPTTS_HANDLE_T phTTS,
   dwStereoVolume = ( dwRightChannelVolume << 16 ) | dwLeftChannelVolume;
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifndef SOFTWARE_VOLUME
   PA_SetVolume( phTTS->pAudioHandle, dwStereoVolume );
 #else
@@ -1417,7 +1422,7 @@ void SetStereoVolume( LPTTS_HANDLE_T phTTS, int iLeftVolume, int iRightVolume )
 	dwStereoVolume = ( dwRightChannelVolume << 16 ) | dwLeftChannelVolume;
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	/*phTTS = TextToSpeechGetHandle();*/
 	PA_SetVolume( phTTS->pAudioHandle, dwStereoVolume );
 #endif

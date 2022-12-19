@@ -68,7 +68,7 @@
 #include "tts.h"
 #include <stdio.h> // NAL warning removal
 
-#if defined ARM7 || defined __EMSCRIPTEN__
+#if defined ARM7 || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "stdlib.h"
 #include "string.h"
 #endif

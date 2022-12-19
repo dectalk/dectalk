@@ -36,13 +36,15 @@
  * 006	MGS		06/19/2001	Solaris Port BATS#972
  ***********************************************************************/
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifndef LINUX_AUDIO_H
 #define LINUX_AUDIO_H
 
 #include "dectalkf.h"
 #ifndef VXWORKS
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #endif
 #include <stdlib.h>
 #include <stdio.h>

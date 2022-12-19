@@ -162,7 +162,7 @@
 #include "vtm_fa.c"
 #else
 
-#if defined __linux__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define _inline inline
 #endif
 

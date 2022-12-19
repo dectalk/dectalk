@@ -97,7 +97,7 @@
 _CRTIMP wchar_t __cdecl towupper(wchar_t);
 #endif
 
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define _UNIX_LIKE_
 #endif
 
@@ -107,10 +107,14 @@ _CRTIMP wchar_t __cdecl towupper(wchar_t);
 #include <sys/types.h>
 #include <pthread.h>
 #include "dtmmedefs.h"
-#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "tts.h"
 #include <ctype.h>
+#if defined __linux__
 #include <linux/limits.h>
+#elif defined (__APPLE__)
+#include <limits.h>
+#endif
 #include <libgen.h>
 #endif // linux
 #endif // defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
@@ -153,7 +157,7 @@ extern pthread_mutex_t *hGreatestInitMutex;
 #define ReleaseMutex(x) pthread_mutex_unlock(x)
 #endif
 
-#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined _APPLE_MAC_ || defined (__APPLE__)
 pthread_mutex_t GreatLoadMutex=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t GreaterPIDMutex=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t GreatestInitMutex=PTHREAD_MUTEX_INITIALIZER;
@@ -168,7 +172,7 @@ pthread_mutex_t *hGreatestInitMutex=&GreatestInitMutex;
 typedef struct lang_func_struct {
 #if defined WIN32
 	MMRESULT (*TextToSpeechStartup)( HWND, LPTTS_HANDLE_T *, UINT, DWORD );
-#elif defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_
+#elif defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 	MMRESULT (*TextToSpeechStartup)(LPTTS_HANDLE_T*, UINT, DWORD, VOID (*)(LONG,LONG,DWORD,UINT),LONG);
 #else
 #error "Supported only for Win32 or OSF"
@@ -382,7 +386,7 @@ unsigned int load_dectalk(char *lang)
 		funcs->mod = (HMODULE) LoadLibrary(filename);
 	}
 #endif
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS || defined (__APPLE__)
 	if (funcs->mod==NULL)
 	{	fprintf(stderr,"dlopen error:%s\n",dlerror());
 	}
@@ -571,11 +575,16 @@ BOOL init(void)
 	wsprintf(lang,TEXT("US"));
 #elif defined _UNIX_LIKE_
 
-#ifdef __linux__
+#if defined(__linux__) || defined (__APPLE__)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -589,7 +598,12 @@ BOOL init(void)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -705,7 +719,7 @@ MMRESULT TextToSpeechStartupEx(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LON
 	}
 	ReleaseMutex(hGreatestInitMutex);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS || defined (__APPLE__)
 	pthread_mutex_lock(hGreatestInitMutex);
 
         if (def_lang == NULL) {
@@ -821,7 +835,7 @@ MMRESULT TextToSpeechStartupExFonix(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d
 	}
 	ReleaseMutex(hGreatestInitMutex);
 #endif
-#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS || defined (__APPLE__)
 	pthread_mutex_lock(hGreatestInitMutex);
 
         if (def_lang == NULL) {
@@ -1525,7 +1539,7 @@ ULONG TextToSpeechVersionEx(LPVERSION_INFO *ver)
 	return (sizeof(VERSION_INFO));
 }
 
-#if defined __linux__ || defined _SPARC_SOLARIS
+#if defined __linux__ || defined _SPARC_SOLARIS || defined (__APPLE__)
 DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs) 
 {
 	LPVERSION_INFO verinfo;
@@ -1538,11 +1552,16 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 
 	FILE *config_file = NULL;
 
-#ifdef __linux__
+#if defined(__linux__) || defined (__APPLE__)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -1556,7 +1575,12 @@ DWORD TextToSpeechEnumLangs(LPLANG_ENUM *langs)
 	if (config_file==NULL)
 	{
 		char p[PATH_MAX] = {};
+#if defined(__linux__)
 		ssize_t count = readlink("/proc/self/exe", p, PATH_MAX);
+#elif defined(__APPLE__)
+		uint32_t size = sizeof(p);
+		ssize_t count = _NSGetExecutablePath(p, &size);
+#endif
 		if (count != -1) {
 			char *cfg;
 			cfg = dirname(p);
@@ -1840,7 +1864,7 @@ unsigned int TextToSpeechStartLang(char *inlang)
 	}
 #endif
 
-#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 	pthread_mutex_lock(hGreatLoadMutex);
 #endif
 
@@ -1900,7 +1924,7 @@ BOOL TextToSpeechCloseLang(char *inlang)
 	next->funcs.inst_count--;
 	if (next->funcs.inst_count != 0)	return FALSE;
 /* MGS made chnge for __osf__ build */
-#if !defined __osf__ && !defined __linux__ && !defined _SPARC_SOLARIS_
+#if !defined __osf__ && !defined __linux__ && !defined _SPARC_SOLARIS_ && !defined (__APPLE__)
 	FreeLibrary(next->funcs.mod);
 #endif
 	next->funcs.mod = NULL;
@@ -1922,7 +1946,7 @@ BOOL alloc_pid(int pid, LANG_LIST *lang)
 	}
 #endif
 
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 	pthread_mutex_lock(hGreaterPIDMutex);
 #endif
 
@@ -1967,7 +1991,7 @@ LANG_LIST* find_pid(int pid)
 	}
 #endif
 
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 	pthread_mutex_lock(hGreaterPIDMutex);
 #endif
 
@@ -1999,7 +2023,7 @@ BOOL free_pid(int pid)
 	}
 #endif
 
-#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_
+#if defined __osf__ || defined __linux__ || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 	pthread_mutex_lock(hGreaterPIDMutex);
 #endif
 

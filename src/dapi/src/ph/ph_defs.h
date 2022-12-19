@@ -323,7 +323,7 @@
 
 /* 6. Various constants  */
 
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ 
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
 #define NSAMP_FRAME     71			/* # of samples per output frame 11 KHz. */
 
 #ifdef NEW_VTM
@@ -870,7 +870,11 @@ handled differently later */
 #define F0_CGesture1 171
 #define F0_CGesture2 250
 #define GEST_SHIFT 1
+#if defined(VOICE_ROM_1996) || defined(VOICE_ROM_1997) || defined(VOICE_ROM_DTC_03_03JAN89) || defined(VOICE_ROM_DECTALK_43)
+#define   MAX_NRISES   4
+#else
 #define   MAX_NRISES   7   	
+#endif
 #define   F0_FINAL_FALL   	180 
 #define   F0_NON_FINAL_FALL  	150
 #define	  F0_COMMA_FALL		120

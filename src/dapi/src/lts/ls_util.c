@@ -164,7 +164,7 @@ extern char *form_class_strings[];
 void ls_util_dump_cword(LETTER word[], char *message)
 {
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	FILE *fp;
 #endif	/* defined (WIN32) || defined (__osf__) || defined (__linux__) */
 	LETTER *llp;
@@ -172,7 +172,7 @@ void ls_util_dump_cword(LETTER word[], char *message)
 
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 	printf("%s -- ", message);
 #endif	//	PRINTFDEBUG
@@ -187,7 +187,7 @@ void ls_util_dump_cword(LETTER word[], char *message)
 	{                          
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 		printf("%c(%02x)",llp->l_ch,llp->l_ch);
 #endif	// PRINTFDEBUG
@@ -201,7 +201,7 @@ void ls_util_dump_cword(LETTER word[], char *message)
 	
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 	printf ("\n");
 #endif	// PRINTFDEBUG
@@ -237,7 +237,7 @@ void ls_util_dump_llp_rlp(LETTER *llp, LETTER *rlp, char *message)
 
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	FILE *fp;
 	fp=fopen("output.log","a");
 	fprintf(fp,"%s -- ",message);
@@ -253,7 +253,7 @@ void ls_util_dump_llp_rlp(LETTER *llp, LETTER *rlp, char *message)
 	{
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 		printf("%c(%02x)",llp->l_ch,llp->l_ch);
 #endif	// PRINTFDEBUG
@@ -266,7 +266,7 @@ void ls_util_dump_llp_rlp(LETTER *llp, LETTER *rlp, char *message)
 	}      
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 	printf ("\n");
 #endif	// PRINTFDEBUG
@@ -307,7 +307,7 @@ PHONE *pp1;
 
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	FILE *fp;
 	fp=fopen("output.log","a");
 	fprintf(fp,"%s -- ",message);
@@ -327,7 +327,7 @@ PHONE *pp1;
 		  case 0:
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 				printf("(%d)",pp1->p_stress);
 #endif	// PRINTFDEBUG
@@ -340,7 +340,7 @@ PHONE *pp1;
 		  case 1:
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 				printf("(%d)",pp1->p_sphone);
 #endif
@@ -356,7 +356,7 @@ PHONE *pp1;
 	}      
 /* GL 04/21/1997  change this for OSF build */
 #ifndef ARM7_NOSWI
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef PRINTFDEBUG
 	printf ("\n");
 #endif
@@ -708,7 +708,7 @@ void ls_util_send_phone_list(LPTTS_HANDLE_T phTTS, const char *pp)
  * *****************************************************************/
 void ls_util_send_phone(LPTTS_HANDLE_T phTTS,int ph)
 {
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 	short buf[1];
 	short buf2[4];
 #else
@@ -1098,7 +1098,7 @@ void ls_util_next_item(LPTTS_HANDLE_T phTTS)
 		}
 
 /* GL 04/21/1997  change this for OSF build */
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 		/* GL 12/02/1996, pass RESET to PH pipe */
 		if(((pLts_t->nitem.i_word[0]) & (PFONT|PVALUE)) == RESET)
 		{

@@ -128,7 +128,7 @@ extern "C" {
 /*  Defines for multiple operating systems.                           */
 /**********************************************************************/
 
-#if defined __unix__ || defined __osf__ || defined __linux__ || defined VXWORKS  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __unix__ || defined __osf__ || defined __linux__ || defined VXWORKS  || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define OP_POSIX
 #endif
 
@@ -147,8 +147,8 @@ extern "C" {
 /**********************************************************************/
 /*  UNIX and VMS (posix) include files.                               */
 /**********************************************************************/
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
-#ifdef __linux__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
+#if defined __linux__ || defined (__APPLE__)
 #define DCE_COMPAT
 #endif
 #include <pthread.h>
@@ -214,11 +214,11 @@ typedef  (void *(*start_routine)(void *))  THREAD_PROCEDURE_T;
 typedef  void *(*THREAD_PROCEDURE_T)(void *);
 #endif
 
-#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 typedef  void *(*THREAD_PROCEDURE_T)(void *);
 #endif
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #ifdef OP_POSIX 
 typedef pthread_attr_t THREAD_ATTR_T;
 #else
@@ -423,7 +423,7 @@ void OP_ExitThread( THREAD_STATUS_T ThreadStatus );
 unsigned int OP_WaitForThreadTermination( HTHREAD_T pThread,
                                           PTHREAD_STATUS_T pThreadStatus );
 #endif
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined NOWIN || defined (__APPLE__)
 unsigned int OP_WaitForThreadTermination( HTHREAD_T pThread,
                                           PTHREAD_STATUS_T pThreadStatus,
 					  unsigned int uiMilliSeconds );
@@ -456,7 +456,7 @@ BOOL ThreadLock(TLOCK *tlLock, DWORD dwTimeout);
 void ThreadUnlock(TLOCK *);	
 #endif
 
-#if defined __linux__ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 typedef pthread_mutex_t TLOCK;
 #define DECLARE_TLOCK(x) pthread_mutex_t x=PTHREAD_MUTEX_INITIALIZER;
 

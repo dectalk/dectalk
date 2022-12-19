@@ -7,6 +7,10 @@
 #endif
 #include	"csn.h"
 
+#if defined (__APPLE__)
+#include <ctype.h>
+#endif
+
 #define FNX_STRLEN strlen
 #define FNX_STRUPR strupr
 #define FNX_TIMESTRUCT int 

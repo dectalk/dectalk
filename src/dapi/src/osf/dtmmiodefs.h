@@ -92,7 +92,7 @@
 #ifndef DTMMIODEF_H
 #define DTMMIODEF_H
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 //#ifndef H_MMBASIC <-- this is the exclusion for dtmmedefs.h?!
 //#define H_MMBASIC
 //#endif
@@ -100,7 +100,7 @@
 #endif
 
 //#ifndef  H_MMBASIC
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined __EMSCRIPTEN__ && !defined (__APPLE__)
 #include <mme/mmsystem.h>
 #include <mme/mme_api.h>
 #endif
@@ -116,7 +116,7 @@
 ( (DWORD)(BYTE)(ch0) | ( (DWORD)(BYTE)(ch1) << 8 ) |    \
   ( (DWORD)(BYTE)(ch2) << 16 ) | ( (DWORD)(BYTE)(ch3) << 24 ) )
      
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   /*  All this commented out    */
 /* MMIO error return values */
 #define MMIOERR_BASE            256
@@ -343,7 +343,7 @@ typedef PCMWAVEFORMAT      *LPPCMWAVEFORMAT;
 
 #endif  /*  All this commented out    */
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 
 /* Jie Lee for linux build */
 HMMIO APIENTRY DTKmmioOpen( LPSTR, MMIOINFO *, DWORD);

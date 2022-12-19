@@ -39,7 +39,9 @@
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <string.h>
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #include "mmalloc.h"
 #include "port.h"
 #include "audioapi.h"

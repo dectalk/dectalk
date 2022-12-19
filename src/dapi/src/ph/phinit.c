@@ -53,9 +53,10 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
+#include <string.h>
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include "opthread.h"
 #endif
 
@@ -119,6 +120,7 @@ void phinit (LPTTS_HANDLE_T phTTS, BOOL bResetAll)
 		pKsd_t->sprate = 180;
 		pDph_t->perpause = 0;
 		pDph_t->compause = 0;
+		memset(pDph_t->parstochip, 0, sizeof(pDph_t->parstochip));
 
 		pDph_t->param[F0].outp = &(pDph_t->parstochip[OUT_T0]);
 		pDph_t->param[F1].outp = &(pDph_t->parstochip[OUT_F1]);

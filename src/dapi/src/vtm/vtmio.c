@@ -66,7 +66,9 @@
 /**********************************************************************/
 
 #include "opthread.h"
-#include <malloc.h>
+  #if !defined (__APPLE__)
+    #include <malloc.h>
+  #endif
 #include "port.h"
 #include "defs.h"
 #include "playaudd.h"
@@ -228,7 +230,7 @@ OP_THREAD_ROUTINE(vtm_main, LPTTS_HANDLE_T phTTS)
   if((pVtm_t = (PVTM_T) calloc(1,sizeof(VTM_T))) == NULL)
     phTTS->uiThreadError = MMSYSERR_NOMEM;
   
-#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (WIN32) || defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
   /* 
    * CP: Set the event, even if malloc eerror occurred. User
    * will look at uiThreadError for actual error code.

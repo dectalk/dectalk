@@ -103,7 +103,7 @@ extern int reset_spc (void);
 extern int  putseq (SEQ __far * sp);
 extern int  putn (unsigned int n);
 extern int  puthex (unsigned int n);
-#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_
+#if !defined __linux__ && !defined VXWORKS && !defined _SPARC_SOLARIS_ && !defined (__APPLE__)
 extern int  putstring (unsigned char *str);
 #endif
 #endif

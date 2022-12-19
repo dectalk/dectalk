@@ -54,7 +54,7 @@
 #endif
 
 /* GL 04/21/1997  add this for OSF build */
-#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #include <stdio.h>
 #include <string.h>
 #include "tts.h"
@@ -83,7 +83,7 @@
 #ifdef WIN32
 #define printf WINprintf
 #endif
-#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__
+#if defined (MSDOS) || defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define WINprintf printf
 #endif
 #endif
