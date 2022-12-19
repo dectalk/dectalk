@@ -189,8 +189,8 @@ void affichetab1 (PDPH_T pDph_t);
 void affichetab2 (PDPH_T pDph_t);
 void affichetab3 (PDPH_T pDph_t);
 void affichetab4 (PDPH_T pDph_t);
-void printParameters (PDPH_T pDph_t);
 #endif
+void printParameters (PDPH_T pDph_t);
 
 
 // called by function kltask in ph_task.c for each clause read from the pipe.
@@ -752,6 +752,10 @@ static void send_pars (LPTTS_HANDLE_T phTTS)
 			return;
 		}
 
+		if(DT_DBG(PH_DBG,0x200)) {
+			printParameters (pDph_t);
+		}
+
 		/* Send frame of output parameters to synthesizer chip (in PH_CLAUS.C) */
 
 #ifdef SEPARATE_PROCESSES
@@ -989,6 +993,8 @@ void affichetab4 (PDPH_T pDph_t) {
   }
 }  // affichetab4
 
+#endif // DEBGFRENCH
+#endif // FRENCH
 
 // to print the values sent to the synthesizer
 void printParameters (PDPH_T pDph_t) {
@@ -996,18 +1002,19 @@ void printParameters (PDPH_T pDph_t) {
   static int firstTime = 1;
   int i;
   if (firstTime) {
-    printf("   AH   F1   A2   A3   A4   A5   A6   AB  TLT   F0   AV   F2   F3   FZ   B1   B2   B3\n"); 
+    printf("        AH   F1 A2 A3 A4 A5 A6 AB TLT   F0 AV   F2   F3   FZ   B1   B2   B3\n");
     firstTime = 0;
   }
 
-  printf ("%-3s ", phprint (pDph_t->pSTphsettar->phcur) );
+  printf ("%-7s ", phprint (pDph_t->pSTphsettar->phcur) );
   printf ("%2d ",  pDph_t->delaypars [0]);
   printf ("%4d ",  pDph_t->delaypars [1]);
-  for(i=2; i<=8; i++) printf ("%2d ", pDph_t->delaypars [i]);
+  for(i=2; i<=7; i++) printf ("%2d ", pDph_t->delaypars [i]);
+  printf ("%3d ",  pDph_t->delaypars [8]);
   printf ("%4d ",  pDph_t->delaypars [9]);
   printf ("%2d ",  pDph_t->delaypars [10]);
-  printf ("%3d ",  pDph_t->delaypars [11]);
-  printf ("%3d ",  pDph_t->delaypars [12]);
+  printf ("%4d ",  pDph_t->delaypars [11]);
+  printf ("%4d ",  pDph_t->delaypars [12]);
   for(i=13; i<17; i++) printf ("%4d ", pDph_t->delaypars [i]);
 
 #ifdef HLSYN
@@ -1036,6 +1043,3 @@ void printParameters (PDPH_T pDph_t) {
   
   printf ("\n");
 }  // printParameters
-
-#endif // DEBGFRENCH
-#endif // FRENCH

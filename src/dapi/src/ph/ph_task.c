@@ -442,7 +442,7 @@ void ph_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 			printf("2004 -- log syllable          2008 -- log outphone\n");
 			printf("2010 -- log inton commands    2020 -- log kl parameters (no hlsyn)\n");
 			printf("2040 -- hlsyn parameters -in  2080 -- hlsyn rules\n");
-			printf("2100 -- hlsyn parameters--out 2200 -- not used\n");
+			printf("2100 -- hlsyn parameters--out 2200 -- log klatt parameters\n");
             printf("2400 -- not used              2800 -- no voice output\n");
 						
 			/* reset to 0 again */
