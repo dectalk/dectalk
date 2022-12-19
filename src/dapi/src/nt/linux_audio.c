@@ -113,7 +113,7 @@
 
 #if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
 #define AQBUFFERS       4
-#define AQBUFFERSIZE    1024
+#define AQBUFFERMS      40
 #endif
 
 #define IOCTL(a,b,c)		((-1==ioctl(a,b,&c))&&(perror("ioctl:"#b":"#c),0))
@@ -1163,7 +1163,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
     OP_LockMutex(wwo->aqueue_crst);
     info.fragments = wwo->aqueue_buffree;
     OP_UnlockMutex(wwo->aqueue_crst);
-    info.fragsize=AQBUFFERSIZE;
+    info.fragsize=wwo->dwFragmentSize;
     info.fragstotal=AQBUFFERS;
     info.bytes=info.fragments*info.fragsize;
 #else
@@ -1717,6 +1717,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     streamdesc.mBytesPerFrame = (streamdesc.mBitsPerChannel * streamdesc.mChannelsPerFrame) / 8;
     streamdesc.mFramesPerPacket = 1;
     streamdesc.mBytesPerPacket = streamdesc.mBytesPerFrame * streamdesc.mFramesPerPacket;
+    fragment_size = ((int)(streamdesc.mSampleRate / (1000 / AQBUFFERMS))) * streamdesc.mBytesPerFrame;
 
     os_status = AudioQueueNewOutput(&streamdesc, audioCallback, wwo, NULL,
                         kCFRunLoopCommonModes, 0, &wwo->aqueueref);
@@ -1728,7 +1729,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     wwo->aqueue_crst = OP_CreateMutex();
     OP_LockMutex(wwo->aqueue_crst);
     for (i = 0; i < AQBUFFERS; i++) {
-      os_status = AudioQueueAllocateBuffer(wwo->aqueueref, AQBUFFERSIZE, &wwo->aqueue_bufref[i]);
+      os_status = AudioQueueAllocateBuffer(wwo->aqueueref, fragment_size, &wwo->aqueue_bufref[i]);
       if (os_status != 0) {
           fprintf(stderr, "AudioQueueAllocateBuffer: %d\n", os_status);
           AudioQueueDispose(wwo->aqueueref, 0);
@@ -1868,7 +1869,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 #elif defined(_SPARC_SOLARIS_)
     wwo->dwFragmentSize = 1024; /* set this to a useful value */
 #elif defined(__APPLE__)
-    wwo->dwFragmentSize = AQBUFFERSIZE;
+    wwo->dwFragmentSize = fragment_size;
 #else
     /* even if we set fragment size above, read it again, just in case */
     IOCTL(audio, SNDCTL_DSP_GETBLKSIZE, fragment_size);
