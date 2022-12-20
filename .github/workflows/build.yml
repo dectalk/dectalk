@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - develop
-      - visual-studio-2022
   pull_request:
     branches:
       - develop
-      - visual-studio-2022
 
 jobs:
   ubuntu:
@@ -50,6 +48,43 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ubuntu-latest-tar
+          path: dectalk.tar.gz
+
+          ubuntu:
+
+  macosx:
+    name: Mac OS X
+    runs-on: macos-11
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create configure files
+        working-directory: src
+        run: autoreconf -i
+
+      - name: Configure
+        working-directory: src
+        run: ./configure
+
+      - name: Make DECtalk
+        working-directory: src
+        run: make
+
+      - name: Create a `.tar.gz` of the dist/ folder.
+        run: tar -cvzf dectalk.tar.gz -C dist/ .
+
+      - name: Create artifacts (.zip)
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-latest-zip
+          path: dist/
+
+      - name: Create artifacts (.tar.gz.zip)
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-latest-tar
           path: dectalk.tar.gz
 
   vs6-server2022:
