@@ -393,7 +393,7 @@ case "$target" in
 	sparc-sun-*) DAPI_LD_SHARED="\$(LD) -G -Bsymbolic \
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 	*-apple-darwin*) DAPI_LD_SHARED="\$(CC) -dynamic -dynamiclib -dylib \
-		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
+		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -Wl,-install_name,libtts_\$(LANG_CODE).so" ;;
 esac
 AC_SUBST(DAPI_LD_SHARED)dnl
 
