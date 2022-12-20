@@ -99,24 +99,49 @@ dnl Looks like some people need the "PREFIX" to build packages
 dnl TODO: Define "/opt/dectalk" only once as a variable
 AC_PREFIX_DEFAULT(["/opt/dectalk"])
 
+UNIVERSAL_BINARY=""
+case "$target" in
+	*-apple-darwin*)
+		AC_MSG_CHECKING([whether the compiler supports building universal binaries])
+		save_cflags="${CFLAGS}"
+		CFLAGS="-arch x86_64"
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],[have_arch_x86_64=yes],[have_arch_x86_64=no])
+		CFLAGS="-arch arm64"
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([])],[have_arch_arm64=yes],[have_arch_arm64=no])
+		CFLAGS="${save_cflags}"
+		if test "${have_arch_x86_64}" = "yes" && test "${have_arch_arm64}" = "yes" ; then
+			AC_MSG_RESULT([yes])
+			UNIVERSAL_BINARY="-arch x86_64 -arch arm64"
+		else
+			AC_MSG_RESULT([no])
+		fi
+		;;
+esac
+
 DEFINES=" -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" 
 case "$target" in
 	sparc-sun-*) DEFINES=" -DLTSSIM -D_SPARC_SOLARIS_ -D_BIGENDIAN_ -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" ;;
 	powerpc-apple-*) DEFINES=" -DLTSSIM -D_APPLE_MAC_ -D_BIGENDIAN_ -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE -dynamic" ;;
 	arm-ipaq-linux-*) DEFINES=" -D_REENTRANT -D_GNU_SOURCE -DNOMME -D__ipaq__ -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" ;;
 	*-*-linux-*) DEFINES=" -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" ;;
-	*-apple-darwin*) DEFINES=" -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE" ;;
+	*-apple-darwin*) DEFINES=" -D_REENTRANT -DNOMME -DLTSSIM -DTTSSIM -DANSI -DBLD_DECTALK_DLL -D\$(LANGUAGE) -DDECTALK_INSTALL_PREFIX=\\\"\$(DECTALK_INSTALL_PREFIX)\\\" -DACCESS32 -DTYPING_MODE ${UNIVERSAL_BINARY}" ;;
 esac
 AC_SUBST(DEFINES)dnl
 
 LICENSE_DEFINES=""
 case "$target" in
 	*-*-linux-*) LICENSE_DEFINES="";;
-	*-apple-darwin*) LICENSE_DEFINES="";;
+	*-apple-darwin*) LICENSE_DEFINES="${UNIVERSAL_BINARY}" ;;
 	sparc-sun-*) LICENSE_DEFINES="-D_SPARC_SOLARIS_ -D_BIGENDIAN_";;
 	powerpc-apple-*) LICENSE_DEFINES="-D_SPARC_SOLARIS_ -D_BIGENDIAN_";;
 esac
 AC_SUBST(LICENSE_DEFINES)dnl
+
+LICENSE_LINKFLAGS=""
+case "$target" in
+	*-apple-darwin*) LICENSE_LINKFLAGS="${UNIVERSAL_BINARY}" ;;
+esac
+AC_SUBST(LICENSE_LINKFLAGS)dnl
 
 LICENSE_ALL="\$(OUTPUT_DIR)/licenin1 \$(OUTPUT_DIR)/licenin3 \
             \$(OUTPUT_DIR)/licenin7 \$(OUTPUT_DIR)/installer"
@@ -153,6 +178,7 @@ AC_SUBST(PLATFORM_DEFS)dnl
 ALIGN_OPT=""
 case "$target" in
 	sparc-sun-*) ALIGN_OPT="" ;;
+	*-apple-darwin*) ALIGN_OPT="${UNIVERSAL_BINARY}" ;;
 esac
 AC_SUBST(ALIGN_OPT)dnl
 
@@ -393,7 +419,7 @@ case "$target" in
 	sparc-sun-*) DAPI_LD_SHARED="\$(LD) -G -Bsymbolic \
 		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS)" ;;
 	*-apple-darwin*) DAPI_LD_SHARED="\$(CC) -dynamic -dynamiclib -dylib \
-		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -Wl,-install_name,libtts_\$(LANG_CODE).so" ;;
+		-o \$@ \$(DECTALK_TTS_OBJS) \$(LIBS) -Wl,-install_name,libtts_\$(LANG_CODE).so ${UNIVERSAL_BINARY}" ;;
 esac
 AC_SUBST(DAPI_LD_SHARED)dnl
 
@@ -431,7 +457,7 @@ case "$target" in
 	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/libtts.a  -ldl -lpthread -lc \
-	-Wl,-rpath -Wl,@loader_path/ -Wl,-rpath -Wl,@loader_path/../lib/ -Wl,-install_name,@rpath/libtts.dylib" ;;
+	-Wl,-rpath -Wl,@loader_path/ -Wl,-rpath -Wl,@loader_path/../lib/ -Wl,-install_name,@rpath/libtts.dylib ${UNIVERSAL_BINARY}" ;;
 	sparc-sun-*) ML_TTS_SO="\$(LD) -G -Bsymbolic \
 	-o \$@ ../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/dtalk_ml.o \
 	../build/\$(OS_VERSION)/\$(LANG_CODE)/\$(ML_OUT)/link/init.o \
@@ -538,7 +564,7 @@ case "$target" in
 esac
 SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,--rpath,\\\$\$ORIGIN/lib/ -Wl,--rpath,\\\$\$ORIGIN/../lib/"
 case "$target" in
-	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,-rpath,@loader_path/lib/ -Wl,-rpath,@loader_path/../lib/" ;;
+	*-apple-darwin*) SAMPLE_LINKFLAGS=" -ldl -L${BUILD_DIR}/dectalk/\$(OS_VERSION)/\$(LANG_CODE)/release -L${BUILD_DIR}/../../dtalkml/build/\$(OS_VERSION)/\$(LANG_CODE)/release -Wl,-rpath,@loader_path/lib/ -Wl,-rpath,@loader_path/../lib/ ${UNIVERSAL_BINARY}" ;;
 esac
 AC_SUBST(SAMPLE_LINKFLAGS)dnl
 
