@@ -1231,7 +1231,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
         os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
         if (os_status != 0) {
             fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
-            AudioQueueFreeBuffer(wwo->aqueueref, aqueue_bufref);
+            aqueue_bufref->mAudioDataByteSize = 0;
         }
       } else {
         count = 0;
@@ -1312,7 +1312,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
         os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
         if (os_status != 0) {
             fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
-            AudioQueueFreeBuffer(wwo->aqueueref, aqueue_bufref);
+            aqueue_bufref->mAudioDataByteSize = 0;
         }
       } else {
         count = 0;
@@ -1962,7 +1962,14 @@ static DWORD wodClose(WORD wDevID)
 
 #ifndef USE_PULSEAUDIO
 #ifdef __APPLE__
-        AudioQueueDispose(wwo->aqueueref, 0);
+        OP_LockMutex(wwo->aqueue_crst);
+        while(wwo->aqueue_buffree != AQBUFFERS) {
+          OP_UnlockMutex(wwo->aqueue_crst);
+          WaitForSingleObject(wwo->msg_event, 1);
+          OP_LockMutex(wwo->aqueue_crst);
+        }
+        OP_UnlockMutex(wwo->aqueue_crst);
+        AudioQueueDispose(wwo->aqueueref, TRUE);
         wwo->aqueueref = NULL;
         OP_DestroyMutex(wwo->aqueue_crst);
 #else
@@ -1974,6 +1981,7 @@ static DWORD wodClose(WORD wDevID)
 	pa_simple_free(wwo->pa_conn);
 	wwo->pa_conn = NULL;
 #endif
+	OP_DestroyEvent(wwo->msg_event);
 	wwo->dwFragmentSize = 0;
 	if (OSS_NotifyClient(wDevID, WOM_CLOSE, 0L, 0L) != MMSYSERR_NOERROR) {
 		WARN("can't notify client !\n");
