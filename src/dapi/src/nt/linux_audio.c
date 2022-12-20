@@ -1231,7 +1231,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
         os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
         if (os_status != 0) {
             fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
-            AudioQueueFreeBuffer(wwo->aqueueref, aqueue_bufref);
+            aqueue_bufref->mAudioDataByteSize = 0;
         }
       } else {
         count = 0;
@@ -1312,7 +1312,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
         os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
         if (os_status != 0) {
             fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
-            AudioQueueFreeBuffer(wwo->aqueueref, aqueue_bufref);
+            aqueue_bufref->mAudioDataByteSize = 0;
         }
       } else {
         count = 0;
