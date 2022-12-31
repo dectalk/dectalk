@@ -2,6 +2,8 @@
 
 These files were shared by their original developer [late Edward Bruckert](https://bluegrasspals.com/pipermail/dectalk/2020-June/005253.html) on the DECtalk list in [Oct](https://bluegrasspals.com/pipermail/dectalk/2015-October/004517.html)/[Nov](https://bluegrasspals.com/pipermail/dectalk/2015-November/004535.html) 2015 and preserved on a HTTP server on [grossgang.com](https://keybase.pub/datajake1999/Grossgang/tts/DECtalk%20source%20code%20archive/Ad%202.zip). Another developer also added more code in 09/2022 which is also preserved in the [grossgang.com keybase filesystem](https://keybase.pub/datajake1999/Grossgang/tts/DECtalk%20source%20code%20archive/).
 
+Try it out with our WASM builds: https://webspeak.terminal.ink/
+
 ## Community
 
 We're currently living out in [Discord](https://discordapp.com/invite/wHgdmf4) - Come have a chat!
