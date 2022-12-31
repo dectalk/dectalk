@@ -15,6 +15,24 @@ We're currently living out in [Discord](https://discordapp.com/invite/wHgdmf4) -
 
 ## Building
 
+### CMake
+
+CMake support is not complete, and only includes the...
+
+- Speak Window
+- Say Command
+- Dict Command
+- DECtalk API
+
+```sh
+mkdir build
+cd build
+cmake ..
+make -j # Only on Linux/Mac OS X; Open the `.sln` in Visual Studio 2022 for Microsoft Windows.
+```
+
+See the respective section for your operating system of choice for required dependencies.
+
 ### Linux
 
 <details>
