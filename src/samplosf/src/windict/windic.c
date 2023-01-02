@@ -151,8 +151,8 @@ static GtkItemFactoryEntry menu_items[] =
   {"/Edit/_French", "<control>F", LangMenuSelect, menu_french, "<RadioItem>" },
   {"/_Translate", "<control>T", TranslateCallback, 0, NULL},
   {"/_Help", NULL, NULL, 0, "<LastBranch>"},
-  {"/Help/Help on DECtalk Windic", "F1", HelpHelpCallback, 0, NULL},
-  {"/Help/_About Windic", "F2", HelpAboutCallback, 0, NULL},
+  {"/Help/Help on the DECtalk Dictionary Editor", "F1", HelpHelpCallback, 0, NULL},
+  {"/Help/_About", "F2", HelpAboutCallback, 0, NULL},
 };
 
 /*******************************************************************************
@@ -1014,7 +1014,7 @@ void NotAvailableCallback(GtkWidget *w, gpointer data)
   GtkWidget *na_label = NULL;
 
   na_dialog = gtk_dialog_new();
-  na_label = gtk_label_new("This feature is not available\nin this version of Windic.");
+  na_label = gtk_label_new("This feature is not available\nin this version of the DECtalk Dictionary Editor.");
 
   gtk_widget_set_usize(GTK_WIDGET(na_dialog), 200, 160);
   gtk_window_set_policy(GTK_WINDOW(na_dialog), 0, 0, 0);
@@ -1121,7 +1121,7 @@ void HelpHelpCallback(GtkWidget *w, gpointer data)
   help_vbox = gtk_vbox_new(FALSE, 0);
   gtk_container_add(GTK_CONTAINER(help_window), help_vbox);
 
-  help_label = gtk_label_new("\nWindic help\n\n  Point your web browser to:\n\n   file:///usr/local/doc/DECtalk/html/DECtalk.html\n\n  Or if you use Netscape, click below.\n");
+  help_label = gtk_label_new("\nDECtalk Dictionary Editor help\n\n  Point your web browser to:\n\n   file:///usr/local/doc/DECtalk/html/DECtalk.html\n\n  Or if you use Netscape, click below.\n");
   gtk_box_pack_start(GTK_BOX(help_vbox), help_label, FALSE, FALSE, 0);
   gtk_label_set_justify(GTK_LABEL(help_label), GTK_JUSTIFY_LEFT);
 
@@ -1202,8 +1202,18 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   dll_maj = (version & 0x0000FF00) >> 8;
   dll_min = (version & 0x000000FF);
   
-  sprintf(about_string, "Windic\nVersion 1.0\nWindowed Dictionary Compiler\nCopyright(c) Force Computing Inc.\nAll Rights Reserved\nDECtalk version %d.%02d (build %d%02d)\nDECtalk %s\n", dt_maj, dt_min, dll_maj, dll_min, DECtalk_version);
-  
+  sprintf(about_string,
+    "DECtalk Dictionary Editor\n"
+    "Version 1.0\n"
+    "Windowed Dictionary Compiler\n"
+    "Copyright(c) Force Computing Inc.\n"
+    "All Rights Reserved\n"
+    "\n"
+    "DECtalk version %d.%02d (build %d%02d)\n"
+    "DECtalk %s\n"
+    PACKAGE_URL " (build " PACKAGE_VERSION ")"
+    , dt_maj, dt_min, dll_maj, dll_min, DECtalk_version);
+
   style = gtk_widget_get_style(window);
 
 #if defined __linux__ || defined (__APPLE__)
@@ -1294,8 +1304,8 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   pixmapwid = (GtkWidget *)gtk_pixmap_new( pixmap, mask );
 
   about_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_widget_set_usize(about_window, 285, 255);
-  gtk_window_set_title(GTK_WINDOW (about_window), "About Windic");
+  gtk_widget_set_usize(about_window, 500, 255);
+  gtk_window_set_title(GTK_WINDOW (about_window), "About the DECtalk Dictionary Editor");
   gtk_window_set_policy(GTK_WINDOW(about_window), 0, 0, 0);
   gtk_window_set_modal(GTK_WINDOW(about_window), TRUE);
   
@@ -1448,7 +1458,7 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
     }
 
   /* change name of window here... */
-  sprintf(text,"Windic %s", strip_filename((char *)CurrFileName));
+  sprintf(text,"DECtalk Dictionary Editor %s", strip_filename((char *)CurrFileName));
   gtk_window_set_title(GTK_WINDOW (window), text);
 
   modified_id = g_signal_connect(G_OBJECT(text_buffer),"changed", 
@@ -1499,7 +1509,7 @@ void FileNewCallback(GtkWidget *w, gpointer data)
     }
   
   /* change name of window here... */
-  gtk_window_set_title(GTK_WINDOW (window), "Windic");
+  gtk_window_set_title(GTK_WINDOW (window), "DECtalk Dictionary Editor");
   strcpy(CurrFileName, "\0");
 }
 
@@ -1636,7 +1646,7 @@ void FileSaveAsOkCallback(GtkWidget *w, gpointer fs)
   gtk_widget_destroy((GtkWidget *)fs);
   
   /* change name of window here... */
-  sprintf(temp,"Windic %s", strip_filename((char *)CurrFileName));
+  sprintf(temp,"DECtalk Dictionary Editor %s", strip_filename((char *)CurrFileName));
   gtk_window_set_title(GTK_WINDOW (window), temp);
 
   FileSaveCallback(NULL,NULL); 

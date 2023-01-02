@@ -320,7 +320,7 @@ static GtkItemFactoryEntry menu_items[] =
   {"/Edit/_French", NULL, LangMenuSelect, menu_french, NULL},
   {"/_Help", NULL, NULL, 0, "<LastBranch>"},
   {"/Help/_Help on DECtalk", "F1", HelpHelpCallback, 0, NULL},
-  {"/Help/About _GSpeak", "F2", HelpAboutCallback, 0, NULL},
+  {"/Help/_About", "F2", HelpAboutCallback, 0, NULL},
 };
 
 #else
@@ -367,7 +367,7 @@ static GtkItemFactoryEntry menu_items[] =
 #endif
   {"/_Help/", NULL, NULL, 0, "<LastBranch>"},
   {"/Help/_Help on DECtalk", "F1", HelpHelpCallback, 0, NULL},
-  {"/Help/About _GSpeak", "F2", HelpAboutCallback, 0, NULL},
+  {"/Help/_About", "F2", HelpAboutCallback, 0, NULL},
 };
 #endif //DEMO
 
@@ -453,7 +453,7 @@ int main (int argc, char *argv[])
   
   /* create a new window */
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW (window), "GSpeak");
+  gtk_window_set_title(GTK_WINDOW (window), "DECtalk Speech Window");
   //button = gtk_label_new("Hold your horses!");
   //gtk_container_border_width (GTK_CONTAINER (window), 10);
   //gtk_container_add (GTK_CONTAINER (window), button);
@@ -1656,7 +1656,7 @@ void DemoFileOpen()
       gtk_text_buffer_insert(GTK_TEXT_BUFFER(text_buffer), &iter, text, -1);
     }
   
-  gtk_window_set_title(GTK_WINDOW (window), "GSpeak Demonstration");
+  gtk_window_set_title(GTK_WINDOW (window), "DECtalk Speech Window Demonstration");
   
   /*********************************/
   /* clean up                      */
@@ -1700,7 +1700,7 @@ void FileNewCallback(GtkWidget *w, gpointer data)
     }
   
   /* change name of window here... */
-  gtk_window_set_title(GTK_WINDOW (window), "GSpeak");
+  gtk_window_set_title(GTK_WINDOW (window), "DECtalk Speech Window");
   
 }
 
@@ -1755,7 +1755,7 @@ void FileOpenOkCallback(GtkWidget *w, gpointer fs)
     }
   
   /* change name of window here... */
-  sprintf(text,"GSpeak %s", strip_filename((char *)OpenFileName));
+  sprintf(text,"DECtalk Speech Window %s", strip_filename((char *)OpenFileName));
   gtk_window_set_title(GTK_WINDOW (window), text);
   
   /*********************************/
@@ -1795,7 +1795,7 @@ void FileSaveAsOkCallback(GtkWidget *w, gpointer fs)
   gtk_widget_destroy((GtkWidget *)fs);
   
   /* change name of window here... */
-  sprintf(temp,"GSpeak %s", strip_filename((char *)SaveFileName));
+  sprintf(temp,"DECtalk Speech Window %s", strip_filename((char *)SaveFileName));
   gtk_window_set_title(GTK_WINDOW (window), temp);
   
   FileSaveCallback(NULL,NULL);
@@ -1921,7 +1921,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   
 #ifndef DEMO
   sprintf(about_string,
-    "GSpeak\n"
+    "DECtalk Speech Window\n"
     "Version 1.0\n"
     "Speaking Text Editor\n"
     "Copyright(c) Force Computing Inc.\n"
@@ -1933,7 +1933,7 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
     , dt_maj, dt_min, dll_maj, dll_min, DECtalk_version);
 #else
   sprintf(about_string,
-    "GSpeak Demo\n"
+    "DECtalk Speech Window Demo\n"
     "Version 1.0\n"
     "Speaking Text Editor\n"
     "Copyright(c) Force Computing Inc.\n"
@@ -2033,9 +2033,9 @@ void HelpAboutCallback(GtkWidget *w, gpointer data)
   about_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_widget_set_usize(about_window, 500, 255);
 #ifndef DEMO
-  gtk_window_set_title(GTK_WINDOW (about_window), "About GSpeak");
+  gtk_window_set_title(GTK_WINDOW (about_window), "About the DECtalk Speech Window");
 #else
-  gtk_window_set_title(GTK_WINDOW (about_window), "About GSpeak Demo");
+  gtk_window_set_title(GTK_WINDOW (about_window), "About the DECtalk Speech Window demo");
 #endif
   gtk_window_set_policy(GTK_WINDOW(about_window), 0, 0, 0);
   gtk_window_set_modal(GTK_WINDOW(about_window), TRUE);
@@ -2091,7 +2091,7 @@ void HelpHelpCallback(GtkWidget *w, gpointer data)
 
   help_label = gtk_label_new(
     "\n"
-    "GSpeak help\n\n"
+    "DECtalk Speech Window help\n\n"
     "  Point your web browser to:\n\n"
     "  - file://" DECTALK_INSTALL_PREFIX "/doc/DECtalk/html/dectalk.htm\n\n"
     "  Or if you have xdg-open installed, click below.\n");
@@ -2141,16 +2141,16 @@ void NotAvailableCallback(GtkWidget *w, gpointer data)
 #ifdef DEMO
 
 #if (defined ENGLISH) || (defined ENGLISH_UK)
-  na_button_ok = gtk_button_new_with_label("This feature is not available\nin the demo version\nof GSpeak.\n\nClick here to continue.");
+  na_button_ok = gtk_button_new_with_label("This feature is not available\nin the demo version\nof the DECtalk Speech Window.\n\nClick here to continue.");
 #endif
 #if (defined SPANISH) || (defined SPANISH_LA)
   na_button_ok = gtk_button_new_with_label("Este Menu no se puede\nusar en demo.");
 #endif
 #ifdef GERMAN // Don't know the german!
-  na_button_ok = gtk_button_new_with_label("This feature is not available\nin this version of GSpeak.\n\nClick here to continue.");
+  na_button_ok = gtk_button_new_with_label("This feature is not available\nin this version of the DECtalk Speech Window.\n\nClick here to continue.");
 #endif
 #else // DEMO
-  na_button_ok = gtk_button_new_with_label("This feature is not available\nin this version of GSpeak.\n\nClick here to continue.");
+  na_button_ok = gtk_button_new_with_label("This feature is not available\nin this version of the DECtalk Speech Window.\n\nClick here to continue.");
 #endif // DEMO
   
 #ifdef DEMO
