@@ -296,9 +296,9 @@ char *gl_emailfile = "EMail.txt";
 #endif	// DEMO
 
 #ifdef DEMO
-char *szAppName = TEXT("DTdemo");
+LPCWSTR *szAppName = TEXT("DECtalk Speech Demo");
 #else
-char *szAppName = TEXT("Speak");
+LPCWSTR *szAppName = TEXT("DECtalk Speech Window");
 #endif
 
 /**********************************************************************/
