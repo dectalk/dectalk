@@ -1,9 +1,9 @@
 /* 
  ***********************************************************************
  *            
- *                           Copyright ©
- *	  Copyright © 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -229,137 +229,107 @@ int main(int argc, char ** argv)
    fc_entry_table[0]=0;
 #endif
    
-/*
- *  check args and open input file ...
- */     
- 
-   if(argc < 2 || argc > 6)
-   {
-      printf("DIC_COMM.C; main; Useage: dic_comm infile outfile [options]\n");
-      printf("options: /p:###     use entries with a priority <= ###\n");
-      printf("         /n         exclude names from the dictionary\n");
-      printf("         /o         use the old format (/p and /n are ignored)\n");
-	  printf("         /t:msdos   build the dictionary for msdos\n");
-	  printf("         /t:win32   build the dictionary for win32/unix (default)\n");
 
-      exit(0);
-   }
+  // If we have an invalid number of arguments, print the documentation.
+  if(argc < 2 || argc > 6) {
+    printf(
+      "DECtalk Dictionary Compiler \n"
+      "Usage: dict <input> <output> [options]\n"
+      "\n"
+      "  /p:###   Use entries with a 3-digit priority number\n"
+      "  /n       Exclude names from the dictionary\n"
+      "  /o       Use the old format (/p and /n are ignored)\n"
+      "  /t:msdos Build the dictionary for MSDOS versions of DECtalk\n"
+      "  /t:win32 Build the dictionary for non-MSDOS versions\n"
+      "           (Yes, even for UNIX, Linux and MacOS)\n"
+    );
+    exit(0);
+  }
 
-/* moved halloc to beginning because opening large files first can leave 
- * nothing left for this
- */
-   header.no_of_entries=50000; /*eab just tell it for now*/
-   max_entries_in_memory = header.no_of_entries;
+  // Use the second argv as the output file name.
+  os = argv[2];
+
+  // moved halloc to beginning because opening large files first can leave 
+  // nothing left for this
+
+  header.no_of_entries=50000; /*eab just tell it for now*/
+  max_entries_in_memory = header.no_of_entries;
+
 #ifdef MSDOS
-   if((disk_entries = _halloc(((U32)header.no_of_entries * sizeof(U32)), 1))==NULL)
+  if((disk_entries = _halloc(((U32)header.no_of_entries * sizeof(U32)), 1))==NULL)
 #else
-   if((disk_entries = (U32 *)malloc(header.no_of_entries * sizeof(U32)))==NULL)
+  if((disk_entries = (U32 *)malloc(header.no_of_entries * sizeof(U32)))==NULL)
 #endif
-   {
-      printf("DIC_COMM; main; halloc failure on disk_entries\n");
-      exit(1);
-   }
+  {
+    printf("DIC_COMM; main; halloc failure on disk_entries\n");
+    exit(1);
+  }
 	         
 #ifdef MSDOS
    if((links = _halloc(((U32)(header.no_of_entries+(28*28)) * sizeof(U32)),1))==NULL)
 #else
    if((links = (U32 *)malloc(((U32)(header.no_of_entries+(28*28)) * sizeof(U32))))==NULL)
 #endif
-   {
-      printf("DIC_COMM; main; halloc failure on links\n");
-      exit(1);
-   }
+  {
+    printf("DIC_COMM; main; halloc failure on links\n");
+    exit(1);
+  }
 
-   if ((infp = fopen(argv[1], "r+b")) == NULL)
-   {
-      printf("DIC_COMM; main; Failure on input file open of %s\n",argv[1]);
-      exit(1);
-   } 
+  if ((infp = fopen(argv[1], "r+b")) == NULL) {
+    printf("DIC_COMM; main; Failure on input file open of %s\n", argv[1]);
+    exit(1);
+  }
 
-   memset (blanks, 0, 10);	
-/* section added to support priorities and name exclusion 
- * command line options mgs 
- */
-   priority=32760;
-   oldformat=0;
-   excludenames=0;			
-   os=NULL;
-   for (i=2;i<argc;i++)
-   {                   
-      if (argv[i][0]=='/')
-      {
-         switch (argv[i][1])
-         {
-            case 'p':
-            case 'P':
-               priority=atoi(argv[i]+3);
-#ifdef DEBUG 
-               printf("priority read in = %s  converted = %d\n",argv[i],priority);
+  memset(blanks, 0, 10);	
+
+  // section added to support priorities and name exclusion 
+  // command line options mgs 
+  priority=32760;
+  oldformat=0;
+  excludenames=0;
+
+  // Starting from the third argument (where the flags should be...)
+  for (i = 3; i < argc; i++) {                   
+    if (argv[i][0] == '/') {
+      switch (argv[i][1]) {
+        case 'p':
+        case 'P':
+          priority=atoi(argv[i]+3);
+#ifdef DEBUG
+          printf("priority read in = %s  converted = %d\n",argv[i],priority);
 #endif
-               break;
-            case 'O':
-            case 'o':
-               oldformat=1;
-               break;
-            case 'n':
-            case 'N':
-               excludenames=1;
-               break;
-			 case 't':
-			 case 'T':
-			   if ((argv[i][2]==':' &&  case_upper[argv[i][3]]=='M') || case_upper[argv[i][2]]=='M')
-				 target=MSDOS_FORMAT;
-			   if ((argv[i][2]==':' &&  case_upper[argv[i][3]]=='W') || case_upper[argv[i][2]]=='W')
-				 target=WIN32_FORMAT;
-			   break;
-			 default:
-               printf("DIC_COMM; main; Unrecognized command line option %s\n",argv[i]);
-               exit(0);
-         }
+          break;
+        case 'O':
+        case 'o':
+          oldformat=1;
+          break;
+        case 'n':
+        case 'N':
+          excludenames=1;
+          break;
+        case 't':
+        case 'T':
+          if ((argv[i][2]==':' && case_upper[argv[i][3]]=='M') || case_upper[argv[i][2]]=='M') {
+            target = MSDOS_FORMAT;
+          }
+          if ((argv[i][2]==':' && case_upper[argv[i][3]]=='W') || case_upper[argv[i][2]]=='W') {
+            target = WIN32_FORMAT;
+          }
+          break;
+        default:
+          printf("DIC_COMM; main; Unrecognized command line option %s\n",argv[i]);
+          exit(0);
       }
-      else
-      {
-         os = argv[i];
-      }
-   }
-	
-   if (os == NULL)
-   { 
+    }
+  }
 
-#ifdef GERMAN
-/* Use German default file name
- */
-      os = "dic_gr.dic";
+  // previous is to support the new format
 
-#elif (defined SPANISH_SP)
-/* Use Spanish default file name
- */
-      os = "dic_sp.dic";
-#elif (defined SPANISH_LA)
-/* Use Latin American default file name
- */
-      os = "dic_la.dic";
-#elif (defined ENGLISH_UK)
-/* Use British default file name
- */
-      os = "dic_uk.dic";
-#elif (defined FRENCH)
-	  os = "dic_fr.dic";
-#else
-/* If not German nor Spanish nor French; English default file name
- */
-      os = "dic_us.dic";
-#endif   // German
-   }	
 
-/* previous is to support the new format
- */
-
-   if ((outfp = fopen(os, "w+b")) == NULL)
-   {
-      printf("DIC_COMM; main; Failure on output file open of %s\n",os);
-      exit(0);
-   }
+  if ((outfp = fopen(os, "w+b")) == NULL) {
+    printf("DIC_COMM; main; Failure on output file open of %s\n",os);
+    exit(0);
+  }
 	
 /*   if ((tfp = tmpfile()) == NULL) mfg_debug*/
 #if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
