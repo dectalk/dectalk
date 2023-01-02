@@ -90,7 +90,12 @@ AC_SUBST(OS_VERSION)dnl
 dnl don't put a slash on the end of this dir.  
 dnl it shouldn't matter but why chance it?
 BUILD_DIR="${PWD}/dapi/build"
-AC_SUBST(BUILD_DIR)dnl
+
+dnl Escape any spaces in the filename with backslashes.
+dnl Thanks Microsoft Windows for adding a space to my name.
+BUILD_DIR=$( echo "$BUILD_DIR" | sed 's/ /\\ /g' )
+
+AC_SUBST(BUILD_DIR)
 
 dnl Set a configuration headers file
 AC_CONFIG_HEADERS([config.h])
