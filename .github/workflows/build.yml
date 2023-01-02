@@ -19,34 +19,42 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get -y install build-essential libpulse-dev libgtk2.0-dev unzip autoconf automake
 
-      - name: Create configure files
-        working-directory: src
-        run: autoreconf -i
-
-      - name: Configure
-        working-directory: src
-        run: ./configure
+      - name: Run CMake
+        run: |
+          mkdir build
+          cd build
+          cmake ..
 
       - name: Make DECtalk
-        working-directory: src
+        working-directory: build
         run: make
 
-      - name: Create a `.tar.gz` of the dist/ folder.
-        run: tar -cvzf dectalk.tar.gz -C dist/ .
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/bin/
+          dest: ubuntu-latest.zip
+
+      - name: Create a `.tar.gz` of the build/bin/ folder.
+        run: tar -cvzf ubuntu-latest.tar.gz -C build/bin/ .
 
       - name: Create artifacts (.zip)
         uses: actions/upload-artifact@v3
         with:
           name: ubuntu-latest-zip
-          path: dist/
+          path: ubuntu-latest.zip
 
       - name: Create artifacts (.tar.gz.zip)
         uses: actions/upload-artifact@v3
         with:
           name: ubuntu-latest-tar
-          path: dectalk.tar.gz
+          path: ubuntu-latest.tar.gz
 
-          ubuntu:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ubuntu-latest.tar.gz
 
   macosx:
     name: Mac OS X
@@ -60,59 +68,48 @@ jobs:
         run: brew update
 
       - name: Install dependencies
-        run: brew install autoconf automake libtool
+        run: brew install libtool portaudio
 
-      - name: Create configure files
-        working-directory: src
-        run: autoreconf -i
-
-      - name: Configure
-        working-directory: src
-        run: ./configure
+      - name: Run CMake
+        run: |
+          mkdir build
+          cd build
+          cmake ..
 
       - name: Make DECtalk
-        working-directory: src
+        working-directory: build
         run: make
 
-      - name: Create a `.tar.gz` of the dist/ folder.
-        run: tar -cvzf dectalk.tar.gz -C dist/ .
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/bin/
+          dest: macos-universal.zip
+
+      - name: Create a `.tar.gz` of the build/bin/ folder.
+        run: tar -cvzf macos-universal.tar.gz -C build/bin/ .
 
       - name: Create artifacts (.zip)
         uses: actions/upload-artifact@v3
         with:
-          name: macos-latest-zip
-          path: dist/
+          name: macos-universal-zip
+          path: macos-universal.zip
 
       - name: Create artifacts (.tar.gz.zip)
         uses: actions/upload-artifact@v3
         with:
-          name: macos-latest-tar
-          path: dectalk.tar.gz
+          name: macos-universal-tar
+          path: macos-universal.tar.gz
 
-  vs6-server2022:
-    name: Visual Studio 6
-    runs-on: [self-hosted, windows, x64]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Make DECtalk
-        shell: cmd
-        run: devops\vs6\dt_buildall.bat
-
-      - name: Copy files to the "/dist" folder
-        shell: cmd
-        run: devops\vs6\dt_copyfiles.bat
-
-      - name: Create artifacts
-        uses: actions/upload-artifact@v3
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          name: vs6
-          path: dist/
+          files: |
+            macos-universal.zip
+            macos-universal.tar.gz
 
   vs2022:
-    name: Visual Studio 2022 (IA32 and AMD64)
+    name: Visual Studio 2022
     runs-on: windows-2022
 
     steps:
@@ -133,8 +130,47 @@ jobs:
         shell: cmd
         run: devops\vs2022\dt_buildall.bat
 
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/bin/
+          dest: windows-amd64.zip
+
       - name: Create artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: vs2022
-          path: build/bin/
+          name: windows-amd64-zip
+          path: windows-amd64.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            windows-amd64.zip
+
+  vs6-server2022:
+    name: Visual Studio 6
+    runs-on: [self-hosted, windows, x64]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Make DECtalk
+        shell: cmd
+        run: devops\vs6\dt_buildall.bat
+
+      - name: Copy files to the "/dist" folder
+        shell: cmd
+        run: devops\vs6\dt_copyfiles.bat
+
+      - uses: vimtor/action-zip@v1
+        with:
+          files: dist/
+          dest: windows-vs6-ia32.zip
+
+      - name: Create artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-vs6-ia32-zip
+          path: windows-vs6-ia32.zip
