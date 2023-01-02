@@ -8,6 +8,7 @@ add_subdirectory(dapi/src/dic)
 
 if (WIN32)
   add_subdirectory(samples/speak)
+  add_subdirectory(samples/say)
 elseif (UNIX)
   add_subdirectory(samplosf/src/speak)
   add_subdirectory(samplosf/src/dtsamples)

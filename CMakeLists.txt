@@ -9,7 +9,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Initialise variables for "config.h" (to be injected into "config.h.cmakedefine")
-find_package(Iconv REQUIRED)
+find_package(Iconv)
 set(HAVE_ICONV Iconv_FOUND)
 set(DECTALK_INSTALL_PREFIX "\"/opt/dectalk\"")
 set(PACKAGE_BUGREPORT "\"https://github.com/dectalk/dectalk/issues\"")
