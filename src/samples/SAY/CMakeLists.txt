@@ -14,7 +14,7 @@ target_include_directories(
 target_link_libraries(say dectalk shell32.lib)
 
 target_compile_definitions(
-  speak
+  say
   PUBLIC
   WIN32
   UNICODE

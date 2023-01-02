@@ -25,4 +25,3 @@ target_compile_definitions(
   ENGLISH_US
   ENGLISH
 )
-
