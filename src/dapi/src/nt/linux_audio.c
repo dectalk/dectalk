@@ -165,6 +165,7 @@ typedef struct {
 #elif defined(__APPLE__)
     AudioQueueRef  aqueueref;
     AudioQueueBufferRef aqueue_bufref[AQBUFFERS];
+    AudioQueueBufferRef aqueue_currbuf;
     int            aqueue_buffree;
     HMUTEX_T       aqueue_crst;
 #else
@@ -1096,6 +1097,23 @@ UINT32 waveOutGetID(HWAVEOUT hWaveOut, UINT32 * lpuDeviceID)
  *                  Low level WAVE OUT implementation			*
  *======================================================================*/
 
+#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+void wodPlayer_enqueueCurrentBuffer(WINE_WAVEOUT* wwo)
+{
+  OSStatus os_status;
+  if (wwo->aqueue_currbuf != NULL) {
+    os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, wwo->aqueue_currbuf, 0, NULL);
+    if (os_status != 0) {
+        OP_LockMutex(wwo->aqueue_crst);
+        wwo->aqueue_currbuf->mAudioDataByteSize = 0;
+        wwo->aqueue_buffree++;
+        OP_UnlockMutex(wwo->aqueue_crst);
+    }
+    wwo->aqueue_currbuf = NULL;
+  }
+}
+#endif
+
 /**************************************************************************
  * 				wodPlayer_WriteFragments	[internal]
  *
@@ -1124,7 +1142,6 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 #endif
 #if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
   OSStatus            os_status;
-  AudioQueueBufferRef aqueue_bufref;
   int                 i;
 #endif
 
@@ -1181,6 +1198,9 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 
     lpWaveHdr = wwo->lpPlayPtr;
     if (!lpWaveHdr) {
+#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+      wodPlayer_enqueueCurrentBuffer(wwo);
+#endif
       if (wwo->dwRemain > 0 &&		/* still data to send to complete current fragment */
 	  wwo->dwLastFragDone &&  	/* first fragment has been played */
 	  info.fragments + 2 > info.fragstotal) {   /* done with all waveOutWrite()' fragments */
@@ -1214,25 +1234,20 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, toWrite);
 #else
       count = toWrite;
-      aqueue_bufref = NULL;
       OP_LockMutex(wwo->aqueue_crst);
-      for (i = 0; i < AQBUFFERS; i++) {
-        if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
-          aqueue_bufref = wwo->aqueue_bufref[i];
-          wwo->aqueue_bufref[i]->mAudioDataByteSize = count;
-          wwo->aqueue_buffree--;
-          break;
+      if (wwo->aqueue_currbuf == NULL) {
+        for (i = 0; i < AQBUFFERS; i++) {
+          if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
+            wwo->aqueue_currbuf = wwo->aqueue_bufref[i];
+            wwo->aqueue_buffree--;
+            break;
+          }
         }
       }
+      wwo->aqueue_currbuf->mAudioDataByteSize += count;
       OP_UnlockMutex(wwo->aqueue_crst);
-      if (aqueue_bufref != NULL) {
-        memcpy(aqueue_bufref->mAudioData, lpData + wwo->dwOffCurrHdr, count);
-
-        os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
-        if (os_status != 0) {
-            fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
-            aqueue_bufref->mAudioDataByteSize = 0;
-        }
+      if (wwo->aqueue_currbuf != NULL) {
+        memcpy(wwo->aqueue_currbuf->mAudioData + wwo->aqueue_currbuf->mAudioDataByteSize - count, lpData + wwo->dwOffCurrHdr, count);
       } else {
         count = 0;
       }
@@ -1286,6 +1301,9 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 	wwo->dwOffCurrHdr = 0;
 	if ((wwo->dwRemain -= count) == 0) {
 	  wwo->dwRemain = wwo->dwFragmentSize;
+#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+          wodPlayer_enqueueCurrentBuffer(wwo);
+#endif
 	}
       }
       continue; /* try to go to use next wavehdr */
@@ -1295,25 +1313,20 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, wwo->dwRemain);
 #else
       count = wwo->dwRemain;
-      aqueue_bufref = NULL;
       OP_LockMutex(wwo->aqueue_crst);
-      for (i = 0; i < AQBUFFERS; i++) {
-        if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
-          aqueue_bufref = wwo->aqueue_bufref[i];
-          wwo->aqueue_bufref[i]->mAudioDataByteSize = count;
-          wwo->aqueue_buffree--;
-          break;
+      if (wwo->aqueue_currbuf == NULL) {
+        for (i = 0; i < AQBUFFERS; i++) {
+          if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
+            wwo->aqueue_currbuf = wwo->aqueue_bufref[i];
+            wwo->aqueue_buffree--;
+            break;
+          }
         }
       }
+      wwo->aqueue_currbuf->mAudioDataByteSize += count;
       OP_UnlockMutex(wwo->aqueue_crst);
-      if (aqueue_bufref != NULL) {
-        memcpy(aqueue_bufref->mAudioData, lpData + wwo->dwOffCurrHdr, count);
-
-        os_status = AudioQueueEnqueueBuffer(wwo->aqueueref, aqueue_bufref, 0, NULL);
-        if (os_status != 0) {
-            fprintf(stderr, "AudioQueueEnqueueBuffer: %d\n", os_status);
-            aqueue_bufref->mAudioDataByteSize = 0;
-        }
+      if (wwo->aqueue_currbuf != NULL) {
+        memcpy(wwo->aqueue_currbuf->mAudioData + wwo->aqueue_currbuf->mAudioDataByteSize - count, lpData + wwo->dwOffCurrHdr, count);
       } else {
         count = 0;
       }
@@ -1342,6 +1355,9 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 
 	wwo->dwOffCurrHdr += count;
 	wwo->dwRemain = wwo->dwFragmentSize;
+#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+        wodPlayer_enqueueCurrentBuffer(wwo);
+#endif
       }
     }
   }
@@ -1455,7 +1471,8 @@ static	void	wodPlayer_Reset(WINE_WAVEOUT* wwo, WORD uDevID, BOOL reset)
   if (pa_simple_flush(wwo->pa_conn, NULL) != 0)
 #else
 #if defined (__APPLE__)
-  if(AudioQueueFlush(wwo->aqueueref) != 0)
+  wodPlayer_enqueueCurrentBuffer(wwo);
+  if (AudioQueueFlush(wwo->aqueueref) != 0)
 #else
   if (ioctl(wwo->unixdev, SNDCTL_DSP_RESET, 0) == -1) 
 #endif //__APPLE__
@@ -1742,6 +1759,7 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
       wwo->aqueue_bufref[i]->mAudioDataByteSize = 0;
     }
     wwo->aqueue_buffree = AQBUFFERS;
+    wwo->aqueue_currbuf = NULL;
     OP_UnlockMutex(wwo->aqueue_crst);
 
     os_status = AudioQueueStart(wwo->aqueueref, NULL);
@@ -1962,6 +1980,7 @@ static DWORD wodClose(WORD wDevID)
 
 #ifndef USE_PULSEAUDIO
 #ifdef __APPLE__
+        wodPlayer_enqueueCurrentBuffer(wwo);
         OP_LockMutex(wwo->aqueue_crst);
         while(wwo->aqueue_buffree != AQBUFFERS) {
           OP_UnlockMutex(wwo->aqueue_crst);
