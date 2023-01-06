@@ -580,19 +580,22 @@ AC_SUBST(SAMPLE_DTLIB)dnl
 AUDIO_DEFINES=""
 AUDIO_LIBS=""
 
-AC_ARG_ENABLE(audio, [  --disable-audio	Disable system audio output (/dev/dsp or pulseaudio)],
+AC_ARG_ENABLE(audio, [  --disable-audio	Disable system audio output (/dev/dsp, ALSA, pulseaudio or AudioQueue)],
               with_audio="${enableval}", with_audio="yes")
 if test "${with_audio}" = "yes"; then
 	PKG_CHECK_MODULES(PULSE, [libpulse-simple], have_libpulsesimple=yes, have_libpulsesimple=no)
 	if test "${have_libpulsesimple}" = "yes"; then
-		AUDIO_DEFINES="-DUSE_PULSEAUDIO ${PULSE_CFLAGS}"
+		AUDIO_DEFINES="${AUDIO_DEFINES} -DUSE_PULSEAUDIO ${PULSE_CFLAGS}"
 		AUDIO_LIBS="`${PKG_CONFIG} --libs-only-L libpulse-simple` `${PKG_CONFIG} --libs-only-l libpulse-simple`"
-	else
-		case "$target" in
-			*-apple-darwin*) AUDIO_LIBS="-Wl,-framework -Wl,AudioToolbox -Wl,-framework -Wl,CoreFoundation" ;;
-		esac
 	fi
-
+	PKG_CHECK_MODULES(ALSA, [alsa], have_alsa=yes, have_alsa=no)
+	if test "${have_alsa}" = "yes"; then
+		AUDIO_DEFINES="${AUDIO_DEFINES} -DUSE_ALSA ${ALSA_CFLAGS}"
+		AUDIO_LIBS="${AUDIO_LIBS} `${PKG_CONFIG} --libs-only-L alsa` `${PKG_CONFIG} --libs-only-l alsa`"
+	fi
+	case "$target" in
+		*-apple-darwin*) AUDIO_LIBS="${AUDIO_LIBS} -Wl,-framework -Wl,AudioToolbox -Wl,-framework -Wl,CoreFoundation" ;;
+	esac
 else
 	AUDIO_DEFINES="-DDISABLE_AUDIO"
 fi

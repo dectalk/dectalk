@@ -97,6 +97,9 @@
 #ifdef USE_AUDIOQUEUE
 #include "AudioToolbox/AudioToolbox.h"
 #endif
+#ifdef USE_ALSA
+#include <alsa/asoundlib.h>
+#endif
 #include "linux_audio.h"
 
 #define EMULATE_SB16
@@ -108,6 +111,11 @@
 #define SOUND_DEV "/dev/dsp"
 #endif
 #define MIXER_DEV "/dev/mixer"
+#endif
+
+#ifdef USE_ALSA
+#define ALSA_DEVICE "default"
+#define LATENCYMS       100
 #endif
 
 #define AUDIO_DEV_TAG "AUDIODEV:"
@@ -180,6 +188,10 @@ typedef struct {
 #endif
 #ifdef USE_OSS
     int            unixdev;
+#endif
+#ifdef USE_ALSA
+    snd_pcm_t      *alsa_handle;
+    int            alsa_framesize;
 #endif
     volatile int   state;			/* one of the WINE_WS_ manifest constants */
     DWORD          dwFragmentSize;		/* size of OSS buffer fragment */
@@ -350,21 +362,26 @@ LONG OSS_WaveInit(void)
 #ifdef USE_AUDIOQUEUE
       WOutDev[i].aqueueref = NULL;
 #endif
+#ifdef USE_ALSA
+      WOutDev[i].alsa_handle = NULL;
+#endif
 #ifdef USE_OSS
       WOutDev[i].unixdev = -1;
 #endif
+      WOutDev[i].currentOutputType = AUDIO_OUTPUT_NONE;
     }
 
   /* FIXME: only one device is supported */
   memset(&WOutDev[0].caps, 0, sizeof(WOutDev[0].caps));
 
 /*
- * Use the same capabilities for both Pulseaudio and native MacOS AudioToolbox
+ * Use the same capabilities for ALSA. Pulseaudio and native MacOS AudioToolbox
+ * as all do resampling.
  * If one of these outputs is compiled in, the OSS wave format detection will not
  * run, even when only the OSS output is working on the system
  */
 
-#if defined(USE_PULSEAUDIO) || defined(USE_AUDIOQUEUE)
+#if defined(USE_PULSEAUDIO) || defined(USE_AUDIOQUEUE) || defined(USE_ALSA)
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M16;
@@ -1185,6 +1202,37 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       info.bytes=info.fragments*info.fragsize;
     }
 #endif
+#ifdef USE_ALSA
+    if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
+      snd_pcm_uframes_t buffer_size;
+      snd_pcm_uframes_t period_size;
+      snd_pcm_sframes_t available;
+      int err;
+
+      available = snd_pcm_avail(wwo->alsa_handle);
+      if (available < 0) {
+        snd_pcm_recover(wwo->alsa_handle, available, 1);
+        available = snd_pcm_avail(wwo->alsa_handle);
+        if (available < 0) {
+          snd_pcm_recover(wwo->alsa_handle, available, 1);
+          return FALSE;
+        }
+      }
+
+      if((err = snd_pcm_get_params(wwo->alsa_handle, &buffer_size, &period_size)) >= 0) {
+        buffer_size *= wwo->alsa_framesize;
+        period_size *= wwo->alsa_framesize;
+        available *= wwo->alsa_framesize;
+        info.fragments = available / period_size;
+        info.fragsize = period_size;
+        info.fragstotal = buffer_size / period_size;
+        info.bytes = available;
+      } else {
+        snd_pcm_recover(wwo->alsa_handle, err, 1);
+        return FALSE;
+      }
+    }
+#endif
 #ifdef USE_OSS
     if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
 #ifdef _SPARC_SOLARIS_
@@ -1259,6 +1307,16 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 #ifdef USE_OSS
       if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
         count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, toWrite);
+      }
+#endif
+#ifdef USE_ALSA
+      if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
+        count = snd_pcm_writei(wwo->alsa_handle, lpData + wwo->dwOffCurrHdr, toWrite / wwo->alsa_framesize);
+        if (count < 0) {
+                count = snd_pcm_recover(wwo->alsa_handle, count, 0);
+        } else if (count >= 0) {
+                count *= wwo->alsa_framesize;
+        }
       }
 #endif
 #ifdef USE_AUDIOQUEUE
@@ -1342,6 +1400,16 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 #ifdef USE_OSS
       if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
         count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, wwo->dwRemain);
+      }
+#endif
+#ifdef USE_ALSA
+      if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
+        count = snd_pcm_writei(wwo->alsa_handle, lpData + wwo->dwOffCurrHdr, wwo->dwRemain / wwo->alsa_framesize);
+        if (count < 0) {
+                count = snd_pcm_recover(wwo->alsa_handle, count, 0);
+        } else if (count >= 0) {
+                count *= wwo->alsa_framesize;
+        }
       }
 #endif
 #ifdef USE_AUDIOQUEUE
@@ -1508,6 +1576,18 @@ static	void	wodPlayer_Reset(WINE_WAVEOUT* wwo, WORD uDevID, BOOL reset)
 #endif
     {
       perror("ioctl SNDCTL_DSP_RESET");
+      wwo->hThread = 0;
+      wwo->state = WINE_WS_STOPPED;
+      ExitThread((void *)-1);
+    }
+  }
+#endif
+
+#ifdef USE_ALSA
+  if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
+    if (snd_pcm_drop(wwo->alsa_handle) != 0)
+    {
+      perror("snd_pcm_drop");
       wwo->hThread = 0;
       wwo->state = WINE_WS_STOPPED;
       ExitThread((void *)-1);
@@ -1783,6 +1863,39 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
       }
     }
 #endif
+#ifdef USE_ALSA
+    if (wwo->currentOutputType == AUDIO_OUTPUT_NONE) {
+      int err;
+
+      if ((err = snd_pcm_open(&wwo->alsa_handle, ALSA_DEVICE, SND_PCM_STREAM_PLAYBACK, 0)) == 0) {
+        snd_pcm_format_t alsa_format;
+      if (lpDesc->lpFormat->wBitsPerSample == 8) {
+        alsa_format = SND_PCM_FORMAT_U8;
+        wwo->alsa_framesize = 1;
+      } else {
+        alsa_format = SND_PCM_FORMAT_S16_LE;
+        wwo->alsa_framesize = 2;
+      }
+      wwo->alsa_framesize *= lpDesc->lpFormat->nChannels;
+
+      if ((err = snd_pcm_set_params(wwo->alsa_handle,
+                                    alsa_format,
+                                    SND_PCM_ACCESS_RW_INTERLEAVED,
+                                    lpDesc->lpFormat->nChannels,
+                                    lpDesc->lpFormat->nSamplesPerSec,
+                                    1,
+                                    LATENCYMS * 1000)) == 0) {
+          snd_pcm_uframes_t buffer_size;
+          snd_pcm_uframes_t period_size;
+
+          if(snd_pcm_get_params(wwo->alsa_handle, &buffer_size, &period_size) == 0) {
+            wwo->currentOutputType = AUDIO_OUTPUT_ALSA;
+            fragment_size = period_size * wwo->alsa_framesize;
+          }
+        }
+      }
+    }
+#endif
 #ifdef USE_OSS
     if (wwo->currentOutputType == AUDIO_OUTPUT_NONE) {
       GetAudioDev(audio_dev);
@@ -1930,6 +2043,12 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     }
 #endif
 
+#ifdef USE_ALSA
+    if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
+      wwo->dwFragmentSize = fragment_size;
+    }
+#endif
+
 #ifdef USE_OSS
     if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
 #if defined(_SPARC_SOLARIS_)
@@ -2014,6 +2133,12 @@ static DWORD wodClose(WORD wDevID)
       return MMSYSERR_BADDEVICEID;
     }
 #endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
 #ifdef USE_AUDIOQUEUE
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
       WARN("bad device ID !\n");
@@ -2064,6 +2189,13 @@ static DWORD wodClose(WORD wDevID)
 	  wwo->unixdev = -1;
         }
 #endif
+#ifdef USE_ALSA
+        if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
+	  snd_pcm_drain(wwo->alsa_handle);
+	  snd_pcm_close(wwo->alsa_handle);
+	  wwo->alsa_handle = NULL;
+        }
+#endif
 #ifdef USE_PULSEAUDIO
         if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
 	  pa_simple_drain(wwo->pa_conn, &err);
@@ -2098,6 +2230,12 @@ static DWORD wodWrite(WORD wDevID, LPWAVEHDR lpWaveHdr, DWORD dwSize)
 
 #ifdef USE_PULSEAUDIO
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
       WARN("bad device ID !\n");
       return MMSYSERR_BADDEVICEID;
     }
@@ -2190,6 +2328,12 @@ static DWORD wodPause(WORD wDevID)
       return MMSYSERR_BADDEVICEID;
     }
 #endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
 #ifdef USE_AUDIOQUEUE
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
       WARN("bad device ID !\n");
@@ -2224,6 +2368,12 @@ static DWORD wodRestart(WORD wDevID)
 
 #ifdef USE_PULSEAUDIO
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
       WARN("bad device ID !\n");
       return MMSYSERR_BADDEVICEID;
     }
@@ -2276,6 +2426,12 @@ static DWORD wodReset(WORD wDevID)
       return MMSYSERR_BADDEVICEID;
     }
 #endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
 #ifdef USE_AUDIOQUEUE
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
       WARN("bad device ID !\n");
@@ -2315,6 +2471,12 @@ static DWORD wodGetPosition(WORD wDevID, LPMMTIME lpTime, DWORD uSize)
 
 #ifdef USE_PULSEAUDIO
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
       WARN("bad device ID !\n");
       return MMSYSERR_BADDEVICEID;
     }
@@ -2406,6 +2568,12 @@ static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
       return MMSYSERR_BADDEVICEID;
     }
 #endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
 #ifdef USE_AUDIOQUEUE
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
       WARN("bad device ID !\n");
@@ -2466,6 +2634,11 @@ static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
       return MMSYSERR_NOTENABLED;
     }
 #endif
+#ifdef USE_ALSA
+    if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
+      return MMSYSERR_NOTENABLED;
+    }
+#endif
 #ifdef USE_AUDIOQUEUE
     if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
       return MMSYSERR_NOTENABLED;
@@ -2500,6 +2673,12 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 
 #ifdef USE_PULSEAUDIO
     if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_ALSA
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_ALSA && WOutDev[wDevID].alsa_handle == NULL) {
       WARN("bad device ID !\n");
       return MMSYSERR_BADDEVICEID;
     }
@@ -2576,6 +2755,11 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 #endif
 #ifdef USE_PULSEAUDIO
     if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+      return MMSYSERR_NOTENABLED;
+    }
+#endif
+#ifdef USE_ALSA
+    if (wwo->currentOutputType == AUDIO_OUTPUT_ALSA) {
       return MMSYSERR_NOTENABLED;
     }
 #endif
