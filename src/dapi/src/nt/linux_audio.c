@@ -164,7 +164,7 @@
 
 #define AUDIO_OUTPUT_NONE       0
 #define AUDIO_OUTPUT_OSS	1
-#define AUDIO_OUTPUT_ALSA	2 /* FIXME: Implement me! */
+#define AUDIO_OUTPUT_ALSA	2
 #define AUDIO_OUTPUT_PULSEAUDIO	3
 #define AUDIO_OUTPUT_AUDIOQUEUE	4
 
@@ -1869,22 +1869,22 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 
       if ((err = snd_pcm_open(&wwo->alsa_handle, ALSA_DEVICE, SND_PCM_STREAM_PLAYBACK, 0)) == 0) {
         snd_pcm_format_t alsa_format;
-      if (lpDesc->lpFormat->wBitsPerSample == 8) {
-        alsa_format = SND_PCM_FORMAT_U8;
-        wwo->alsa_framesize = 1;
-      } else {
-        alsa_format = SND_PCM_FORMAT_S16_LE;
-        wwo->alsa_framesize = 2;
-      }
-      wwo->alsa_framesize *= lpDesc->lpFormat->nChannels;
+        if (lpDesc->lpFormat->wBitsPerSample == 8) {
+          alsa_format = SND_PCM_FORMAT_U8;
+          wwo->alsa_framesize = 1;
+        } else {
+          alsa_format = SND_PCM_FORMAT_S16_LE;
+          wwo->alsa_framesize = 2;
+        }
+        wwo->alsa_framesize *= lpDesc->lpFormat->nChannels;
 
-      if ((err = snd_pcm_set_params(wwo->alsa_handle,
-                                    alsa_format,
-                                    SND_PCM_ACCESS_RW_INTERLEAVED,
-                                    lpDesc->lpFormat->nChannels,
-                                    lpDesc->lpFormat->nSamplesPerSec,
-                                    1,
-                                    LATENCYMS * 1000)) == 0) {
+        if ((err = snd_pcm_set_params(wwo->alsa_handle,
+                                      alsa_format,
+                                      SND_PCM_ACCESS_RW_INTERLEAVED,
+                                      lpDesc->lpFormat->nChannels,
+                                      lpDesc->lpFormat->nSamplesPerSec,
+                                      1,
+                                      LATENCYMS * 1000)) == 0) {
           snd_pcm_uframes_t buffer_size;
           snd_pcm_uframes_t period_size;
 
