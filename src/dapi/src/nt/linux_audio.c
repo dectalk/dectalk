@@ -54,6 +54,14 @@
 #ifndef LINUX_AUDIO_C
 #define LINUX_AUDIO_C
 
+#if defined __linux__ || defined _SPARC_SOLARIS_
+#define USE_OSS 1
+#endif
+
+#ifdef __APPLE__
+#define USE_AUDIOQUEUE 1
+#endif
+
 //#define _DEBUG
 
 #include <unistd.h>
@@ -71,7 +79,7 @@
 #include <sys/stat.h> 
 #include <poll.h>
 #else
-#if !defined (__APPLE__)
+#ifdef USE_OSS
 #include <sys/soundcard.h>
 #endif
 #include <sys/types.h>
@@ -83,35 +91,28 @@
 #include <sys/time.h>
 #endif
 #include <sys/mman.h>
-#ifdef __arm__
-#ifndef __ipaq__
-#include <linux/audio-sa1100.h>
-#endif
-#endif
 #ifdef USE_PULSEAUDIO
 #include <pulse/simple.h>
-#elif defined(__APPLE__)
+#endif
+#ifdef USE_AUDIOQUEUE
 #include "AudioToolbox/AudioToolbox.h"
 #endif
 #include "linux_audio.h"
 
 #define EMULATE_SB16
 
+#ifdef USE_OSS
 #ifdef _SPARC_SOLARIS_
 #define SOUND_DEV "/dev/audio"
 #else
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
 #define SOUND_DEV "/dev/dsp"
 #endif
-#endif
-
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
 #define MIXER_DEV "/dev/mixer"
 #endif
 
 #define AUDIO_DEV_TAG "AUDIODEV:"
 
-#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+#ifdef USE_AUDIOQUEUE
 #define AQBUFFERS       4
 #define AQBUFFERMS      40
 #endif
@@ -153,6 +154,12 @@
 #define WINE_WM_FIRST WINE_WM_PAUSING
 #define WINE_WM_LAST WINE_WM_HEADER
 
+#define AUDIO_OUTPUT_NONE       0
+#define AUDIO_OUTPUT_OSS	1
+#define AUDIO_OUTPUT_ALSA	2 /* FIXME: Implement me! */
+#define AUDIO_OUTPUT_PULSEAUDIO	3
+#define AUDIO_OUTPUT_AUDIOQUEUE	4
+
 typedef struct {
     int msg;
     unsigned long param;
@@ -160,15 +167,18 @@ typedef struct {
 
 #define WWO_RING_BUFFER_SIZE	30
 typedef struct {
+    int            currentOutputType;
 #ifdef USE_PULSEAUDIO
     pa_simple      *pa_conn;
-#elif defined(__APPLE__)
+#endif
+#ifdef USE_AUDIOQUEUE
     AudioQueueRef  aqueueref;
     AudioQueueBufferRef aqueue_bufref[AQBUFFERS];
     AudioQueueBufferRef aqueue_currbuf;
     int            aqueue_buffree;
     HMUTEX_T       aqueue_crst;
-#else
+#endif
+#ifdef USE_OSS
     int            unixdev;
 #endif
     volatile int   state;			/* one of the WINE_WS_ manifest constants */
@@ -257,7 +267,7 @@ DWORD WINAPI GetTickCount(WINE_WAVEOUT* wwo)
     return ((t.tv_sec * 1000) + (t.tv_usec / 1000)) - wwo->server_startticks;
 }
 
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
+#ifdef USE_OSS
 char *GetAudioDev(char *name)
 {
 	FILE *infile;
@@ -336,9 +346,11 @@ LONG OSS_WaveInit(void)
     {
 #ifdef USE_PULSEAUDIO
       WOutDev[i].pa_conn = NULL;
-#elif defined(__APPLE__)
+#endif
+#ifdef USE_AUDIOQUEUE
       WOutDev[i].aqueueref = NULL;
-#else
+#endif
+#ifdef USE_OSS
       WOutDev[i].unixdev = -1;
 #endif
     }
@@ -346,8 +358,13 @@ LONG OSS_WaveInit(void)
   /* FIXME: only one device is supported */
   memset(&WOutDev[0].caps, 0, sizeof(WOutDev[0].caps));
 
-/* Use the same capabilities for both Pulseaudio and native MacOS AudioToolbox */
-#if defined(USE_PULSEAUDIO) || defined(__APPLE__)
+/*
+ * Use the same capabilities for both Pulseaudio and native MacOS AudioToolbox
+ * If one of these outputs is compiled in, the OSS wave format detection will not
+ * run, even when only the OSS output is working on the system
+ */
+
+#if defined(USE_PULSEAUDIO) || defined(USE_AUDIOQUEUE)
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4S08;
   WOutDev[0].caps.dwFormats |= WAVE_FORMAT_4M16;
@@ -591,7 +608,6 @@ LONG OSS_WaveInit(void)
 	WOutDev[0].caps.dwFormats |= WAVE_FORMAT_1S16;
     }
   }
-#ifndef __ipaq__
   if (IOCTL(audio, SNDCTL_DSP_GETCAPS, caps) == 0) {
     TRACE("OSS dsp out caps=%08X\n", caps);
     if ((caps & DSP_CAP_REALTIME) && !(caps & DSP_CAP_BATCH)) {
@@ -602,7 +618,6 @@ LONG OSS_WaveInit(void)
 	!(caps & DSP_CAP_BATCH))
       WOutDev[0].caps.dwSupport |= WAVECAPS_DIRECTSOUND;
   }
-#endif // #ifndef __ipaq__
 #endif // _SPARC_SOLARIS_
   close(audio);
   TRACE("out dwFormats = %08lX, dwSupport = %08lX\n",
@@ -1097,7 +1112,7 @@ UINT32 waveOutGetID(HWAVEOUT hWaveOut, UINT32 * lpuDeviceID)
  *                  Low level WAVE OUT implementation			*
  *======================================================================*/
 
-#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+#if defined(USE_AUDIOQUEUE)
 void wodPlayer_enqueueCurrentBuffer(WINE_WAVEOUT* wwo)
 {
   OSStatus os_status;
@@ -1121,7 +1136,7 @@ void wodPlayer_enqueueCurrentBuffer(WINE_WAVEOUT* wwo)
  * Returns TRUE in case of buffer underrun.
  */
 
-#if defined _SPARC_SOLARIS_ || defined (__APPLE__)
+#if defined _SPARC_SOLARIS_ || defined (USE_AUDIOQUEUE)
 typedef struct audio_buf_info_t 
 {
 int fragments;
@@ -1134,61 +1149,71 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 {
   LPWAVEHDR		lpWaveHdr;
   LPBYTE		lpData;
-  int			count;
+  int			count = 0;
   audio_buf_info 	info;
 #ifdef _SPARC_SOLARIS_
   struct pollfd		fds[1];
   int return_val;
 #endif
-#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+#if defined(USE_AUDIOQUEUE)
   OSStatus            os_status;
   int                 i;
 #endif
 
-/* Use fake fragments for both Pulseaudio and native MacOS AudioToolbox */
-#if defined(USE_PULSEAUDIO)
-  info.fragments=4;
+/* Use fake fragments for Pulseaudio */
+#ifdef USE_PULSEAUDIO
+  if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+    info.fragments=4;
+  }
 #endif
   for (;;) {
-#ifdef _SPARC_SOLARIS_
-   fds[0].fd=wwo->unixdev;
-   fds[0].events=POLLOUT;
-   fds[0].revents=0;
-
-   return_val=poll(fds,1,0);
-   if (return_val<0)
-   {
-      ERR("poll failed (%s)\n", strerror(errno));
-      return FALSE;
-   } 
-   if (!(fds[0].revents&&POLLOUT))
-   {
-	return FALSE;
-   }
-	
-   info.fragments=3;
-   info.fragsize=1024;
-   info.fragstotal=16;
-   info.bytes=12406;
-#else
-#if defined(USE_PULSEAUDIO)
-    info.fragments--;
-    info.fragsize=1024;
-    info.fragstotal=16;
-    info.bytes=12406;
-#elif defined(__APPLE__)
-    OP_LockMutex(wwo->aqueue_crst);
-    info.fragments = wwo->aqueue_buffree;
-    OP_UnlockMutex(wwo->aqueue_crst);
-    info.fragsize=wwo->dwFragmentSize;
-    info.fragstotal=AQBUFFERS;
-    info.bytes=info.fragments*info.fragsize;
-#else
-    if (ioctl(wwo->unixdev, SNDCTL_DSP_GETOSPACE, &info) < 0) {
-      ERR("ioctl failed (%s)\n", strerror(errno));
-      return FALSE;
+#ifdef USE_PULSEAUDIO
+    if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+      info.fragments--;
+      info.fragsize=1024;
+      info.fragstotal=16;
+      info.bytes=12406;
     }
 #endif
+#ifdef USE_AUDIOQUEUE
+    if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+      OP_LockMutex(wwo->aqueue_crst);
+      info.fragments = wwo->aqueue_buffree;
+      OP_UnlockMutex(wwo->aqueue_crst);
+      info.fragsize=wwo->dwFragmentSize;
+      info.fragstotal=AQBUFFERS;
+      info.bytes=info.fragments*info.fragsize;
+    }
+#endif
+#ifdef USE_OSS
+    if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
+#ifdef _SPARC_SOLARIS_
+      fds[0].fd=wwo->unixdev;
+      fds[0].events=POLLOUT;
+      fds[0].revents=0;
+
+      return_val=poll(fds,1,0);
+      if (return_val<0)
+      {
+         ERR("poll failed (%s)\n", strerror(errno));
+         return FALSE;
+      } 
+      if (!(fds[0].revents&&POLLOUT))
+      {
+           return FALSE;
+      }
+           
+      info.fragments=3;
+      info.fragsize=1024;
+      info.fragstotal=16;
+      info.bytes=12406;
+#else
+      if (ioctl(wwo->unixdev, SNDCTL_DSP_GETOSPACE, &info) < 0) {
+        ERR("ioctl failed (%s)\n", strerror(errno));
+        return FALSE;
+      }
+#endif
+    }
 #endif
 	
     TRACE("info={frag=%d fsize=%d ftotal=%d bytes=%d}\n", info.fragments, info.fragsize, info.fragstotal, info.bytes);
@@ -1198,8 +1223,10 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 
     lpWaveHdr = wwo->lpPlayPtr;
     if (!lpWaveHdr) {
-#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
-      wodPlayer_enqueueCurrentBuffer(wwo);
+#if defined(USE_AUDIOQUEUE)
+      if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+        wodPlayer_enqueueCurrentBuffer(wwo);
+      }
 #endif
       if (wwo->dwRemain > 0 &&		/* still data to send to complete current fragment */
 	  wwo->dwLastFragDone &&  	/* first fragment has been played */
@@ -1229,33 +1256,39 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
       DWORD	toWrite = lpWaveHdr->dwBufferLength - wwo->dwOffCurrHdr;
 	    
       /* write end of current wave hdr */
-#ifndef USE_PULSEAUDIO
-#ifndef __APPLE__
-      count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, toWrite);
-#else
-      count = toWrite;
-      OP_LockMutex(wwo->aqueue_crst);
-      if (wwo->aqueue_currbuf == NULL) {
-        for (i = 0; i < AQBUFFERS; i++) {
-          if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
-            wwo->aqueue_currbuf = wwo->aqueue_bufref[i];
-            wwo->aqueue_buffree--;
-            break;
+#ifdef USE_OSS
+      if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
+        count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, toWrite);
+      }
+#endif
+#ifdef USE_AUDIOQUEUE
+      if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+        count = toWrite;
+        OP_LockMutex(wwo->aqueue_crst);
+        if (wwo->aqueue_currbuf == NULL) {
+          for (i = 0; i < AQBUFFERS; i++) {
+            if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
+              wwo->aqueue_currbuf = wwo->aqueue_bufref[i];
+              wwo->aqueue_buffree--;
+              break;
+            }
           }
         }
+        wwo->aqueue_currbuf->mAudioDataByteSize += count;
+        OP_UnlockMutex(wwo->aqueue_crst);
+        if (wwo->aqueue_currbuf != NULL) {
+          memcpy(wwo->aqueue_currbuf->mAudioData + wwo->aqueue_currbuf->mAudioDataByteSize - count, lpData + wwo->dwOffCurrHdr, count);
+        } else {
+          count = 0;
+        }
       }
-      wwo->aqueue_currbuf->mAudioDataByteSize += count;
-      OP_UnlockMutex(wwo->aqueue_crst);
-      if (wwo->aqueue_currbuf != NULL) {
-        memcpy(wwo->aqueue_currbuf->mAudioData + wwo->aqueue_currbuf->mAudioDataByteSize - count, lpData + wwo->dwOffCurrHdr, count);
-      } else {
-        count = 0;
-      }
-#endif //__APPLE__
-#else
-      count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, toWrite, NULL);
-      if (count == 0)
-	      count = toWrite;
+#endif
+#ifdef USE_PULSEAUDIO
+      if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+        count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, toWrite, NULL);
+        if (count == 0)
+  	  count = toWrite;
+        }
 #endif
       TRACE("write(%p[%5lu], %5lu) => %d\n", lpData, wwo->dwOffCurrHdr, toWrite, count);
       //OP_Sleep(1);
@@ -1268,11 +1301,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
           wwo->server_startticks = GetTickCount(wwo);
 	}
 	wwo->qwFragBytes += toWrite;
-#ifdef __ipaq__
-	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / ((wwo->format.wf.nAvgBytesPerSec) <<1);
-#else
 	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / wwo->format.wf.nAvgBytesPerSec;
-#endif
 
 	lpWaveHdr->reserved = wwo->dwLastFragDone;
 	TRACE("Tagging hdr %p with %08lx\n", lpWaveHdr, wwo->dwLastFragDone);
@@ -1301,40 +1330,48 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 	wwo->dwOffCurrHdr = 0;
 	if ((wwo->dwRemain -= count) == 0) {
 	  wwo->dwRemain = wwo->dwFragmentSize;
-#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
-          wodPlayer_enqueueCurrentBuffer(wwo);
+#ifdef USE_AUDIOQUEUE
+          if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+            wodPlayer_enqueueCurrentBuffer(wwo);
+          }
 #endif
 	}
       }
       continue; /* try to go to use next wavehdr */
     }  else	{
-#ifndef USE_PULSEAUDIO
-#ifndef __APPLE__
-      count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, wwo->dwRemain);
-#else
-      count = wwo->dwRemain;
-      OP_LockMutex(wwo->aqueue_crst);
-      if (wwo->aqueue_currbuf == NULL) {
-        for (i = 0; i < AQBUFFERS; i++) {
-          if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
-            wwo->aqueue_currbuf = wwo->aqueue_bufref[i];
-            wwo->aqueue_buffree--;
-            break;
+#ifdef USE_OSS
+      if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
+        count = write(wwo->unixdev, lpData + wwo->dwOffCurrHdr, wwo->dwRemain);
+      }
+#endif
+#ifdef USE_AUDIOQUEUE
+      if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+        count = wwo->dwRemain;
+        OP_LockMutex(wwo->aqueue_crst);
+        if (wwo->aqueue_currbuf == NULL) {
+          for (i = 0; i < AQBUFFERS; i++) {
+            if (wwo->aqueue_bufref[i]->mAudioDataByteSize == 0) {
+              wwo->aqueue_currbuf = wwo->aqueue_bufref[i];
+              wwo->aqueue_buffree--;
+              break;
+            }
           }
         }
+        wwo->aqueue_currbuf->mAudioDataByteSize += count;
+        OP_UnlockMutex(wwo->aqueue_crst);
+        if (wwo->aqueue_currbuf != NULL) {
+          memcpy(wwo->aqueue_currbuf->mAudioData + wwo->aqueue_currbuf->mAudioDataByteSize - count, lpData + wwo->dwOffCurrHdr, count);
+        } else {
+          count = 0;
+        }
       }
-      wwo->aqueue_currbuf->mAudioDataByteSize += count;
-      OP_UnlockMutex(wwo->aqueue_crst);
-      if (wwo->aqueue_currbuf != NULL) {
-        memcpy(wwo->aqueue_currbuf->mAudioData + wwo->aqueue_currbuf->mAudioDataByteSize - count, lpData + wwo->dwOffCurrHdr, count);
-      } else {
-        count = 0;
+#endif
+#ifdef USE_PULSEAUDIO
+      if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+        count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, wwo->dwRemain, NULL);
+        if (count == 0)
+          count = wwo->dwRemain;
       }
-#endif //__APPLE__
-#else
-      count = pa_simple_write(wwo->pa_conn, lpData + wwo->dwOffCurrHdr, wwo->dwRemain, NULL);
-      if (count == 0)
-	      count = wwo->dwRemain;
 #endif
       //OP_Sleep(1);
       TRACE("write(%p[%5lu], %5lu) => %d\n", lpData, wwo->dwOffCurrHdr, wwo->dwRemain, count);
@@ -1346,24 +1383,22 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
           wwo->server_startticks = GetTickCount(wwo);
 	}
 	wwo->qwFragBytes += wwo->dwRemain;
-#ifdef __ipaq__
-	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / ((wwo->format.wf.nAvgBytesPerSec) <<1);
-#else
 	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / wwo->format.wf.nAvgBytesPerSec;
-#endif
 	TRACE("Tagging frag with %08lx\n", wwo->dwLastFragDone);
 
 	wwo->dwOffCurrHdr += count;
 	wwo->dwRemain = wwo->dwFragmentSize;
-#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
-        wodPlayer_enqueueCurrentBuffer(wwo);
+#ifdef USE_AUDIOQUEUE
+        if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+          wodPlayer_enqueueCurrentBuffer(wwo);
+        }
 #endif
       }
     }
   }
 }
 
-#if defined(__APPLE__) && !defined(USE_PULSEAUDIO)
+#ifdef USE_AUDIOQUEUE
 void audioCallback(void *wwoptr, AudioQueueRef aqueueref, AudioQueueBufferRef bref)
 {
   WINE_WAVEOUT  *wwo = wwoptr;
@@ -1464,26 +1499,46 @@ static	void	wodPlayer_Reset(WINE_WAVEOUT* wwo, WORD uDevID, BOOL reset)
   wodPlayer_Notify(wwo, uDevID, FALSE);
 
     /* flush all possible output */
+#ifdef USE_OSS
+  if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
 #ifdef _SPARC_SOLARIS_
-  if (ioctl(wwo->unixdev, I_FLUSH, FLUSHW) == -1) 
+    if (ioctl(wwo->unixdev, I_FLUSH, FLUSHW) == -1) 
 #else
-#ifdef USE_PULSEAUDIO
-  if (pa_simple_flush(wwo->pa_conn, NULL) != 0)
-#else
-#if defined (__APPLE__)
-  wodPlayer_enqueueCurrentBuffer(wwo);
-  if (AudioQueueFlush(wwo->aqueueref) != 0)
-#else
-  if (ioctl(wwo->unixdev, SNDCTL_DSP_RESET, 0) == -1) 
-#endif //__APPLE__
+    if (ioctl(wwo->unixdev, SNDCTL_DSP_RESET, 0) == -1) 
 #endif
-#endif
-  {
-    perror("ioctl SNDCTL_DSP_RESET");
-    wwo->hThread = 0;
-    wwo->state = WINE_WS_STOPPED;
-    ExitThread((void *)-1);
+    {
+      perror("ioctl SNDCTL_DSP_RESET");
+      wwo->hThread = 0;
+      wwo->state = WINE_WS_STOPPED;
+      ExitThread((void *)-1);
+    }
   }
+#endif
+
+#ifdef USE_PULSEAUDIO
+  if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+    if (pa_simple_flush(wwo->pa_conn, NULL) != 0)
+    {
+      perror("pa_simple_flush");
+      wwo->hThread = 0;
+      wwo->state = WINE_WS_STOPPED;
+      ExitThread((void *)-1);
+    }
+  }
+#endif
+
+#ifdef USE_AUDIOQUEUE
+  if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+    wodPlayer_enqueueCurrentBuffer(wwo);
+    if (AudioQueueFlush(wwo->aqueueref) != 0)
+    {
+      perror("AudioQueueFlush");
+      wwo->hThread = 0;
+      wwo->state = WINE_WS_STOPPED;
+      ExitThread((void *)-1);
+    }
+  }
+#endif
 
   wwo->dwOffCurrHdr = 0;
   wwo->dwRemain = wwo->dwFragmentSize;
@@ -1648,7 +1703,7 @@ static DWORD wodGetDevCaps(UINT16 wDevID, LPWAVEOUTCAPS lpCaps, DWORD dwSize)
  */
 static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 {
-    int 	 	audio;
+    int 	 	audio = -1;
     int			format;
     int			sample_rate;
     int			dsp_stereo;
@@ -1658,12 +1713,10 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 #ifdef _SPARC_SOLARIS_
     audio_info_t	audio_info;
 #endif
-#ifdef __ipaq__
-	int temp,samplesize,smplrate;
-#endif
 #ifdef USE_PULSEAUDIO
     pa_sample_spec	pa_ss;
-#elif defined(__APPLE__)
+#endif
+#ifdef USE_AUDIOQUEUE
     AudioStreamBasicDescription	streamdesc = { 0 };
     OSStatus            os_status;
     AudioQueueBufferRef aqueue_bufref;
@@ -1704,91 +1757,103 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	/* not supported, ignore it */
 	dwFlags &= ~WAVE_DIRECTSOUND;
 
-#ifndef USE_PULSEAUDIO
-#ifndef __APPLE__
-    GetAudioDev(audio_dev);
+    wwo->currentOutputType = AUDIO_OUTPUT_NONE;
 
-    if (access(audio_dev, 0) != 0)
-	return MMSYSERR_NOTENABLED;
-    if (dwFlags & WAVE_DIRECTSOUND)
-	/* we want to be able to mmap() the device, which means it must be opened readable,
-	 * otherwise mmap() will fail (at least under Linux) */
-	audio = open(audio_dev, O_RDWR|O_NDELAY, 0);
-    else
-	audio = open(audio_dev, O_WRONLY|O_NDELAY, 0);
-    if (audio == -1) {
-	WARN("can't open sound device %s (%s)!\n", audio_dev, strerror(errno));
-	return MMSYSERR_ALLOCATED;
-	}
-    fcntl(audio, F_SETFD, 1); /* set close on exec flag */
-    wwo->unixdev = audio;
-#else
-    streamdesc.mFormatID = kAudioFormatLinearPCM;
-    if (lpDesc->lpFormat->wBitsPerSample == 8) {
-        streamdesc.mFormatFlags = kAudioFormatFlagIsPacked;
-        streamdesc.mBitsPerChannel = 8;
-    } else {
-        streamdesc.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-        streamdesc.mBitsPerChannel = 16;
-    }
-    streamdesc.mChannelsPerFrame = lpDesc->lpFormat->nChannels;
-    streamdesc.mSampleRate = lpDesc->lpFormat->nSamplesPerSec;
-    streamdesc.mBytesPerFrame = (streamdesc.mBitsPerChannel * streamdesc.mChannelsPerFrame) / 8;
-    streamdesc.mFramesPerPacket = 1;
-    streamdesc.mBytesPerPacket = streamdesc.mBytesPerFrame * streamdesc.mFramesPerPacket;
-    fragment_size = ((int)(streamdesc.mSampleRate / (1000 / AQBUFFERMS))) * streamdesc.mBytesPerFrame;
-
-    os_status = AudioQueueNewOutput(&streamdesc, audioCallback, wwo, NULL,
-                        kCFRunLoopCommonModes, 0, &wwo->aqueueref);
-    if (os_status != 0) {
-        fprintf(stderr, "AudioQueueNewOutput: %d\n", os_status);
-	return MMSYSERR_NOTENABLED;
-    }
-
-    wwo->aqueue_crst = OP_CreateMutex();
-    OP_LockMutex(wwo->aqueue_crst);
-    for (i = 0; i < AQBUFFERS; i++) {
-      os_status = AudioQueueAllocateBuffer(wwo->aqueueref, fragment_size, &wwo->aqueue_bufref[i]);
-      if (os_status != 0) {
-          fprintf(stderr, "AudioQueueAllocateBuffer: %d\n", os_status);
-          AudioQueueDispose(wwo->aqueueref, 0);
-          wwo->aqueueref = NULL;
-          OP_UnlockMutex(wwo->aqueue_crst);
-          return MMSYSERR_NOTENABLED;
+#ifdef USE_PULSEAUDIO
+    if (wwo->currentOutputType == AUDIO_OUTPUT_NONE) {
+      if (lpDesc->lpFormat->wBitsPerSample == 8) {
+              pa_ss.format = PA_SAMPLE_U8;
+      } else {
+              pa_ss.format = PA_SAMPLE_S16NE;
       }
-      wwo->aqueue_bufref[i]->mAudioDataByteSize = 0;
+      pa_ss.channels = lpDesc->lpFormat->nChannels;
+      pa_ss.rate = lpDesc->lpFormat->nSamplesPerSec;
+      wwo->pa_conn = pa_simple_new(NULL,
+                    "DECtalk",
+                    PA_STREAM_PLAYBACK,
+                    NULL,
+                    "Speech",
+                    &pa_ss,
+                    NULL,
+                    NULL,
+                    NULL
+                    );
+      if (wwo->pa_conn) {
+        wwo->currentOutputType = AUDIO_OUTPUT_PULSEAUDIO;
+      }
     }
-    wwo->aqueue_buffree = AQBUFFERS;
-    wwo->aqueue_currbuf = NULL;
-    OP_UnlockMutex(wwo->aqueue_crst);
+#endif
+#ifdef USE_OSS
+    if (wwo->currentOutputType == AUDIO_OUTPUT_NONE) {
+      GetAudioDev(audio_dev);
 
-    os_status = AudioQueueStart(wwo->aqueueref, NULL);
-    if (os_status != 0) {
-        fprintf(stderr, "AudioQueueStart: %d\n", os_status);
-        AudioQueueDispose(wwo->aqueueref, 0);
-        wwo->aqueueref = NULL;
-	return MMSYSERR_NOTENABLED;
+      if (access(audio_dev, 0) != 0)
+          return MMSYSERR_NOTENABLED;
+      if (dwFlags & WAVE_DIRECTSOUND)
+          /* we want to be able to mmap() the device, which means it must be opened readable,
+           * otherwise mmap() will fail (at least under Linux) */
+          audio = open(audio_dev, O_RDWR|O_NDELAY, 0);
+      else
+          audio = open(audio_dev, O_WRONLY|O_NDELAY, 0);
+      if (audio != -1) {
+        fcntl(audio, F_SETFD, 1); /* set close on exec flag */
+        wwo->unixdev = audio;
+        wwo->currentOutputType = AUDIO_OUTPUT_OSS;
+      }
     }
 #endif
-#else
-    if (lpDesc->lpFormat->wBitsPerSample == 8) {
-	    pa_ss.format = PA_SAMPLE_U8;
-    } else {
-	    pa_ss.format = PA_SAMPLE_S16NE;
+#ifdef USE_AUDIOQUEUE
+    if (wwo->currentOutputType == AUDIO_OUTPUT_NONE) {
+      streamdesc.mFormatID = kAudioFormatLinearPCM;
+      if (lpDesc->lpFormat->wBitsPerSample == 8) {
+          streamdesc.mFormatFlags = kAudioFormatFlagIsPacked;
+          streamdesc.mBitsPerChannel = 8;
+      } else {
+          streamdesc.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+          streamdesc.mBitsPerChannel = 16;
+      }
+      streamdesc.mChannelsPerFrame = lpDesc->lpFormat->nChannels;
+      streamdesc.mSampleRate = lpDesc->lpFormat->nSamplesPerSec;
+      streamdesc.mBytesPerFrame = (streamdesc.mBitsPerChannel * streamdesc.mChannelsPerFrame) / 8;
+      streamdesc.mFramesPerPacket = 1;
+      streamdesc.mBytesPerPacket = streamdesc.mBytesPerFrame * streamdesc.mFramesPerPacket;
+      fragment_size = ((int)(streamdesc.mSampleRate / (1000 / AQBUFFERMS))) * streamdesc.mBytesPerFrame;
+
+      os_status = AudioQueueNewOutput(&streamdesc, audioCallback, wwo, NULL,
+                          kCFRunLoopCommonModes, 0, &wwo->aqueueref);
+      if (os_status == 0) {
+        wwo->aqueue_crst = OP_CreateMutex();
+        OP_LockMutex(wwo->aqueue_crst);
+        for (i = 0; i < AQBUFFERS; i++) {
+          os_status = AudioQueueAllocateBuffer(wwo->aqueueref, fragment_size, &wwo->aqueue_bufref[i]);
+          if (os_status != 0) {
+              fprintf(stderr, "AudioQueueAllocateBuffer: %d\n", os_status);
+              AudioQueueDispose(wwo->aqueueref, 0);
+              wwo->aqueueref = NULL;
+              OP_UnlockMutex(wwo->aqueue_crst);
+              return MMSYSERR_NOTENABLED;
+          }
+          wwo->aqueue_bufref[i]->mAudioDataByteSize = 0;
+        }
+        wwo->aqueue_buffree = AQBUFFERS;
+        wwo->aqueue_currbuf = NULL;
+        OP_UnlockMutex(wwo->aqueue_crst);
+
+        os_status = AudioQueueStart(wwo->aqueueref, NULL);
+        if (os_status != 0) {
+            fprintf(stderr, "AudioQueueStart: %d\n", os_status);
+            AudioQueueDispose(wwo->aqueueref, 0);
+            wwo->aqueueref = NULL;
+            return MMSYSERR_NOTENABLED;
+        }
+        wwo->currentOutputType = AUDIO_OUTPUT_AUDIOQUEUE;
+      }
     }
-    pa_ss.channels = lpDesc->lpFormat->nChannels;
-    pa_ss.rate = lpDesc->lpFormat->nSamplesPerSec;
-    wwo->pa_conn = pa_simple_new(NULL,
-                  "DECtalk",
-                  PA_STREAM_PLAYBACK,
-                  NULL,
-                  "Speech",
-                  &pa_ss,
-                  NULL,
-                  NULL,
-                  NULL
-                  );
 #endif
+    if (wwo->currentOutputType == AUDIO_OUTPUT_NONE) {
+      WARN("can't open sound device!\n");
+      return MMSYSERR_ALLOCATED;
+    }
     wwo->wFlags = HIWORD(dwFlags & CALLBACK_TYPEMASK);
     
     memcpy(&wwo->waveDesc, lpDesc, 	     sizeof(WAVEOPENDESC));
@@ -1820,57 +1885,32 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 	/* 16 fragments max, 2^10=1024 bytes per fragment */
 	audio_fragment = 0x000F000A;
 	}
-#ifdef __ipaq__
-        //samplesize = WOutDev[wDevID].Format.wBitsPerSample;
-        samplesize = 16; //WOutDev[wDevID].Format.wBitsPerSample;
-        //smplrate = WOutDev[wDevID].Format.wf.nSamplesPerSec;
-        smplrate = 11025; //WOutDev[wDevID].Format.wf.nSamplesPerSec;
-        //dsp_stereo = WOutDev[wDevID].Format.wf.nChannels;
-        dsp_stereo = 2;//WOutDev[wDevID].Format.wf.nChannels;
-    
-	IOCTL(audio, SNDCTL_DSP_SETFRAGMENT, audio_fragment);
 
-/* First size and stereo then samplerate */
-        temp=samplesize;
-        if (ioctl(audio, SNDCTL_DSP_SAMPLESIZE, &samplesize)==-1)
-        perror("samplesize error");
-        if (temp!=samplesize)
-          fprintf(stderr,"new samplesize=%d\n",samplesize);
-        temp=dsp_stereo;
-        if (ioctl(audio, SNDCTL_DSP_CHANNELS, &dsp_stereo)==-1)
-        perror("channels error");
-        if (temp!=dsp_stereo)
-          fprintf(stderr,"new dsp_stereo=%d\n",dsp_stereo);
-        temp=smplrate;
-        if (ioctl(audio, SNDCTL_DSP_SPEED, &smplrate)==-1)
-        perror("smplrate error");
-        if (temp!=smplrate)
-          fprintf(stderr,"new smplrate=%d\n",smplrate);
-#else
     sample_rate = wwo->format.wf.nSamplesPerSec;
     dsp_stereo = (wwo->format.wf.nChannels > 1) ? 2 : 1;
     format = (wwo->format.wBitsPerSample == 16) ? 16 : 8;
 
+#ifdef USE_OSS
+    if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
 #ifdef _SPARC_SOLARIS_
-	AUDIO_INIT(&audio_info,sizeof(audio_info));
-	audio_info.play.precision=format;
-	audio_info.play.sample_rate=sample_rate;
-	audio_info.play.channels=dsp_stereo;
-	if (format==8 && sample_rate==8000)
-		audio_info.play.encoding=AUDIO_ENCODING_ULAW;
-	else
-		audio_info.play.encoding=AUDIO_ENCODING_LINEAR;
+      AUDIO_INIT(&audio_info,sizeof(audio_info));
+      audio_info.play.precision=format;
+      audio_info.play.sample_rate=sample_rate;
+      audio_info.play.channels=dsp_stereo;
+      if (format==8 && sample_rate==8000)
+        audio_info.play.encoding=AUDIO_ENCODING_ULAW;
+      else
+        audio_info.play.encoding=AUDIO_ENCODING_LINEAR;
 
-	ioctl(audio,AUDIO_SETINFO,&audio_info);
-
+      ioctl(audio,AUDIO_SETINFO,&audio_info);
 #else
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
-    IOCTL(audio, SNDCTL_DSP_SETFRAGMENT, audio_fragment);
-/* First size and stereo then samplerate */
-	IOCTL(audio, SNDCTL_DSP_SAMPLESIZE, format);
-	IOCTL(audio, SNDCTL_DSP_CHANNELS, dsp_stereo);
-	IOCTL(audio, SNDCTL_DSP_SPEED, sample_rate);
+      IOCTL(audio, SNDCTL_DSP_SETFRAGMENT, audio_fragment);
+      /* First size and stereo then samplerate */
+      IOCTL(audio, SNDCTL_DSP_SAMPLESIZE, format);
+      IOCTL(audio, SNDCTL_DSP_CHANNELS, dsp_stereo);
+      IOCTL(audio, SNDCTL_DSP_SPEED, sample_rate);
 #endif
+    }
 #endif
 
     /* paranoid checks */
@@ -1883,23 +1923,35 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
     if (!NEAR_MATCH(sample_rate,wwo->format.wf.nSamplesPerSec))
 	ERR2("Can't set sample_rate to %lu (%d)\n", 
 	    wwo->format.wf.nSamplesPerSec, sample_rate);
-#endif
-#if defined(USE_PULSEAUDIO)
-    wwo->dwFragmentSize = 1024; /* set this to a useful value */
-#elif defined(_SPARC_SOLARIS_)
-    wwo->dwFragmentSize = 1024; /* set this to a useful value */
-#elif defined(__APPLE__)
-    wwo->dwFragmentSize = fragment_size;
-#else
-    /* even if we set fragment size above, read it again, just in case */
-    IOCTL(audio, SNDCTL_DSP_GETBLKSIZE, fragment_size);
-    if (fragment_size == -1) {
-	WARN("IOCTL can't 'SNDCTL_DSP_GETBLKSIZE' !\n");
-	close(audio);
-	wwo->unixdev = -1;
-	return MMSYSERR_NOTENABLED;
+
+#ifdef USE_PULSEAUDIO
+    if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+      wwo->dwFragmentSize = 1024; /* set this to a useful value */
     }
-    wwo->dwFragmentSize = fragment_size;
+#endif
+
+#ifdef USE_OSS
+    if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
+#if defined(_SPARC_SOLARIS_)
+      wwo->dwFragmentSize = 1024; /* set this to a useful value */
+#else
+      /* even if we set fragment size above, read it again, just in case */
+      IOCTL(audio, SNDCTL_DSP_GETBLKSIZE, fragment_size);
+      if (fragment_size == -1) {
+          WARN("IOCTL can't 'SNDCTL_DSP_GETBLKSIZE' !\n");
+          close(audio);
+          wwo->unixdev = -1;
+          return MMSYSERR_NOTENABLED;
+      }
+      wwo->dwFragmentSize = fragment_size;
+#endif
+    }
+#endif
+
+#ifdef USE_AUDIOQUEUE
+    if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+      wwo->dwFragmentSize = fragment_size;
+    }
 #endif
 
     wwo->msg_toget = 0;
@@ -1949,18 +2001,31 @@ static DWORD wodClose(WORD wDevID)
     int err;
 #endif
 
-	TRACE("(%u);\n", wDevID);
+    TRACE("(%u);\n", wDevID);
     
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+
 #ifdef USE_PULSEAUDIO
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
-#elif defined(__APPLE__)
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
-#else
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
 #endif
-	WARN("bad device ID !\n");
-	return MMSYSERR_BADDEVICEID;
-	}
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
     
     wwo = &WOutDev[wDevID];
     if (wwo->lpQueuePtr) {
@@ -1978,30 +2043,37 @@ static DWORD wodClose(WORD wDevID)
 	    wwo->mapping = NULL;
 	}
 
-#ifndef USE_PULSEAUDIO
-#ifdef __APPLE__
-        wodPlayer_enqueueCurrentBuffer(wwo);
-        OP_LockMutex(wwo->aqueue_crst);
-        while(wwo->aqueue_buffree != AQBUFFERS) {
-          OP_UnlockMutex(wwo->aqueue_crst);
-          WaitForSingleObject(wwo->msg_event, 1);
+#ifdef USE_AUDIOQUEUE
+        if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+          wodPlayer_enqueueCurrentBuffer(wwo);
           OP_LockMutex(wwo->aqueue_crst);
+          while(wwo->aqueue_buffree != AQBUFFERS) {
+            OP_UnlockMutex(wwo->aqueue_crst);
+            WaitForSingleObject(wwo->msg_event, 1);
+            OP_LockMutex(wwo->aqueue_crst);
+          }
+          OP_UnlockMutex(wwo->aqueue_crst);
+          AudioQueueDispose(wwo->aqueueref, TRUE);
+          wwo->aqueueref = NULL;
+          OP_DestroyMutex(wwo->aqueue_crst);
         }
-        OP_UnlockMutex(wwo->aqueue_crst);
-        AudioQueueDispose(wwo->aqueueref, TRUE);
-        wwo->aqueueref = NULL;
-        OP_DestroyMutex(wwo->aqueue_crst);
-#else
-	close(wwo->unixdev);
-	wwo->unixdev = -1;
 #endif
-#else
-	pa_simple_drain(wwo->pa_conn, &err);
-	pa_simple_free(wwo->pa_conn);
-	wwo->pa_conn = NULL;
+#ifdef USE_OSS
+        if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
+	  close(wwo->unixdev);
+	  wwo->unixdev = -1;
+        }
+#endif
+#ifdef USE_PULSEAUDIO
+        if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+	  pa_simple_drain(wwo->pa_conn, &err);
+	  pa_simple_free(wwo->pa_conn);
+	  wwo->pa_conn = NULL;
+        }
 #endif
 	OP_DestroyEvent(wwo->msg_event);
 	wwo->dwFragmentSize = 0;
+        wwo->currentOutputType = AUDIO_OUTPUT_NONE;
 	if (OSS_NotifyClient(wDevID, WOM_CLOSE, 0L, 0L) != MMSYSERR_NOERROR) {
 		WARN("can't notify client !\n");
 	    ret = MMSYSERR_INVALPARAM;
@@ -2019,16 +2091,29 @@ static DWORD wodWrite(WORD wDevID, LPWAVEHDR lpWaveHdr, DWORD dwSize)
 	TRACE("(%u, %p, %08lX);\n", wDevID, lpWaveHdr, dwSize);
     
     /* first, do the sanity checks... */
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+
 #ifdef USE_PULSEAUDIO
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
-#elif defined(__APPLE__)
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
-#else
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
 #endif
-        WARN("bad dev ID !\n");
-	return MMSYSERR_BADDEVICEID;
-	}
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
     
     if (lpWaveHdr->lpData == NULL || !(lpWaveHdr->dwFlags & WHDR_PREPARED)) 
 	return WAVERR_UNPREPARED;
@@ -2094,16 +2179,29 @@ static DWORD wodPause(WORD wDevID)
 {
     TRACE("(%u);!\n", wDevID);
     
-#ifdef USE_PULSEAUDIO
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
-#elif defined(__APPLE__)
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
-#else
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
-#endif
-	WARN("bad device ID !\n");
-	return MMSYSERR_BADDEVICEID;
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
     }
+
+#ifdef USE_PULSEAUDIO
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
     
     TRACE("imhere[3-PAUSING]\n");
     wodPlayer_Message(&WOutDev[wDevID], WINE_WM_PAUSING, 0);
@@ -2119,16 +2217,29 @@ static DWORD wodRestart(WORD wDevID)
 {
 	TRACE("(%u);\n", wDevID);
     
-#ifdef USE_PULSEAUDIO
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
-#elif defined(__APPLE__)
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
-#else
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
-#endif
-	WARN("bad device ID !\n");
-	return MMSYSERR_BADDEVICEID;
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
     }
+
+#ifdef USE_PULSEAUDIO
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
     
     if (WOutDev[wDevID].state == WINE_WS_PAUSED) {
 	TRACE("imhere[3-RESTARTING]\n");
@@ -2154,16 +2265,29 @@ static DWORD wodReset(WORD wDevID)
 {
 	TRACE("(%u);\n", wDevID);
     
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+
 #ifdef USE_PULSEAUDIO
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
-#elif defined(__APPLE__)
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
-#else
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
 #endif
-	WARN("bad device ID !\n");
-	return MMSYSERR_BADDEVICEID;
-	}
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
     
     TRACE("imhere[3-RESET]\n");
     wodPlayer_Message(&WOutDev[wDevID], WINE_WM_RESETTING, 0);
@@ -2184,16 +2308,29 @@ static DWORD wodGetPosition(WORD wDevID, LPMMTIME lpTime, DWORD uSize)
 
 	TRACE("(%u, %p, %lu);\n", wDevID, lpTime, uSize);
     
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+
 #ifdef USE_PULSEAUDIO
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].pa_conn == NULL) {
-#elif defined(__APPLE__)
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].aqueueref == NULL) {
-#else
-    if (wDevID >= MAX_WAVEOUTDRV || WOutDev[wDevID].unixdev == -1) {
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
 #endif
-	WARN("bad device ID !\n");
-	return MMSYSERR_BADDEVICEID;
-	}
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
     
 	if (lpTime == NULL)	return MMSYSERR_INVALPARAM;
 
@@ -2245,57 +2382,96 @@ static DWORD wodGetPosition(WORD wDevID, LPMMTIME lpTime, DWORD uSize)
  */
 static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
 {
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
-	int 	mixer;
+    WINE_WAVEOUT*	wwo;
+#ifdef USE_OSS
+    int 	mixer;
     int		volume;
     DWORD	left, right;
 #ifdef _SPARC_SOLARIS_
     audio_info_t	audio_info;
     char	audio_dev[500];
 #endif
+#endif
     
 	TRACE("(%u, %p);\n", wDevID, lpdwVol);
-    
-    if (lpdwVol == NULL) 
-	return MMSYSERR_NOTENABLED;
-#ifdef _SPARC_SOLARIS_
-    AUDIO_INIT(&audio_info,sizeof(audio_info));
-    GetAudioDev(audio_dev);
-    strcat(audio_dev,"ctl");
-    if ((mixer = open(audio_dev, O_RDONLY|O_NDELAY)) < 0) {
-		WARN("mixer device not available !\n");
-		return MMSYSERR_NOTENABLED;
-	}
-	if (ioctl(mixer, AUDIO_GETINFO, &audio_info) == -1) {
-		WARN("unable read mixer !\n");
-		return MMSYSERR_NOTENABLED;
-	}
-	close(mixer);
-    volume=audio_info.play.gain;
-    left=volume;
-    right=volume;
-    TRACE("left=%ld right=%ld !\n", left, right);
-    *lpdwVol = ((left * 0xFFFFl) / AUDIO_MAX_GAIN) + (((right * 0xFFFFl) / AUDIO_MAX_GAIN) << 16);
-#else
-    if ((mixer = open(MIXER_DEV, O_RDONLY|O_NDELAY)) < 0) {
-		WARN("mixer device not available !\n");
-		return MMSYSERR_NOTENABLED;
-	}
-	if (ioctl(mixer, SOUND_MIXER_READ_PCM, &volume) == -1) {
-		WARN("unable read mixer !\n");
-		return MMSYSERR_NOTENABLED;
-	}
-	close(mixer);
-    left = LOBYTE(volume);
-    right = HIBYTE(volume);
-    TRACE("left=%ld right=%ld !\n", left, right);
-    *lpdwVol = ((left * 0xFFFFl) / 100) + (((right * 0xFFFFl) / 100) << 16);
+
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+
+#ifdef USE_PULSEAUDIO
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
 #endif
-	return MMSYSERR_NOERROR;
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+    
+    wwo = &WOutDev[wDevID];
+    
+#ifdef USE_OSS
+    if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
+      if (lpdwVol == NULL) 
+        return MMSYSERR_NOTENABLED;
+#ifdef _SPARC_SOLARIS_
+      AUDIO_INIT(&audio_info,sizeof(audio_info));
+      GetAudioDev(audio_dev);
+      strcat(audio_dev,"ctl");
+      if ((mixer = open(audio_dev, O_RDONLY|O_NDELAY)) < 0) {
+          	WARN("mixer device not available !\n");
+          	return MMSYSERR_NOTENABLED;
+          }
+          if (ioctl(mixer, AUDIO_GETINFO, &audio_info) == -1) {
+          	WARN("unable read mixer !\n");
+          	return MMSYSERR_NOTENABLED;
+          }
+          close(mixer);
+      volume=audio_info.play.gain;
+      left=volume;
+      right=volume;
+      TRACE("left=%ld right=%ld !\n", left, right);
+      *lpdwVol = ((left * 0xFFFFl) / AUDIO_MAX_GAIN) + (((right * 0xFFFFl) / AUDIO_MAX_GAIN) << 16);
 #else
-	return MMSYSERR_NOTENABLED;
-#endif //PULSEAUDIO
-	return MMSYSERR_NOTENABLED;
+      if ((mixer = open(MIXER_DEV, O_RDONLY|O_NDELAY)) < 0) {
+          	WARN("mixer device not available !\n");
+          	return MMSYSERR_NOTENABLED;
+          }
+          if (ioctl(mixer, SOUND_MIXER_READ_PCM, &volume) == -1) {
+          	WARN("unable read mixer !\n");
+          	return MMSYSERR_NOTENABLED;
+          }
+          close(mixer);
+      left = LOBYTE(volume);
+      right = HIBYTE(volume);
+      TRACE("left=%ld right=%ld !\n", left, right);
+      *lpdwVol = ((left * 0xFFFFl) / 100) + (((right * 0xFFFFl) / 100) << 16);
+#endif
+      return MMSYSERR_NOERROR;
+    }
+#endif
+#ifdef USE_PULSEAUDIO
+    if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+      return MMSYSERR_NOTENABLED;
+    }
+#endif
+#ifdef USE_AUDIOQUEUE
+    if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+      return MMSYSERR_NOTENABLED;
+    }
+#endif
+    return MMSYSERR_NOTENABLED;
 }
 
 
@@ -2304,7 +2480,8 @@ static DWORD wodGetVolume(WORD wDevID, LPDWORD lpdwVol)
  */
 static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 {
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
+    WINE_WAVEOUT*	wwo;
+#ifdef USE_OSS
 	int 	mixer;
 	int		volume;
     DWORD	left, right;
@@ -2312,64 +2489,102 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 	audio_info_t	audio_info;
         char 	audio_dev[500];
 #endif
+#endif
 
-	TRACE("(%u, %08lX);\n", wDevID, dwParam);
+    TRACE("(%u, %08lX);\n", wDevID, dwParam);
+
+    if (wDevID >= MAX_WAVEOUTDRV) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+
+#ifdef USE_PULSEAUDIO
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_PULSEAUDIO && WOutDev[wDevID].pa_conn == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_AUDIOQUEUE
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE && WOutDev[wDevID].aqueueref == NULL) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+#ifdef USE_OSS
+    if (WOutDev[wDevID].currentOutputType == AUDIO_OUTPUT_OSS && WOutDev[wDevID].unixdev == -1) {
+      WARN("bad device ID !\n");
+      return MMSYSERR_BADDEVICEID;
+    }
+#endif
+    
+    wwo = &WOutDev[wDevID];
+    
+#ifdef USE_OSS
+    if (wwo->currentOutputType == AUDIO_OUTPUT_OSS) {
 
 #ifdef _SPARC_SOLARIS_
-    AUDIO_INIT(&audio_info,sizeof(audio_info));
-    left  = (LOWORD(dwParam) * AUDIO_MAX_GAIN) / 0xFFFFl;
-    right = (HIWORD(dwParam) * AUDIO_MAX_GAIN) / 0xFFFFl;
-
-    if (left>right)
-	volume=left;
-    else
-	volume=right;
-
-    audio_info.play.gain=volume;
-	GetAudioDev(audio_dev);
-	strcat(audio_dev,"ctl");
-    	if ((mixer = open(audio_dev, O_WRONLY|O_NDELAY)) < 0) {
-		WARN("mixer device not available !\n");
-		return MMSYSERR_NOTENABLED;
-		}
-    	if (ioctl(mixer,AUDIO_SETINFO,&audio_info)<0) {
-	        WARN("unable set mixer !\n");
-		close(mixer);
-		return MMSYSERR_NOTENABLED;
-	}
-	close(mixer);
-	if (wDevID != 65535 )
-	{
-    		if (ioctl((&WOutDev[wDevID])->unixdev,AUDIO_SETINFO,&audio_info)<0) {
-	       	 	WARN("unable set mixer !\n");
-			return MMSYSERR_NOTENABLED;
-		}
-	}
+      AUDIO_INIT(&audio_info,sizeof(audio_info));
+      left  = (LOWORD(dwParam) * AUDIO_MAX_GAIN) / 0xFFFFl;
+      right = (HIWORD(dwParam) * AUDIO_MAX_GAIN) / 0xFFFFl;
+  
+      if (left>right)
+  	volume=left;
+      else
+  	volume=right;
+  
+      audio_info.play.gain=volume;
+  	GetAudioDev(audio_dev);
+  	strcat(audio_dev,"ctl");
+      	if ((mixer = open(audio_dev, O_WRONLY|O_NDELAY)) < 0) {
+  		WARN("mixer device not available !\n");
+  		return MMSYSERR_NOTENABLED;
+  		}
+      	if (ioctl(mixer,AUDIO_SETINFO,&audio_info)<0) {
+  	        WARN("unable set mixer !\n");
+  		close(mixer);
+  		return MMSYSERR_NOTENABLED;
+  	}
+  	close(mixer);
+  	if (wDevID != 65535 )
+  	{
+      		if (ioctl((&WOutDev[wDevID])->unixdev,AUDIO_SETINFO,&audio_info)<0) {
+  	       	 	WARN("unable set mixer !\n");
+  			return MMSYSERR_NOTENABLED;
+  		}
+  	}
 	
 #else
-
-    left  = (LOWORD(dwParam) * 100) / 0xFFFFl;
-    right = (HIWORD(dwParam) * 100) / 0xFFFFl;
-    volume = left + (right << 8);
-    
-    if ((mixer = open(MIXER_DEV, O_WRONLY|O_NDELAY)) < 0) {
-		WARN("mixer device not available !\n");
-		return MMSYSERR_NOTENABLED;
-		}
-	if (ioctl(mixer, SOUND_MIXER_WRITE_PCM, &volume) == -1) {
-	        WARN("unable set mixer !\n");
-		close(mixer);
-		return MMSYSERR_NOTENABLED;
-    } else {
-	TRACE("volume=%04x\n", (unsigned)volume);
-		}
-	close(mixer);
+      left  = (LOWORD(dwParam) * 100) / 0xFFFFl;
+      right = (HIWORD(dwParam) * 100) / 0xFFFFl;
+      volume = left + (right << 8);
+      
+      if ((mixer = open(MIXER_DEV, O_WRONLY|O_NDELAY)) < 0) {
+  		WARN("mixer device not available !\n");
+  		return MMSYSERR_NOTENABLED;
+  		}
+  	if (ioctl(mixer, SOUND_MIXER_WRITE_PCM, &volume) == -1) {
+  	        WARN("unable set mixer !\n");
+  		close(mixer);
+  		return MMSYSERR_NOTENABLED;
+      } else {
+  	TRACE("volume=%04x\n", (unsigned)volume);
+  		}
+  	close(mixer);
 #endif
-	return MMSYSERR_NOERROR;
-#else
-	return MMSYSERR_NOTENABLED;
-#endif //PULSEAUDIO
-	return MMSYSERR_NOTENABLED;
+    }
+    return MMSYSERR_NOERROR;
+#endif
+#ifdef USE_PULSEAUDIO
+    if (wwo->currentOutputType == AUDIO_OUTPUT_PULSEAUDIO) {
+      return MMSYSERR_NOTENABLED;
+    }
+#endif
+#ifdef USE_AUDIOQUEUE
+    if (wwo->currentOutputType == AUDIO_OUTPUT_AUDIOQUEUE) {
+      return MMSYSERR_NOTENABLED;
+    }
+#endif
+    return MMSYSERR_NOTENABLED;
 }
 
 /**************************************************************************
@@ -2378,7 +2593,8 @@ static DWORD wodSetVolume(WORD wDevID, DWORD dwParam)
 static	DWORD	wodGetNumDevs(void)
 {
     DWORD	ret = 1;
-#if !defined(USE_PULSEAUDIO) && !defined(__APPLE__)
+    /* Always one device */
+#if 0
     char audio_dev[500];
     int audio;
     
