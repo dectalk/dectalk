@@ -561,6 +561,19 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 				char * 
 #endif
 				);
+
+MMRESULT TextToSpeechStartupExPtr( LPTTS_HANDLE_T * pphTTS,
+					UINT ,
+					DWORD ,
+					VOID (*DtCallbackRoutinePtr)(LONG,LONG,void*,UINT),
+					void *,
+#ifdef WIN32
+					TCHAR *
+#else
+					char *
+#endif
+				);
+
 /* GL 04/21/1997  add this as the latest OSF code */
 #if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 MMRESULT TextToSpeechStartup( LPTTS_HANDLE_T * pphTTS,

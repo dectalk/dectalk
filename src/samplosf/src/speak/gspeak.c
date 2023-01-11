@@ -461,7 +461,7 @@ int main (int argc, char *argv[])
     gtk_widget_show(window);
   style = gtk_widget_get_style(window);
   
-#define indexParams 0
+#define indexParams NULL
 
   TextToSpeechEnumLangs(&dt_langs);
 
@@ -471,8 +471,8 @@ int main (int argc, char *argv[])
       if (strcmp("us",dt_langs->Entries[0].lang_code)==0)
 	{
 	  current_language=0;
-	  mmstatus = TextToSpeechStartup( &(ttsHandle[current_language]), devNo,
-					  devOptions, index_callback, indexParams );
+	  mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[current_language]), devNo,
+					  devOptions, index_callback, indexParams, NULL );
 	  if (mmstatus==MMSYSERR_NOERROR)
 	    {
 	      us_on=1;
@@ -484,8 +484,8 @@ int main (int argc, char *argv[])
       if (strcmp("uk",dt_langs->Entries[0].lang_code)==0)
 	{
 	  current_language=1;
-	  mmstatus = TextToSpeechStartup( &(ttsHandle[current_language]), devNo,
-					  devOptions, index_callback, indexParams );
+	  mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[current_language]), devNo,
+					  devOptions, index_callback, indexParams, NULL );
 	  if (mmstatus==MMSYSERR_NOERROR)
 	    {
 	      uk_on=1;
@@ -496,8 +496,8 @@ int main (int argc, char *argv[])
     if (strcmp("sp",dt_langs->Entries[0].lang_code)==0)
       {
 	current_language=2;
-	mmstatus = TextToSpeechStartup( &(ttsHandle[current_language]), devNo,
-					devOptions, index_callback, indexParams );
+	mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[current_language]), devNo,
+					devOptions, index_callback, indexParams, NULL );
 	if (mmstatus==MMSYSERR_NOERROR)
 	  {
 	    sp_on=1;
@@ -508,8 +508,8 @@ int main (int argc, char *argv[])
     if (strcmp("gr",dt_langs->Entries[0].lang_code)==0)
       {
 	current_language=3;
-	mmstatus = TextToSpeechStartup( &(ttsHandle[current_language]), devNo,
-					devOptions, index_callback, indexParams );
+	mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[current_language]), devNo,
+					devOptions, index_callback, indexParams, NULL );
 	if (mmstatus==MMSYSERR_NOERROR)
 	  {
 	    gr_on=1;
@@ -520,8 +520,8 @@ int main (int argc, char *argv[])
     if (strcmp("la",dt_langs->Entries[0].lang_code)==0)
       {
 	current_language=4;
-	mmstatus = TextToSpeechStartup( &(ttsHandle[current_language]), devNo,
-					devOptions, index_callback, indexParams );
+	mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[current_language]), devNo,
+					devOptions, index_callback, indexParams, NULL );
 	if (mmstatus==MMSYSERR_NOERROR)
 	  {
 	    la_on=1;
@@ -532,8 +532,8 @@ int main (int argc, char *argv[])
     if (strcmp("fr",dt_langs->Entries[0].lang_code)==0)
       {
 	current_language=5;
-	mmstatus = TextToSpeechStartup( &(ttsHandle[current_language]), devNo,
-					devOptions, index_callback, indexParams );
+	mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[current_language]), devNo,
+					devOptions, index_callback, indexParams, NULL );
 	if (mmstatus==MMSYSERR_NOERROR)
 	  {
 	    fr_on=1;
@@ -562,8 +562,8 @@ int main (int argc, char *argv[])
       else // success
 	{
 	  TextToSpeechSelectLang(NULL,TTS_us);
-	  mmstatus = TextToSpeechStartup( &(ttsHandle[TTS_us]), devNo,devOptions,
-					  index_callback, indexParams );
+	  mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[TTS_us]), devNo,devOptions,
+					  index_callback, indexParams, NULL );
 	  if (mmstatus==MMSYSERR_NOERROR)
 	    {
 	      us_on=1;
@@ -586,8 +586,8 @@ int main (int argc, char *argv[])
   else // success
     {
       TextToSpeechSelectLang(NULL,TTS_uk);
-      mmstatus = TextToSpeechStartup( &(ttsHandle[TTS_uk]), devNo,devOptions,
-				      index_callback, indexParams );
+      mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[TTS_uk]), devNo,devOptions,
+				      index_callback, indexParams, NULL );
       if (mmstatus==MMSYSERR_NOERROR)
 	{
 	  uk_on=1;
@@ -609,8 +609,8 @@ int main (int argc, char *argv[])
   else // success
     {
       TextToSpeechSelectLang(NULL,TTS_sp);
-      mmstatus = TextToSpeechStartup( &(ttsHandle[TTS_sp]), devNo,devOptions,
-				      index_callback, indexParams );
+      mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[TTS_sp]), devNo,devOptions,
+				      index_callback, indexParams, NULL );
       if (mmstatus==MMSYSERR_NOERROR)
 	{
 	  /* enable menu */
@@ -632,8 +632,8 @@ int main (int argc, char *argv[])
   else // success
     {
       TextToSpeechSelectLang(NULL,TTS_gr);
-      mmstatus = TextToSpeechStartup( &(ttsHandle[TTS_gr]), devNo,devOptions,
-				      index_callback, indexParams );
+      mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[TTS_gr]), devNo,devOptions,
+				      index_callback, indexParams, NULL );
       if (mmstatus==MMSYSERR_NOERROR)
 	{
 	  gr_on=1;
@@ -655,8 +655,8 @@ int main (int argc, char *argv[])
   else // success
     {
       TextToSpeechSelectLang(NULL,TTS_la);
-      mmstatus = TextToSpeechStartup( &(ttsHandle[TTS_la]), devNo,devOptions,
-				      index_callback, indexParams );
+      mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[TTS_la]), devNo,devOptions,
+				      index_callback, indexParams, NULL );
       if (mmstatus==MMSYSERR_NOERROR)
 	{
 	  la_on=1;
@@ -677,8 +677,8 @@ int main (int argc, char *argv[])
   else // success
     {
       TextToSpeechSelectLang(NULL,TTS_fr);
-      mmstatus = TextToSpeechStartup( &(ttsHandle[TTS_fr]), devNo,devOptions,
-				      index_callback, indexParams );
+      mmstatus = TextToSpeechStartupExPtr( &(ttsHandle[TTS_fr]), devNo,devOptions,
+				      index_callback, indexParams, NULL );
       if (mmstatus==MMSYSERR_NOERROR)
 	{
 	  fr_on=1;
@@ -2333,7 +2333,7 @@ void ERROR(char *error_message)
 **     None.
 **
 ****************************************************************************/
-void index_callback(long param1, long param2, long user_defined, UINT uiMsg)
+void index_callback(long param1, long param2, void *user_defined, UINT uiMsg)
 {
   if (uiMsg == TTS_MSG_STATUS) {
     switch(param1) {

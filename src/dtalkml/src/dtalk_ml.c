@@ -214,6 +214,12 @@ typedef struct lang_func_struct {
 	MMRESULT (*TextToSpeechReturnBuffer)( LPTTS_HANDLE_T, LPTTS_BUFFER_T * );
 	MMRESULT (*TextToSpeechCloseLogFile)( LPTTS_HANDLE_T );
 	MMRESULT (*TextToSpeechStartupEx)(LPTTS_HANDLE_T*, UINT, DWORD, VOID (*)(LONG, LONG, DWORD, UINT), LONG);
+	MMRESULT (*TextToSpeechStartupExPtr)(LPTTS_HANDLE_T*, UINT, DWORD, VOID (*)(LONG, LONG, void*, UINT), void*,
+#ifdef WIN32
+				TCHAR *);
+#else
+				char *);
+#endif
 	MMRESULT (*TextToSpeechStartupExFonix)(LPTTS_HANDLE_T*, UINT, DWORD, VOID (*)(LONG, LONG, DWORD, UINT), LONG,
 #ifdef WIN32
 				TCHAR *);
@@ -420,6 +426,7 @@ unsigned int load_dectalk(char *lang)
 	(unsigned int (_cdecl*)())funcs->TextToSpeechOpenLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechOpenLogFile"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechCloseLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechCloseLogFile"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechStartupEx = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechStartupEx"));
+	(unsigned int (_cdecl*)())funcs->TextToSpeechStartupExPtr = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechStartupExPtr"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechStartupExFonix = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechStartupExFonix"));
 	(VOID (_cdecl*)())funcs->TextToSpeechControlPanel = (VOID ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechControlPanel"));
 	(unsigned int (_cdecl*)())funcs->TextToSpeechVersion = (ULONG ((_cdecl*)())) GetProcAddress(funcs->mod,TEXT("TextToSpeechVersion"));
@@ -480,6 +487,7 @@ unsigned int load_dectalk(char *lang)
 	funcs->TextToSpeechOpenLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechOpenLogFile");
 	funcs->TextToSpeechCloseLogFile = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechCloseLogFile");
 	funcs->TextToSpeechStartupEx = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechStartupEx");
+	funcs->TextToSpeechStartupExPtr = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechStartupExPtr");
 	funcs->TextToSpeechStartupExFonix = (MMRESULT ((_cdecl*)())) GetProcAddress(funcs->mod,"TextToSpeechStartupExFonix");
 
 	// CAB	Removed warnings 6/24/02
@@ -746,6 +754,72 @@ MMRESULT TextToSpeechStartupEx(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LON
 	handle->cur_lang = def_lang;
 	if (def_lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
 	return def_lang->funcs.TextToSpeechStartupEx(&(handle->phTTS),b,c,d,e);
+}
+
+MMRESULT TextToSpeechStartupExPtr(LPTTS_HANDLE_T *a, UINT b, DWORD c, VOID (*d)(LONG, LONG, void*, UINT), void* e,
+#ifdef WIN32
+	TCHAR *f)
+#else
+	char *f)
+#endif
+{
+	LPLANG_HANDLE handle;
+	LANG_LIST *lang;
+
+	handle = malloc(sizeof(LANG_HANDLE));
+	if (handle == NULL)	return MMSYSERR_ERROR;
+	
+	// CAB Removed 6/24/02 Warning
+	*a = (LPTTS_HANDLE_T)handle;
+
+#ifdef	WIN32	// UNDER_CE
+	lang = find_pid(GetCurrentProcessId());
+#else 
+	lang = find_pid(_getpid());
+#endif
+
+#ifdef WIN32	// UNDER_CE
+	free_pid(GetCurrentProcessId());
+#else
+	free_pid(_getpid());
+#endif
+	if (lang != NULL) {
+		handle->cur_lang = lang;
+		if (lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
+		return lang->funcs.TextToSpeechStartupExPtr(&(handle->phTTS),b,c,d,e,f);
+	}
+
+	/* Lock the great loading mutex - Use the load mutex to block init() calls as well */
+#ifdef WIN32
+	if (hGreatestInitMutex == NULL) {
+		hGreatestInitMutex = CreateMutex(NULL, TRUE, NULL);
+		if (hGreatestInitMutex == NULL)	return FALSE;
+	} else {
+		WaitForSingleObject(hGreatestInitMutex, INFINITE);
+	}
+	if (def_lang == NULL) {
+		if (init() == FALSE) {
+			ReleaseMutex(hGreatestInitMutex);
+			return MMSYSERR_ERROR;
+		}
+	}
+	ReleaseMutex(hGreatestInitMutex);
+#endif
+#if defined (__osf__) || defined (__linux__) || defined _SPARC_SOLARIS || defined (__APPLE__)
+	pthread_mutex_lock(hGreatestInitMutex);
+
+        if (def_lang == NULL) {
+                if (init() == FALSE) {
+                        pthread_mutex_unlock(hGreatestInitMutex);
+                        return MMSYSERR_ERROR;
+                }
+        }
+        pthread_mutex_unlock(hGreatestInitMutex);
+#endif
+
+	handle->cur_lang = def_lang;
+	if (def_lang->funcs.mod == NULL)	return MMSYSERR_ERROR;
+	return def_lang->funcs.TextToSpeechStartupExPtr(&(handle->phTTS),b,c,d,e,f);
 }
 
 #ifdef WIN32

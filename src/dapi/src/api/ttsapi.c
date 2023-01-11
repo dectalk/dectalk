@@ -1835,6 +1835,42 @@ return TextToSpeechStartupExFonix( pphTTS,
 							   NULL);
 }
 
+MMRESULT TextToSpeechStartupExPtr( LPTTS_HANDLE_T * pphTTS,
+							   UINT uiDeviceNumber,
+							   DWORD dwDeviceOptions,
+							   VOID (*DtCallbackRoutinePtr)(LONG,LONG,void*,UINT),
+							   void *dwTTSInstanceParameterPtr,
+#ifdef WIN32
+							   TCHAR *dictionary_file_name)
+#else
+							   char *dictionary_file_name)
+#endif
+{
+
+	LPTTS_HANDLE_T phTTS;
+	MMRESULT res;
+
+	res = TextToSpeechStartupExFonix( pphTTS,
+							   uiDeviceNumber,
+							   dwDeviceOptions,
+							   (void (*)(LONG,LONG,DWORD,UINT))DtCallbackRoutinePtr,
+							   0,
+							   dictionary_file_name);
+
+	if (res == MMSYSERR_NOERROR) {
+		phTTS = *pphTTS;
+		/* get rid of wrong callback */
+		if ( DtCallbackRoutinePtr != NULL )
+		{
+			phTTS->DtCallbackRoutine = NULL;
+			phTTS->DtCallbackRoutinePtr = DtCallbackRoutinePtr;
+			phTTS->dwTTSInstanceParameterPtr = dwTTSInstanceParameterPtr;
+		}
+	}
+
+	return res;
+}
+
 /**********************************************************************/
 /**********************************************************************/
 /*                                                                    */
@@ -10807,7 +10843,7 @@ void Report_TTS_Status( LPTTS_HANDLE_T ttsHandle,
 	if (lParam1 == TTS_AUDIO_PLAY_START)	ttsHandle->IsSpeaking = TRUE;	// KSB - Used for start of speech
 	if (lParam1 == TTS_AUDIO_PLAY_STOP)	ttsHandle->IsSpeaking = FALSE;	// KSB - Used for end of speech
 	
-	if (ttsHandle->DtCallbackRoutine != NULL)
+	if (ttsHandle->DtCallbackRoutine != NULL || ttsHandle->DtCallbackRoutinePtr != NULL)
 	{
 #ifdef API_DEBUG
 		char szTemp[256]="";
@@ -10817,10 +10853,17 @@ void Report_TTS_Status( LPTTS_HANDLE_T ttsHandle,
 #endif //API_DEBUG
 		
 		OP_LockMutex( ttsHandle->hmxCallback );
-		(*ttsHandle->DtCallbackRoutine)( lParam1,
-			lParam2,
-			ttsHandle->dwTTSInstanceParameter,
-			uiMsg);
+		if (ttsHandle->DtCallbackRoutinePtr != NULL) {
+			(*ttsHandle->DtCallbackRoutinePtr)( lParam1,
+				lParam2,
+				ttsHandle->dwTTSInstanceParameterPtr,
+				uiMsg);
+		} else {
+			(*ttsHandle->DtCallbackRoutine)( lParam1,
+				lParam2,
+				ttsHandle->dwTTSInstanceParameter,
+				uiMsg);
+		}
 		
 		OP_UnlockMutex( ttsHandle->hmxCallback );
 	}
@@ -10834,13 +10877,20 @@ void Report_TTS_Status( LPTTS_HANDLE_T phTTS,
 					   long lParam1,
 					   long lParam2 )
 {
-	if (phTTS->DtCallbackRoutine != NULL && uiMsg != 0xDEADC0DE)
+	if ((phTTS->DtCallbackRoutine != NULL || phTTS->DtCallbackRoutinePtr) && uiMsg != 0xDEADC0DE)
 	{
 		OP_LockMutex( phTTS->pcsCallback );
-		(*phTTS->DtCallbackRoutine)( lParam1,
-			lParam2,
-			phTTS->dwTTSInstanceParameter,
-			uiMsg);
+		if (phTTS->DtCallbackRoutinePtr != NULL) {
+			(*phTTS->DtCallbackRoutinePtr)( lParam1,
+				lParam2,
+				phTTS->dwTTSInstanceParameterPtr,
+				uiMsg);
+		} else {
+			(*phTTS->DtCallbackRoutine)( lParam1,
+				lParam2,
+				phTTS->dwTTSInstanceParameter,
+				uiMsg);
+		}
 		
 		OP_UnlockMutex( phTTS->pcsCallback );
 	}

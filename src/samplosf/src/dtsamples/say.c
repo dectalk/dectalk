@@ -584,7 +584,7 @@ int main( int argc, char *argv[] )
       }
     }
 
-    status = TextToSpeechStartup( &ttsHandle,devNo, devOptions, NULL, (long)NULL );
+    status = TextToSpeechStartupExPtr( &ttsHandle,devNo, devOptions, NULL, NULL, NULL );
 
     switch (status)
     {

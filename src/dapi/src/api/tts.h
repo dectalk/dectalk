@@ -346,9 +346,11 @@ struct TTS_HANDLE_TAG
 #endif
 #else
   void (*DtCallbackRoutine)(LONG,LONG,DWORD,UINT);     //New Audio Integration :After testing remove these comments
+  void (*DtCallbackRoutinePtr)(LONG,LONG,void*,UINT);     //New Audio Integration :After testing remove these comments
 #endif
 
   DWORD dwTTSInstanceParameter;    //New Audio Integration
+  void* dwTTSInstanceParameterPtr;
 #ifdef WIN32
   HMUTEX_T hmxCallback;            //New Audio Integration
   LPCRITICAL_SECTION pcsMemoryBuffer;
