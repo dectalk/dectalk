@@ -75,13 +75,14 @@
 #include "p_us_vdf_dectalkexpress_42cd.c"
 #elif defined(VDF_DECTALKEXPRESS_43)
 #include "p_us_vdf_dectalkexpress_43.c"
+#elif defined (VDF_DECTALK_43)
+#include "p_us_vdf_dectalk43.c"
 #elif defined (VDF_DECTALK_44)
 #include "p_us_vdf_dectalk44.c"
 #elif defined (VDF_DTC_03_03JAN89)
 #include "p_us_vdf_dtc_03_03Jan89.c"
 #else
-// voice definitions from 4.3 (identical to 4.2) are the default
-#include "p_us_vdf_dectalk43.c"
+#error No voice definition defined! Please select a VDF.
 #endif
 #endif
 #endif

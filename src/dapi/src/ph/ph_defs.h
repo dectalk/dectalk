@@ -872,8 +872,10 @@ handled differently later */
 #define GEST_SHIFT 1
 #if defined(VOICE_ROM_1996) || defined(VOICE_ROM_1997) || defined(VOICE_ROM_DTC_03_03JAN89) || defined(VOICE_ROM_DECTALK_43)
 #define   MAX_NRISES   4
-#else
+#elif defined(VOICE_ROM_BETA5)
 #define   MAX_NRISES   7   	
+#else
+#error No voice ROM defined! Please select a VOICE_ROM.
 #endif
 #define   F0_FINAL_FALL   	180 
 #define   F0_NON_FINAL_FALL  	150

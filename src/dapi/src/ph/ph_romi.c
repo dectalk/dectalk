@@ -64,8 +64,10 @@
 #include "p_us_rom_dtc_03_03Jan89.c"
 #elif defined(VOICE_ROM_DECTALK_43)
 #include "p_us_rom_dectalk43.c"
-#else
+#elif defined(VOICE_ROM_BETA5)
 #include "p_us_rom.c"
+#else
+#error No voice ROM defined! Please select a VOICE_ROM.
 #endif
 #include "p_uk_rom.c"
 #include "p_sp_rom.c"

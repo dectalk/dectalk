@@ -260,30 +260,32 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 //#define  PC_SAMPLE_RATE     22050
 
 // Which voice to use (default when not defined is 4.3)
+// VDF_BETA5 -> VDF for non-hlsyn included in beta 5
 // VDF_DTC_03_03JAN89 -> DTC-03, 03 Jan 1989 (final version)
 // VDF_DECTALKEXPRESS_42 -> DECtalk Express 4.2a
 // VDF_DECTALKEXPRESS_42CD -> DECtalk Express 4.2cd
 // VDF_DECTALKEXPRESS_43 -> DECtalk Express 4.3aax01 (from dtexp42c.exe?!)
 // VDF_DECTALK_44 -> DECtalk speak window 4.4
-// VDF_BETA5 -> VDF for non-hlsyn included in beta 5
-// nothing -> DECtalk speak window 4.3 (exactly the same as DEC ALPHA 4.2)
+// VDF_DECTALK_43 -> DECtalk speak window 4.3 (exactly the same as DEC ALPHA 4.2)
+//#define VDF_BETA5
 //#define VDF_DTC_03_03JAN89
 //#define VDF_DECTALKEXPRESS_42
 //#define VDF_DECTALKEXPRESS_42CD
 //#define VDF_DECTALKEXPRESS_43
 //#define VDF_DECTALK_44
-//#define VDF_BETA5
+#define VDF_DECTALK_43
 
 // Which voice rom to use
+// VOICE_ROM_BETA5 -> voice rom generated from 88_mal and 88_fem
 // VOICE_ROM_DTC_03_03JAN89 -> voice rom from DTC-03, 03 Jan 1989
 // VOICE_ROM_1997 -> voice rom from around 1997, probably 4.60
 // VOICE_ROM_1996 -> voice rom from around 1996, unknown version
 // VOICE_ROM_DECTALK_43 -> voice rom from dectalk 4.3
-// nothing -> voice rom generated from 88_mal and 88_fem
+//#define VOICE_ROM_BETA5
 //#define VOICE_ROM_DTC_03_03JAN89
 //#define VOICE_ROM_1997
-#define VOICE_ROM_1996
-//#define VOICE_ROM_DECTALK_43
+//#define VOICE_ROM_1996
+#define VOICE_ROM_DECTALK_43
 
 #if defined(VOICE_ROM_1997) || defined(VOICE_ROM_1996) || defined(VOICE_ROM_DECTALK_43)
 // Decrease /s, z/ amplification in VOICE_ROM_1996/7

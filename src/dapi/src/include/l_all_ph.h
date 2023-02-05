@@ -342,8 +342,10 @@
 #define US_DF US_T
 #elif defined(VOICE_ROM_DECTALK_43)
 #define US_TOT_ALLOPHONES	57
-#else
+#elif defined(VOICE_ROM_1996) || defined(VOICE_ROM_1997) || defined(VOICE_ROM_BETA5)
 #define US_TOT_ALLOPHONES	71
+#else
+#error No voice ROM defined! Please select a VOICE_ROM.
 #endif
 #define UK_TOT_ALLOPHONES	57
 #define GR_TOT_ALLOPHONES  (62)  /* total number of phones */

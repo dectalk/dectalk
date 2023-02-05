@@ -44,6 +44,7 @@
  *		
  */
 
+#include "dectalkf.h"
 #include "l_all_ph.h"
 #if 0
 #ifdef ENGLISH_US
