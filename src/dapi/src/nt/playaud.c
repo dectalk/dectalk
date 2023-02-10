@@ -1,10 +1,10 @@
 /************************************************************
  *
- *                           Copyright ©
- *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *                           Copyright ï¿½
+ *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
  *    Copyright (c)Compaq Computer Corporation 1999. All rights reserved.
- *    © SMART Modular Technologies 1999. All rights reserved. 
- *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    ï¿½ SMART Modular Technologies 1999. All rights reserved. 
+ *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
  *   
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
@@ -236,7 +236,7 @@ static unsigned int timeGetTime()
 #include "cemm.h"
 #endif //UNDER_CE
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_  || defined (__APPLE__)
 //  linux home brew audio API
 #include "linux_audio.h"
 LONG OSS_WaveInit(void);
@@ -246,7 +246,7 @@ FILE *fpODS_File;
 #endif
 
 #if defined __EMSCRIPTEN__
-#include "disable_audio.h";
+#include "disable_audio.h"
 #endif
 
 #include "tts.h"
@@ -772,7 +772,7 @@ MMRESULT PA_CreatePlayHandleEx( HPLAY_AUDIO_T * ppPlayAudio,
 
   pShm_t->uiGlobalPlayAudioInstance++;
 
-#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
+#if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
   OSS_WaveInit();
 #endif
 

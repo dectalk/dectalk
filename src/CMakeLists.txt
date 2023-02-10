@@ -3,20 +3,27 @@ configure_file(
   ${PROJECT_SOURCE_DIR}/src/config.h
 )
 
-add_subdirectory(dapi/src)
-add_subdirectory(dapi/src/dic)
+if (EMSCRIPTEN)
+  set(CMAKE_EXECUTABLE_SUFFIX ".js")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-if (WIN32)
+  add_subdirectory(dapi/src)
+  add_subdirectory(emscripten)
+elseif (WIN32)
+  add_subdirectory(dapi/src)
+  add_subdirectory(dapi/src/dic)
   add_subdirectory(samples/speak)
   add_subdirectory(samples/say)
   add_subdirectory(samples/dtmemory)
   add_subdirectory(samples/windic)
 elseif (UNIX)
+  add_subdirectory(dapi/src)
+  add_subdirectory(dapi/src/dic)
+  add_subdirectory(samplosf/src/dtsamples)
   if (NOT APPLE)
     add_subdirectory(samplosf/src/speak)
     add_subdirectory(samplosf/src/windict)
   endif()
-  add_subdirectory(samplosf/src/dtsamples)
 endif()
 
 file(
