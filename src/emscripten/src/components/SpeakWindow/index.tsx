@@ -23,7 +23,6 @@ const SpeakWindow = () => {
     const dectalk = await getSay();
     const outputFileName = Date.now() + ".wav";
 
-
     let input = "";
 
     if (phonemeEnable) {
@@ -32,7 +31,8 @@ const SpeakWindow = () => {
 
     input += value;
 
-    dectalk.callMain([outputFileName, input]);
+    const args = [outputFileName, input];
+    dectalk.callMain(args);
     const buffer = dectalk.FS.readFile(outputFileName);
     const blob = new Blob([buffer], { type: "audio/x-wav" });
 
