@@ -44,7 +44,25 @@ list(
 )
 
 # Check between Win32 and UNIX compliant machines.
-if (WIN32)
+if (EMSCRIPTEN)
+  list(APPEND DAPI_SOURCE_FILES nt/disable_audio.c api/init.c osf/loadable.c osf/dtmmio.c)
+  list(APPEND DAPI_LINK_LIBS pthread m)
+  list(APPEND DAPI_DEFINES
+    _REENTRANT
+    NOMME
+    LTSSIM
+    TTSSIM
+    ANSI
+    BLD_DECTALK_DLL
+    ENGLISH
+    ENGLISH_US
+    ACNA
+    ACCESS32
+    TYPING_MODE
+    DISABLE_AUDIO
+    OS_SIXTY_FOUR_BIT
+  )
+elseif (WIN32)
   list(APPEND DAPI_SOURCE_FILES nt/dbgwins.c)
   list(APPEND DAPI_LINK_LIBS winmm.lib ucrt.lib vcruntime.lib)
   list(APPEND DAPI_DEFINES WIN32 DECTALKAPI_EXPORTS _WINDOWS _USRDLL USE_CORE_DLL ACNA BLD_DECTALK_DLL ENGLISH_US ENGLISH NDEBUG AMD64)
@@ -53,9 +71,7 @@ elseif (UNIX)
     list(APPEND DAPI_LINK_LIBS portaudio "-framework CoreAudio" "-framework AudioToolbox")
   else()
     # Assume that non-Apple machines are Linux.
-    find_package(PkgConfig REQUIRED libpulse-simple)
-    pkg_check_modules(PULSEAUDIO REQUIRED IMPORTED_TARGET libpulse-simple)
-    list(APPEND DAPI_LINK_LIBS pulse-simple pulse PkgConfig::PULSEAUDIO)
+    list(APPEND DAPI_LINK_LIBS pulse-simple pulse)
     list(APPEND DAPI_DEFINES USE_PULSEAUDIO)
   endif()
 
@@ -72,7 +88,7 @@ elseif (UNIX)
     ENGLISH_US
     ACNA
     ACCESS32
-    TYPING_MODE 
+    TYPING_MODE
   )
 endif()
 
@@ -81,7 +97,9 @@ add_library(dectalk SHARED ${DAPI_SOURCE_FILES})
 target_link_libraries(dectalk PUBLIC ${DAPI_LINK_LIBS})
 target_compile_definitions(dectalk PUBLIC ${DAPI_DEFINES})
 
-if(APPLE)
+if (EMSCRIPTEN)
+  set_target_properties(dectalk PROPERTIES LINK_FLAGS "--disable-shared -s SIDE_MODULE=1 -s LINKABLE=1 -s EXPORT_ALL=1 -s PROXY_TO_PTHREAD=1 -s ALLOW_MEMORY_GROWTH=1")
+elseif(APPLE)
   set_target_properties(
     dectalk
     PROPERTIES
