@@ -103,7 +103,7 @@ elseif(APPLE)
   set_target_properties(
     dectalk
     PROPERTIES
-    LINK_FLAGS "-Wl,-framework,-Wl,AudioToolbox,-Wl,-framework,-Wl,CoreFoundation"
+    LINK_FLAGS "-W1, -F/Library/Frameworks"
   )
 endif()
 
