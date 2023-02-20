@@ -411,10 +411,12 @@ HTHREAD_T OP_CreateThread( THREAD_STACK_SIZE_T StackSize,
                            THREAD_PROCEDURE_T ThreadRoutine,
                            void * pThreadData );
 
+#ifndef SINGLE_THREADED
 THREAD_PRIORITY_T OP_GetThreadPriority( HTHREAD_T pThread );
 
 unsigned int OP_SetThreadPriority( HTHREAD_T pThread,
                                    THREAD_PRIORITY_T ThreadPriority );
+#endif
 
 void OP_ExitThread( THREAD_STATUS_T ThreadStatus );
 
