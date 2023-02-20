@@ -1,9 +1,9 @@
 /************************************************************
  *
- *                           Copyright ©
- *	  Copyright © 2002 Fonix Corporation. All rights reserved.
- *	  Copyright © 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
- *    © Digital Equipment Corporation 1996, 1997. All rights reserved.
+ *                           Copyright ï¿½
+ *	  Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ *	  Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved.
+ *    ï¿½ Digital Equipment Corporation 1996, 1997. All rights reserved.
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
@@ -411,10 +411,12 @@ HTHREAD_T OP_CreateThread( THREAD_STACK_SIZE_T StackSize,
                            THREAD_PROCEDURE_T ThreadRoutine,
                            void * pThreadData );
 
+#ifndef SINGLE_THREADED
 THREAD_PRIORITY_T OP_GetThreadPriority( HTHREAD_T pThread );
 
 unsigned int OP_SetThreadPriority( HTHREAD_T pThread,
                                    THREAD_PRIORITY_T ThreadPriority );
+#endif
 
 void OP_ExitThread( THREAD_STATUS_T ThreadStatus );
 

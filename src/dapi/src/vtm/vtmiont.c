@@ -2,8 +2,8 @@
  *                                                 
  *  DECtalk Vocal Tract Model I/O for Windows/NT
  *                                              
- * Copyright © 2002 Fonix Corporation. All rights reserved.
- * Copyright © 2000-2001 Force Computer, Inc., a Solectron company. All rights reserved.
+ * Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
+ * Copyright ï¿½ 2000-2001 Force Computer, Inc., a Solectron company. All rights reserved.
  * Copyright (c) 1993-1998 Digital Equipment Corporation
  * 
  * This is an unpublished work, and is confidential and proprietary: 
@@ -1452,10 +1452,14 @@ typedef struct tagLLFrame {
 	      // never sets TYPING_MODE, and if it does then this won't
 	      // even compile. Oh, heck. Just to be sure, conditionalize
 	      // the really important stuff on OLEDECTALK too.
+
+#ifndef SINGLE_THREADED
 #ifdef OLEDECTALK
 	      if (phTTS->wTypingFrameCount == MIN_TYPING_FRAMES)
 		OP_SetThreadPriority((phTTS->hThread_PH),OP_PRIORITY_NORMAL);
 #else // OLEDECTALK
+#endif
+
 	      if (phTTS->dwOutputState != STATE_OUTPUT_AUDIO)
 		  {
 #ifndef SINGLE_THREADED
