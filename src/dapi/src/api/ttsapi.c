@@ -2,8 +2,8 @@
  *                                                                    
  *  COPYRIGHT NOTICE                                                  
  *                                                                   
- *	Copyright � 2002 Fonix Corporation. All rights reserved.		 
- *	Copyright � 2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved. 
+ *	Copyright   2002 Fonix Corporation. All rights reserved.		 
+ *	Copyright   2000-2001 Force Computers, Inc., a Solectron Company. All rights reserved. 
  *  Copyright (c) Digital Equipment Corporation, 1993, 1998       
  *																
  *  All Rights reserved. Unpublished rights reserved under the    
@@ -1970,9 +1970,6 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 	if ( IsBadWritePtr( pphTTS, sizeof(pphTTS)) || (pphTTS==NULL))
 		return( MMSYSERR_INVALHANDLE );
 
-	if ( uiDeviceNumber == 0 )
-		return( MMSYSERR_INVALPARAM );	
-
 #ifdef LICENSES
 #if defined WIN32 || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define MAX_INSTANCES_EXCEEDED  (MMSYSERR_ALLOCATED) // tek 29jul96
@@ -3356,13 +3353,13 @@ phTTS->uiID_Start_Message =
 		TextToSpeechSpeak(phTTS, "DECtalk beta S D K version 4.4a is running. For evaluation only. ", TTS_FORCE);
 #endif //ENGLISH
 #ifdef SPANISH
-		TextToSpeechSpeak(phTTS, "DECtalk beta S d k versi�n 4.4a est� corriendo. Para evaluaci�n solamente.", TTS_FORCE);
+		TextToSpeechSpeak(phTTS, "DECtalk beta S d k versi n 4.4a est  corriendo. Para evaluaci n solamente.", TTS_FORCE);
 #endif //SPANISH
 #ifdef GERMAN
 		TextToSpeechSpeak(phTTS, "Dies ist das DECtalk S D K, beta Version 4.4 A. Unlizensierte Testversion.", TTS_FORCE);
 #endif //GERMAN
 #ifdef FRENCH
-		TextToSpeechSpeak(phTTS, "DECtalk b�ta S D K version 4.4a fonctionne. Pour l'�valuation seulement.", TTS_FORCE);
+		TextToSpeechSpeak(phTTS, "DECtalk b ta S D K version 4.4a fonctionne. Pour l' valuation seulement.", TTS_FORCE);
 #endif //ENGLISH
 #endif //DECTALKBETA430
 		
