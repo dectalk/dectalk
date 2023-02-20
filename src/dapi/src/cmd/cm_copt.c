@@ -3652,3 +3652,41 @@ void vol_tone(int volume)
 	KS.ToneVolume = volume;
 }
 #endif /*SW_VOLUME*/
+
+/* ******************************************************************
+ *      Function Name: cm_cmd_samples_per_frame()
+ *
+ *      Description: set the smaples per frame / speed of the VTM
+ *      in percent of the default. Min 1%, max 500%.
+ *      1 = 1%, 100 = 100%, 200 = 200%, ...
+ *
+ *      Arguments: LPTTS_HANDLE_T phTTS; Pointer to structure containing PKSD_T
+ *                 and PCMD_T data structures.
+ *
+ *      Return Value: int CMD_success
+ *
+ *      Comments:
+ *
+ * *****************************************************************/
+
+int cm_cmd_samples_per_frame(LPTTS_HANDLE_T phTTS)
+{
+	DT_PIPE_T pipe_value[2];
+	PCMD_T pCmd_t = phTTS->pCMDThreadData;
+
+	if ( pCmd_t->params[0] < 1)
+			pCmd_t->params[0] = 1;
+
+	else if( pCmd_t->params[0] > 500)
+			pCmd_t->params[0] = 500;
+
+	pipe_value[0] = SPC_type_samples_per_frame;
+	pipe_value[1] = pCmd_t->params[0];
+
+#ifndef SINGLE_THREADED
+	cm_util_write_pipe(pKsd_t, pKsd_t->vtm_pipe, pipe_value, 2);
+#else
+	vtm_loop(phTTS,pipe_value);
+#endif
+	return(CMD_success);
+}

@@ -484,6 +484,7 @@ const struct dtpc_command command_table[] = {
 	{"dbgv","dddddddddd",1,DCS_DBGV,cm_cmd_dbgv},
 #endif
         {"version","a",1,0,cm_cmd_version},
+        {"spf","d",1,0,cm_cmd_samples_per_frame},
 
 #ifdef MSDOS
 	{"clk_rate","d",1,DCS_CPU_RATE,cm_cmd_cpu_rate},

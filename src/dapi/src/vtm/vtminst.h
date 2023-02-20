@@ -70,8 +70,10 @@
 #include "..\fvtm\fvtmasm.h"
 #endif //_ASM_FVTM
 
-/* MAXIMUM_FRAME_SIZE of 100 is not enough for 22kHz! */
-#define  MAXIMUM_FRAME_SIZE  200
+/* MAXIMUM_FRAME_SIZE of 100 is not enough for 22kHz!
+ * 71 samples/frame @11kHz is default, so be generous and use
+ * 142 * 5 (for :spf 500@22kHz) = 710 as max. */
+#define  MAXIMUM_FRAME_SIZE  710
 #define  SAMPLE_RATE_INCREASE   0
 #define  SAMPLE_RATE_DECREASE   1
 #define  NO_SAMPLE_RATE_CHANGE  2

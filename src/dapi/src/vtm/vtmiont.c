@@ -2104,6 +2104,31 @@ typedef struct tagLLFrame {
 	SendBuffer( phTTS );
 	  }
 	  break;
+	case SPC_type_samples_per_frame:
+	  InitializeVTM(phTTS);
+#ifndef SINGLE_THREADED
+	  read_pipe( pKsd_t->vtm_pipe, &(pVtm_t->parambuff[1]), 1);
+#else
+	  pVtm_t->parambuff[1]=input[1];
+#endif
+	  /* MGS BATS #409 07/18/97 */
+#ifndef SINGLE_THREADED
+	  LeaveCriticalSection(pKsd_t->pcsVtmPipeRead);
+	  pKsd_t->bVtmIsReadingPipe = FALSE;	// tek 20nov97 let go of secondary lock
+#endif
+	  {
+		  S16 spf = ((((pKsd_t->uiSampleRate*64)+5000)/10000)*pVtm_t->parambuff[1])/100;;
+
+		  if (spf > MAXIMUM_FRAME_SIZE) {
+			  spf = MAXIMUM_FRAME_SIZE;
+		  } else if (spf <= 0) {
+			  spf = 1;
+		  }
+
+		  pVtm_t->uiNumberOfSamplesPerFrame = spf;
+	  }
+
+	  break;
 
 	default:
 	  /* MGS BATS #409 07/18/97 */

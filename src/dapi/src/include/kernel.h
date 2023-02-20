@@ -331,6 +331,7 @@ typedef struct RING_struct {
 #define SPC_type_flush                  9
 #define SPC_type_flush_sync            10
 #define SPC_type_force                 11
+#define SPC_type_samples_per_frame     12
 // tek 26aug97 tyoe_visual isn't ever sent to the VTM, but is used
 // for consistency in the Sync path when we're doing visual marks; 
 // it needs to be unique among the SPC controls, so define it here to

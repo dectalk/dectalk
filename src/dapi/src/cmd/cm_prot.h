@@ -116,6 +116,7 @@ extern int      cm_cmd_vs(LPTTS_HANDLE_T phTTS);                /* special entry
 extern int      cm_cmd_power(LPTTS_HANDLE_T phTTS);          /* battery and power related stuff */
 #endif /*DTEX*/
 extern int      cm_cmd_version(LPTTS_HANDLE_T phTTS);        /* say/return version.*/
+extern int      cm_cmd_samples_per_frame(LPTTS_HANDLE_T phTTS);  /* samples per frame (speed) in the vtm */
 #ifdef DTEX
 extern int      cm_cmd_tsr(LPTTS_HANDLE_T phTTS);            /* [:tsr modes.. */
 #endif /*DTEX*/
