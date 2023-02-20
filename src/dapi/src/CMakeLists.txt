@@ -46,7 +46,7 @@ list(
 # Check between Win32 and UNIX compliant machines.
 if (EMSCRIPTEN)
   list(APPEND DAPI_SOURCE_FILES nt/disable_audio.c api/init.c osf/loadable.c osf/dtmmio.c)
-  list(APPEND DAPI_LINK_LIBS pthread m)
+  list(APPEND DAPI_LINK_LIBS m)
   list(APPEND DAPI_DEFINES
     _REENTRANT
     NOMME
@@ -98,7 +98,7 @@ target_link_libraries(dectalk PUBLIC ${DAPI_LINK_LIBS})
 target_compile_definitions(dectalk PUBLIC ${DAPI_DEFINES})
 
 if (EMSCRIPTEN)
-  set_target_properties(dectalk PROPERTIES LINK_FLAGS "--disable-shared -s SIDE_MODULE=1 -s LINKABLE=1 -s EXPORT_ALL=1 -s PROXY_TO_PTHREAD=1 -s ALLOW_MEMORY_GROWTH=1")
+  set_target_properties(dectalk PROPERTIES LINK_FLAGS "-g3 -gsource-map --source-map-base http://localhost:8080/ --disable-shared -s SIDE_MODULE=1 -s LINKABLE=1 -s EXPORT_ALL=1 -s ALLOW_MEMORY_GROWTH=1")
 elseif(APPLE)
   set_target_properties(
     dectalk

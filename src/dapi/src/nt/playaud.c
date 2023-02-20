@@ -1407,7 +1407,9 @@ MMRESULT PA_CreatePlayHandleEx( HPLAY_AUDIO_T * ppPlayAudio,
       return MMSYSERR_ERROR;
     }
 
+#ifndef SINGLE_THREADED
     OP_SetThreadPriority( pShm_t->hGlobalPlayAudioThread, OP_PRIORITY_HIGHEST );
+#endif
 
 #ifdef USE_MME_SERVER
 
@@ -4932,6 +4934,7 @@ static ATYPE_T Process_MM_WOM_DONE_Message( HPLAY_AUDIO_T pPlayAudio,
 
 #ifdef __arm__
 #ifndef __ipaq__
+#ifndef SINGLE_THREADED
   if( pPlayAudio->bPipesNotEmpty )
     {
       //setpriority(PRIO_PROCESS, 0, 20);
@@ -4945,6 +4948,7 @@ static ATYPE_T Process_MM_WOM_DONE_Message( HPLAY_AUDIO_T pPlayAudio,
       //setpriority(PRIO_PROCESS, 0, -20);
       OP_SetThreadPriority( pShm_t->hGlobalPlayAudioThread, OP_PRIORITY_HIGHEST );
     }
+#endif
 #endif //__ipaq__
 #endif //__arm__
 

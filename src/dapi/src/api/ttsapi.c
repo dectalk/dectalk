@@ -3174,7 +3174,9 @@ phTTS->uiID_Start_Message =
 #endif
 	}
 #if !defined UNDER_CE && !defined VXWORKS
+#ifndef SINGLE_THREADED
 	OP_SetThreadPriority((phTTS->hThread_SYNC),OP_PRIORITY_ABOVE_NORMAL);
+#endif
 #endif
 #endif //TYPING_MODE
 	
@@ -5924,9 +5926,11 @@ MMRESULT TextToSpeechReset( LPTTS_HANDLE_T phTTS, BOOL bReset )
   hThisThread = GetCurrentThread();
   if (hThisThread)
     {
-#ifndef UNDER_CE
+#if !defined UNDER_CE && !defined SINGLE_THREADED
+#ifndef SINGLE_THREADED
       tptPriority = OP_GetThreadPriority(hThisThread);
       OP_SetThreadPriority(hThisThread,OP_PRIORITY_HIGHEST);
+#endif
 #endif
     }
 #endif //TYPING_MODE
@@ -5955,11 +5959,13 @@ MMRESULT TextToSpeechReset( LPTTS_HANDLE_T phTTS, BOOL bReset )
 	if ( IsBadWritePtr( phTTS, sizeof(phTTS)) || (phTTS==NULL))
     {
 #ifndef UNDER_CE
+#ifndef SINGLE_THREADED
 #ifdef TYPING_MODE
       if ( hThisThread)	 // tek 09jun97
 	  {
 	OP_SetThreadPriority(hThisThread,tptPriority);
       }
+#endif
 #endif
 #endif
       return( MMSYSERR_INVALHANDLE );
@@ -5996,7 +6002,7 @@ MMRESULT TextToSpeechReset( LPTTS_HANDLE_T phTTS, BOOL bReset )
   ThisThread = pthread_self();
   if (hThisThread)
     {
-#ifndef VXWORKS
+#if !defined VXWORKS && !defined SINGLE_THREADED
       tptPriority = OP_GetThreadPriority(hThisThread);
       OP_SetThreadPriority(hThisThread,OP_PRIORITY_HIGHEST);
 #endif
@@ -6025,10 +6031,12 @@ MMRESULT TextToSpeechReset( LPTTS_HANDLE_T phTTS, BOOL bReset )
 	if ( IsBadWritePtr( phTTS, sizeof(phTTS)))
   	{ 
 #ifndef VXWORKS
+#ifndef SINGLE_THREADED
       if ( hThisThread)	 // tek 09jun97
 	  {
 	OP_SetThreadPriority(hThisThread,tptPriority);
       }
+#endif
 #endif
     		return( MMSYSERR_INVALHANDLE );
   	}
@@ -6139,8 +6147,10 @@ MMRESULT TextToSpeechReset( LPTTS_HANDLE_T phTTS, BOOL bReset )
 //#ifdef WIN32
 #ifndef UNDER_CE
 #ifdef TYPING_MODE
+#ifndef SINGLE_THREADED
   if (hThisThread)
 		OP_SetThreadPriority(hThisThread,tptPriority);
+#endif
 #endif
 #endif
 //#endif
@@ -10947,7 +10957,7 @@ void TextToSpeechTyping(LPTTS_HANDLE_T phTTS, wchar_t key) {  /* BATS#657 JL */
 #endif
 	if (hThisThread)
 	{
-#if !defined UNDER_CE && !defined VXWORKS
+#if !defined UNDER_CE && !defined VXWORKS && !defined SINGLE_THREADED
 		tptPriority = OP_GetThreadPriority(hThisThread);
 		OP_SetThreadPriority(hThisThread,OP_PRIORITY_HIGHEST);
 #endif
@@ -10990,7 +11000,7 @@ void TextToSpeechTyping(LPTTS_HANDLE_T phTTS, wchar_t key) {  /* BATS#657 JL */
 	OutputDebugString(szTemp);
 #endif //API_DEBUG
 
-#if !defined UNDER_CE && !defined VXWORKS
+#if !defined UNDER_CE && !defined VXWORKS && !defined SINGLE_THREADED
 	if (hThisThread)
 		OP_SetThreadPriority(hThisThread,tptPriority);
 #endif
