@@ -1,5 +1,5 @@
 /**********************************************************************/
-/*                         Copyright ï¿½                                */
+/*                         Copyright ©                                */
 /*																	  */
 /*  Copyright (c) 2000, 2001 Force Computers Inc. a Solectron comapny. All rights reserved */
 /*  Copyright Digital Equipment Corporation, 1994,                    */

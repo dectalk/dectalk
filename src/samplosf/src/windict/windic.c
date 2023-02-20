@@ -1,7 +1,7 @@
 //#define DEBUG_ME
 /**********************************************************************/
 /*                                                                    */
-/*	Copyright ï¿½ 2000 Force Computers, Inc., a Solectron Company. All rights reserved. */
+/*	Copyright © 2000 Force Computers, Inc., a Solectron Company. All rights reserved. */
 /*  Copyright Digital Equipment Corporation, 1994,                    */
 /*  All rights reserved.                                              */
 /*                                                                    */

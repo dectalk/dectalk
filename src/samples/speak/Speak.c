@@ -2,8 +2,8 @@
 /*                                                                    */
 /*  COPYRIGHT NOTICE                                                  */
 /*                                                                    */
-/*	Copyright ï¿½ 2002 Fonix Corporation. All rights reserved			  */
-/*  Copyright ï¿½ 2000, 2001 Force Computers, Inc., a solectron Company. all rights reserved. */
+/*	Copyright © 2002 Fonix Corporation. All rights reserved			  */
+/*  Copyright © 2000, 2001 Force Computers, Inc., a solectron Company. all rights reserved. */
 /*  Copyright (c) Digital Equipment Corporation, 1998                 */
 /*																	  */
 /*  All Rights reserved. Unpublished rights reserved under the        */
@@ -1465,7 +1465,7 @@ LONG APIENTRY WndProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 					{
 					case IDM_SPANISH :
 					case IDM_ITALIAN:
-					case IDM_LATIN :	strcpy(WHAT_STRING,"quï¿½?"); break;
+					case IDM_LATIN :	strcpy(WHAT_STRING,"qué?"); break;
 					case IDM_GERMAN :	strcpy(WHAT_STRING,"wie bitte?"); break;
 					case IDM_FRENCH :   strcpy(WHAT_STRING,"ce qui?"); break;
 					case IDM_ENGLISH :
@@ -2150,7 +2150,7 @@ BOOL menuCommand(HWND hWnd, WPARAM wParam, LPARAM lParam)
 					  
 					  MessageBox( hWnd,
 						  szError,
-						  TEXT("OpenWaveOutFile ï¿½Law"),
+						  TEXT("OpenWaveOutFile µLaw"),
 						  MB_OK | MB_ICONSTOP );
 				  }
 				  hCursor = SetCursor (LoadCursor (NULL, IDC_WAIT));

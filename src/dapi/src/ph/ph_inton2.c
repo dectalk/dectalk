@@ -1,11 +1,11 @@
 /* ww_02_27_01
  ***********************************************************************
  *
- *                           Copyright ï¿½
- *    Copyright ï¿½ 2002 Fonix Corporation. All rights reserved.
- *    Copyright ï¿½ 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
- *    ï¿½ SMART Modular Technologies 1999, 2000. All rights reserved.
- *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998, 1999 All rights reserved.
+ *                           Copyright ©
+ *    Copyright © 2002 Fonix Corporation. All rights reserved.
+ *    Copyright © 2000-2001 Force Computers, Inc., a Solectron company. All rights reserved.
+ *    © SMART Modular Technologies 1999, 2000. All rights reserved.
+ *    © Digital Equipment Corporation 1996, 1997, 1998, 1999 All rights reserved.
  *
  *     U.S. Government Rights: Consistent with FAR 12.211 and 12.212, 
  *     Commercial Computer Software, Computer Software Documentation, 

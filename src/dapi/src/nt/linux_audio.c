@@ -5,9 +5,9 @@
 /************************************************************
  *
  *                           Copyright (c)
- *    ï¿½ Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
- *    ï¿½ SMART Modular Technologies 1999. All rights reserved. 
- *	  Copyright ï¿½ 2000 Force Computers, Inc., a Solectron Company. All rights reserved.   
+ *    © Digital Equipment Corporation 1996, 1997, 1998. All rights reserved.
+ *    © SMART Modular Technologies 1999. All rights reserved. 
+ *	  Copyright © 2000 Force Computers, Inc., a Solectron Company. All rights reserved.   
  *
  *    Restricted Rights: Use, duplication, or disclosure by the U.S.
  *    Government is subject to restrictions as set forth in subparagraph
