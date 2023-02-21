@@ -1,7 +1,7 @@
 FROM debian:bullseye
 
 RUN apt-get update
-RUN apt-get -y install build-essential libpulse-dev libgtk2.0-dev unzip autoconf automake
+RUN apt-get --no-install-recommends -y install build-essential libasound2-dev libpulse-dev libgtk2.0-dev unzip autoconf automake git
 
 WORKDIR /dectalk/src
 
