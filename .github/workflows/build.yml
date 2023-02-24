@@ -32,7 +32,7 @@ jobs:
         run: make
 
       - name: Create a `.tar.gz` of the dist/ folder.
-        run: tar -cvzf dectalk.tar.gz -C dist/ .
+        run: tar -cvzf ubuntu-latest.tar.gz -C dist/ .
 
       - name: Create artifacts (.zip)
         uses: actions/upload-artifact@v3
@@ -44,9 +44,15 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ubuntu-latest-tar
-          path: dectalk.tar.gz
+          path: ubuntu-latest.tar.gz
 
-          ubuntu:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            ubuntu-latest.zip
+            ubuntu-latest.tar.gz
 
   macosx:
     name: Mac OS X
@@ -75,7 +81,7 @@ jobs:
         run: make
 
       - name: Create a `.tar.gz` of the dist/ folder.
-        run: tar -cvzf dectalk.tar.gz -C dist/ .
+        run: tar -cvzf macos-latest.tar.gz -C dist/ .
 
       - name: Create artifacts (.zip)
         uses: actions/upload-artifact@v3
@@ -87,7 +93,15 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-latest-tar
-          path: dectalk.tar.gz
+          path: macos-latest.tar.gz
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            macos-latest.zip
+            macos-latest.tar.gz
 
   vs6-server2022:
     name: Visual Studio 6
@@ -105,11 +119,23 @@ jobs:
         shell: cmd
         run: devops\vs6\dt_copyfiles.bat
 
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/bin/
+          dest: vs6-ia32.zip
+
       - name: Create artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: vs6
-          path: dist/
+          name: vs6-ia32-zip
+          path: vs6-ia32.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            vs6-ia32.zip
 
   cmake-ubuntu:
     name: Ubuntu (cmake, latest)
@@ -160,6 +186,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
+            ubuntu-cmake-latest.zip
             ubuntu-cmake-latest.tar.gz
 
   # cmake-macosx:
@@ -299,4 +326,5 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
+            emscripten-latest.zip
             emscripten-latest.tar.gz
