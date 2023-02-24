@@ -6,6 +6,7 @@ target_link_libraries(say PRIVATE dectalk)
 
 add_custom_target (
   npm-target ALL
+  COMMAND npm ci
   COMMAND npm run build
   BYPRODUCTS index.css index.html index.js
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
