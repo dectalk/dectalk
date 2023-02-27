@@ -1529,7 +1529,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   /*  It is not necessary to change these with a nominal change in    */
   /*  sample rate.                                                    */
   /********************************************************************/
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
   /*
    * Hardcoded constants for parallel sixth formant:
    * F = 4884, BW = 1145 @10kHz
@@ -1767,7 +1767,11 @@ void SetSampleRate( LPTTS_HANDLE_T phTTS,  unsigned int uiSampRate )
     /*  Set the vocal tract model to 11 KHz.                          */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 10000
+    pVtm_t->uiSampleRateChange = NO_SAMPLE_RATE_CHANGE;
+#else
     pVtm_t->uiSampleRateChange = SAMPLE_RATE_INCREASE;
+#endif
     /*
      * Q2.14 format of (samplerate/10000):
      *

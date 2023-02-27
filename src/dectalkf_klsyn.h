@@ -254,8 +254,10 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 //#define FP_VTM
 
 // Main output sample rate
-// 11025 - default DECtalk sample rate
-// 22050 - work in progress, breaks things
+// 10000 - DECtalk hardware sample rate
+// 11025 - default DECtalk software sample rate
+// 22050 - work in progress
+//#define  PC_SAMPLE_RATE     10000
 #define  PC_SAMPLE_RATE     11025
 //#define  PC_SAMPLE_RATE     22050
 

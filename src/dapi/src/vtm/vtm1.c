@@ -138,7 +138,7 @@
 #endif
 
 /* Can't lookup values when not 11025, need to calculate on the fly */
-#if PC_SAMPLE_RATE != 11025
+#if (PC_SAMPLE_RATE != 11025) && (PC_SAMPLE_RATE != 10000)
 #include <math.h>
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -1025,7 +1025,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	/**************************************************************/
 	//pVtm_t->temp =FZinHZ;
 
-#if PC_SAMPLE_RATE != 11025
+#if (PC_SAMPLE_RATE != 11025) && (PC_SAMPLE_RATE != 10000)
 	if ( pVtm_t->SampleRate <= 11025)
 #endif
 	{
@@ -1038,7 +1038,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 		pVtm_t->rnzb = bzero_tab[pVtm_t->temp];
 		pVtm_t->rnzc = czero_tab[pVtm_t->temp];
 	}
-#if PC_SAMPLE_RATE != 11025
+#if (PC_SAMPLE_RATE != 11025) && (PC_SAMPLE_RATE != 10000)
 	else {
 		/* Gain: 93 -> 11025, 3 -> 22050 */
 		float gain = 3.0;
@@ -1744,7 +1744,7 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   /*  sample rate.                                                    */
   /********************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
   /*
    * Different constants from Dennis Klatt, not used:
    * 005 16-Apr-85 	DK  Set R6PB = -3728, R6PC = -851
@@ -2009,7 +2009,11 @@ void SetSampleRate( LPTTS_HANDLE_T phTTS, unsigned int uiSampRate )
     /*  Set the vocal tract model to 11 KHz.                          */
     /******************************************************************/
 
+#if PC_SAMPLE_RATE == 10000
+    pVtm_t->uiSampleRateChange = NO_SAMPLE_RATE_CHANGE;
+#else
     pVtm_t->uiSampleRateChange = SAMPLE_RATE_INCREASE;
+#endif
     /*
      * Q2.14 format of (samplerate/10000):
      *
@@ -2107,7 +2111,7 @@ int r;
 /*    Let r  =  exp(-pi bw t) */
 /*    To get rid of transcendentals for chip implementation, see above: */
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
 		r = radius_table[bw >> 3];
 #else
 		r = radius_calc(bw);
@@ -2125,7 +2129,7 @@ int r;
 /*    Let b = r * 2*cos(2 pi f t) */
 /*    To get rid of transcendentals for chip implementation, see above: */
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
 		 bcoef = frac4mul( r, cosine_table[ f >> 3 ] );
 #else
 		 bcoef = frac4mul( r, cosine_calc( f ) );

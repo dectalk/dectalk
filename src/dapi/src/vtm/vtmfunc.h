@@ -135,7 +135,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
   if ( frequency > 4500 || bandwidth > 4950 ) {
 #else
   if ( frequency > 9000 || bandwidth > 9900 ) {
@@ -150,7 +150,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
     /*  calculate radius = exp( -pi * T * bandwidth ).                */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
     radius = radius_table[bandwidth >> 3];
 #else
     radius = radius_calc(bandwidth);
@@ -160,7 +160,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
     /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )             */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
     *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
 #else
     *bcoef = frac4mul( radius, cosine_calc( frequency ) );
@@ -237,7 +237,7 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /********************************************************************/
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
   if ( frequency > 4500 || bandwidth > 4950 ) {
 #else
   if ( frequency > 9000 || bandwidth > 9900 ) {
@@ -250,7 +250,7 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /*  calculate radius = exp( -pi * T * bandwidth ).                  */
   /********************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
   radius = radius_table[bandwidth >> 3];
 #else
   radius = radius_calc(bandwidth);
@@ -260,7 +260,7 @@ S32 d2pole_cf123( PVTM_T pVtm_t,
   /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )               */
   /********************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
   *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
 #else
   *bcoef = frac4mul( radius, cosine_calc( frequency ) );
@@ -335,7 +335,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
   /*  Zap resonator if center frequency above maximum frequency.      */ 
   /********************************************************************/
 #ifndef HLSYN
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
   if ( frequency > 4500 || bandwidth > 4950 ) {
 #else
   if ( frequency > 9000 || bandwidth > 9900 ) {
@@ -352,7 +352,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
     /*  calculate radius = exp( -pi * T * bandwidth ).                */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
     radius = radius_table[bandwidth >> 3];
 #else
     radius = radius_calc(bandwidth);
@@ -362,7 +362,7 @@ S16 d2pole_pf( PVTM_T pVtm_t,
     /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )             */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
     *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
 #else
     *bcoef = frac4mul( radius, cosine_calc( frequency ) );
@@ -405,7 +405,7 @@ void Notch_fc( PVTM_T pVtm_t,
     /*  calculate radius = exp( -pi * T * bandwidth ).                */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
     radius = radius_table[bandwidth >> 3];
 #else
     radius = radius_calc(bandwidth);
@@ -415,7 +415,7 @@ void Notch_fc( PVTM_T pVtm_t,
     /*  bcoef = radius * 2 * cos( 2* pi * T * frequency )             */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
     *bcoef = frac4mul( radius, cosine_table[ frequency >> 3 ] );
 #else
     *bcoef = frac4mul( radius, cosine_calc( frequency ) );
@@ -431,7 +431,7 @@ void Notch_fc( PVTM_T pVtm_t,
     /*  Let acoef = 1.0 - bcoef - ccoef                               */
     /******************************************************************/
 
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
     *acoef = - frac4mul(gain,cosine_table[ frequency >> 3 ]);
 #else
     *acoef = - frac4mul(gain,cosine_calc( frequency ));

@@ -324,7 +324,11 @@
 /* 6. Various constants  */
 
 #if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
+#if PC_SAMPLE_RATE == 10000
+#define NSAMP_FRAME     64			   /* # of samples per output frame 10 KHz. */
+#else
 #define NSAMP_FRAME     71			/* # of samples per output frame 11 KHz. */
+#endif
 
 #ifdef NEW_VTM
 #define VOICE_PARS	40			   /* EAB found looking for BAT3 667 this should
@@ -688,7 +692,7 @@ SPD_CHIP;
 #define ZAPF    2500				   /* Magic f  value to zap b constant of diff eqn  */
 #define ZAPB    2048				   /* Magic bw value to zap c constant of diff eqn */
 #else
-#if PC_SAMPLE_RATE == 11025
+#if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
 #define ZAPF	6000				   /* Magic f  value to zap b constant of diff eqn    */
 #define ZAPB	6000				   /* Magic bw value to zap c constant of diff eqn */
 #elif PC_SAMPLE_RATE == 22050
