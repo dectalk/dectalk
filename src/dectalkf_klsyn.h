@@ -287,7 +287,7 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 //#define VOICE_ROM_1996
 #define VOICE_ROM_DECTALK_43
 
-#if defined(VOICE_ROM_1997) || defined(VOICE_ROM_1996) || defined(VOICE_ROM_DECTALK_43)
+#if defined(VOICE_ROM_1997) || defined(VOICE_ROM_1996) || defined(VOICE_ROM_DECTALK_43) || defined(VOICE_ROM_DTC_03_03JAN89)
 // Decrease /s, z/ amplification in VOICE_ROM_1996/7
 #define DEC_SZ 3
 
