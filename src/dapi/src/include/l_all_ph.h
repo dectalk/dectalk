@@ -340,7 +340,7 @@
 #define US_TOT_ALLOPHONES	56
 #undef US_DF
 #define US_DF US_T
-#elif defined(VOICE_ROM_DECTALK_43)
+#elif defined(VOICE_ROM_DECTALK_43) || defined(VOICE_ROM_DECTALK_1996M_43F)
 #define US_TOT_ALLOPHONES	57
 #elif defined(VOICE_ROM_1996) || defined(VOICE_ROM_1997) || defined(VOICE_ROM_BETA5)
 #define US_TOT_ALLOPHONES	71

@@ -874,7 +874,7 @@ handled differently later */
 #define F0_CGesture1 171
 #define F0_CGesture2 250
 #define GEST_SHIFT 1
-#if defined(VOICE_ROM_1996) || defined(VOICE_ROM_1997) || defined(VOICE_ROM_DTC_03_03JAN89) || defined(VOICE_ROM_DECTALK_43)
+#if defined(VOICE_ROM_1996) || defined(VOICE_ROM_1997) || defined(VOICE_ROM_DTC_03_03JAN89) || defined(VOICE_ROM_DECTALK_43) || defined(VOICE_ROM_DECTALK_1996M_43F)
 #define   MAX_NRISES   4
 #elif defined(VOICE_ROM_BETA5)
 #define   MAX_NRISES   7   	
