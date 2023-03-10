@@ -1014,6 +1014,7 @@ MMRESULT PA_CreatePlayHandleEx( HPLAY_AUDIO_T * ppPlayAudio,
   pPlayAudio->bPaused = FALSE;
   pPlayAudio->bEnableOpenErrorMessage = TRUE;
   pPlayAudio->bReportPlayStop = FALSE;
+  pPlayAudio->bResetPaused = FALSE;
 
   /********************************************************************/
   /*  Initialize the wave out device state flags.                     */
