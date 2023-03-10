@@ -739,9 +739,10 @@ void OP_DestroyMutex( HMUTEX_T pMutex )
 #ifdef _WIN32
 
     DeleteCriticalSection( pMutex );
-    free( pMutex );
 
 #endif
+
+    free( pMutex );
   }
 
   return;
@@ -997,21 +998,14 @@ void OP_DestroyEvent( HEVENT_T pEvent )
     }
 
     /******************************************************************/
-    /*  Free the event's condition mutex.                             */
-    /******************************************************************/
-
-    if ( pEvent->pSignalMutex != NULL )
-    {
-      pthread_mutex_destroy( pEvent->pSignalMutex );
-    }
-
-    /******************************************************************/
     /*  Free the event's signal mutex.                                */
     /******************************************************************/
 
     if ( pEvent->pSignalMutex != NULL )
     {
       pthread_mutex_destroy( pEvent->pSignalMutex );
+      free(pEvent->pSignalMutex);
+      pEvent->pSignalMutex = NULL;
     }
 
     /******************************************************************/
