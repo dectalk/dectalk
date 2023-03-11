@@ -250,6 +250,7 @@ typedef struct {
 	DWORD			dwInstance;
 	UINT			uMappedDeviceID;
         DWORD			dnDevNode;
+	void			*WOutDev;
 } WAVEOPENDESC, *LPWAVEOPENDESC;
 
 #ifndef PRI_OTHER_MIN
@@ -433,7 +434,7 @@ typedef struct {
 
 UINT16 waveOutGetNumDevs();
 
-UINT32 waveOutGetDevCaps(UINT32 uDeviceID, LPWAVEOUTCAPS lpCaps,
+UINT32 waveOutGetDevCaps(UINT16 uDeviceID, LPWAVEOUTCAPS lpCaps,
                                 UINT32 uSize);
 
 UINT16 waveOutGetErrorText(UINT16 uError, LPSTR lpText, UINT16 uSize);
@@ -470,7 +471,7 @@ UINT16 waveOutBreakLoop(HWAVEOUT hWaveOut);
 
 UINT32 waveOutGetID(HWAVEOUT hWaveOut, UINT32 * lpuDeviceID);
 
-DWORD OSS_wodMessage(UINT16 wDevID, UINT wMsg, unsigned long dwUser,
+DWORD OSS_wodMessage(void *WOutDev, UINT wMsg, unsigned long dwUser,
                  unsigned long dwParam1, unsigned long dwParam2);
 
 
