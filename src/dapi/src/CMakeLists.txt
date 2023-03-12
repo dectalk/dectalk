@@ -70,9 +70,12 @@ elseif (UNIX)
   if (APPLE)
     list(APPEND DAPI_LINK_LIBS portaudio "-framework CoreAudio" "-framework AudioToolbox")
   else()
+    find_package(OpenAL REQUIRED)
+    
     # Assume that non-Apple machines are Linux.
-    list(APPEND DAPI_LINK_LIBS pulse-simple pulse)
+    list(APPEND DAPI_LINK_LIBS pulse-simple pulse ${OPENAL_LIBRARY})
     list(APPEND DAPI_DEFINES USE_PULSEAUDIO)
+    list(APPEND DAPI_INCLUDES ${OPENAL_INCLUDE_DIR})
   endif()
 
   list(APPEND DAPI_SOURCE_FILES nt/linux_audio.c api/init.c osf/loadable.c osf/dtmmio.c)
@@ -109,7 +112,7 @@ endif()
 
 target_include_directories(
   dectalk PRIVATE
-  api cmd hlsyn include lts nt ph protos vtm kernel osf ../..
+  api cmd hlsyn include lts nt ph protos vtm kernel osf ../.. ${DAPI_INCLUDES}
 )
 
 file(
