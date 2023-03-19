@@ -10940,7 +10940,7 @@ void TextToSpeechTyping(LPTTS_HANDLE_T phTTS, wchar_t key) {  /* BATS#657 JL */
   	THREAD_T ThisThread=0;
   	HTHREAD_T hThisThread=&ThisThread;
   	THREAD_PRIORITY_T tptPriority=0;
-  	//ThisThread = pthread_self();
+  	ThisThread = pthread_self();
 #endif
 	if (hThisThread)
 	{
