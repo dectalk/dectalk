@@ -864,11 +864,20 @@ void GetDictionaryNames( char * szMainDict, char * szUserDict, char * szAbbrDict
 #else
   char temp[20];
 #endif // UNDER_CE
-  LPTSTR cmd_line = GetCommandLine();
+  char cmd_line[1024];
+  LPWSTR *argv;
+  int argc;
   char new_cmd_line[512];
   int cmd_ptr = 0;
 
-  while (cmd_line[cmd_ptr] != '\0' && cmd_line[cmd_ptr] != ' ')	cmd_ptr++;
+  argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+  if (argv == NULL || argc <= 0) {
+    cmd_line = ".\\";
+  } else {
+    cmd_line = argv[0];
+  }
+
+  cmd_ptr = strlen(cmd_line);
   while (cmd_line[cmd_ptr] != '\\' && cmd_ptr != 0)				cmd_ptr--;
   if (cmd_ptr != 0)	cmd_ptr++;
   cmd_line[cmd_ptr] = '\0';
@@ -896,6 +905,7 @@ void GetDictionaryNames( char * szMainDict, char * szUserDict, char * szAbbrDict
 #endif // UNDER_CE
 	sprintf(szMainDict, "%s%s", new_cmd_line, temp);
 	sprintf(szForeignDict, "%s%s", new_cmd_line, szForeignDictDef);
+	LocalFree(argv);
 
 #ifndef UNDER_CE
 	// tek 25feb98 OK, we have the defaults. Now go try to find the existing files.
@@ -1141,12 +1151,20 @@ WideStringtoAsciiString(szUserDict, wszUserDict, MAX_STRING_LENGTH);
 			//Search for dictionary in exe-dir and exe-dir\dic
 			{
 				char temp[1024], temp2[1024];
-				LPTSTR cmd_line = GetCommandLine();
+				char cmd_line[1024];
+				LPWSTR *argv;
+				int argc;
 				char new_cmd_line[512];
 				int cmd_ptr = 0;
 
-				while (cmd_line[cmd_ptr] != '\0' && cmd_line[cmd_ptr] != ' ')
-					cmd_ptr++;
+				argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+				if (argv == NULL || argc <= 0) {
+					strcpy(cmd_line, ".\\");
+				} else {
+					wcstombs(cmd_line, argv[0], sizeof(cmd_line)-1);
+				}
+
+				cmd_ptr = strlen(cmd_line);
 				while (cmd_line[cmd_ptr] != '\\' && cmd_ptr != 0)
 					cmd_ptr--;
 				if (cmd_ptr != 0)
@@ -1215,6 +1233,7 @@ WideStringtoAsciiString(szUserDict, wszUserDict, MAX_STRING_LENGTH);
 				{
 					strcpy(szAbbrDict, temp2);
 				}
+				LocalFree(argv);
 			}
 #endif //UNDER_CE
 #endif //  
