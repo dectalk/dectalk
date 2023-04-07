@@ -268,7 +268,24 @@ static void usage(char *progname)
     fprintf(stderr,"                     The \"normal\" input is \"forced\" out before the postfix\n" );
     fprintf(stderr,"                     text is read.\n" );
     fprintf(stderr,"          -c         Switch to clause-mode from line-mode (for stdin - and -fi)\n");
-    fprintf(stderr,"          -          Read from stdin in line- or clause-mode (non-typing)\n");
+    fprintf(stderr,"          -          Read from stdin in line- or clause-mode (non-typing)\n\n");
+    fprintf(stderr,"Modes:\n");
+    fprintf(stderr," * typing: Fast pronounciation of single letters on a line.\n");
+    fprintf(stderr,"           Playing output is aborted when a new input-line is sent.\n");
+    fprintf(stderr," * line:   Output is produced/queued after each newline.\n");
+    fprintf(stderr,"           Playing output continues.\n");
+    fprintf(stderr," * clause: Output is produced/queued on clause end (with delimiters like\n");
+    fprintf(stderr,"           period (.) or comma (,)) or when the force-character ^K is\n");
+    fprintf(stderr,"           received.\n");
+    fprintf(stderr,"           Playing output continues. Output is always produced on EOF.\n\n");
+    fprintf(stderr,"Input/mode switch table:\n");
+    fprintf(stderr,"       | typing | line | clause\n");
+    fprintf(stderr," ------+--------+------+-------\n");
+    fprintf(stderr," stdin |        | -    | -c -\n");
+    fprintf(stderr," ------+--------+------+-------\n");
+    fprintf(stderr," file  | N/A    | -fi  | -c -fi\n");
+    fprintf(stderr," ------+--------+------+-------\n");
+    fprintf(stderr," cli   | N/A    | N/A  | -a\n\n");
     exit(-1);
 }
 
