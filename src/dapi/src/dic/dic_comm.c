@@ -47,14 +47,6 @@
 #include <io.h>          
 #endif
 
-#ifdef __linux__ || defined __EMSCRIPTEN__
-#ifdef __arm__
-#include <asm/io.h>
-#else
-//#include <sys/io.h>
-#endif
-#endif
-
 #include "port.h"
 #include <stdlib.h>
 
