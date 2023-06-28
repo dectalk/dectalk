@@ -2,6 +2,8 @@ import React, { useRef, useState } from "react";
 import { EmscriptenEnvironment } from "../../emscripten";
 import { Form, Button } from "react-bootstrap";
 
+const sleep = (timeout: number) => new Promise<void>((resolve) => setTimeout(() => resolve(), timeout))
+
 const SpeakWindow = () => {
   const audioPlayer = useRef<HTMLAudioElement>(null);
   const [value, setValue] = useState<string>("");
@@ -23,7 +25,6 @@ const SpeakWindow = () => {
     const dectalk = await getSay();
     const outputFileName = Date.now() + ".wav";
 
-
     let input = "";
 
     if (phonemeEnable) {
@@ -32,18 +33,34 @@ const SpeakWindow = () => {
 
     input += value;
 
-    dectalk.callMain([outputFileName, input]);
-    const buffer = dectalk.FS.readFile(outputFileName);
-    const blob = new Blob([buffer], { type: "audio/x-wav" });
+    const args = [outputFileName, input];
+    console.log("Calling DECtalk with arguments", args);
+    dectalk.callMain(args);
 
-    // Pause the audio player if it is playing...
-    audioPlayer.current?.pause();
+    while(true) {
+      try {
+        console.log("Attempting to read", outputFileName);
+        const buffer = dectalk.FS.readFile(outputFileName);
+        const blob = new Blob([buffer], { type: "audio/x-wav" });
+    
+        // Pause the audio player if it is playing...
+        audioPlayer.current?.pause();
+    
+        console.log("Loading file", outputFileName);
+        // Create a blob URL and reload it if
+        setAudioFile(URL.createObjectURL(blob));
 
-    // Create a blob URL and reload it if
-    setAudioFile(URL.createObjectURL(blob));
-    audioPlayer.current?.load();
-    audioPlayer.current?.play();
-    setIsLoading(false);
+        await sleep(100);
+
+        audioPlayer.current?.load();
+        audioPlayer.current?.play();
+        setIsLoading(false);
+        break;
+      } catch {
+        console.log("Failed to read - Will wait 1000ms.", outputFileName);
+        await sleep(1000);
+      }
+    }
   };
 
   return (

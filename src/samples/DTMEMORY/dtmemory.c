@@ -64,6 +64,7 @@
 #define  MAX_INDEX_MARKS   128
 #define  MAX_STRING_LEN  32768
 #define  NAUDIO_BUFFERS      1
+#define  GWL_HINSTANCE	  (-6)
 
 DWORD dVoice;			 // Checked voice in menu 
 
@@ -74,7 +75,7 @@ CHAR         szFile[256] = "\0";
 CHAR         szFileTitle[256];
 // Filter specification for the OPENFILENAME struct
 CHAR         szFilter[] = "Text Files (*.TXT)\0*.TXT\0All Files (*.*)\0*.*\0";
-CHAR         szAppName[]  = "dtmemory";
+LPCWSTR      *szAppName = TEXT("dtmemory");
 CHAR         FileBuf[FILE_LEN+1];       // Buffer used to read in file.
 CHAR         SelBuf[FILE_LEN+1] = "\0"; //Buffer used to extract Edit control selected region, used to speak selected text
 HWND         hDlgFR;
@@ -114,7 +115,7 @@ int APIENTRY WinMain(
     MSG msg;
     DWORD error;                        /* message                      */
     WNDCLASS  wc;
-    HWND hWnd;
+    HWND hWnd = { 0 };
     CHAR szText[80] ="\0";
     ULONG version;
     
@@ -129,7 +130,7 @@ int APIENTRY WinMain(
     wc.cbClsExtra = 0;                    /* No per-class extra data.           */
     wc.cbWndExtra = 0;                    /* No per-window extra data.          */
     wc.hInstance = NULL;                  /* Application that owns the class.   */
-    wc.hIcon = LoadIcon( hInstance, "dtmemoryIcon" );
+    wc.hIcon = LoadIcon( hInstance, TEXT("dtmemoryIcon") );
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = GetStockObject(WHITE_BRUSH);
     wc.lpszMenuName =  szAppName;         /* Name of menu resource in .RC file. */
@@ -149,19 +150,20 @@ int APIENTRY WinMain(
 
     /* Create a main window for this application instance.  */
 
-    hWnd = CreateWindow(
-	szAppName,                     /* See RegisterClass() call.          */
-	"DECtalk In-Memory Sample Application",  /* Text for window title bar.         */
-	WS_OVERLAPPEDWINDOW,           /* Window style.                      */
-	0,                             /* Default horizontal position.       */
-	0,                             /* Default vertical position.         */
-	560,                           /* Default width.                     */
-	280,                           /* Default height.                    */
-	NULL,                          /* Overlapped windows have no parent. */
-	NULL,                          /* Use the window class menu.         */
-	NULL,                          /* This instance owns this window.    */
-	NULL                           /* Pointer not needed.                */
-		       );
+    hWnd = CreateWindowEx(
+			NULL,
+			szAppName,                     /* See RegisterClass() call.          */
+			TEXT("DECtalk In-Memory Sample Application"),  /* Text for window title bar.         */
+			WS_OVERLAPPEDWINDOW,           /* Window style.                      */
+			0,                             /* Default horizontal position.       */
+			0,                             /* Default vertical position.         */
+			560,                           /* Default width.                     */
+			280,                           /* Default height.                    */
+			NULL,                          /* Overlapped windows have no parent. */
+			NULL,                          /* Use the window class menu.         */
+			NULL,                          /* This instance owns this window.    */
+			NULL                           /* Pointer not needed.                */
+		);
 
 
 
@@ -241,7 +243,7 @@ static  HDROP hDrop;
 	INT i=0;
 	CHAR szError[132];
 	MMRESULT mmStatus;
-        LPCTSTR lpszHelpFile = DTALK_HELP_FILE_NAME;   // Name of DECtalk help file
+        LPCTSTR lpszHelpFile = TEXT(DTALK_HELP_FILE_NAME);   // Name of DECtalk help file
 static  UINT uiID_Error_Msg;
 static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 				// buffer is full of data.
@@ -277,7 +279,7 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 
 	     if (mmStatus == MMSYSERR_ERROR)
 	       {
-		 MessageBox( hWnd, "Can't find DECtalk Dictionary dectalk.dic, Shutting Down !", NULL, MB_OK );
+		 MessageBox( hWnd, TEXT("Can't find DECtalk Dictionary dectalk.dic, Shutting Down!"), NULL, MB_OK );
 		 PostQuitMessage( 0 );
 
 		 return FALSE;
@@ -285,7 +287,7 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 
 	     if (mmStatus == MMSYSERR_NODRIVER)
 	       {
-		 MessageBox( hWnd, "No wave device present,\n Shutting Down!", NULL, MB_OK );
+		 MessageBox( hWnd, TEXT("No wave device present,\n Shutting Down!"), NULL, MB_OK );
 		 PostQuitMessage( 0 );
 		 return FALSE;
 	       }
@@ -294,16 +296,16 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 	     if (mmStatus)
 		 {
 	       MessageBox( hWnd,
-					   "There is an ERROR in Initializing the Text To Speech System.\n\nExiting Application.",
-					   "DTmemory cannot be started.", MB_OK | MB_ICONSTOP );
+					   TEXT("There is an ERROR in Initializing the Text To Speech System.\n\nExiting Application."),
+					   TEXT("DTmemory cannot be started."), MB_OK | MB_ICONSTOP );
 		   return( -1 );
 		 }
 
 		 if (( pOutFile = fopen("memory.out","wb")) == NULL )
 	       {
 		  MessageBox( hWnd,
-		     "Error Opening Output File",
-		     "Error Opening Output File",
+		     TEXT("Error Opening Output File"),
+		     TEXT("Error Opening Output File"),
 		     MB_ICONSTOP | MB_OK );
 	       }
 
@@ -318,8 +320,8 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 		  if( lpSpeechBuffers[i] == (LPTTS_BUFFER_T) NULL )
 		  {
 		     MessageBox( hWnd,
-			"No more memory to allocate for the TTS_BUFFER",
-			"Error",
+			TEXT("No more memory to allocate for the TTS_BUFFER"),
+			TEXT("Error"),
 			MB_ICONSTOP | MB_OK );
     		        TextToSpeechShutdown( phTTS ) ;
 			return FALSE;
@@ -348,8 +350,8 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 	     if( mmStatus )
 	     {
 		MessageBox( hWnd,
-		     "Error Opening Memory, program exiting.",
-		     "Error",
+		     TEXT("Error Opening Memory, program exiting."),
+		     TEXT("Error"),
 		     MB_ICONSTOP | MB_OK );
                 TextToSpeechShutdown( phTTS ) ;
 		return FALSE;
@@ -366,8 +368,8 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 		if( mmStatus )
 		{
 		   MessageBox( hWnd,
-		       "Error Adding Buffer, program exiting.",
-		       "Error",
+		       TEXT("Error Adding Buffer, program exiting."),
+		       TEXT("Error"),
 			MB_ICONSTOP | MB_OK );
                    TextToSpeechShutdown( phTTS ) ;
 		   return FALSE;
@@ -445,8 +447,8 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 	case WM_COMMAND:               /* message: command from application menu */
 
 	    if (wParam == 1 && HIWORD (lParam) == EN_ERRSPACE)
-		MessageBox (hWnd, "EDIT control out of space.",
-			   "DECtalk Sample Application",MB_OK | MB_ICONSTOP) ;
+		MessageBox (hWnd, TEXT("EDIT control out of space."),
+			   TEXT("DECtalk Sample Application"), MB_OK | MB_ICONSTOP) ;
 
 	    switch( LOWORD( wParam ))
 	    {
@@ -666,7 +668,7 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 
 	     {  lSelect = SendMessage (hwndEdit, EM_GETSEL,(WPARAM)&dwStart,(LPARAM)&dwEnd) ;
 	       if (HIWORD (lSelect) == LOWORD (lSelect))
-	       {  MessageBox( hWnd, "No data selected", NULL, MB_OK );
+	       {  MessageBox( hWnd, TEXT("No data selected"), NULL, MB_OK );
 		  break;
 	       }
 
@@ -693,8 +695,8 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 
 	     if( mmStatus )
 		MessageBox( hWnd,
-		     "Error in MemoryClose, program exiting.",
-		     "Error",
+		     TEXT("Error in MemoryClose, program exiting."),
+		     TEXT("Error"),
 		     MB_ICONSTOP | MB_OK );
 
 		 for( i = 0; i < NAUDIO_BUFFERS; i++ )
@@ -744,8 +746,8 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 	      if( mmStatus )
 	      {
 		 MessageBox( hWnd,
-		     "Error Adding Buffer, program exiting.",
-		     "Error",
+		     TEXT("Error Adding Buffer, program exiting."),
+		     TEXT("Error"),
 		     MB_ICONSTOP | MB_OK );
 		 return FALSE;
 	      }
@@ -759,27 +761,27 @@ static UINT uiID_Buffer_Msg;  // Unique id used to signal when an audio
 	     {
 
 	      case ERROR_IN_AUDIO_WRITE:
-	      MessageBox(hWnd, "Error in Writing Audio", "Async Error",MB_OK | MB_ICONSTOP);
+	      MessageBox(hWnd, TEXT("Error in Writing Audio"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 	      break;
 
 	      case ERROR_OPENING_WAVE_OUTPUT_DEVICE:
-	      MessageBox(hWnd, "Error Opening Wave Out Device", "Async Error",MB_OK | MB_ICONSTOP);
+	      MessageBox(hWnd, TEXT("Error Opening Wave Out Device"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 	      break;
 
 	      case ERROR_GETTING_DEVICE_CAPABILITIES:
-	      MessageBox(hWnd, "Error Getting Audio Device Caps", "Async Error",MB_OK | MB_ICONSTOP);
+	      MessageBox(hWnd, TEXT("Error Getting Audio Device Caps"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 	      break;
 
 	      case ERROR_READING_DICTIONARY:
-	      MessageBox(hWnd, "Error Reading Dictionary File \n dectalk.dic", "Async Error",MB_OK | MB_ICONSTOP);
+	      MessageBox(hWnd, TEXT("Error Reading Dictionary File \n dectalk.dic"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 	      break;
 
 	      case ERROR_WRITING_FILE:
-	      MessageBox(hWnd, "Error Writing File", "Async Error",MB_OK | MB_ICONSTOP);
+	      MessageBox(hWnd, TEXT("Error Writing File"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 	      break;
 
 	      case ERROR_ALLOCATING_INDEX_MARK_MEMORY:
-	      MessageBox(hWnd, "Error allocating Index Mark Memory", "Async Error",MB_OK | MB_ICONSTOP);
+	      MessageBox(hWnd, TEXT("Error allocating Index Mark Memory"), TEXT("Async Error"), MB_OK | MB_ICONSTOP);
 	      break;
 	     }
 	   }
@@ -806,8 +808,8 @@ BOOL  InitWindows(HWND hWnd)
 	GetClientRect(hWnd,&rect);
 
 	hwndEdit = CreateWindow (
-	    "EDIT",                    /* See RegisterClass() call.          */
-	    "",                        /* Text for window title bar.         */
+	    TEXT("EDIT"),                    /* See RegisterClass() call.          */
+	    TEXT(""),                        /* Text for window title bar.         */
 	     WS_CHILD |WS_VISIBLE | WS_HSCROLL | WS_VSCROLL | WS_BORDER | ES_LEFT |
 	     ES_MULTILINE | ES_AUTOHSCROLL | ES_AUTOVSCROLL, /* Window style.                      */
 	    0L,                        /* Default horizontal position.       */
@@ -822,8 +824,8 @@ BOOL  InitWindows(HWND hWnd)
 	 //DragAcceptFiles(hwndEdit, TRUE);
 
 	 hwndButton1 = CreateWindow (
-	    "BUTTON",                  /* See RegisterClass() call.          */
-	    "Write File",                   /* Text for window title bar.         */
+	    TEXT("BUTTON"),                  /* See RegisterClass() call.          */
+	    TEXT("Write File"),                   /* Text for window title bar.         */
 	    WS_CHILD |WS_VISIBLE | BS_PUSHBUTTON,   /* Window style.                      */
 	    0L,                        /* Default horizontal position.       */
 	    0L,                        /* Default vertical position.         */
@@ -835,8 +837,8 @@ BOOL  InitWindows(HWND hWnd)
 	    NULL);
 
 	hwndButton2 = CreateWindow (
-	    "BUTTON",                  /* See RegisterClass() call.          */
-	    "Pause",                   /* Text for window title bar.         */
+	    TEXT("BUTTON"),                  /* See RegisterClass() call.          */
+	    TEXT("Pause"),                   /* Text for window title bar.         */
 	    WS_CHILD |WS_VISIBLE | BS_PUSHBUTTON,   /* Window style.                      */
 	    75L,                       /* Default horizontal position.       */
 	    0L,                        /* Default vertical position.         */
@@ -848,8 +850,8 @@ BOOL  InitWindows(HWND hWnd)
 	    NULL);
 
 	hwndButton3 = CreateWindow (
-	    "BUTTON",                  /* See RegisterClass() call.          */
-	    "Stop",                    /* Text for window title bar.         */
+	    TEXT("BUTTON"),                  /* See RegisterClass() call.          */
+	    TEXT("Stop"),                    /* Text for window title bar.         */
 	    WS_CHILD |WS_VISIBLE | BS_PUSHBUTTON,   /* Window style.                      */
 	    150L,                      /* Default horizontal position.       */
 	    0L,                        /* Default vertical position.         */
@@ -861,8 +863,8 @@ BOOL  InitWindows(HWND hWnd)
 	    NULL);
 
 	hwndSliderRate = CreateWindow (
-	    "SCROLLBAR",               /* See RegisterClass() call.          */
-	    "",                        /* Text for window title bar.         */
+	    TEXT("SCROLLBAR"),               /* See RegisterClass() call.          */
+	    TEXT(""),                        /* Text for window title bar.         */
 	    WS_CHILD |WS_VISIBLE | SBS_HORZ ,       /* Window style.                      */
 	    230L,                      /* Default horizontal position.       */
 	    0L,                        /* Default vertical position.         */
@@ -874,8 +876,8 @@ BOOL  InitWindows(HWND hWnd)
 	    NULL);
 
 	hwndStaticRate = CreateWindow (
-	    "STATIC",                  /* See RegisterClass() call.          */
-	    "Rate 180 WPM",            /* Text for window title bar.         */
+	    TEXT("STATIC"),                  /* See RegisterClass() call.          */
+	    TEXT("Rate 180 WPM"),            /* Text for window title bar.         */
 	    WS_CHILD |WS_VISIBLE |WS_BORDER
 	    | SS_CENTER  ,             /* Window style.                      */
 	    431L,                      /* Default horizontal position.       */
@@ -961,7 +963,7 @@ static  CHAR szText[12] ="\0";
 	     break;
 	    }
 	     SetScrollPos(hwndSliderRate, SB_CTL, wSpos , TRUE)  ; // Set Slider Control position
-	     wsprintf(szText,"Rate %d WPM" ,wSpos );
+	     wsprintf(szText, TEXT("Rate %d WPM"), wSpos );
 	     SetWindowText(hwndStaticRate,szText );   // Display Rate in Static control
 	     return (wSpos);
 }
@@ -1092,10 +1094,10 @@ BOOL OpenNewFile( HWND hWnd)
    OpenFileName.lpstrFileTitle    = szFileTitle;
    OpenFileName.nMaxFileTitle     = sizeof(szFileTitle);
    OpenFileName.lpstrInitialDir   = NULL;
-   OpenFileName.lpstrTitle        = "Open a File";
+   OpenFileName.lpstrTitle        = TEXT("Open a File");
    OpenFileName.nFileOffset       = 0;
    OpenFileName.nFileExtension    = 0;
-   OpenFileName.lpstrDefExt       = "*.txt";
+   OpenFileName.lpstrDefExt       = TEXT("*.txt");
    OpenFileName.lCustData         = 0;
    OpenFileName.Flags =  OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
 
@@ -1140,7 +1142,7 @@ BOOL RdFileToBuf( LPTSTR lpszFile, HWND hWnd )
       hFile = OpenFile(lpszFile, &OfStruct, OF_READ );
       if (hFile == -1)
       {
-	 MessageBox( hWnd, "File open failed.", NULL, MB_OK );
+	 MessageBox( hWnd, TEXT("File open failed."), NULL, MB_OK );
 	 return FALSE;
       }
       else
@@ -1148,7 +1150,7 @@ BOOL RdFileToBuf( LPTSTR lpszFile, HWND hWnd )
       cBufLen = _lread( hFile, FileBuf, FILE_LEN );
       if (cBufLen == -1)
       {
-	 MessageBox( hWnd, "Zero bytes read.", NULL, MB_OK );
+	 MessageBox( hWnd, TEXT("Zero bytes read."), NULL, MB_OK );
 	 return FALSE;
       }
       else
@@ -1261,7 +1263,7 @@ BOOL ProcessClientEvents( HWND hWnd, LPTTS_HANDLE_T phTTS, LPTTS_BUFFER_T * lpSp
   if ( pFile == NULL )
   {
     {
-      MessageBox( hWnd, "Error opening file, program exiting.", NULL, MB_ICONSTOP | MB_OK );
+      MessageBox( hWnd, TEXT("Error opening file, program exiting."), NULL, MB_ICONSTOP | MB_OK );
       return FALSE;
     }
   }
@@ -1278,7 +1280,7 @@ BOOL ProcessClientEvents( HWND hWnd, LPTTS_HANDLE_T phTTS, LPTTS_BUFFER_T * lpSp
 
       if( status )
       {
-	MessageBox( hWnd, "Error with Speak, program exiting.", NULL, MB_ICONSTOP | MB_OK );
+	MessageBox( hWnd, TEXT("Error with Speak, program exiting."), NULL, MB_ICONSTOP | MB_OK );
 	return FALSE;
       }
     }

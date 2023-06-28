@@ -1452,10 +1452,14 @@ typedef struct tagLLFrame {
 	      // never sets TYPING_MODE, and if it does then this won't
 	      // even compile. Oh, heck. Just to be sure, conditionalize
 	      // the really important stuff on OLEDECTALK too.
+
+#ifndef SINGLE_THREADED
 #ifdef OLEDECTALK
 	      if (phTTS->wTypingFrameCount == MIN_TYPING_FRAMES)
 		OP_SetThreadPriority((phTTS->hThread_PH),OP_PRIORITY_NORMAL);
 #else // OLEDECTALK
+#endif
+
 	      if (phTTS->dwOutputState != STATE_OUTPUT_AUDIO)
 		  {
 #ifndef SINGLE_THREADED

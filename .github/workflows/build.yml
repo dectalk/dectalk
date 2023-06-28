@@ -1,12 +1,8 @@
 name: Build DECtalk
 
 on:
-  push:
-    branches:
-      - develop
-  pull_request:
-    branches:
-      - develop
+  - push
+  - pull_request
 
 jobs:
   ubuntu:
@@ -36,7 +32,7 @@ jobs:
         run: make
 
       - name: Create a `.tar.gz` of the dist/ folder.
-        run: tar -cvzf dectalk.tar.gz -C dist/ .
+        run: tar -cvzf ubuntu-latest.tar.gz -C dist/ .
 
       - name: Create artifacts (.zip)
         uses: actions/upload-artifact@v3
@@ -48,9 +44,16 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ubuntu-latest-tar
-          path: dectalk.tar.gz
+          path: ubuntu-latest.tar.gz
 
-          ubuntu:
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: |
+            ubuntu-latest.zip
+            ubuntu-latest.tar.gz
 
   macosx:
     name: Mac OS X
@@ -79,7 +82,7 @@ jobs:
         run: make
 
       - name: Create a `.tar.gz` of the dist/ folder.
-        run: tar -cvzf dectalk.tar.gz -C dist/ .
+        run: tar -cvzf macos-latest.tar.gz -C dist/ .
 
       - name: Create artifacts (.zip)
         uses: actions/upload-artifact@v3
@@ -91,7 +94,16 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-latest-tar
-          path: dectalk.tar.gz
+          path: macos-latest.tar.gz
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: |
+            macos-latest.zip
+            macos-latest.tar.gz
 
   vs6-server2022:
     name: Visual Studio 6
@@ -109,19 +121,145 @@ jobs:
         shell: cmd
         run: devops\vs6\dt_copyfiles.bat
 
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/
+          dest: vs6-ia32.zip
+
       - name: Create artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: vs6
-          path: dist/
+          name: vs6-ia32-zip
+          path: vs6-ia32.zip
 
-  vs2022:
-    name: Visual Studio 2022 (IA32 and AMD64)
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: |
+            vs6-ia32.zip
+
+  cmake-ubuntu:
+    name: Ubuntu (cmake, latest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Update Ubuntu Packages
+        run: sudo apt-get update
+
+      - name: Install dependencies
+        run: sudo apt-get -y install build-essential libpulse-dev libgtk2.0-dev unzip autoconf automake
+
+      - name: Run CMake
+        run: |
+          mkdir build
+          cd build
+          cmake ..
+
+      - name: Make DECtalk
+        working-directory: build
+        run: make
+
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/bin/
+          dest: ubuntu-cmake-latest.zip
+
+      - name: Create a `.tar.gz` of the build/bin/ folder.
+        run: tar -cvzf ubuntu-cmake-latest.tar.gz -C build/bin/ .
+
+      - name: Create artifacts (.zip)
+        uses: actions/upload-artifact@v3
+        with:
+          name: ubuntu-cmake-latest-zip
+          path: ubuntu-cmake-latest.zip
+
+      - name: Create artifacts (.tar.gz.zip)
+        uses: actions/upload-artifact@v3
+        with:
+          name: ubuntu-cmake-latest-tar
+          path: ubuntu-cmake-latest.tar.gz
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: |
+            ubuntu-cmake-latest.zip
+            ubuntu-cmake-latest.tar.gz
+
+  # cmake-macosx:
+  #   name: Mac OS X (cmake)
+  #   runs-on: macos-11
+
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v3
+
+  #     - name: Update Mac OS X packages
+  #       run: brew update
+
+  #     - name: Install dependencies
+  #       run: brew install libtool portaudio
+
+  #     - name: Run CMake
+  #       run: |
+  #         mkdir build
+  #         cd build
+  #         cmake ..
+
+  #     - name: Make DECtalk
+  #       working-directory: build
+  #       run: make
+
+  #     - uses: vimtor/action-zip@v1
+  #       with:
+  #         files: build/bin/
+  #         dest: macos-universal.zip
+
+  #     - name: Create a `.tar.gz` of the build/bin/ folder.
+  #       run: tar -cvzf macos-universal.tar.gz -C build/bin/ .
+
+  #     - name: Create artifacts (.zip)
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: macos-universal-zip
+  #         path: macos-universal.zip
+
+  #     - name: Create artifacts (.tar.gz.zip)
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: macos-universal-tar
+  #         path: macos-universal.tar.gz
+
+  #     - name: Release
+  #       uses: softprops/action-gh-release@v1
+  #       if: startsWith(github.ref, 'refs/tags/')
+  #       with:
+  #         draft: true
+  #         files: |
+  #           macos-universal.zip
+  #           macos-universal.tar.gz
+
+  cmake-vs2022:
+    name: Visual Studio 2022 (cmake)
     runs-on: windows-2022
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Run CMake
+        shell: cmd
+        run: |
+          mkdir build
+          cd build
+          cmake ..
 
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
@@ -130,12 +268,74 @@ jobs:
         shell: cmd
         run: devops\vs2022\dt_buildall.bat
 
-      - name: Copy files to the "/dist" folder
-        shell: cmd
-        run: devops\vs2022\dt_copyfiles.bat
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/bin/
+          dest: windows-amd64.zip
 
       - name: Create artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: vs2022
-          path: dist/
+          name: windows-amd64-zip
+          path: windows-amd64.zip
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: |
+            windows-amd64.zip
+
+  cmake-web:
+    name: Emscripten (cmake)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - uses: mymindstorm/setup-emsdk@v11
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Run CMake
+        run: |
+          mkdir build
+          cd build
+          emcmake cmake ..
+
+      - name: Make DECtalk
+        working-directory: build
+        run: cmake --build .
+
+      - uses: vimtor/action-zip@v1
+        with:
+          files: build/bin/
+          dest: emscripten-latest.zip
+
+      - name: Create a `.tar.gz` of the build/bin/ folder.
+        run: tar -cvzf emscripten-latest.tar.gz -C build/bin/ .
+
+      - name: Create artifacts (.zip)
+        uses: actions/upload-artifact@v3
+        with:
+          name: emscripten-latest-zip
+          path: emscripten-latest.zip
+
+      - name: Create artifacts (.tar.gz.zip)
+        uses: actions/upload-artifact@v3
+        with:
+          name: emscripten-latest-tar
+          path: emscripten-latest.tar.gz
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: true
+          files: |
+            emscripten-latest.zip
+            emscripten-latest.tar.gz

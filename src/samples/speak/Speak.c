@@ -174,7 +174,7 @@
 
 #define	SPEAK_RATE	200
 
-//#define  WAVE_FORMAT_08M08  WAVE_FORMAT_MULAW
+#define  WAVE_FORMAT_08M08  WAVE_FORMAT_MULAW
 
 #define RATE_MAX 600
 #define RATE_MIN 50
@@ -296,9 +296,9 @@ char *gl_emailfile = "EMail.txt";
 #endif	// DEMO
 
 #ifdef DEMO
-char *szAppName = TEXT("DTdemo");
+LPCWSTR *szAppName = TEXT("DECtalk Speech Demo");
 #else
-char *szAppName = TEXT("Speak");
+LPCWSTR *szAppName = TEXT("DECtalk Speech Window");
 #endif
 
 /**********************************************************************/
