@@ -115,7 +115,7 @@
 
 #ifdef USE_ALSA
 #define ALSA_DEVICE "default"
-#define LATENCYMS       100
+#define LATENCYMS       200
 #endif
 
 #define AUDIO_DEV_TAG "AUDIODEV:"
