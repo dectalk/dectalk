@@ -43,7 +43,7 @@
 /**********************************************************************/
 
 #ifndef SAPI5DECTALK
-#ifdef __arm__
+#ifdef __arm__OLD
 #define  MAXIMUM_BUFFERS_QUEUED  3
 #else
 #ifdef SMARTMEDIA

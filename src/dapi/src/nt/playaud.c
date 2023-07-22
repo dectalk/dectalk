@@ -293,7 +293,7 @@ typedef  unsigned int  SENDRET_T;
 #else
 #define  STARTUP_BUFFER_SECONDS	        0.5 
 #endif
-#elif defined __arm__
+#elif defined __arm__OLD
 #ifdef __ipaq__
 #define  STARTUP_BUFFER_SECONDS         0.5
 #else
@@ -319,7 +319,7 @@ typedef  unsigned int  SENDRET_T;
            ( MAXIMUM_WRITE_LENGTH * ( MAXIMUM_BUFFERS_QUEUED + 1 ))
 #endif
 #endif
-#ifdef __arm__
+#ifdef __arm__OLD
 #ifdef __ipaq__
 #define  MINIMUM_STARTUP_WRITE_SIZE     3072
 #else //__ipaq__
@@ -4931,7 +4931,7 @@ static ATYPE_T Process_MM_WOM_DONE_Message( HPLAY_AUDIO_T pPlayAudio,
 
   uiOldWriteLength = (unsigned int)pWaveHdr->dwUser;
 
-#ifdef __arm__
+#ifdef __arm__OLD
 #ifndef __ipaq__
   if( pPlayAudio->bPipesNotEmpty )
     {
@@ -4947,7 +4947,7 @@ static ATYPE_T Process_MM_WOM_DONE_Message( HPLAY_AUDIO_T pPlayAudio,
       OP_SetThreadPriority( pShm_t->hGlobalPlayAudioThread, OP_PRIORITY_HIGHEST );
     }
 #endif //__ipaq__
-#endif //__arm__
+#endif //__arm__OLD
 
   /********************************************************************/
   /*  Unprepare the old header.                                       */

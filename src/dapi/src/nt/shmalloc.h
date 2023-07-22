@@ -9,7 +9,7 @@
   #endif
 #endif
 #include <stdio.h>
-#ifdef __arm__
+#ifdef __arm__OLD
 #define _MIT_POSIX_THREADS 1
 #endif
 #if defined (__osf__) || defined (__linux__) || defined VXWORKS || defined _SPARC_SOLARIS_ || defined (__APPLE__)
