@@ -1,6 +1,6 @@
 # DECtalk
 
-These files were shared by their original developer [late Edward Bruckert](https://bluegrasspals.com/pipermail/dectalk/2020-June/005253.html) on the DECtalk list in [Oct](https://bluegrasspals.com/pipermail/dectalk/2015-October/004517.html)/[Nov](https://bluegrasspals.com/pipermail/dectalk/2015-November/004535.html) 2015 and preserved on a HTTP server on [datajake.braillescreen.net](http://datajake.braillescreen.net/tts/DECtalk%20source%20code%20archive/Ad%202.zip). Another developer also added more code in 09/2022 which is also preserved in the [same location](http://datajake.braillescreen.net/tts/DECtalk%20source%20code%20archive/).
+These files were shared by their original developer [late Edward Bruckert](https://bluegrasspals.com/pipermail/dectalk/2020-June/005253.html) on the DECtalk list in [Oct](https://bluegrasspals.com/pipermail/dectalk/2015-October/004517.html)/[Nov](https://bluegrasspals.com/pipermail/dectalk/2015-November/004535.html) 2015 and preserved on a HTTP server on [datajake.braillescreen.net](https://datajake.braillescreen.net/tts/DECtalk%20source%20code%20archive/Ad%202.zip). Another developer also added more code in 09/2022 which is also preserved in the [same location](https://datajake.braillescreen.net/tts/DECtalk%20source%20code%20archive/).
 
 Try it out with our WASM builds: https://webspeak.terminal.ink/
 
@@ -34,6 +34,8 @@ apt-get install build-essential libasound2-dev libpulse-dev libgtk2.0-dev unzip 
 
 ```sh
 # Run all these commands in the /src directory...
+cd src
+
 # Generates configure files
 autoreconf -si
 
