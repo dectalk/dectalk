@@ -5,7 +5,7 @@ UINT16 waveOutGetNumDevs()
   return MMSYSERR_NOTSUPPORTED;
 }
 
-UINT32 waveOutGetDevCaps(UINT32 uDeviceID, LPWAVEOUTCAPS lpCaps,
+UINT32 waveOutGetDevCaps(UINT16 uDeviceID, LPWAVEOUTCAPS lpCaps,
                          UINT32 uSize)
 {
   return MMSYSERR_NOTSUPPORTED;
@@ -95,7 +95,7 @@ UINT32 waveOutGetID(HWAVEOUT hWaveOut, UINT32 *lpuDeviceID)
   return MMSYSERR_NOTSUPPORTED;
 }
 
-DWORD OSS_wodMessage(UINT16 wDevID, UINT wMsg, unsigned long dwUser,
+DWORD OSS_wodMessage(void *WOutDev, UINT wMsg, unsigned long dwUser,
                      unsigned long dwParam1, unsigned long dwParam2)
 {
   return MMSYSERR_NOTSUPPORTED;
