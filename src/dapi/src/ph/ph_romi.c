@@ -62,6 +62,8 @@
 #include "p_us_rom_1996.c"
 #elif defined(VOICE_ROM_DTC_03_03JAN89)
 #include "p_us_rom_dtc_03_03Jan89.c"
+#elif defined(VOICE_ROM_DECTALK_41)
+#include "p_us_rom_dectalk41.c"
 #elif defined(VOICE_ROM_DECTALK_43)
 #include "p_us_rom_dectalk43.c"
 #elif defined(VOICE_ROM_DECTALK_1996M_43F)

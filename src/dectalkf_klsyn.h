@@ -284,16 +284,18 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 // VOICE_ROM_DTC_03_03JAN89 -> voice rom from DTC-03, 03 Jan 1989
 // VOICE_ROM_1997 -> voice rom from around 1997, probably 4.60
 // VOICE_ROM_1996 -> voice rom from around 1996, unknown version
+// VOICE_ROM_DECTALK_41 -> voice rom from dectalk 4.1
 // VOICE_ROM_DECTALK_43 -> voice rom from dectalk 4.3
 // VOICE_ROM_DECTALK_1996M_43F -> 1996 rom for male and 4.3 for female voices
 //#define VOICE_ROM_BETA5
 //#define VOICE_ROM_DTC_03_03JAN89
 //#define VOICE_ROM_1997
 //#define VOICE_ROM_1996
+//#define VOICE_ROM_DECTALK_41
 //#define VOICE_ROM_DECTALK_43
 #define VOICE_ROM_DECTALK_1996M_43F
 
-#if defined(VOICE_ROM_1997) || defined(VOICE_ROM_1996) || defined(VOICE_ROM_DECTALK_43) || defined(VOICE_ROM_DECTALK_1996M_43F) || defined(VOICE_ROM_DTC_03_03JAN89)
+#if defined(VOICE_ROM_1997) || defined(VOICE_ROM_1996) || defined(VOICE_ROM_DECTALK_41) || defined(VOICE_ROM_DECTALK_43) || defined(VOICE_ROM_DECTALK_1996M_43F) || defined(VOICE_ROM_DTC_03_03JAN89)
 // Decrease /s, z/ amplification in VOICE_ROM_1996/7
 #define DEC_SZ 3
 
