@@ -269,12 +269,14 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 // VDF_DECTALKEXPRESS_43 -> DECtalk Express 4.3aax01 (from dtexp42c.exe?!)
 // VDF_DECTALK_44 -> DECtalk speak window 4.4
 // VDF_DECTALK_43 -> DECtalk speak window 4.3 (exactly the same as DEC ALPHA 4.2)
+// VDF_DECTALK_41 -> DECtalk speak window 4.1 (from 4.1 dtdemo.exe)
 //#define VDF_BETA5
 //#define VDF_DTC_03_03JAN89
 //#define VDF_DECTALKEXPRESS_42
 //#define VDF_DECTALKEXPRESS_42CD
 //#define VDF_DECTALKEXPRESS_43
 //#define VDF_DECTALK_44
+//#define VDF_DECTALK_41
 #define VDF_DECTALK_43
 
 // Which voice rom to use

@@ -75,6 +75,8 @@
 #include "p_us_vdf_dectalkexpress_42cd.c"
 #elif defined(VDF_DECTALKEXPRESS_43)
 #include "p_us_vdf_dectalkexpress_43.c"
+#elif defined (VDF_DECTALK_41)
+#include "p_us_vdf_dectalk41.c"
 #elif defined (VDF_DECTALK_43)
 #include "p_us_vdf_dectalk43.c"
 #elif defined (VDF_DECTALK_44)
