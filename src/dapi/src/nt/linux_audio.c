@@ -1873,11 +1873,11 @@ static DWORD wodOpen(UINT16 wDevID, LPWAVEOPENDESC lpDesc, DWORD dwFlags)
 #ifdef USE_ALSA
     if (wwo->currentOutputType == AUDIO_OUTPUT_NONE) {
       int err;
-  const char *a_device = getenv("ALSA_DEFAULT");
-  if (a_device == NULL) {
-    a_device = "default";
-  }
-  fprintf(stderr, "Device:%s\n", a_device);
+      const char *a_device = getenv("ALSA_DEFAULT");
+      if (a_device == NULL) {
+        a_device = ALSA_DEVICE;
+      }
+      TRACE("Device:%s\n", a_device);
       if ((err = snd_pcm_open(&wwo->alsa_handle, a_device, SND_PCM_STREAM_PLAYBACK, 0)) == 0) {
         snd_pcm_format_t alsa_format;
         if (lpDesc->lpFormat->wBitsPerSample == 8) {
