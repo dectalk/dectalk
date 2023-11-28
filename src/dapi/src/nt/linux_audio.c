@@ -115,7 +115,7 @@
 
 #ifdef USE_ALSA
 #define ALSA_DEVICE "default"
-#define LATENCYMS       200
+#define LATENCYMS       100
 #endif
 
 #define AUDIO_DEV_TAG "AUDIODEV:"
@@ -1211,9 +1211,9 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
         buffer_size *= wwo->alsa_framesize;
         period_size *= wwo->alsa_framesize;
         available *= wwo->alsa_framesize;
-        info.fragments = available / period_size;
+        info.fragments = (available + period_size - 1) / period_size;
         info.fragsize = period_size;
-        info.fragstotal = buffer_size / period_size;
+        info.fragstotal = (buffer_size + period_size - 1) / period_size;
         info.bytes = available;
       } else {
         snd_pcm_recover(wwo->alsa_handle, err, 1);
