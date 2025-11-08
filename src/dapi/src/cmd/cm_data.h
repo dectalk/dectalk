@@ -75,6 +75,7 @@
  typedef struct ICOMM_TAG   
  {
 	char cmd[60];
+	short seen; /* loop detect */
 		
  }ICOMM_T,*PICOMM_T;
 

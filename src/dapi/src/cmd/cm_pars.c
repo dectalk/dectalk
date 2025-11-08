@@ -1747,12 +1747,21 @@ void cm_pars_new_state(PCMD_T pCmd_t, int state)
  */
 int cm_pars_icommand(PCMD_T pCmd_t)
 {
+  /* Loop detect */
+  if ((pCmd_t->setv[pCmd_t->cmd_number].seen >= 10) && (pCmd_t->cmd_count == 0)) {
+    pCmd_t->setv[pCmd_t->cmd_number].seen = 0;
+    pCmd_t->insertflag=0;
+    return(1);
+  } else if (pCmd_t->cmd_count == 0) {
+    pCmd_t->setv[pCmd_t->cmd_number].seen++;
+  }
   if (pCmd_t->setv[pCmd_t->cmd_number].cmd[pCmd_t->cmd_count] == 0)
     {   
       /* 
        * insertflag is set to 1 to signal cm_pars_loop() to call this function.
        * Reset to 0 to signal that internal command string is finished being processed.
        */
+      pCmd_t->setv[pCmd_t->cmd_number].seen = 0;
       pCmd_t->insertflag=0;
       return(1);
     }
