@@ -158,6 +158,7 @@ void cm_util_initialize(LPTTS_HANDLE_T phTTS)
 	for (i=0; i<10;i++)
 	{
 		pCmd_t->setv[i].cmd[0] = '\0'; 
+		pCmd_t->setv[i].seen = 0;
 	}
 	 
 	/* Initialize pCmd_t->param[] */
