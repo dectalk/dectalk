@@ -1446,6 +1446,11 @@ int cm_cmd_loadv(LPTTS_HANDLE_T phTTS)
    int j=0;
    int flag=1;
    //short cmd_number = pCmd_t->params[0];  /* MVP MI new */
+
+   // loadv can't be called from setv
+   if (pCmd_t->insertflag) {
+	   return(CMD_bad_param);
+   }
    
    if((pCmd_t->params[0]) < 0 || pCmd_t->params[0] > 9)
 		return(CMD_bad_value);
@@ -1464,6 +1469,10 @@ int cm_cmd_loadv(LPTTS_HANDLE_T phTTS)
 	  if (temp[j] == ']')
 		flag = 0;
 	  j++;
+
+	  if (j >= sizeof(temp) - 1) { //trailing \0
+		  return(CMD_bad_param);
+	  }
    }
    temp[j] = '\0';
    strcpy(pCmd_t->setv[pCmd_t->cmd_number].cmd,temp); 
