@@ -1345,6 +1345,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 	if (wwo->dwLastFragDone /* + guard time ?? */ < tc) {
           wwo->server_startticks = 0;
           wwo->server_startticks = GetTickCount(wwo);
+          wwo->qwFragBytes = 0;
 	}
 	wwo->qwFragBytes += toWrite;
 	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / wwo->format.wf.nAvgBytesPerSec;
@@ -1437,6 +1438,7 @@ static	BOOL	wodPlayer_WriteFragments(WINE_WAVEOUT* wwo)
 	if (wwo->dwLastFragDone /* + guard time ?? */ < tc) {
           wwo->server_startticks = 0;
           wwo->server_startticks = GetTickCount(wwo);
+          wwo->qwFragBytes = 0;        
 	}
 	wwo->qwFragBytes += wwo->dwRemain;
 	wwo->dwLastFragDone = (wwo->qwFragBytes * 1000) / wwo->format.wf.nAvgBytesPerSec;
