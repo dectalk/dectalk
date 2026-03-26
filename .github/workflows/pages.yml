@@ -1,42 +1,35 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Build and Deploy
 
 on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["develop"]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow one concurrent deployment
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+  push:
+    paths:
+      - src/docsosf/html/**
 
 jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/checkout@master
+      - name: Checkout
+        uses: actions/checkout@master
         with:
-          # Upload entire repository
-          path: './src/docsosf/html'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          repository: dectalk/dectalk-de
+          path: dist
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Build website
+        run: |
+          cp -R src/docsosf/html dist/manual
+          cp dist/manual/dectalk.htm dist/manual/index.htm
+          cd dist/
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add . && git diff --staged --quiet || git commit -am "${{ github.event.repository.name }} / ${{ github.event.head_commit.message }}"
+      - name: Commit & Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          directory: dist
+          repository: dectalk/dectalk-de
+          github_token: ${{ secrets.DEPLOY_TOKEN }}
