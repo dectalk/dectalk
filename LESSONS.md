@@ -124,3 +124,23 @@ Modernization needs to preserve each build path until a replacement has proven p
 #### Follow-up
 
 Document source membership and artifact differences between Unix, VS6, and VS2022 builds.
+
+---
+
+### 2026-05-15 - Unix make can ignore missing sample artifacts
+
+#### Context
+
+Recording the first local Unix baseline capture in `baseline-runs/unix-001/`.
+
+#### Lesson
+
+The captured `make` step exited 0, but `make.log` included ignored install errors for missing `gspeak` and `windic` sample artifacts.
+
+#### Impact
+
+Baseline review must inspect logs and output manifests, not just final exit codes.
+
+#### Follow-up
+
+Capture a dist manifest for the same build output and decide whether the missing sample artifacts are expected for this environment.
