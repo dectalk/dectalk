@@ -87,6 +87,42 @@ It uses available inspection tools where practical:
 If one artifact cannot be inspected, the script records that failure in the
 summary and continues with the remaining artifacts.
 
+### `capture_unix_build.sh`
+
+Usage:
+
+```sh
+tools/baseline/capture_unix_build.sh OUT_DIR
+```
+
+Writes:
+
+- `OUT_DIR/autoreconf.log`
+- `OUT_DIR/configure.log`
+- `OUT_DIR/make.log`
+- `OUT_DIR/build-status.txt`
+- `OUT_DIR/git/` when `capture_git_state.sh` is executable
+- `OUT_DIR/warnings-summary.md` when Python 3 and `summarize_warnings.py` are
+  available
+
+This captures the existing Unix build flow from `src/`:
+
+```sh
+autoreconf -i
+./configure
+make
+```
+
+The script records each step's exit code. If `autoreconf -i` fails, it skips
+`./configure` and `make`. If `./configure` fails, it skips `make`. Warning
+summary generation is best-effort and does not determine the build capture exit
+code.
+
+This helper does not run audio tools or claim behavior preservation. It is meant
+to capture logs from the existing Unix build path for later review. Because the
+existing Unix flow generates files under `src/`, run it from a checkout where
+generated Autotools and build outputs are acceptable, or from a disposable copy.
+
 ## Limitations
 
 - These scripts are POSIX shell scripts and use `set -eu`.
@@ -101,6 +137,9 @@ summary and continues with the remaining artifacts.
 - The scripts do not require DECtalk to have built successfully, except that
   `capture_dist_manifest.sh` and `capture_symbols.sh` need existing directories
   containing the artifacts you want to inspect.
+- `capture_unix_build.sh` runs the existing Autotools/Make flow and therefore
+  requires the usual Unix build tools such as `autoreconf`, `./configure`
+  support files, `make`, a C compiler, and platform libraries.
 
 ## Example
 
@@ -109,6 +148,7 @@ mkdir -p baseline-out
 tools/baseline/capture_git_state.sh baseline-out/git
 tools/baseline/capture_dist_manifest.sh dist baseline-out/dist
 tools/baseline/capture_symbols.sh dist baseline-out/symbols
+tools/baseline/capture_unix_build.sh baseline-out/unix-build
 ```
 
 Do not claim behavior preservation from these captures alone. They provide
