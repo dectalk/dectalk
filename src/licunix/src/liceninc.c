@@ -68,7 +68,12 @@ int main(void)
 			memset(line,0,999);
 			sprintf(decrypt,"%d",licenses);
 			encryptString(decrypt,LICENSE_KEY,encrypt);
-			sprintf(line,"licenses:%s\n",encrypt);
+			ret_value=snprintf(line,sizeof(line),"licenses:%s\n",encrypt);
+			if (ret_value < 0 || ret_value >= (int)sizeof(line))
+			{
+				fprintf(stderr,"cannot format the license key\n");
+				continue;
+			}
 		
 		}
 		fputs(line,config_file);
