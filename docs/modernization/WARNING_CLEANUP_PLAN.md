@@ -116,6 +116,29 @@ Status: completed and locally verified on 2026-05-15.
 This result is evidence for the targeted warning disappearing in the local Unix
 capture. It does not prove broad behavior preservation.
 
+## Round 2 Refreshed Baseline
+
+The refreshed local round-2 baseline is
+`baseline-runs/unix-cleanup-warning-round-2-001/`.
+
+The warning summary generated before the temporary-file category existed
+reported 3 warning-like lines, all under `uncategorized`. The corresponding
+`make.log` lines were linker diagnostics for `src/licunix/src/liceninc.c:44`:
+
+```text
+warning: the use of `tmpnam' is dangerous, better use `mkstemp'
+```
+
+These diagnostics should be categorized as `unsafe temporary file API` by the
+baseline warning summarizer. They are intentionally deferred from source cleanup
+because replacing `tmpnam`, `mktemp`, `tempnam`, or related temporary-file
+flows can alter file-creation behavior, permissions, collision handling, and
+cleanup paths.
+
+This means the refreshed round-2 baseline does not currently provide an
+eligible next source cleanup slice under the current constraints. Do not treat
+the `tmpnam` warning as fixed.
+
 ## Avoid Initially
 
 Do not touch these areas in the first warning cleanup PR:
