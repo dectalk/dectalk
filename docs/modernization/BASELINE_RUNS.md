@@ -73,6 +73,93 @@ code, and syntax/preprocessor.
 - `baseline-runs/` remains local generated output and should not be committed
   unless explicitly approved.
 
+## unix-after-liceninc-001
+
+- Capture date: 2026-05-15T10:50:40Z through 2026-05-15T10:50:43Z.
+- Local output directory inspected:
+  `baseline-runs/unix-after-liceninc-001/`.
+- Command used:
+  `tools/baseline/capture_unix_build.sh baseline-runs/unix-after-liceninc-001`.
+- Before baseline inspected: `baseline-runs/unix-001/`.
+- Source file changed for this cleanup: `src/licunix/src/liceninc.c`.
+- Warning targeted:
+  `liceninc.c:71:48: warning: '%s' directive writing up to 999 bytes into a region of size 991 [-Wformat-overflow=]`.
+- Cleanup shape: the `licenses:` line generation was changed from unbounded
+  `sprintf(line,"licenses:%s\n",encrypt)` to checked `snprintf` bounded by
+  `sizeof(line)`.
+- Git branch at capture: `cleanup`.
+- Captured git status showed the intended `src/licunix/src/liceninc.c` source
+  edit and untracked local `baseline-runs/` output.
+
+### Captured Steps
+
+| Step | Command | Exit Code | Log |
+| --- | --- | ---: | --- |
+| Git state | `tools/baseline/capture_git_state.sh baseline-runs/unix-after-liceninc-001/git` | 0 | `baseline-runs/unix-after-liceninc-001/git/` |
+| Autoreconf | `autoreconf -i` | 0 | `baseline-runs/unix-after-liceninc-001/autoreconf.log` |
+| Configure | `./configure` | 0 | `baseline-runs/unix-after-liceninc-001/configure.log` |
+| Make | `make` | 0 | `baseline-runs/unix-after-liceninc-001/make.log` |
+| Warning summary | `python3 tools/baseline/summarize_warnings.py ...` | 0 | `baseline-runs/unix-after-liceninc-001/warnings-summary.md` |
+
+The overall captured final exit code was 0.
+
+### Cleanup Result
+
+The before baseline `baseline-runs/unix-001/make.log` contained three
+`[-Wformat-overflow=]` warning lines for `liceninc.c:71`.
+
+The after baseline `baseline-runs/unix-after-liceninc-001/make.log` contained
+no `[-Wformat-overflow=]` or `liceninc.c:71` warnings. The target warning
+disappeared in this local capture.
+
+The remaining `liceninc.c` warning in the after capture was the existing
+`tmpnam` linker warning at `liceninc.c:44`. That warning was intentionally not
+addressed in this narrow cleanup.
+
+### Warning Count Notes
+
+| Capture | Total Warning-Like Lines | `integer conversion / truncation` | `uncategorized` |
+| --- | ---: | ---: | ---: |
+| `baseline-runs/unix-001/` | 1,837 | 3 | 23 |
+| `baseline-runs/unix-after-liceninc-001/` | 2 | 0 | 2 |
+
+The after `make.log` was much shorter than the original baseline log
+(`868` lines versus `9,203` lines), and appears to reflect an incremental
+rebuild. Treat the result as evidence that the targeted `liceninc.c`
+`[-Wformat-overflow=]` warning disappeared, not as proof of broad whole-repo
+warning reduction.
+
+### Verification Commands Used
+
+- `git diff -- src/licunix/src/liceninc.c`
+- `git diff --check`
+- `tools/baseline/capture_unix_build.sh baseline-runs/unix-after-liceninc-001`
+- inspection of `baseline-runs/unix-001/warnings-summary.md`
+- inspection of `baseline-runs/unix-001/make.log`
+- inspection of `baseline-runs/unix-after-liceninc-001/warnings-summary.md`
+- inspection of `baseline-runs/unix-after-liceninc-001/make.log`
+
+### Intentionally Not Changed
+
+- No synthesis, audio, threading, dictionary, public API, or build files were
+  changed.
+- `src/license/LICENINC/liceninc.c` was not changed.
+- The `tmpnam` warning in `src/licunix/src/liceninc.c` was not changed.
+- No broad warning cleanup was attempted.
+- No macros were removed or simplified.
+- `baseline-runs/` remains local generated output and should not be committed
+  unless explicitly approved.
+
+### Notable Limitations
+
+- This capture does not prove speech, API, dictionary, packaging, exported
+  symbol, or runtime behavior preservation.
+- No audio output capture or audio comparison was run after this source cleanup.
+- No exported symbol inventory, dictionary hashes, or dist manifest were
+  compared for this cleanup.
+- Because the after build appears incremental, warning totals are not directly
+  comparable to the original full baseline.
+
 ## audio-001
 
 - Capture date: 2026-05-15T10:11:24Z.

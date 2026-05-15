@@ -144,3 +144,23 @@ Baseline review must inspect logs and output manifests, not just final exit code
 #### Follow-up
 
 Capture a dist manifest for the same build output and decide whether the missing sample artifacts are expected for this environment.
+
+---
+
+### 2026-05-15 - Unix warning captures can be incremental
+
+#### Context
+
+Recording the first source warning cleanup result after changing `src/licunix/src/liceninc.c`.
+
+#### Lesson
+
+The after-cleanup Unix `make.log` was much shorter than the original baseline log because `make` reused existing outputs and rebuilt only affected pieces.
+
+#### Impact
+
+Targeted warnings can still be checked, but whole-repo warning totals are not directly comparable unless the build state is cleaned or otherwise controlled.
+
+#### Follow-up
+
+Use a clean rebuild when comparing whole-repo warning counts; otherwise compare the exact targeted warning lines before and after.

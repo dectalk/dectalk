@@ -2,11 +2,12 @@
 
 ## Purpose
 
-This is a planning document only. No source cleanup is being done yet.
+This document tracks small, low-risk warning cleanup plans and records focused
+cleanup results once they have local verification evidence.
 
-The goal is to choose a small, low-risk first warning cleanup category based on
-the local Unix warning baseline, while preserving DECtalk behavior and avoiding
-high-risk synthesis, dictionary, API, threading, and audio areas.
+The initial goal was to choose a small, low-risk first warning cleanup category
+based on the local Unix warning baseline, while preserving DECtalk behavior and
+avoiding high-risk synthesis, dictionary, API, threading, and audio areas.
 
 The warning evidence comes from `baseline-runs/unix-001/warnings-summary.md`,
 generated from the local Unix build logs. The summary is heuristic and counts
@@ -84,6 +85,36 @@ Why this is lower risk:
 Any cleanup still needs inspection before editing. If the two `liceninc.c`
 files differ meaningfully, avoid mechanical mirroring and document the
 difference before deciding whether both should change.
+
+## First Cleanup Result
+
+Status: completed and locally verified on 2026-05-15.
+
+- Source file changed: `src/licunix/src/liceninc.c`.
+- Warning targeted:
+  `liceninc.c:71:48: warning: '%s' directive writing up to 999 bytes into a region of size 991 [-Wformat-overflow=]`.
+- Before baseline inspected: `baseline-runs/unix-001/`.
+- After baseline inspected: `baseline-runs/unix-after-liceninc-001/`.
+- The cleanup changed only the `licenses:` line generation from unbounded
+  `sprintf(line,"licenses:%s\n",encrypt)` to checked `snprintf` bounded by
+  `sizeof(line)`.
+- `autoreconf`, `configure`, `make`, and warning summarization all exited 0 in
+  the after capture.
+- The three before-baseline `[-Wformat-overflow=]` warnings for `liceninc.c:71`
+  disappeared in the after capture.
+- The after warning summary reported 2 warning-like lines, both related to the
+  existing `tmpnam` linker warning at `liceninc.c:44`.
+- The after `make.log` appears incremental and is much shorter than the
+  original baseline log, so the warning-count drop should not be treated as
+  broad whole-repo warning cleanup.
+- This cleanup did not touch synthesis, audio, threading, dictionaries, public
+  API files, build files, macros, `src/license/LICENINC/liceninc.c`, or the
+  separate `tmpnam` warning.
+- `baseline-runs/` remains local generated output and should not be committed
+  unless explicitly approved.
+
+This result is evidence for the targeted warning disappearing in the local Unix
+capture. It does not prove broad behavior preservation.
 
 ## Avoid Initially
 
