@@ -225,6 +225,27 @@ Audio capture outputs are local baseline artifacts. Do not commit output under
 `baseline-runs/` or any other generated artifact directory unless explicitly
 approved.
 
+After capturing a second candidate audio baseline, compare it against an older
+capture with:
+
+```sh
+python3 tools/baseline/compare_audio_outputs.py \
+  --baseline OLD_CAPTURE_DIR \
+  --candidate NEW_CAPTURE_DIR \
+  --output REPORT.md
+```
+
+The comparison helper checks expected artifacts by name, compares file sizes and
+SHA-256 hashes using Python, and records WAV metadata differences when both
+files are valid WAV files. Exact byte-for-byte equality is the strongest local
+signal for same-platform repeatability. Metadata differences are still useful
+for diagnosis because they can show sample rate, sample width, channel count,
+frame count, or duration changes even before sample-level comparison exists.
+
+Do not treat a passing comparison report as a complete behavior-preservation
+proof. It is one baseline signal alongside build logs, warning summaries, dist
+manifests, dictionaries, exported symbols, and command output.
+
 ## Suggested Capture Matrix
 
 Start with the smallest useful matrix:

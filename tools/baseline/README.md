@@ -167,6 +167,48 @@ documents `-w` plus stdin. If a particular built `say` does not support
 `-fi`/`-fo`, the failure should be kept with the captured status and logs rather
 than silently treated as success.
 
+### `compare_audio_outputs.py`
+
+Usage:
+
+```sh
+python3 tools/baseline/compare_audio_outputs.py \
+  --baseline OLD_CAPTURE_DIR \
+  --candidate NEW_CAPTURE_DIR \
+  --output REPORT.md
+```
+
+Example:
+
+```sh
+python3 tools/baseline/compare_audio_outputs.py \
+  --baseline baseline-runs/audio-001 \
+  --candidate baseline-runs/audio-002 \
+  --output baseline-runs/audio-002/compare-audio-001.md
+```
+
+The script compares two directories produced by `capture_audio_outputs.sh`.
+Expected inputs are capture directories with `audio/` subdirectories containing
+the generated audio/file-output artifacts.
+
+It writes a Markdown report with:
+
+- compared directories
+- summary counts
+- exact match status
+- missing files
+- extra files
+- differing file sizes and SHA-256 hashes
+- WAV metadata comparison when files are valid WAV files
+- limitations
+
+Exit status is 0 only when all compared artifacts exist and match exactly by
+SHA-256. It exits nonzero if files are missing, extra, unreadable, or different.
+
+This helper uses only the Python 3 standard library. It does not require NumPy,
+SciPy, ffmpeg, audio playback, or live audio hardware. It does not compute RMS,
+peak, perceptual difference, or sample-level deltas.
+
 ## Limitations
 
 - These scripts are POSIX shell scripts and use `set -eu`.
@@ -187,6 +229,9 @@ than silently treated as success.
 - `capture_audio_outputs.sh` requires a previously built `say` executable and
   records file-output artifacts only. It does not compare audio, compute audio
   metrics, or prove behavior preservation.
+- `compare_audio_outputs.py` performs strict file-level comparison. Exact
+  equality is useful for same-platform repeatability checks, but cross-platform
+  captures may need later audio-aware tolerances.
 
 ## Example
 
