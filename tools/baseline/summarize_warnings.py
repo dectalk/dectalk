@@ -20,6 +20,7 @@ CATEGORIES = [
     "unused variable/function/parameter",
     "format string mismatch",
     "uninitialized variable",
+    "unsafe temporary file API",
     "deprecated declaration/API",
     "macro redefinition",
     "unreachable/dead code",
@@ -30,6 +31,15 @@ CATEGORIES = [
 
 
 CATEGORY_PATTERNS = [
+    (
+        "unsafe temporary file API",
+        [
+            r"\btmpnam\b",
+            r"\bmktemp\b",
+            r"\btempnam\b",
+            r"\bmkstemp\b",
+        ],
+    ),
     (
         "missing prototype / implicit declaration",
         [

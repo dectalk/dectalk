@@ -123,6 +123,27 @@ to capture logs from the existing Unix build path for later review. Because the
 existing Unix flow generates files under `src/`, run it from a checkout where
 generated Autotools and build outputs are acceptable, or from a disposable copy.
 
+### `summarize_warnings.py`
+
+Usage:
+
+```sh
+python3 tools/baseline/summarize_warnings.py --output OUT.md LOG1 [LOG2 ...]
+```
+
+Writes a Markdown warning inventory with total warning-like line counts,
+category counts, detected warning markers where available, and representative
+examples per category. The script uses only the Python 3 standard library and
+does not modify the input logs or source tree.
+
+Warning categories are heuristic and include compiler-agnostic groups for
+format strings, uninitialized variables, unused symbols, pointer/integer
+conversions, and unsafe temporary-file APIs. The `unsafe temporary file API`
+category catches diagnostics mentioning `tmpnam`, `mktemp`, `tempnam`, or
+guidance to use `mkstemp`. This category is for inventory only; it does not fix
+temporary-file behavior or imply that such behavior can be changed without a
+focused review.
+
 ### `capture_audio_outputs.sh`
 
 Usage:
