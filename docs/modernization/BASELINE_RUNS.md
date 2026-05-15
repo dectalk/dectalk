@@ -72,3 +72,67 @@ code, and syntax/preprocessor.
   the final exit code.
 - `baseline-runs/` remains local generated output and should not be committed
   unless explicitly approved.
+
+## audio-001
+
+- Capture date: 2026-05-15T10:11:24Z.
+- Local output directory inspected: `baseline-runs/audio-001/`.
+- Command used:
+  `tools/baseline/capture_audio_outputs.sh dist/say tests/golden/input baseline-runs/audio-001`.
+- `say` executable: `dist/say`.
+- Golden input directory: `tests/golden/input`.
+- Command template: `SAY_EXE -fi INPUT_FILE -fo OUT_WAV`.
+
+### Captured Inputs
+
+| Input | Exit Code | Result | Audio Output |
+| --- | ---: | --- | --- |
+| `tests/golden/input/basic.txt` | 0 | success | `baseline-runs/audio-001/audio/basic.wav` |
+| `tests/golden/input/commands.txt` | 0 | success | `baseline-runs/audio-001/audio/commands.wav` |
+| `tests/golden/input/languages.txt` | 0 | success | `baseline-runs/audio-001/audio/languages.wav` |
+| `tests/golden/input/numbers_dates.txt` | 0 | success | `baseline-runs/audio-001/audio/numbers_dates.wav` |
+
+### Captured Logs
+
+Stdout and stderr were captured under `baseline-runs/audio-001/logs/`.
+
+Observed log files:
+
+- `basic.stdout.txt` and `basic.stderr.txt`
+- `commands.stdout.txt` and `commands.stderr.txt`
+- `languages.stdout.txt` and `languages.stderr.txt`
+- `numbers_dates.stdout.txt` and `numbers_dates.stderr.txt`
+
+All observed stdout and stderr log files were empty in this capture.
+
+### Manifest And Hashes
+
+The run generated:
+
+- `baseline-runs/audio-001/audio-manifest.txt`
+- `baseline-runs/audio-001/audio-sha256.txt`
+
+`audio-sha256.txt` records SHA-256 hashes generated with `sha256sum`.
+
+Recorded audio output sizes:
+
+| Audio Output | Size |
+| --- | ---: |
+| `baseline-runs/audio-001/audio/basic.wav` | 742,136 bytes |
+| `baseline-runs/audio-001/audio/commands.wav` | 786,156 bytes |
+| `baseline-runs/audio-001/audio/languages.wav` | 859,570 bytes |
+| `baseline-runs/audio-001/audio/numbers_dates.wav` | 1,675,502 bytes |
+
+### Notable Limitations
+
+- This capture does not prove speech, API, dictionary, packaging, exported
+  symbol, or runtime behavior preservation.
+- No audio comparison was performed.
+- No audio metrics such as duration, sample count, sample rate, RMS, or peak
+  values were computed.
+- `languages.txt` was run as one input through the single `dist/say`
+  executable, not split by language-specific build or voice.
+- The capture uses the helper's `-fi`/`-fo` command shape; other `say` variants
+  may document different file-output options.
+- Audio outputs remain local generated artifacts. Do not commit
+  `baseline-runs/` unless explicitly approved.
