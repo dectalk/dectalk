@@ -136,3 +136,51 @@ Recorded audio output sizes:
   may document different file-output options.
 - Audio outputs remain local generated artifacts. Do not commit
   `baseline-runs/` unless explicitly approved.
+
+## audio-self-compare
+
+- Comparison date: 2026-05-15T10:24:13Z.
+- Local report file inspected: `baseline-runs/audio-self-compare.md`.
+- Command used:
+  `python3 tools/baseline/compare_audio_outputs.py --baseline baseline-runs/audio-001 --candidate baseline-runs/audio-001 --output baseline-runs/audio-self-compare.md`.
+- Baseline directory: `baseline-runs/audio-001`.
+- Candidate directory: `baseline-runs/audio-001`.
+- Result: `PASS`.
+
+### Smoke-Test Summary
+
+| Metric | Count |
+| --- | ---: |
+| Baseline artifacts | 4 |
+| Candidate artifacts | 4 |
+| Compared artifacts | 4 |
+| Exact matches | 4 |
+| Missing files | 0 |
+| Extra files | 0 |
+| Differing files | 0 |
+| Unreadable files | 0 |
+| WAV metadata differences | 0 |
+| WAV metadata errors | 0 |
+
+The report does not record the shell exit code directly. The comparison helper
+is documented to exit 0 only when all compared artifacts match exactly, and this
+self-compare report recorded `PASS`.
+
+### What This Proves
+
+- The comparison helper can read an existing `capture_audio_outputs.sh` output
+  directory.
+- The helper can compare the four captured audio artifacts by name.
+- The helper can compute exact file matches and parse WAV metadata for the
+  current `audio-001` files.
+- The helper can write a Markdown comparison report.
+
+### What This Does Not Prove
+
+- This self-compare does not prove speech, API, dictionary, packaging, exported
+  symbol, or runtime behavior preservation.
+- It does not compare two independent captures.
+- It does not validate cross-platform repeatability.
+- It does not compute RMS, peak, perceptual difference, or sample-level deltas.
+- `baseline-runs/` remains local generated output and should not be committed
+  unless explicitly approved.
