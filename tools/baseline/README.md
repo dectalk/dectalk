@@ -1,9 +1,9 @@
 # Baseline Capture Helpers
 
-These scripts capture read-only baseline metadata for DECtalk modernization.
-They are helpers only: they do not build DECtalk, run DECtalk binaries, generate
-audio, generate dictionaries, edit source files, edit build files, or prove that
-behavior has been preserved.
+These scripts capture baseline evidence for DECtalk modernization. They are
+helpers only: they do not build DECtalk unless explicitly documented for a
+specific helper, generate dictionaries, edit source files, edit build files, or
+prove that behavior has been preserved.
 
 Each script writes only under a caller-specified output directory. The scripts
 create that output directory if needed.
@@ -123,6 +123,50 @@ to capture logs from the existing Unix build path for later review. Because the
 existing Unix flow generates files under `src/`, run it from a checkout where
 generated Autotools and build outputs are acceptable, or from a disposable copy.
 
+### `capture_audio_outputs.sh`
+
+Usage:
+
+```sh
+tools/baseline/capture_audio_outputs.sh SAY_EXE INPUT_DIR OUT_DIR
+```
+
+Example:
+
+```sh
+tools/baseline/capture_audio_outputs.sh \
+  src/samplosf/build/speak/6.6.114.1-microsoft-standard-WSL2/say \
+  tests/golden/input \
+  baseline-runs/audio-001
+```
+
+Writes:
+
+- `OUT_DIR/audio/`
+- `OUT_DIR/logs/`
+- `OUT_DIR/commands.txt`
+- `OUT_DIR/capture-status.txt`
+- `OUT_DIR/audio-manifest.txt`
+- `OUT_DIR/audio-sha256.txt` when `sha256sum` or `shasum` is available
+
+The script runs a caller-supplied built `say` executable once per `*.txt` input
+file. It uses file output to avoid live audio hardware where practical:
+
+```sh
+SAY_EXE -fi INPUT_FILE -fo OUT_DIR/audio/BASENAME.wav
+```
+
+It captures stdout and stderr for each input, records the exact command used,
+records per-input success or failure, and continues through all inputs even if
+one input fails. It exits nonzero at the end if any input failed.
+
+This helper does not build DECtalk. It expects `SAY_EXE` to already exist and be
+executable. Command-line compatibility is still part of the baseline evidence:
+some checked-in `say` sources document `-fi`/`-fo`, while another sample
+documents `-w` plus stdin. If a particular built `say` does not support
+`-fi`/`-fo`, the failure should be kept with the captured status and logs rather
+than silently treated as success.
+
 ## Limitations
 
 - These scripts are POSIX shell scripts and use `set -eu`.
@@ -140,6 +184,9 @@ generated Autotools and build outputs are acceptable, or from a disposable copy.
 - `capture_unix_build.sh` runs the existing Autotools/Make flow and therefore
   requires the usual Unix build tools such as `autoreconf`, `./configure`
   support files, `make`, a C compiler, and platform libraries.
+- `capture_audio_outputs.sh` requires a previously built `say` executable and
+  records file-output artifacts only. It does not compare audio, compute audio
+  metrics, or prove behavior preservation.
 
 ## Example
 
@@ -149,6 +196,7 @@ tools/baseline/capture_git_state.sh baseline-out/git
 tools/baseline/capture_dist_manifest.sh dist baseline-out/dist
 tools/baseline/capture_symbols.sh dist baseline-out/symbols
 tools/baseline/capture_unix_build.sh baseline-out/unix-build
+tools/baseline/capture_audio_outputs.sh path/to/say tests/golden/input baseline-out/audio
 ```
 
 Do not claim behavior preservation from these captures alone. They provide

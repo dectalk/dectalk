@@ -199,6 +199,32 @@ Do not compare audio by hash alone across different platforms until the expected
 cross-platform stability is understood. Hashes are still useful within the same
 platform and build path.
 
+After a successful build capture, use the local helper to capture file-output
+audio artifacts from a built `say` executable:
+
+```sh
+tools/baseline/capture_audio_outputs.sh SAY_EXE tests/golden/input OUT_DIR
+```
+
+The helper writes audio/file-output artifacts, per-input stdout and stderr logs,
+the exact commands used, a status file, and a manifest with sizes and hashes
+when a SHA-256 tool is available. It does not run a build and does not require
+live audio hardware when the supplied `say` supports file output.
+
+The initial helper uses this command shape for each input:
+
+```sh
+SAY_EXE -fi INPUT_FILE -fo OUT_DIR/audio/BASENAME.wav
+```
+
+Some checked-in `say` sources document different file-output options, such as
+`-w` with stdin. Treat command-line compatibility as part of the baseline
+evidence and record any failures in the run notes.
+
+Audio capture outputs are local baseline artifacts. Do not commit output under
+`baseline-runs/` or any other generated artifact directory unless explicitly
+approved.
+
 ## Suggested Capture Matrix
 
 Start with the smallest useful matrix:
