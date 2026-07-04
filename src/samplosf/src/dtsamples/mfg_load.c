@@ -158,8 +158,7 @@ unsigned long myclock(void)
 }
 
 
-unsigned short int set_baud(baudrate)
-unsigned short int baudrate;
+unsigned short int set_baud(unsigned short int baudrate)
 {
 	struct termios tio;
 
@@ -218,8 +217,7 @@ unsigned short int baudrate;
 	return(0);
 }
 
-short int set_format(bitsper,parity,stop)
-unsigned char bitsper,parity,stop;
+short int set_format(unsigned char bitsper, unsigned char parity, unsigned char stop)
 {
 	struct termios tio;
 
