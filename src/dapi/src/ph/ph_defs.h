@@ -802,7 +802,7 @@ handled differently later */
 #define   F0_FINAL_FALL 180
 #define   F0_NON_FINAL_FALL  80
 #define	  F0_QSYLL_FALL	80
-#define   F0_GLOTTALIZE  -100
+#define   F0_GLOTTALIZE  -131 // was -100
 #define Reduce_last 50
 
 #endif
@@ -811,7 +811,7 @@ handled differently later */
 
 
 #define   F0_CBOUND_PULSE   700
-#define   F0_GLOTTALIZE    -60 //New method that drops per cycle rather than impulse BATS 796 EAB 11/4/98
+#define   F0_GLOTTALIZE    -100 // was -60
 #define SCHWA1 LAP_IX
 #define SCHWA2 LAP_IX
 #define F0_QGesture1 -150
@@ -849,7 +849,7 @@ handled differently later */
 
 
 #define   F0_CBOUND_PULSE   700
-#define   F0_GLOTTALIZE     -60 //New method that drops per cycle rather than impulse BATS 796 EAB 11/4/98
+#define   F0_GLOTTALIZE     -100 // was -60
 #define SCHWA1 SPP_IX
 #define SCHWA2 SPP_IX
 #define F0_QGesture1 -150
@@ -885,7 +885,7 @@ handled differently later */
 #define   F0_NON_FINAL_FALL  	150
 #define	  F0_COMMA_FALL		120
 #define	  F0_QSYLL_FALL		80
-#define   F0_GLOTTALIZE    -60 //New method that drops per cycle rather than impulse BATS 796 EAB 11/4/98
+#define   F0_GLOTTALIZE    -131 // was -60
 #define   Reduce_last 50
 
 #endif
