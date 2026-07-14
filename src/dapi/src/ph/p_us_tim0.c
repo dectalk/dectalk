@@ -762,7 +762,11 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 			/* WIH 11/27/95 Change prcnt = + 120 to prcnt += 80 */
 			/* put it back t0 =+ 120  EAB someone changed it back to absolute duration this is clearly
 			wrong as it blocks all previous rules 4/6/98*/
-			prcnt += 30;
+			/* Nov-1996 / Feb-1997 behaviour: absolute overwrite of prcnt.
+			 * Verified in dt-feb97.EXE (phtiming: "mov si, 78h" = 120) and
+			 * in dt-mar96.exe it was "add si, 50h" (prcnt += 80).
+			 */
+			prcnt = 120;
 			
 		}
 
