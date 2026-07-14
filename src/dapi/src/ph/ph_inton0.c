@@ -1349,10 +1349,6 @@ void phinton (LPTTS_HANDLE_T phTTS)
 	
 	pDph_t->delta_special=0;
 #endif                                                                      
-	pDphsettar->nrises_sofar = 0;
-	pDphsettar->hatsize = 0;
-	pDphsettar->hat_loc_re_baseline = 0;
-
 	/* Beginning of initialization */
 	inputscrewup = FALSE;
 	cumdur = 0;
