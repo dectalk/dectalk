@@ -297,7 +297,7 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 
 #if defined(VOICE_ROM_1997) || defined(VOICE_ROM_1996) || defined(VOICE_ROM_DECTALK_41) || defined(VOICE_ROM_DECTALK_43) || defined(VOICE_ROM_DECTALK_1996M_43F) || defined(VOICE_ROM_DTC_03_03JAN89)
 // Decrease /s, z/ amplification in VOICE_ROM_1996/7
-#define DEC_SZ 3
+#define DEC_SZ 0
 
 // Use old implementation of setting target value for us-english, use with 1996/7 voice roms, wip
 #define OLD_SETTAR
