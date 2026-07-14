@@ -1452,9 +1452,11 @@ static void make_dip (PDPH_T pDph_t,
 		if ((struccur & FSTRESS) IS_MINUS)
 		{
 			/* Increased coarticulation, especially F2, if unstressed */
-			   pDphsettar->gencoartic = N15PRCNT; 
+			/* OUT  -- 4.60 keeps this disabled so gencoartic stays N10PRCNT:
+			   pDphsettar->gencoartic = N15PRCNT;
 			   if (pDphsettar->np == &PF2)
 			   { pDphsettar->gencoartic = N25PRCNT; }
+			   END OUT */
 		}
 		pDph_t->arg1 = pDphsettar->np->tarlas - oldvalue;
 		pDph_t->arg2 = pDphsettar->gencoartic;
@@ -1525,22 +1527,22 @@ static void make_dip (PDPH_T pDph_t,
 				}
 				/* Special rule: (see subroutine) */
 				//newvalue += special_coartic (pDph_t, pDph_t->nphone, ++dip_pos);
-				tmp = pDph_t->nphone & PFONT;
+				tmp = get_phone(pDph_t, pDph_t->nphone) & PFONT;
 			if(tmp == PFUSA<<PSFONT)
 			{
-				newvalue += us_special_coartic (pDph_t, pDph_t->nphone, 0);
+				newvalue += us_special_coartic (pDph_t, pDph_t->nphone, ++dip_pos);
 			}
 			else if(tmp == PFGR<<PSFONT)
 			{	
-				newvalue += gr_special_coartic (pDph_t, pDph_t->nphone, 0);
+				newvalue += gr_special_coartic (pDph_t, pDph_t->nphone, ++dip_pos);
 			}
 			else if(tmp == PFLA<<PSFONT)
 			{
-				newvalue += la_special_coartic (pDph_t, pDph_t->nphone, 0);
+				newvalue += la_special_coartic (pDph_t, pDph_t->nphone, ++dip_pos);
 			}
 			else if(tmp == PFSP<<PSFONT)
 			{
-				newvalue += sp_special_coartic (pDph_t, pDph_t->nphone, 0);
+				newvalue += sp_special_coartic (pDph_t, pDph_t->nphone, ++dip_pos);
 			}
 			else if(tmp == PFFR<<PSFONT)
 			{

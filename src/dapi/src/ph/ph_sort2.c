@@ -147,7 +147,7 @@ if(pKsd_t->lang_curr != LANG_german)
 	/* Else try to find a vowel to stress in last word */
 	for (m = *locend - 1; m >= nstartphrase; m--)
 	{
-		if (pDph_t->symbols[m] >= WBOUND)
+		if (((pDph_t->symbols[m] & PVALUE) >= WBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
 		{
 
 			locbeg = m;

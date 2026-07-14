@@ -1814,7 +1814,7 @@ duplication is so that the rules fire in the correct order also*/
 							/* EAB with addition of new code to glotalize in phdrwt0 this
 							needs to grt alot weaker*/
 #ifdef GERMAN
-							pDph_t->test_targf0 = targf0>>2;	/* RSM */
+							pDph_t->test_targf0 = targf0;	/* full glottalization target (was targf0>>2) */
 							pDph_t->impulse_width = 10;			/* RSM */
 							if(pDph_t->number_words == 1)
 							{
@@ -1827,7 +1827,7 @@ duplication is so that the rules fire in the correct order also*/
 				the phoneme following the syllable nucleus is voiced BATS 796. */
 							if(phone_feature( pDph_t,phonex) & FVOICD)
 							{
-								pDph_t->test_targf0 = targf0>>3;
+								pDph_t->test_targf0 = targf0;	/* full glottalization target (was targf0>>3) */
 								if(nphon+2 <= pDph_t->nallotot && (phone_feature( pDph_t,pDph_t->allophons[nphon+2]) & FVOICD))
 									/* nucleus has two voiced phonemes following it so delay even more*/
 								{
@@ -1926,7 +1926,7 @@ duplication is so that the rules fire in the correct order also*/
 					/* eab 4/13/98 comment is wrong this is stressed vowel so review code in detail 
 					when time permits*/
 #ifdef GERMAN
-					pDph_t->test_targf0 = targf0>>2;
+					pDph_t->test_targf0 = targf0;	/* full glottalization target (was targf0>>2) */
 					pDph_t->impulse_width = 10;
 					if(pDph_t->number_words == 1)
 					{
@@ -1938,7 +1938,7 @@ duplication is so that the rules fire in the correct order also*/
 					the phoneme following the syllable nucleus is voiced.BATS 796  */
 					if(phone_feature( pDph_t,phonex) & FVOICD)
 					{
-						pDph_t->test_targf0 = targf0>>3;
+						pDph_t->test_targf0 = targf0;	/* full glottalization target (was targf0>>3) */
 						if(nphon+2 <= pDph_t->nallotot && (phone_feature( pDph_t,pDph_t->allophons[nphon+2]) & FVOICD))
 							/* nucleus has two voiced phonemes following it so delay even more*/
 						{

@@ -420,7 +420,8 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
   {
   case SAMPLE_RATE_INCREASE:
 
-    T0inS4 = frac1mul( pVtm_t->rate_scale, T0inS4 ) << 1;
+    /* round full-res Q14 to keep singing in tune and preserve vibrato at high notes */
+    T0inS4 = (S16)(((S32)pVtm_t->rate_scale * (S32)T0inS4 + 8192) >> 14);
     break;
 
   case SAMPLE_RATE_DECREASE:

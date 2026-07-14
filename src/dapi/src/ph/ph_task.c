@@ -678,7 +678,7 @@ void ph_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 				/* GL 10/03/1996, use period to end the control phones */
 				/* GL 11/13/1997  set to comma for NWSNOAA */
 
-				pDph_t->symbols[pDph_t->nsymbtot] = PERIOD;
+				pDph_t->symbols[pDph_t->nsymbtot] = COMMA;	/* PATCH: restore v4.3 comma pause on inline command (PERIOD since GL 10/03/1996) */
 				pDph_t->user_durs[pDph_t->nsymbtot] = 0;
 				pDph_t->user_f0[pDph_t->nsymbtot++] = 0;
 				speak_now (phTTS);
