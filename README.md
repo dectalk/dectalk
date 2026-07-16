@@ -58,7 +58,9 @@ The built files will be found in the `/dist` folder.
 <summary>Compiling on Linux with Docker</summary>
 
 To build DECtalk without setting up a local build environment, run `sudo docker-compose up`
-(and make sure you have Docker and docker-compose installed!)
+(and make sure you have Docker and docker-compose installed!). The `dist` directory should appear in the project root with the build output.
+
+If you want to build with only Docker, you can run `sudo docker build --output=. .` to build and output the `dist` directory to the project root. If you run into permission errors, try making a new directory with full write access and output to it, e.g. `mkdir output`, `chmod 777 ./output`, `sudo docker build --output=./output .`.
 
 </details>
 
