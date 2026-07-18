@@ -882,7 +882,7 @@ handled differently later */
 #error No voice ROM defined! Please select a VOICE_ROM.
 #endif
 #define   F0_FINAL_FALL   	212 // nov96/mar96 value; was 180 (feb97 used 150)
-#define   F0_NON_FINAL_FALL  	150
+#define   F0_NON_FINAL_FALL  	120 // nov96/mar96 value; was 150 (introduced by feb97)
 #define	  F0_COMMA_FALL		120
 #define	  F0_QSYLL_FALL		80
 #define   F0_GLOTTALIZE    -131 // was -60
