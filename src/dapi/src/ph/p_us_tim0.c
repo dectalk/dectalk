@@ -833,7 +833,7 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 		if (pDphsettar->phonex_timing == USP_DF)
 		{
 			arg1 = prcnt;
-			arg2 = N35PRCNT;
+			arg2 = 6500;	/* nov96/mar96 value; feb97 changed this to N35PRCNT (5734) */
 			prcnt = mlsh1 (arg1, arg2);
 			
 		}
