@@ -546,21 +546,16 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 
 							arg1 = N70PRCNT;
 						}
-#ifdef CHANGES_FOR_V44
-						/* This sounds more like 4.4 In terms of the lengths of vowels
-						 * according to Jake
+						/* nov96 revert: a primary-stressed vowel before a voiceless
+						 * consonant is clipped to 0.50, overriding the 0.80/0.70
+						 * above, except /ae/ in polysyllabic words (pre-fortis
+						 * clipping). Verified in nov96 PC, mar96 and feb97.
 						 */
 						if ((strucstresscur == FSTRESS_1) &&
 							((phocur != USP_AE) || ((struccur & FTYPESYL) == FMONOSYL)))
 						{
-							pDph_t->allofeats[nphon] == pDph_t->allofeats[nphon] & (!FSTRESS_1);
-
-							arg2 = prcnt;
-							arg1 = N50PRCNT;
-							/* this was commented out why?*/
-							 prcnt = mlsh1(arg1,arg2); 
+							arg1 = FRAC_HALF;
 						}
-#endif
 					}
 					/* Postvocalic segment is voiced */
 					else
