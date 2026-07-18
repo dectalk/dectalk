@@ -562,10 +562,10 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 					{
 
 						/* Assume voiced plosive, multiply by 1.2 */
-						/*EAB found that this rule lenghthened syallbic n by
-						too much in final position 11/13/97 This I left in
-						because it is very specific and safe */
-						if ((phone_feature(pDph_t,posvoc) & FOBST) IS_PLUS && phocur != USP_EN)
+						/* nov96 revert: the USP_EN exception added 11/13/97 is
+						 * post-nov96; nov96/mar96/feb97 apply the 1.2 lengthening
+						 * to syllabic EN as well. */
+						if ((phone_feature(pDph_t,posvoc) & FOBST) IS_PLUS)
 						{
 
 							arg1 = N120PRCNT;
