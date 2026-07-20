@@ -1536,7 +1536,8 @@ stzapped:
                         /* eab AT slow speaking rate insert a glottal stop that later 
                            gets it's timing adjusted and voicing reduced*/
 
-                        word_init_sw = TRUE;
+                        if (pDph_t->symbols[n + 1] != HYPHEN)   /* 4.2CD + 4.4: no word-initial mark inside compounds */
+                            word_init_sw = TRUE;
                         /* eab AT slow speaking rate insert a glottal stop that later 
                            gets it's timing adjusted and voicing reduced*/
 
@@ -1558,15 +1559,16 @@ stzapped:
                             }
                         break;
                     case PPSTART:
-                        word_init_sw = TRUE;
+                        if (pDph_t->symbols[n + 1] != HYPHEN)   /* 4.2CD-PC + 4.4: no word-initial mark inside compounds */
+                            word_init_sw = TRUE;
                         //	add_feature (pDph_t, FPPNEXT, (short)(CURRPHONE) ); 
                         break;
                     case VPSTART:
-                        word_init_sw = TRUE;
+                        if (pDph_t->symbols[n + 1] != HYPHEN)   /* 4.2CD-PC + 4.4: no word-initial mark inside compounds */
+                            word_init_sw = TRUE;
                         //	add_feature (pDph_t, FVPNEXT, (short)(CURRPHONE) ); 
                         break;
                     case RELSTART:
-                        word_init_sw = TRUE;
                         if(pKsd_t->lang_curr == LANG_english)
                         {
                             if (pDph_t->symbols[n + 1] == HYPHEN)
