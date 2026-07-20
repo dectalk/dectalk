@@ -664,7 +664,7 @@ void phsettar ( LPTTS_HANDLE_T phTTS)
             // Special case for /r/ and /rr/ in Spanish
 			if (pDphsettar->par_type IS_FORM_FREQ)
 			{
-				pDphsettar->gencoartic = 0;//N10PRCNT;
+				pDphsettar->gencoartic = N10PRCNT;	/* 4.2CD revert: 4.2CD, 4.3 and 4.4 all use 10% default coartic on stressed segments */
 	
 
 // =================================== GERMAN ===========================================
