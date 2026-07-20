@@ -2741,7 +2741,7 @@ void pht0draw (LPTTS_HANDLE_T phTTS)
 #else
 //#endif
 //#if defined (ENGLISH) || defined (SPANISH)
-			pDphsettar->extrad = 2;	   /* Was 4 when f0_lp_filter was 1536 */
+			pDphsettar->extrad = 4;	   /* 4.2CD revert: 4.2CD and 4.3 use 4 */
 #endif
 		}
 		/* Delay f0 fall from voiceless plosive until vot */
