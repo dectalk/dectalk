@@ -591,7 +591,7 @@ void phsettar ( LPTTS_HANDLE_T phTTS)
 
     // Turn off breathyness switch at end of a phrase
     // 12/10/1996 EDB
-	if ((pDphsettar->phcur == GEN_SIL)/* || ((struccur & FHAT_BEGINS) IS_PLUS)*/)
+	if ((pDphsettar->phcur == GEN_SIL) || ((struccur & FHAT_BEGINS) IS_PLUS))	/* 4.2CD revert: 4.2CD+4.3 also clear at hat begin; clause was disabled 12/10/1996 (matches 4.4 only) */
 	{
 		pDph_t->breathysw = 0;
 	}	
