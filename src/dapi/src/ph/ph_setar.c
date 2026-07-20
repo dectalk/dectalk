@@ -628,7 +628,7 @@ void phsettar ( LPTTS_HANDLE_T phTTS)
         // Set target value associated with onset of next phone
         // and compute any shift due to coartic with adjacent phones
         pDphsettar->np->tarnex = getbegtar (phTTS, (pDph_t->nphone + 1));  // Calls gettar()
-        if (pDphsettar->np->tarnex == 4) pDphsettar->np->tarnex++;  // ???? Michel
+        /* 4.2CD revert: "if (tarnex == 4) tarnex++;  // ???? Michel" removed; not present in 4.2CD, 4.3 or 4.4 */
 
 
 
