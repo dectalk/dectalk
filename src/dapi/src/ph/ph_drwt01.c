@@ -2449,8 +2449,12 @@ void pht0draw (LPTTS_HANDLE_T phTTS)
 	if (pDph_t->nf0ev == -1)
 	{								   /* Soft initialization */
 		/* Set filter memory to init baseline fall (f0 in hz*10), GL 6/11/96 */
+		/* 4.3 revert: 4.3 and DTPC Nov-96 do not reset the f0 filter memory at
+		 * soft init; f0 carries over across clauses so each clause onset glides
+		 * from the previous clause's final f0. Reset was introduced for 4.4.
 		pDphsettar->f0las1 = pDphsettar->f0beginfall << F0SHFT;
 		pDphsettar->f0las2 = pDphsettar->f0beginfall << F0SHFT;
+		*/
 
 		/* Set Beginning and final frequency of baseline fall */
 #ifdef SPANISH
