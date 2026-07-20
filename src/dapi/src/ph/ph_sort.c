@@ -1602,7 +1602,7 @@ stzapped:
                         break;
                     case PERIOD:
                         pDph_t->clausetype = DECLARATIVE;
-                        add_feature (pDph_t, FSENTENDS, NEXTPHONE);
+                        /* test removal: add_feature(FSENTENDS) not present in 4.2CD, 4.3 or 4.4 */
                         pDph_t->clausenumber=0;
                         if(pKsd_t->lang_curr == LANG_latin_american
                                 || pKsd_t->lang_curr == LANG_spanish )
@@ -1613,7 +1613,7 @@ stzapped:
                             }
                             nsyll=0;
                         }
-                        add_feature (pDph_t, FSENTENDS, NEXTPHONE);
+                        /* test removal: add_feature(FSENTENDS) not present in 4.2CD, 4.3 or 4.4 (period bit comes from bound-type scan) */
                         make_phone (pDph_t, GEN_SIL, n, curr_dur, curr_f0);
                         word_init_sw = TRUE;
                         compound_destress = FALSE;
