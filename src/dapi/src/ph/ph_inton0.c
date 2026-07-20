@@ -1342,6 +1342,7 @@ void phinton (LPTTS_HANDLE_T phTTS)
 	short nphonx = 0;		/* short temp is never used MVP */
 	short cumdur = 0, phocur = 0;		/* MVP : made local */
 	short inputscrewup = 0;	/* MVP : was of type FLAG */
+	short first = 1;	/* 4.2CD revert: hat rise/fall alternation state */
 #ifdef SPANISH
 	short issubclause = 0;   /* TRUE signals subordinate clause */
 	short numvowels = 0;
@@ -1421,10 +1422,10 @@ void phinton (LPTTS_HANDLE_T phTTS)
 		not figure out how it could have ever wroked correctly. The first hat rise in the example 
 		would have been seen but only becuase the next word started with a vowel.What it should do is
 		remember that it has a hat_rise or hat_fall pending. and execute it at the next syllabic*/
-		if((struccur & FHAT_BEGINS) IS_PLUS)
-			pDph_t->had_hatbegin= 1;
-		if((struccur & FHAT_ENDS) IS_PLUS)
-			pDph_t->had_hatend= 1;
+		/* 4.2CD revert: the BATS#346 had_hatbegin/had_hatend latching (eab 4/9/97)
+		 * postdates 4.2CD, 4.3 and 4.4.  All three originals test
+		 * FHAT_BEGINS/FHAT_ENDS directly on the current stressed vowel, gated by
+		 * a local rise/fall state ("first": 1 = rise allowed, 2 = fall allowed). */
 
 		if ((pDph_t->f0mode == NORMAL) || (pDph_t->f0mode == HAT_F0_SIZES_SPECIFIED))
 		{
@@ -1435,10 +1436,8 @@ void phinton (LPTTS_HANDLE_T phTTS)
 
 
 				/* eab 4/9/97 BATS#346  use had_hatbegin instead of FHAT_BEGINS*/
-				if (pDph_t->had_hatbegin)
+				if (((struccur & FHAT_BEGINS) IS_PLUS) && (first == 1))	/* 4.2CD revert */
 				{
-					pDph_t->had_hatbegin=0;
-					delayf0 +=1;
 #if defined (SPANISH)
 					if (pDph_t->f0mode == NORMAL && !pDph_t->special_phrase)
 //#if defined (ENGLISH_US) || defined (GERMAN)
@@ -1494,6 +1493,7 @@ void phinton (LPTTS_HANDLE_T phTTS)
 					}
 
 					pDphsettar->hat_loc_re_baseline += pDphsettar->hatsize;
+					first = 2;	/* 4.2CD revert: only one hat rise until a hat fall */
 				}
 
 #ifdef SPANISH				
@@ -1614,9 +1614,8 @@ void phinton (LPTTS_HANDLE_T phTTS)
 				/* If presently at top of hat, return to base shortly after */
 				/* vowel onset if this is last stressed syllable in phrase */
 				/*eab 4/9/97 BATS#346 fix hat rise fall see earlier note*/
-				if ( 	pDph_t->had_hatend)
+				if (((struccur & FHAT_ENDS) IS_PLUS) && (first == 2))	/* 4.2CD revert */
 				{
-						pDph_t->had_hatend=0;
 
 //#if defined ENGLISH_US || defined GERMAN
 #if !defined(SPANISH)
@@ -1650,14 +1649,14 @@ void phinton (LPTTS_HANDLE_T phTTS)
 							/* LEFT SHIFT 4 x 4 SPACES SO FITS ON LINE */
 							for (nphonx = nphon + 1; nphonx < pDph_t->nallotot; nphonx++)
 							{
-								if ((pDph_t->allofeats[nphonx] & FHAT_BEGINS) IS_PLUS)
-								{
-									/* Don't go below baseline if another hatrise in phrase */
-									f0fall = 0;
-									goto bfound;
-								}
 								if ((phone_feature( pDph_t,pDph_t->allophons[nphonx]) & FSYLL) IS_PLUS)
 								{
+									if ((pDph_t->allofeats[nphonx] & FHAT_BEGINS) IS_PLUS)
+									{
+										/* Don't go below baseline if another hatrise in phrase */
+										f0fall = 0;
+										goto bfound;
+									}
 								
 									if ((pDph_t->allofeats[nphonx] & FSTRESS) IS_MINUS)
 									{
@@ -1784,6 +1783,7 @@ void phinton (LPTTS_HANDLE_T phTTS)
 
 					make_f0_command (pDph_t, 3, -f0fall, delayf0,0, &cumdur);
 					pDphsettar->hat_loc_re_baseline -= f0fall;
+					first = 1;	/* 4.2CD revert: hat fall re-enables a following hat rise */
 				}
 
 				/* 
