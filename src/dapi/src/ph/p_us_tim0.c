@@ -546,31 +546,26 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 
 							arg1 = N70PRCNT;
 						}
-#ifdef CHANGES_FOR_V44
-						/* This sounds more like 4.4 In terms of the lengths of vowels
-						 * according to Jake
+						/* revert: a primary-stressed vowel before a voiceless
+						 * consonant is clipped to 0.50, overriding the 0.80/0.70
+						 * above, except /ae/ in polysyllabic words (pre-fortis
+						 * clipping). Verified in 4.2CD, 4.3 and 4.4.
 						 */
 						if ((strucstresscur == FSTRESS_1) &&
 							((phocur != USP_AE) || ((struccur & FTYPESYL) == FMONOSYL)))
 						{
-							pDph_t->allofeats[nphon] == pDph_t->allofeats[nphon] & (!FSTRESS_1);
-
-							arg2 = prcnt;
-							arg1 = N50PRCNT;
-							/* this was commented out why?*/
-							 prcnt = mlsh1(arg1,arg2); 
+							arg1 = FRAC_HALF;
 						}
-#endif
 					}
 					/* Postvocalic segment is voiced */
 					else
 					{
 
 						/* Assume voiced plosive, multiply by 1.2 */
-						/*EAB found that this rule lenghthened syallbic n by
-						too much in final position 11/13/97 This I left in
-						because it is very specific and safe */
-						if ((phone_feature(pDph_t,posvoc) & FOBST) IS_PLUS && phocur != USP_EN)
+						/* revert: the USP_EN exception added 11/13/97 is
+						 * post-1996; 4.2CD/4.3/4.4 apply the 1.2 lengthening
+						 * to syllabic EN as well. */
+						if ((phone_feature(pDph_t,posvoc) & FOBST) IS_PLUS)
 						{
 
 							arg1 = N120PRCNT;
@@ -762,7 +757,11 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 			/* WIH 11/27/95 Change prcnt = + 120 to prcnt += 80 */
 			/* put it back t0 =+ 120  EAB someone changed it back to absolute duration this is clearly
 			wrong as it blocks all previous rules 4/6/98*/
-			prcnt += 30;
+			/* Nov-1996 / Feb-1997 behaviour: absolute overwrite of prcnt.
+			 * Verified in 4.4 (phtiming: "mov si, 78h" = 120) and
+			 * in 4.3 it was "add si, 50h" (prcnt += 80).
+			 */
+			prcnt = 120;
 			
 		}
 
@@ -834,7 +833,7 @@ void us_phtiming (LPTTS_HANDLE_T phTTS)
 		if (pDphsettar->phonex_timing == USP_DF)
 		{
 			arg1 = prcnt;
-			arg2 = N35PRCNT;
+			arg2 = 6500;	/* 4.2CD/4.3 value; 4.4 changed this to N35PRCNT (5734) */
 			prcnt = mlsh1 (arg1, arg2);
 			
 		}

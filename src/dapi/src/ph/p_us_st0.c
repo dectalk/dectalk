@@ -197,19 +197,6 @@ short us_gettar (LPTTS_HANDLE_T phTTS, int nphone_temp)
 			{
 				tartemp = 54;
 			}
-
-			/* Reduce amplitudes if unstressed 4/4/98 Found another problem the original code was in the wrong 
-			place so it effected both aspiration and av and in the right circumstances could cause problems
-			this needs to be shecked in all the langauges*/
-				/* Reduce amplitudes if unstressed */
-		/*	eab 2/96 This only handles stressted unstress and doesn't
-			accomadate other stress levels today*/
-		if ((pDph_t->allofeats[nphone_temp] & FSTRESS) IS_MINUS)
-		{
-			tartemp -= 4;
-			if (tartemp < 0)
-				tartemp = 0;
-		}
 		}
 		/* Rules for aspiration amplitude */
 		else
@@ -226,6 +213,12 @@ short us_gettar (LPTTS_HANDLE_T phTTS, int nphone_temp)
 			{
 				tartemp = 0;
 			}
+		}
+		if ((pDph_t->allofeats[nphone_temp] & FSTRESS) IS_MINUS)
+		{
+			tartemp -= 4;
+			if (tartemp < 0)
+				tartemp = 0;
 		}
 	
 	}

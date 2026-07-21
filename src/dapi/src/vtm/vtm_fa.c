@@ -401,7 +401,8 @@ void speech_waveform_generator(LPTTS_HANDLE_T phTTS)
   {
   case SAMPLE_RATE_INCREASE:
 
-    T0inS4 = frac1mul( pVtm_t->rate_scale, T0inS4 ) << 1;
+    /* round full-res Q14 to keep singing in tune and preserve vibrato at high notes */
+    T0inS4 = (S16)(((S32)pVtm_t->rate_scale * (S32)T0inS4 + 8192) >> 14);
 #ifdef HLSYN
     FZinHZ = frac1mul( pVtm_t->inv_rate_scale, FZinHZ );
 #endif

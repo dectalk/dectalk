@@ -591,7 +591,7 @@ void phsettar ( LPTTS_HANDLE_T phTTS)
 
     // Turn off breathyness switch at end of a phrase
     // 12/10/1996 EDB
-	if ((pDphsettar->phcur == GEN_SIL)/* || ((struccur & FHAT_BEGINS) IS_PLUS)*/)
+	if ((pDphsettar->phcur == GEN_SIL) || ((struccur & FHAT_BEGINS) IS_PLUS))	/* 4.2CD revert: 4.2CD+4.3 also clear at hat begin; clause was disabled 12/10/1996 (matches 4.4 only) */
 	{
 		pDph_t->breathysw = 0;
 	}	
@@ -628,7 +628,7 @@ void phsettar ( LPTTS_HANDLE_T phTTS)
         // Set target value associated with onset of next phone
         // and compute any shift due to coartic with adjacent phones
         pDphsettar->np->tarnex = getbegtar (phTTS, (pDph_t->nphone + 1));  // Calls gettar()
-        if (pDphsettar->np->tarnex == 4) pDphsettar->np->tarnex++;  // ???? Michel
+        /* 4.2CD revert: "if (tarnex == 4) tarnex++;  // ???? Michel" removed; not present in 4.2CD, 4.3 or 4.4 */
 
 
 
@@ -664,7 +664,7 @@ void phsettar ( LPTTS_HANDLE_T phTTS)
             // Special case for /r/ and /rr/ in Spanish
 			if (pDphsettar->par_type IS_FORM_FREQ)
 			{
-				pDphsettar->gencoartic = 0;//N10PRCNT;
+				pDphsettar->gencoartic = N10PRCNT;	/* 4.2CD revert: 4.2CD, 4.3 and 4.4 all use 10% default coartic on stressed segments */
 	
 
 // =================================== GERMAN ===========================================

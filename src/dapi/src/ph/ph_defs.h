@@ -881,8 +881,8 @@ handled differently later */
 #else
 #error No voice ROM defined! Please select a VOICE_ROM.
 #endif
-#define   F0_FINAL_FALL   	180 
-#define   F0_NON_FINAL_FALL  	150
+#define   F0_FINAL_FALL   	212 // 4.2CD/4.3 value; was 180 (4.4 used 150)
+#define   F0_NON_FINAL_FALL  	120 // 4.2CD/4.3 value; was 150 (introduced in 4.4)
 #define	  F0_COMMA_FALL		120
 #define	  F0_QSYLL_FALL		80
 #define   F0_GLOTTALIZE    -131 // was -60

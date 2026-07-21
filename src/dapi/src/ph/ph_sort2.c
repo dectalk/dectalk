@@ -147,7 +147,11 @@ if(pKsd_t->lang_curr != LANG_german)
 	/* Else try to find a vowel to stress in last word */
 	for (m = *locend - 1; m >= nstartphrase; m--)
 	{
-		if (((pDph_t->symbols[m] & PVALUE) >= WBOUND) && ((pDph_t->symbols[m] & PVALUE) <= EXCLAIM))
+		/* 4.2CD/4.3/4.4 test only >= WBOUND here, with no upper bound
+		 * (verified in 4.2CD sub_14FBE and 4.3 loc_4204A4). The PVALUE
+		 * mask is still required: unlike the 1996 pipe, symbols[] carries
+		 * font bits in 4.99, so the raw value is always >= WBOUND. */
+		if ((pDph_t->symbols[m] & PVALUE) >= WBOUND)
 		{
 
 			locbeg = m;
