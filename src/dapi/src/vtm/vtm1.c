@@ -1030,7 +1030,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	if ( pVtm_t->SampleRate <= 11025)
 #endif
 	{
-		pVtm_t->temp = ( FZinHZ >> 3 ) - 31;
+		pVtm_t->temp = ( FZinHZ >> 3 ) - FZ_TABLE_OFFSET;
 
 		if ( pVtm_t->temp > 34 )
 		  pVtm_t->temp = 34;

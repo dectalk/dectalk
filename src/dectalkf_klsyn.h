@@ -261,6 +261,13 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 #define  PC_SAMPLE_RATE     11025
 //#define  PC_SAMPLE_RATE     22050
 
+// Nasal zero table index offset: 32 as the DECtalk PC/Express DSP, 31 as the software builds
+#if PC_SAMPLE_RATE == 10000
+#define  FZ_TABLE_OFFSET    32
+#else
+#define  FZ_TABLE_OFFSET    31
+#endif
+
 // Which voice to use (default when not defined is 4.3)
 // VDF_BETA5 -> VDF for non-hlsyn included in beta 5
 // VDF_DTC_03_03JAN89 -> DTC-03, 03 Jan 1989 (final version)
