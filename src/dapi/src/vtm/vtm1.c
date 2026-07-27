@@ -1666,6 +1666,10 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   }
 #endif
   d2pole_pf( pVtm_t,&pVtm_t->rnpb, &pVtm_t->rnpc, fnp, bnp, 0 );
+#if PC_SAMPLE_RATE == 10000
+  pVtm_t->rnpb = 7890;   /* SPC values; d2pole_pf gives 7896/-3933 */
+  pVtm_t->rnpc = -3936;
+#endif
 
   /********************************************************************/
   /*  Coefficients for fixed downsampling low-pass filter             */
