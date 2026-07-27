@@ -497,7 +497,11 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
   TILTDB = variabpars[OUT_TLT] - 12;  /* Tilt in dB at 3 kHz */
   
   APlin= amptable[APinDB + 10]; /*  Convert dB to linear        */
+#if PC_SAMPLE_RATE == 10000
+  r2pg = amptable[A2inDB + 12]; /* SPC offset; software builds use 13 */
+#else
   r2pg = amptable[A2inDB + 13]; /*  Convert dB to linear        */
+#endif
   r3pg = amptable[A3inDB + 10]; /*  Convert dB to linear        */
   r4pa = amptable[A4inDB + 7];  /*  Convert dB to linear        */
   r5pa = amptable[A5inDB + 6];  /*  Convert dB to linear        */
