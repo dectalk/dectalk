@@ -1697,7 +1697,14 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
     break;
   }
 
+#if PC_SAMPLE_RATE == 10000
+  /* SPC firmware coefficients; d2pole_pf gives a = 1262, not 1360. */
+  pVtm_t->rlpb = 5903;
+  pVtm_t->rlpc = -2896;
+  pVtm_t->rlpa = 1360;
+#else
   pVtm_t->rlpa = d2pole_pf( pVtm_t,&pVtm_t->rlpb, &pVtm_t->rlpc, flp, blp, rlpg );
+#endif
 
   /********************************************************************/
   /*  Begin set coeficients of speaker-def controlled resonators.     */
