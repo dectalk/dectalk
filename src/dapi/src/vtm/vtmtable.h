@@ -179,7 +179,12 @@ const S16 azero_tab[35] = {
         1742, 1669, 1598, 1533, 1473,
         1415, 1361, 1312, 1263, 1216,
         1172, 1131, 1094, 1056, 1020,
-        988,  963,  926,  897,  869
+        988,  963,  926,  897,
+#if PC_SAMPLE_RATE == 10000
+        896   /* SPC firmware value; software builds have 869 */
+#else
+        869
+#endif
 };
 
 const S16 bzero_tab[35] = {
