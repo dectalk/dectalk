@@ -1159,7 +1159,6 @@ const unsigned char sdic[] =
 
 	9,'f','o','r',EOS,SPECIALWORD,PPSTART,US_F,US_RR,SIL,
 	10,'a','n','d',EOS,SPECIALWORD,PPSTART,US_EH,US_N,US_D,SIL,
-	12,'m','w','i','z','i',EOS,PPSTART,US_K,US_AO,US_P,US_IY,SIL,
 	8,'t','o',EOS,SPECIALWORD,PPSTART,US_T,US_UH,SIL,
 	0	
 };
