@@ -406,8 +406,8 @@ const unsigned char nabtab[] = {
 	US_M,	S1,	US_AY,	US_LL,	US_Z,	SIL,
 
 	18,	'h',	'a',	EOS,
-	US_HX,	S1,	US_EH,	US_K,	US_T,	US_RR,	SIL,
-	US_HX,	S1,	US_EH,	US_K,	US_T,	US_RR,	US_Z,	SIL,
+	US_HX,	S1,	US_EH,	US_K,	US_T,	US_ER,	SIL,
+	US_HX,	S1,	US_EH,	US_K,	US_T,	US_ER,	US_Z,	SIL,
 
 	24,	'm',	'l',	EOS,
 	US_M,	S1,	US_IH,	US_LL,	US_AX,	US_LL,	US_IY,	US_T,
