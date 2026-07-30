@@ -1216,7 +1216,6 @@ const unsigned char	preftab[] = {
 
 	/* GL 03/14/1997 for BATS#294, add this rule to fix all
 	   disa- word stress problem */
-	4+PCONT+P2SYL,	US_D,	US_IH,	US_S, US_AE,
 
 	3+PCONT,		US_D,	US_IH,	US_S,
 	2+PRCON,		US_D,	US_IH,
