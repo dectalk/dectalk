@@ -546,20 +546,20 @@ const unsigned char nwdtab[] = {
 
 	16,	'm',	'i',	'l',	'l',	'i',	'o',	'n',
 	EOS,
-	US_M,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,	SIL,
+	US_M,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,	SIL,
 
 	16,	'b',	'i',	'l',	'l',	'i',	'o',	'n',
 	EOS,
-	US_B,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,	SIL,
+	US_B,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,	SIL,
 
 	18,	't',	'r',	'i',	'l',	'l',	'i',	'o',
 	'n',	EOS,
-	US_T,	US_R,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,
+	US_T,	US_R,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,
 	SIL,
 
 	16,	'z',	'i',	'l',	'l',	'i',	'o',	'n',
 	EOS,
-	US_Z,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,	SIL,
+	US_Z,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,	SIL,
 
 	0
 };
