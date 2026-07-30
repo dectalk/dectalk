@@ -1595,8 +1595,11 @@ int ls_task_set_what_state(LPTTS_HANDLE_T phTTS, PLTS_T pLts_t)
 #ifdef ENGLISH
 /* MGS 8/20/97 hack for stressing first words in the sentence for kerzweil */
 		//eab 1/1199 Modify the stress to a secondary stress which is more appropriate.
+/* PATCH: disabled, added after 4.2CD; the verbs[] table is in none of the original modules */
+#if 0
 		if (ls_task_lookup_first_verbs(phTTS))
 			return(FINISHED_WORD);
+#endif
 #endif // ENGLISH
 #endif // defined (ENGLISH) || defined (GERMAN)
 #ifdef FRENCH
