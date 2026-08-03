@@ -171,7 +171,7 @@ short us_gettar (LPTTS_HANDLE_T phTTS, int nphone_temp)
 		if (npar == AV - 1)
 		{
 			tartemp = pDph_t->p_tar[(phone_temp & PVALUE) + pphotr];
-#ifdef SLOWTALK
+#if defined(SLOWTALK) && !defined(OLD_INTONATION_AND_TIMING)
 			/* 5/13/98 EAB The glotal stop in this instance goes all the way to perceived silence
 			for some reason it was too strong so I fixed it*/
 
