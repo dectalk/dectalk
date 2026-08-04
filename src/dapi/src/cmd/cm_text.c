@@ -482,6 +482,19 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 		&& (char_types[pCmd_t->clausebuf[pCmd_t->input_counter-2]] & MARK_clause))
 		{
 //printf("*C %x\n",pCmd_t->ParseChar);
+			{
+				/* 4.2CD: a clause that is nothing but punctuation (left over when a
+				 * command bracket flushed the buffer) is not spoken. */
+				int q, alnum = 0;
+				for (q = 0; q < pCmd_t->input_counter; q++)
+					if ((char_types[pCmd_t->clausebuf[q]] & (MARK_clause|MARK_space|MARK_punct)) == 0)
+						{ alnum = 1; break; }
+				if (!alnum)
+				{
+					pCmd_t->input_counter = 0;
+					return;
+				}
+			}
 			pCmd_t->done=1;
 			// fix for another lucent/octel/avaya crash
 			pCmd_t->clausebuf[pCmd_t->input_counter]='\0';
