@@ -222,7 +222,10 @@ const U16 lsctype[] = {
 	ALWAYS+RS+FB+PR,	/* }							*/
 	ALWAYS+PR,			/* ~							*/
 	IGNORE,				/* DEL							*/
-	ALWAYS+PR,			/* euro symbol                  */
+	/* DECtalk PC 4.2CD and the 03/1996 and 02/1997 software builds all
+	   have IGNORE for 0x80 (verified against LTS.EXE @0x678E,
+	   dt-mar96.exe and dt-feb97.EXE). */
+	IGNORE,				/* euro symbol                  */
 	IGNORE,
 	IGNORE,
 	IGNORE,
