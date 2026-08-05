@@ -127,7 +127,12 @@ const U16 lsctype[] = {
 	ALWAYS+PR,			/* &				            */
 	
         /* GL 03/18/1997 for BATS#300 add LS and RS for ' */
-	ALWAYS+LS+RS+PR,	/* '				            */
+        /* Reverted: DECtalk PC 4.2CD, DECtalk software 03/1996 and 02/1997
+           all have ALWAYS+PR here (verified against LTS.EXE @0x678E,
+           dt-mar96.exe and dt-feb97.EXE).  LS+RS makes a leading or
+           trailing apostrophe be stripped as punctuation by the loops in
+           ls_task.c, which the DECtalk PC hardware never did. */
+	ALWAYS+PR,			/* '				            */
 
 	ALWAYS+LS+FB+PR,	/* (				            */
 	ALWAYS+RS+FB+PR,	/* )				            */
