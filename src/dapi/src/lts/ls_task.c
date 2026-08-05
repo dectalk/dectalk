@@ -4239,7 +4239,11 @@ printf("sending hypen");
 		else
 		{ 
 			/* MGS 6/13/97 BATS #389 changed so single letters get spelled */
-			if( ((pLts_t->tlflag)&HVOWEL) != 0  && (lp2+1 != lp1))
+			/* Reverted: DECtalk PC 4.2CD (LTS.EXE, loc_10C1E) and the 03/1996
+			   software (dt-mar96.exe, _lstask loc_411EEA) both gate this call
+			   on tlflag&HVOWEL alone, so a single-letter chunk such as the
+			   "u" of "u-turn" is still passed to the rule engine. */
+			if( ((pLts_t->tlflag)&HVOWEL) != 0 )
 			{
 #ifdef LS1DEBUG
 				printf("doing lts1 ");
@@ -4250,7 +4254,10 @@ printf("sending hypen");
 #endif
 
 				/* MGS 6/16/97 BATS #387 Added becasue rule engine needs lower case characters */
-				ls_task_remove_case(lp2,lp1);
+				/* Removed: neither DECtalk PC 4.2CD nor the 03/1996 software has
+				   this call here.  The word is already case-folded earlier in
+				   ls_task_main(), so this is expected to be behaviourally
+				   neutral; it is removed only to match the originals. */
 
 				ls_rule_do_lts(phTTS,lp2, lp1);
 
