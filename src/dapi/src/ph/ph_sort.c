@@ -1925,6 +1925,20 @@ static void zap_weaker_bound (LPTTS_HANDLE_T phTTS, short msym1, short msym2)
 	//PKSD_T                  pKsd_t = phTTS->pKernelShareData;
 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
 
+	/* A compound-noun hyphen must survive a neighbouring stronger boundary.
+	   LTS emits HYPHEN immediately followed by the VPSTART that belongs to the
+	   second element, and because HYPHEN (110) sorts below VPSTART (113) the
+	   hyphen was overwritten and then deleted.  case HYPHEN then never ran and
+	   the "symbols[n+1] != HYPHEN" guards on WBOUND, PPSTART and VPSTART could
+	   not fire, so the second element was marked word-initial and kept its own
+	   stress - "hand-made" came out stressed on both elements.
+	   Note the existing guard below is unreachable: it tests symbols[msym1]
+	   after that slot has already been overwritten with symbols[msym2]. */
+	if (pDph_t->symbols[msym1] == HYPHEN)
+	{
+		delete_symbol (phTTS, msym2);
+		return;
+	}
 	if (pDph_t->symbols[msym1] < pDph_t->symbols[msym2])
 	{
 		pDph_t->symbols[msym1] = pDph_t->symbols[msym2];	/* Boundarys can't have */
