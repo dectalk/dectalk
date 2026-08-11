@@ -658,9 +658,9 @@ unsigned int PlayAudioCallbackRoutine( HPLAY_AUDIO_T pPlayAudio,
 									  ATYPE_T aInstance,
 									  ATYPE_T aMessage,
 									  ATYPE_T aItem_1 );
-VOID DefaultTTSCallbackRoutine(LONG lParam1,
-							   LONG lParam2,
-							   DWORD dwInstanceParam,
+VOID DefaultTTSCallbackRoutine(TTS_CALLBACK_PARAM_T lParam1,
+							   TTS_CALLBACK_PARAM_T lParam2,
+							   TTS_INSTANCE_PARAM_T dwInstanceParam,
 							   UINT uiMsg);
 
 //#ifdef WIN32
@@ -1822,8 +1822,8 @@ void ReleaseLicenseRef(int *a32_lic)
 MMRESULT TextToSpeechStartupEx( LPTTS_HANDLE_T * pphTTS,
 							   UINT uiDeviceNumber,
 							   DWORD dwDeviceOptions,
-							   VOID (*DtCallbackRoutine)(LONG,LONG,DWORD,UINT),
-							   LONG dwTTSInstanceParameter)
+							   VOID (*DtCallbackRoutine)(TTS_CALLBACK_PARAM_T,TTS_CALLBACK_PARAM_T,TTS_INSTANCE_PARAM_T,UINT),
+							   TTS_INSTANCE_PARAM_T dwTTSInstanceParameter)
 {
 
 
@@ -1921,8 +1921,8 @@ return TextToSpeechStartupExFonix( pphTTS,
 MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 							   UINT uiDeviceNumber,
 							   DWORD dwDeviceOptions,
-							   VOID (*DtCallbackRoutine)(LONG,LONG,DWORD,UINT),
-							   LONG dwTTSInstanceParameter,
+							   VOID (*DtCallbackRoutine)(TTS_CALLBACK_PARAM_T,TTS_CALLBACK_PARAM_T,TTS_INSTANCE_PARAM_T,UINT),
+							   TTS_INSTANCE_PARAM_T dwTTSInstanceParameter,
 #ifdef WIN32
 							   TCHAR *dictionary_file_name)
 #else
@@ -3449,8 +3449,8 @@ phTTS->uiID_Start_Message =
 MMRESULT TextToSpeechStartup( LPTTS_HANDLE_T * pphTTS,
 							 UINT uiDeviceNumber,
 							 DWORD dwDeviceOptions,
-							 VOID (*DtCallbackRoutine)(LONG,LONG,DWORD,UINT),
-							 LONG dwTTSInstanceParameter)
+							 VOID (*DtCallbackRoutine)(TTS_CALLBACK_PARAM_T,TTS_CALLBACK_PARAM_T,TTS_INSTANCE_PARAM_T,UINT),
+							 TTS_INSTANCE_PARAM_T dwTTSInstanceParameter)
 {
 	
 	
@@ -3473,7 +3473,7 @@ MMRESULT TextToSpeechStartup( HWND hWnd,
 		uiDeviceNumber,
 		dwDeviceOptions|TTSSTARTUP_USING_DEFAULT_CALLBACK,
 		DefaultTTSCallbackRoutine,
-		(LONG)hWnd));
+		(TTS_INSTANCE_PARAM_T)hWnd));
 
 /* GL 11/19/1998, the following codes never get used */
 
@@ -3524,9 +3524,9 @@ MMRESULT TextToSpeechStartup( HWND hWnd,
 }
 
 
-VOID DefaultTTSCallbackRoutine(LONG lParam1,
-							   LONG lParam2,
-							   DWORD dwInstanceParam,
+VOID DefaultTTSCallbackRoutine(TTS_CALLBACK_PARAM_T lParam1,
+							   TTS_CALLBACK_PARAM_T lParam2,
+							   TTS_INSTANCE_PARAM_T dwInstanceParam,
 							   UINT uiMsg)
 {
 #ifdef API_DEBUG
@@ -10798,8 +10798,8 @@ unsigned int PlayAudioCallbackRoutine( HPLAY_AUDIO_T pPlayAudio,
 #ifdef WIN32
 void Report_TTS_Status( LPTTS_HANDLE_T ttsHandle,
 					   UINT uiMsg,
-					   long lParam1,
-					   long lParam2 )
+					   TTS_CALLBACK_PARAM_T lParam1,
+					   TTS_CALLBACK_PARAM_T lParam2 )
 {
 	if (lParam1 == TTS_AUDIO_PLAY_START)	ttsHandle->IsSpeaking = TRUE;	// KSB - Used for start of speech
 	if (lParam1 == TTS_AUDIO_PLAY_STOP)	ttsHandle->IsSpeaking = FALSE;	// KSB - Used for end of speech
@@ -10828,8 +10828,8 @@ void Report_TTS_Status( LPTTS_HANDLE_T ttsHandle,
 #if defined __osf__ || defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 void Report_TTS_Status( LPTTS_HANDLE_T phTTS,
 					   UINT uiMsg,
-					   long lParam1,
-					   long lParam2 )
+					   TTS_CALLBACK_PARAM_T lParam1,
+					   TTS_CALLBACK_PARAM_T lParam2 )
 {
 	if (phTTS->DtCallbackRoutine != NULL && uiMsg != 0xDEADC0DE)
 	{

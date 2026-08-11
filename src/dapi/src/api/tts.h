@@ -85,6 +85,17 @@
 
 #include "port.h"
 
+#ifndef TTS_POINTER_TYPES_DEFINED
+#define TTS_POINTER_TYPES_DEFINED
+#if defined(_WIN64)
+typedef LONG_PTR TTS_CALLBACK_PARAM_T;
+typedef ULONG_PTR TTS_INSTANCE_PARAM_T;
+#else
+typedef LONG TTS_CALLBACK_PARAM_T;
+typedef DWORD TTS_INSTANCE_PARAM_T;
+#endif
+#endif
+
 #if defined __linux__  || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __EMSCRIPTEN__ || defined (__APPLE__)
 #define HWND unsigned long
 #include "dtmmedefs.h"
@@ -345,10 +356,10 @@ struct TTS_HANDLE_TAG
   void (*main_lts_loop)(void *,unsigned short *);     
 #endif
 #else
-  void (*DtCallbackRoutine)(LONG,LONG,DWORD,UINT);     //New Audio Integration :After testing remove these comments
+  void (*DtCallbackRoutine)(TTS_CALLBACK_PARAM_T,TTS_CALLBACK_PARAM_T,TTS_INSTANCE_PARAM_T,UINT);     //New Audio Integration :After testing remove these comments
 #endif
 
-  DWORD dwTTSInstanceParameter;    //New Audio Integration
+  TTS_INSTANCE_PARAM_T dwTTSInstanceParameter;    //New Audio Integration
 #ifdef WIN32
   HMUTEX_T hmxCallback;            //New Audio Integration
   LPCRITICAL_SECTION pcsMemoryBuffer;
@@ -509,12 +520,12 @@ void TextToSpeechErrorHandler( LPTTS_HANDLE_T,
 LPTTS_HANDLE_T TextToSpeechGetHandle(void);
 */
 #ifdef WIN32
-void Report_TTS_Status( LPTTS_HANDLE_T ttsHandle, UINT uiMsg, long lParam1, long lParam2);
+void Report_TTS_Status( LPTTS_HANDLE_T ttsHandle, UINT uiMsg, TTS_CALLBACK_PARAM_T lParam1, TTS_CALLBACK_PARAM_T lParam2);
 #endif
 
 /* GL 04/21/1997  add this as the latest OSF code */
 #if defined __linux__ || defined VXWORKS || defined _SPARC_SOLARIS_ || defined __osf__ || defined __EMSCRIPTEN__ || defined (__APPLE__)
-void Report_TTS_Status( LPTTS_HANDLE_T phTTS, UINT uiMsg, long lParam1, long lParam2);
+void Report_TTS_Status( LPTTS_HANDLE_T phTTS, UINT uiMsg, TTS_CALLBACK_PARAM_T lParam1, TTS_CALLBACK_PARAM_T lParam2);
 #endif
 
 void QueueToMemory( LPTTS_HANDLE_T, LPSAMPLE_T, DWORD );
