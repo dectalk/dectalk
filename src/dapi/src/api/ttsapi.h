@@ -157,6 +157,17 @@ extern "C" {
 #include "dtmmedefs.h"
 #endif
 
+#ifndef TTS_POINTER_TYPES_DEFINED
+#define TTS_POINTER_TYPES_DEFINED
+#if defined(_WIN64)
+typedef LONG_PTR TTS_CALLBACK_PARAM_T;
+typedef ULONG_PTR TTS_INSTANCE_PARAM_T;
+#else
+typedef LONG TTS_CALLBACK_PARAM_T;
+typedef DWORD TTS_INSTANCE_PARAM_T;
+#endif
+#endif
+
 /* GL 04/21/1997  add this as the latest OSF code */
 /* I don't think we use this yet */
 #ifndef BLD_DECTALK_DLL
@@ -541,20 +552,20 @@ typedef void * LPTTS_HANDLE_T;
 MMRESULT TextToSpeechStartupEx( LPTTS_HANDLE_T * pphTTS,
 				UINT ,
 				DWORD ,
-				VOID (*DtCallbackRoutine)(LONG,
-							  LONG,
-							  DWORD,
+				VOID (*DtCallbackRoutine)(TTS_CALLBACK_PARAM_T,
+							  TTS_CALLBACK_PARAM_T,
+							  TTS_INSTANCE_PARAM_T,
 							  UINT),
-				LONG );
+				TTS_INSTANCE_PARAM_T );
 
 MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 				UINT ,
 				DWORD ,
-				VOID (*DtCallbackRoutine)(LONG,
-							  LONG,
-							  DWORD,
+				VOID (*DtCallbackRoutine)(TTS_CALLBACK_PARAM_T,
+							  TTS_CALLBACK_PARAM_T,
+							  TTS_INSTANCE_PARAM_T,
 							  UINT),
-				LONG,
+				TTS_INSTANCE_PARAM_T,
 #ifdef WIN32
 				TCHAR *
 #else
@@ -566,11 +577,11 @@ MMRESULT TextToSpeechStartupExFonix( LPTTS_HANDLE_T * pphTTS,
 MMRESULT TextToSpeechStartup( LPTTS_HANDLE_T * pphTTS,
 			      UINT ,
 			      DWORD ,
-			      VOID (*DtCallbackRoutine)(LONG,
-							LONG,
-							DWORD,
+			      VOID (*DtCallbackRoutine)(TTS_CALLBACK_PARAM_T,
+							TTS_CALLBACK_PARAM_T,
+							TTS_INSTANCE_PARAM_T,
 							UINT),
-			      LONG );
+			      TTS_INSTANCE_PARAM_T );
 #endif
 
 #ifdef WIN32
