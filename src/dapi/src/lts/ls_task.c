@@ -356,6 +356,10 @@ void lts_loop_2(LPTTS_HANDLE_T phTTS,unsigned short *input)
    struct layout between translation units on an incremental build.
    Safe here because this code is SINGLE_THREADED only. */
 static int phon_direct = 0;
+/* Set alongside phon_direct and kept until the next real word: an inline
+   [..] phoneme block was emitted, so a following bare "'s" is its
+   possessive rather than a word of its own. */
+static int phon_block = 0;
 
 void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 #endif
@@ -482,7 +486,10 @@ parse_label:		if (pLts_t->cur_input_pos!=0)
 			ph_loop(phTTS,input);
 #endif
 		if ((input[0]&PFONT) != (PFCONTROL<<PSFONT))
+		{
 			phon_direct = 1;
+			phon_block  = 1;
+		}
 		pLts_t->nitem.i_nword = 0;
 		
 		//		lts_main_loop(phTTS);
@@ -4142,6 +4149,22 @@ int ls_task_process_word(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *rlp)
 #endif //FRENCH
 	PLTS_T pLts_t;
 	pLts_t = phTTS->pLTSThreadData;
+
+	/* A word that is nothing but "'s" right after an inline [..] phoneme
+	 * block is that block's possessive, not a word of its own.  4.99 falls
+	 * through to the no-vowel spelling check below and says "apostrophe
+	 * ess"; attach it with pluralize(), which picks IX+Z / S / Z from
+	 * lphone.  Confirmed against 4.2CD by measurement (31 ms apart on the
+	 * same line, 750 ms apart unpatched), but the mechanism was not found
+	 * in dtpc42cd LTS.EXE, so this reproduces 4.2CD's output rather than
+	 * its code -- see the commit message. */
+	if (phon_block && llp + 2 == rlp && llp->l_ch == '\'' && (llp+1)->l_ch == 's')
+	{
+		phon_block = 0;
+		ls_util_pluralize(phTTS);
+		return(FINISHED_WORD);
+	}
+	phon_block = 0;
 	
 	/*
 	 * The second scan checks that each
