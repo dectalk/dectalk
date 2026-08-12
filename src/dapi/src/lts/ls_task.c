@@ -350,6 +350,13 @@ void far ls_task_main(void)
 #ifdef EPSON_ARM7
 void lts_loop_2(LPTTS_HANDLE_T phTTS,unsigned short *input)
 #else
+/* Set when an item went straight to PH (inline [..] phoneme block).
+   File scope rather than a LTS_T field on purpose: devdtk43.mak carries no
+   header dependencies, so growing LTS_T would silently desynchronise the
+   struct layout between translation units on an incremental build.
+   Safe here because this code is SINGLE_THREADED only. */
+static int phon_direct = 0;
+
 void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 #endif
 {
@@ -360,6 +367,17 @@ void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 
 	if ((input[0]&PFONT)==(PFASCII<<PSFONT))
 	{
+		if (phon_direct && pLts_t->cur_input_pos==0 &&
+		    (char_types[input[0]&PVALUE] & MARK_space))
+		{
+			unsigned short wb[1];
+			phon_direct = 0;
+			wb[0] = (PFUSA<<PSFONT) | WBOUND;
+			ph_loop(phTTS,wb);
+			return;
+		}
+		if (!(char_types[input[0]&PVALUE] & MARK_space))
+			phon_direct = 0;
 		temp=pLts_t->cur_input_pos;
 		pLts_t->input_array[pLts_t->cur_input_pos++]=(input[0]&PVALUE);
 		if ( ((char_types[pLts_t->input_array[temp]]&MARK_space) && 
@@ -463,6 +481,8 @@ parse_label:		if (pLts_t->cur_input_pos!=0)
 #else
 			ph_loop(phTTS,input);
 #endif
+		if ((input[0]&PFONT) != (PFCONTROL<<PSFONT))
+			phon_direct = 1;
 		pLts_t->nitem.i_nword = 0;
 		
 		//		lts_main_loop(phTTS);

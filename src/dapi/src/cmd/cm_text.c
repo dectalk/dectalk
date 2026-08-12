@@ -1057,6 +1057,13 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 		mode = PAR_OUTPUT_CHARS;
 		
 		for (i=0;((i<pCmd_t->ret_value.output_offset) && (char_types[pCmd_t->output_buf[i]] & MARK_space));i++);
+		/* 4.2CD keeps the space: LTS.EXE loc_11440 dispatches on the character
+		 * itself and space/tab/0x0A all reach loc_114B6, which pushes WBOUND
+		 * unconditionally.  Skipping every leading blank here loses the word
+		 * boundary that follows an inline [..] phoneme block, so keep one when
+		 * the clause has real content (an all-blank clause is still skipped). */
+		if (i > 0 && i < pCmd_t->ret_value.output_offset)
+			i--;
 		
 		/* debug switch */
 		if (DT_DBG(CMD_DBG,0x008))
