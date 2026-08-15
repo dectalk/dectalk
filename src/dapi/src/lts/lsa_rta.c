@@ -120,7 +120,16 @@ const U16 far acna_lswtab[] = {
 	0x4204,0x4207,0x0000,0x4209,0x420B,
 	0x420E,0x4216,0x0000,0x421C,0x421E,
 	0x0000,0x4221,0x0000,0x4228,0x422A,
-	0x0000,0x0000,0x0000,0x44D4,0x44D6,
+	/* Grapheme 'a' rule 57 (focus "i", no left env, right env = morpheme
+	 * boundary) is disabled by tagging it for a nonexistent language.
+	 * DECtalk 03/1996 does not have this rule: its first matching rule is
+	 * the next one, whose left env (b|c|m|n|r|l|p|d|s)+vowel rewrites the
+	 * graphemes and moves stress left, giving "-onia" its ow.  The rule was
+	 * added by 11/1996 (4.2CD) and is still in 02/1997 and 4.99, where it
+	 * intercepts and yields aa instead.  Kept in place rather than deleted
+	 * so that no dispatch offset has to shift.
+	 */
+	0x0000,0x0000,0xFFFF,0x44D4,0x44D6,
 	0x0000,0x44DA,0x0000,0x44DC,0x44DE,
 	0x44E6,0x4500,0x0004,0x4502,0x4504,
 	0x4509,0x0000,0x0004,0x450F,0x4511,
