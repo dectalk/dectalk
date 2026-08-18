@@ -521,7 +521,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 			}
 #endif
 //			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && (pCmd_t->ParseChar== 0x0fff) &&
-			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && ((char_types[pCmd_t->ParseChar] & MARK_space) || (pCmd_t->ParseChar==0x82)) &&
+			if ((pCmd_t->ParseChar!=0x0b) && (pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && ((char_types[pCmd_t->ParseChar] & MARK_space) || (pCmd_t->ParseChar==0x82)) &&
 		    (par_dict_lookup(pKsd_t,(char *)cm_text_get_word(pCmd_t->prevword,pCmd_t->wordbuf,1),0)))
 			{
 //printf("*D %x\n",pCmd_t->ParseChar);
