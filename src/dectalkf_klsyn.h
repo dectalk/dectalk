@@ -261,7 +261,7 @@ LANGUAGE	VDEF_FILE	TUNING UP	VDEF_FILE	TUNING UP
 #define  PC_SAMPLE_RATE     11025
 //#define  PC_SAMPLE_RATE     22050
 
-// Nasal zero table index offset: 32 as the DECtalk PC/Express DSP, 31 as the software builds
+// Nasal zero table index offset: 32 as the DECtalk PC DSP, 31 as the software builds
 #if PC_SAMPLE_RATE == 10000
 #define  FZ_TABLE_OFFSET    32
 #else

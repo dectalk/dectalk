@@ -122,10 +122,10 @@ const U16 far acna_lswtab[] = {
 	0x0000,0x4221,0x0000,0x4228,0x422A,
 	/* Grapheme 'a' rule 57 (focus "i", no left env, right env = morpheme
 	 * boundary) is disabled by tagging it for a nonexistent language.
-	 * DECtalk 03/1996 does not have this rule: its first matching rule is
+	 * DECtalk 4.3 does not have this rule: its first matching rule is
 	 * the next one, whose left env (b|c|m|n|r|l|p|d|s)+vowel rewrites the
 	 * graphemes and moves stress left, giving "-onia" its ow.  The rule was
-	 * added by 11/1996 (4.2CD) and is still in 02/1997 and 4.99, where it
+	 * added by DECtalk 4.4 and is still in 4.99, where it
 	 * intercepts and yields aa instead.  Kept in place rather than deleted
 	 * so that no dispatch offset has to shift.
 	 */
@@ -4608,7 +4608,7 @@ const unsigned char far acna_lsbtab[] = {
 	0x00,0x82,0x12,0x00,0x0A,0x1F,0x01,0x63,
 	0x05,0x21,0x04,0x00,0x04,0x00,0x1E,0x00,
 	0x82,0x12,0x00,0x00,0x2A,0x00,0x00,0x00,
-	/* Environment strings restored from DECtalk PC 4.2CD (LTS.EXE, lsbtab at
+	/* Environment strings restored from DECtalk 4.2CD (LTS.EXE, lsbtab at
 	   0x9E7A).  In 4.99 the 46 rules whose word entries were repointed above
 	   had their environment pointer aimed two bytes ahead of their own focus
 	   string, so the environment condition was a duplicate of the focus

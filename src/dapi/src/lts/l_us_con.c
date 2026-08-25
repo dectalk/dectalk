@@ -127,11 +127,10 @@ const U16 lsctype[] = {
 	ALWAYS+PR,			/* &				            */
 	
         /* GL 03/18/1997 for BATS#300 add LS and RS for ' */
-        /* Reverted: DECtalk PC 4.2CD, DECtalk software 03/1996 and 02/1997
-           all have ALWAYS+PR here (verified against LTS.EXE @0x678E,
-           dt-mar96.exe and dt-feb97.EXE).  LS+RS makes a leading or
+        /* Reverted: DECtalk 4.2CD, 4.3 and 4.4
+           all have ALWAYS+PR here.  LS+RS makes a leading or
            trailing apostrophe be stripped as punctuation by the loops in
-           ls_task.c, which the DECtalk PC hardware never did. */
+           ls_task.c, which the classic DECtalk never did. */
 	ALWAYS+PR,			/* '				            */
 
 	ALWAYS+LS+FB+PR,	/* (				            */
@@ -222,9 +221,8 @@ const U16 lsctype[] = {
 	ALWAYS+RS+FB+PR,	/* }							*/
 	ALWAYS+PR,			/* ~							*/
 	IGNORE,				/* DEL							*/
-	/* DECtalk PC 4.2CD and the 03/1996 and 02/1997 software builds all
-	   have IGNORE for 0x80 (verified against LTS.EXE @0x678E,
-	   dt-mar96.exe and dt-feb97.EXE). */
+	/* DECtalk 4.2CD, 4.3 and 4.4 builds all
+	   have IGNORE for 0x80. */
 	IGNORE,				/* euro symbol                  */
 	IGNORE,
 	IGNORE,

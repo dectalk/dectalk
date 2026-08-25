@@ -1923,7 +1923,7 @@ static void zap_weaker_bound (LPTTS_HANDLE_T phTTS, short msym1, short msym2)
 {
 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
 
-	/* Transcribed from DECtalk PC 4.2CD PH.EXE sub_150FE:
+	/* Transcribed from DECtalk 4.2CD PH.EXE sub_150FE:
 	 *   ax = symbols[msym2]; cx = symbols[msym1];
 	 *   if (ax > cx) { if (cx == HYPHEN) return; delete_symbol(msym1); return; }
 	 *   if (ax == HYPHEN) return;
