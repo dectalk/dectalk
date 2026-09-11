@@ -269,7 +269,12 @@ STOP,R650
 ;0xFFFFFFFF-0x00000032:R50,W~<+>r/($1,'.')/' '/d/S{$1}<+>/W~<+>
 ; MGS 11/24/1998 BATS #618 fixed chapter----4 and an access violation
 0xFFFFFFFF-0x00000032:R50,W~<+>r/'.'/' '/d/S{'.'}<+>/W~<+>
-0xFFFFFFFF-0x00000032:R70,W~<+>r/'_'/' '/d/S{'_'}<+>/W~<+>
+; R70 replaces an underscore between two words with a space, but the trailing
+; delete used <+>, which requires at least one further underscore.  A single
+; underscore therefore failed the rule, survived as its own token and was
+; looked up in the dictionary, so "hand_made" came out as
+; "hand underscore made".  <*> allows zero further underscores.
+0xFFFFFFFF-0x00000032:R70,W~<+>r/'_'/' '/d/S{'_'}<*>/W~<+>
 0xFFFFFFFF-0x00000032:R71,W~<+>r/'-'/' '/d/S{'-'}<+>/W~<+>
 
 ;replace long(more than 4) symbol with a pause
@@ -544,6 +549,25 @@ STOP,R140
 ; * 050		MGS		03/03/1999		BATS #744 Part of the fix for lynchburg
 0x00000021-0xFFFFFFFF:R342;H343;DM,O<6>A<+>
 
+; The compound-prefix entries commented out below do not exist in DECtalk
+; 4.2CD.  The whole mechanism postdates it (BATS#410 07/1997, BATS#619
+; 03/1998): rules R345-R351 append a '-' to a matching prefix, and
+; ls_task_process_word() then splits the word at that hyphen into two
+; separate lookups, so both halves keep the primary stress from their own
+; dictionary entry.  That is why "blueland" came out as "blue-land" with
+; two stresses and US_AE in "land" where 4.2CD reduces it to US_AX.
+; DEC had already disabled home~ and work~ for the same reason.
+;
+; roller-, cedar-, stage-, beta-, ball- and folk- are deliberately left
+; active because 4.2CD gets those clearly wrong, and the seven two-letter
+; entries are left untouched.
+;
+; 3_c_words, 4_c_words_s and 5_c_words_s would otherwise be left with no
+; entries at all, and par_c2 then emits a section that the lookup resolves
+; into the following section's data, which made words such as "big" come
+; out as unrelated phonemes.  Each of the three keeps one unmatchable
+; placeholder whose replacement is identical to its key, so a match would
+; be a no-op in any case.
 ; process the compound words before word get eaten
 ; 6 characters prefix
 0x00000021-0xFFFFFFFF:R345;DM,h/6_c_words,A<6>/r/$7/$9/|FAIL/O<+>V<1>A<2-*>
@@ -646,7 +670,13 @@ STOP,R140
 
 ; break away any concating word  ex: "TextToSpeechStartup"
 ; "Text-To-Speech-Startup"
-0xFFFFFFFF-0xFFFFFFFF:R393;H393;DM,U<1>L<+>b/U<1>/' '/L<+>A<*>
+; R393 inserted a space before an internal capital, so "MoonLight" was split
+; into the two words "Moon" and "Light", each keeping the primary stress of
+; its own dictionary entry.  DECtalk 4.2CD has no text parser at all and
+; therefore never splits on case.  H393 is a self-reference, so the rule can
+; be commented out without leaving a dangling hop.  Note this also stops the
+; split for names that benefit from it, such as PowerPoint.
+;0xFFFFFFFF-0xFFFFFFFF:R393;H393;DM,U<1>L<+>b/U<1>/' '/L<+>A<*>
 
 ; catch all regular word, so parser can scan from next word
 ; GL 04/02/1998 eat away single punct
@@ -696,8 +726,14 @@ STOP,R140
 0xFFFFFFFF-0xFFFFFFFF:R221,r/'e-mail'/'e mail'/
 ; catch all compound word connected with -
 0xFFFFFFFF-0xFFFFFFFF:R222;H223;DM,Ax<+>S{A<+>,'-'}<+>
+; R223 used to replace the hyphen with the literal text ' dash ', so a single
+; letter before a hyphen came out as "u dash turn".  The rewrite happens in
+; CMD, long before LTS, so no LTS change can affect it.  Writing the hyphen
+; back unchanged lets ls_task_process_word() split the word at the hyphen as
+; DECtalk 4.2CD does.  Disabling the rule through its language mask does
+; not work - the rule still fires - so the replacement itself is changed.
 ; change x-y to x dash y
-0x00000021-0xFFFFFFFF:R223;H224;DM,A<1>r/'-'/' dash '/A<+>
+0x00000021-0xFFFFFFFF:R223;H224;DM,A<1>r/'-'/'-'/A<+>
 ; change a-y to eyh dash y
 0x00000021-0xFFFFFFFF:R224;DM,r/`a dash `/'eyh  dash '/A<+>
 
@@ -1029,21 +1065,21 @@ WY~Wyoming
 ;mit~m i t
 
 [DICT,6_c_words]
-health~health-
-little~little-
+;health~health-
+;little~little-
 roller~roller-
-worker~worker-
+;worker~worker-
 
 [DICT,5_c_words]
-apple~apple-
-alpha~alpha-
-black~black-
-brook~brook-
+;apple~apple-
+;alpha~alpha-
+;black~black-
+;brook~brook-
 cedar~cedar-
-dream~dream-
-green~green-
-house~house-
-metro~metro-
+;dream~dream-
+;green~green-
+;house~house-
+;metro~metro-
 stage~stage-
 
 [DICT,4_c_words]
@@ -1052,24 +1088,25 @@ beta~beta-
 ;baby~baby-
 ball~ball-
 ;budy~budy-
-blue~blue-
-fair~fair-[']
-fire~[']fire-
-flex~flex-
+;blue~blue-
+;fair~fair-[']
+;fire~[']fire-
+;flex~flex-
 folk~folk-
-gate~gate-
-good~good-
-hair~hair-
-hill~hill-
+;gate~gate-
+;good~good-
+;hair~hair-
+;hill~hill-
 ;Home should work, but we have stress both sides of a compound word
 ;home~home-
-land~land-
+;land~land-
 ;read~read-
 ;Work shoudl work, but we have stress both sides of a compound word
 ;work~work-
 
 [DICT,3_c_words]
-big~big-
+qqq~qqq
+;big~big-
 
 ;sun~sun-
 ;red~red-
@@ -1084,11 +1121,13 @@ tb~tb-
 tj~tj-
 
 [DICT,5_c_words_s]
-brook~-brook
+qqqqq~qqqqq
+;brook~-brook
 
 [DICT,4_c_words_s]
-folk~-folk
-leaf~-leaf
+qqqq~qqqq
+;folk~-folk
+;leaf~-leaf
 
 ; commented out dictionary, it is unused now that R351 has changed
 ;[DICT,3_s_words]
@@ -1101,8 +1140,13 @@ leaf~-leaf
 ; the Rule R49 has to be changed when the data in this dictionary is changed.
 [DICT,abbrp_words]
 AT&T~A.T. & T.
-e.g.~for example
-i.e.~this is
+; e.g. and i.e. were expanded to "for example" and "this is" here, which
+; DECtalk 4.2CD does not do - it reads the letters from the main
+; dictionary (i.e.,N,\,`A 'i\, and e.g.,N,\,`iJ'i\,).  The entries are kept
+; with the key as its own replacement rather than removed, because the file
+; warns that R49 depends on the contents of this dictionary.
+e.g.~e.g.
+i.e.~i.e.
 w/~with
 w/o~without
 rec'd~received
@@ -1129,41 +1173,51 @@ umass~u mass
 [DICT,abbr2_words]
 apt~apartment
 
+; The following abbr_words expansions are commented out: none of them
+; exists in DECtalk 4.2CD (CMD.EXE, LTS.EXE, PH.EXE, USA.EXE, KERNEL.SYS
+; contain none of the replacement strings), and each key is a common word or
+; abbreviation in other contexts, or a DEC-internal token, so expanding it in
+; ordinary text does more harm than good.  The street abbreviations, the
+; phrase expansions and the acronyms are deliberately left active.
 [DICT,abbr_words]
 ge~G.E.
-ln~lane
-lk~lake
-rm~room
+;ln~lane
+;lk~lake
+;rm~room
 OS~O.S.
-pl~place
+;pl~place
 abc~A.B.C.
-agr~agriculture
+;agr~agriculture
 aol~A.O.L.
 API~A.P.I.
 ASA~A.S.A.
 btw~by the way
-cir~circle
-exe~x e
+;cir~circle
+;exe~x e
 fyi~for your information
 jct~junction
 hwy~high way
-hts~heights
+;hts~heights
 mtn~mountain
 mpg~miles per gallon
 mph~miles per hour
 oem~o e m
-ole~o l e
+;ole~o l e
 pky~park way
 plz~plaza
 rdg~ridge
-ter~terrace
+; "ter" is expanded to "terrace" only by the 4.99 text parser.  Neither
+; DECtalk 4.2CD, 4.3 nor 4.4
+; contain the string "terrace" or any other abbr_words expansion,
+; so all three read "ter" as a word.  Commented out to match.
+;ter~terrace
 trl~trail
-ste~suite
-sta~station
+;ste~suite
+;sta~station
 URL~U R L
-vly~valley
-zko~z k o
-enet~e net
+;vly~valley
+;zko~z k o
+;enet~e net
 capt~captain
 acct~account
 expy~express way

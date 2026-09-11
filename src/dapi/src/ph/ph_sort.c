@@ -1921,21 +1921,28 @@ static void raise_last_stress (PDPH_T pDph_t, short msym)
 
 static void zap_weaker_bound (LPTTS_HANDLE_T phTTS, short msym1, short msym2)
 {
-	/* short m; *//* MVP :Unreferenced variable */
-	//PKSD_T                  pKsd_t = phTTS->pKernelShareData;
 	PDPH_T                  pDph_t = phTTS->pPHThreadData;
 
-	if (pDph_t->symbols[msym1] < pDph_t->symbols[msym2])
+	/* Transcribed from DECtalk 4.2CD PH.EXE sub_150FE:
+	 *   ax = symbols[msym2]; cx = symbols[msym1];
+	 *   if (ax > cx) { if (cx == HYPHEN) return; delete_symbol(msym1); return; }
+	 *   if (ax == HYPHEN) return;
+	 *   delete_symbol(msym2);
+	 * 4.2CD never assigns symbols[msym1] = symbols[msym2]; the stronger boundary
+	 * wins by having the weaker one deleted, not by being copied over it.  That
+	 * assignment is what made the HYPHEN test unreachable in 4.99.  And when the
+	 * weaker of the pair is a HYPHEN, 4.2CD deletes nothing: both the hyphen and
+	 * the neighbouring boundary survive. */
+	if (pDph_t->symbols[msym2] > pDph_t->symbols[msym1])
 	{
-		pDph_t->symbols[msym1] = pDph_t->symbols[msym2];	/* Boundarys can't have */
-		if (pDph_t->symbols[msym1] != HYPHEN)
-			delete_symbol (phTTS, msym1);
+		if (pDph_t->symbols[msym1] == HYPHEN)
+			return;
+		delete_symbol (phTTS, msym1);
 		return;
-
 	}
-	/* user durs or f0 */
-	if (pDph_t->symbols[msym2] != HYPHEN)
-		delete_symbol (phTTS, msym2);
+	if (pDph_t->symbols[msym2] == HYPHEN)
+		return;
+	delete_symbol (phTTS, msym2);
 }
  
 /*

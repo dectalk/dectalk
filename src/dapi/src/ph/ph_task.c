@@ -718,11 +718,7 @@ void ph_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 				break;
 #endif
 			case RATE:
-#ifdef SLOWTALK
-				pKsd_t->sprate = deadstop (buf[1], 50, 550);
-#else
 				pKsd_t->sprate = deadstop (buf[1], 75, 600);
-#endif
 				break;
 			case CPAUSE:
 				pDph_t->compause = mstofr (deadstop (buf[1], -280, 30000));

@@ -497,7 +497,11 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
   TILTDB = variabpars[OUT_TLT] - 12;  /* Tilt in dB at 3 kHz */
   
   APlin= amptable[APinDB + 10]; /*  Convert dB to linear        */
+#if PC_SAMPLE_RATE == 10000
+  r2pg = amptable[A2inDB + 12]; /* SPC offset; software builds use 13 */
+#else
   r2pg = amptable[A2inDB + 13]; /*  Convert dB to linear        */
+#endif
   r3pg = amptable[A3inDB + 10]; /*  Convert dB to linear        */
   r4pa = amptable[A4inDB + 7];  /*  Convert dB to linear        */
   r5pa = amptable[A5inDB + 6];  /*  Convert dB to linear        */
@@ -1030,7 +1034,7 @@ overhead fixing it here is just as functional as in PH but a lot safer and easie
 	if ( pVtm_t->SampleRate <= 11025)
 #endif
 	{
-		pVtm_t->temp = ( FZinHZ >> 3 ) - 31;
+		pVtm_t->temp = ( FZinHZ >> 3 ) - FZ_TABLE_OFFSET;
 
 		if ( pVtm_t->temp > 34 )
 		  pVtm_t->temp = 34;
@@ -1662,6 +1666,10 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
   }
 #endif
   d2pole_pf( pVtm_t,&pVtm_t->rnpb, &pVtm_t->rnpc, fnp, bnp, 0 );
+#if PC_SAMPLE_RATE == 10000
+  pVtm_t->rnpb = 7890;   /* SPC values; d2pole_pf gives 7896/-3933 */
+  pVtm_t->rnpc = -3936;
+#endif
 
   /********************************************************************/
   /*  Coefficients for fixed downsampling low-pass filter             */
@@ -1697,7 +1705,14 @@ void read_speaker_definition(LPTTS_HANDLE_T phTTS)
     break;
   }
 
+#if PC_SAMPLE_RATE == 10000
+  /* SPC firmware coefficients; d2pole_pf gives a = 1262, not 1360. */
+  pVtm_t->rlpb = 5903;
+  pVtm_t->rlpc = -2896;
+  pVtm_t->rlpa = 1360;
+#else
   pVtm_t->rlpa = d2pole_pf( pVtm_t,&pVtm_t->rlpb, &pVtm_t->rlpc, flp, blp, rlpg );
+#endif
 
   /********************************************************************/
   /*  Begin set coeficients of speaker-def controlled resonators.     */
