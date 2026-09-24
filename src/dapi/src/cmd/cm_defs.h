@@ -62,11 +62,7 @@
 #define NULL ((unsigned void *) 0)
 #endif
 
-#ifdef ACCESS32
-#define  MIN_SPEAKING_RATE   50			// Slowtalk for Kurtzweil
-#else
 #define  MIN_SPEAKING_RATE   75
-#endif	/* ACCESS32 */
 
 #define  MAX_SPEAKING_RATE  600
 

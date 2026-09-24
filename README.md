@@ -1,6 +1,6 @@
 # DECtalk
 
-These files were shared by their original developer [late Edward Bruckert](https://bluegrasspals.com/pipermail/dectalk/2020-June/005253.html) on the DECtalk list in [Oct](https://bluegrasspals.com/pipermail/dectalk/2015-October/004517.html)/[Nov](https://bluegrasspals.com/pipermail/dectalk/2015-November/004535.html) 2015 and preserved on a HTTP server on [datajake.braillescreen.net](https://datajake.braillescreen.net/tts/DECtalk%20source%20code%20archive/Ad%202.zip). Another developer also added more code in 09/2022 which is also preserved in the [same location](https://datajake.braillescreen.net/tts/DECtalk%20source%20code%20archive/).
+These files were shared by their original developer [late Edward Bruckert](https://web.archive.org/web/20220824121901/https://bluegrasspals.com/pipermail/dectalk/2020-June/005253.html) on the DECtalk list in [Oct](https://web.archive.org/web/20160707082607/https://bluegrasspals.com/pipermail/dectalk/2015-October/004517.html)/[Nov](https://web.archive.org/web/20160707080942/https://bluegrasspals.com/pipermail/dectalk/2015-November/004535.html) 2015 and preserved on a HTTP server on [datajake.braillescreen.net](https://datajake.braillescreen.net/TTS/DECtalk/SourceCodeArchive/Ad%202.zip). Another developer also added more code in 09/2022 which is also preserved in the [same location](https://datajake.braillescreen.net/TTS/DECtalk/SourceCodeArchive/).
 
 ## Try it out!
 

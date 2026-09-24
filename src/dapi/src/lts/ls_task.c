@@ -350,6 +350,17 @@ void far ls_task_main(void)
 #ifdef EPSON_ARM7
 void lts_loop_2(LPTTS_HANDLE_T phTTS,unsigned short *input)
 #else
+/* Set when an item went straight to PH (inline [..] phoneme block).
+   File scope rather than a LTS_T field on purpose: devdtk43.mak carries no
+   header dependencies, so growing LTS_T would silently desynchronise the
+   struct layout between translation units on an incremental build.
+   Safe here because this code is SINGLE_THREADED only. */
+static int phon_direct = 0;
+/* Set alongside phon_direct and kept until the next real word: an inline
+   [..] phoneme block was emitted, so a following bare "'s" is its
+   possessive rather than a word of its own. */
+static int phon_block = 0;
+
 void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 #endif
 {
@@ -360,6 +371,17 @@ void lts_loop(LPTTS_HANDLE_T phTTS,unsigned short *input)
 
 	if ((input[0]&PFONT)==(PFASCII<<PSFONT))
 	{
+		if (phon_direct && pLts_t->cur_input_pos==0 &&
+		    (char_types[input[0]&PVALUE] & MARK_space))
+		{
+			unsigned short wb[1];
+			phon_direct = 0;
+			wb[0] = (PFUSA<<PSFONT) | WBOUND;
+			ph_loop(phTTS,wb);
+			return;
+		}
+		if (!(char_types[input[0]&PVALUE] & MARK_space))
+			phon_direct = 0;
 		temp=pLts_t->cur_input_pos;
 		pLts_t->input_array[pLts_t->cur_input_pos++]=(input[0]&PVALUE);
 		if ( ((char_types[pLts_t->input_array[temp]]&MARK_space) && 
@@ -463,6 +485,11 @@ parse_label:		if (pLts_t->cur_input_pos!=0)
 #else
 			ph_loop(phTTS,input);
 #endif
+		if ((input[0]&PFONT) != (PFCONTROL<<PSFONT))
+		{
+			phon_direct = 1;
+			phon_block  = 1;
+		}
 		pLts_t->nitem.i_nword = 0;
 		
 		//		lts_main_loop(phTTS);
@@ -1595,8 +1622,11 @@ int ls_task_set_what_state(LPTTS_HANDLE_T phTTS, PLTS_T pLts_t)
 #ifdef ENGLISH
 /* MGS 8/20/97 hack for stressing first words in the sentence for kerzweil */
 		//eab 1/1199 Modify the stress to a secondary stress which is more appropriate.
+/* PATCH: disabled, added after 4.2CD; the verbs[] table is in none of the original modules */
+#if 0
 		if (ls_task_lookup_first_verbs(phTTS))
 			return(FINISHED_WORD);
+#endif
 #endif // ENGLISH
 #endif // defined (ENGLISH) || defined (GERMAN)
 #ifdef FRENCH
@@ -4119,6 +4149,22 @@ int ls_task_process_word(LPTTS_HANDLE_T phTTS, LETTER *llp, LETTER *rlp)
 #endif //FRENCH
 	PLTS_T pLts_t;
 	pLts_t = phTTS->pLTSThreadData;
+
+	/* A word that is nothing but "'s" right after an inline [..] phoneme
+	 * block is that block's possessive, not a word of its own.  4.99 falls
+	 * through to the no-vowel spelling check below and says "apostrophe
+	 * ess"; attach it with pluralize(), which picks IX+Z / S / Z from
+	 * lphone.  Confirmed against 4.2CD by measurement (31 ms apart on the
+	 * same line, 750 ms apart unpatched), but the mechanism was not found
+	 * in dtpc42cd LTS.EXE, so this reproduces 4.2CD's output rather than
+	 * its code -- see the commit message. */
+	if (phon_block && llp + 2 == rlp && llp->l_ch == '\'' && (llp+1)->l_ch == 's')
+	{
+		phon_block = 0;
+		ls_util_pluralize(phTTS);
+		return(FINISHED_WORD);
+	}
+	phon_block = 0;
 	
 	/*
 	 * The second scan checks that each

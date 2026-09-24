@@ -136,7 +136,7 @@ S16 d2pole_cf45( PVTM_T pVtm_t,
   /********************************************************************/
 #ifndef HLSYN
 #if (PC_SAMPLE_RATE == 11025) || (PC_SAMPLE_RATE == 10000)
-  if ( frequency >= 4500 || bandwidth > 4950 ) {
+  if ( frequency >= 4950 || bandwidth > 4950 ) {
 #else
   if ( frequency >= 9000 || bandwidth > 9900 ) {
 #endif

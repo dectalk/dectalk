@@ -127,7 +127,11 @@ const U16 lsctype[] = {
 	ALWAYS+PR,			/* &				            */
 	
         /* GL 03/18/1997 for BATS#300 add LS and RS for ' */
-	ALWAYS+LS+RS+PR,	/* '				            */
+        /* Reverted: DECtalk 4.2CD, 4.3 and 4.4
+           all have ALWAYS+PR here.  LS+RS makes a leading or
+           trailing apostrophe be stripped as punctuation by the loops in
+           ls_task.c, which the classic DECtalk never did. */
+	ALWAYS+PR,			/* '				            */
 
 	ALWAYS+LS+FB+PR,	/* (				            */
 	ALWAYS+RS+FB+PR,	/* )				            */
@@ -217,7 +221,9 @@ const U16 lsctype[] = {
 	ALWAYS+RS+FB+PR,	/* }							*/
 	ALWAYS+PR,			/* ~							*/
 	IGNORE,				/* DEL							*/
-	ALWAYS+PR,			/* euro symbol                  */
+	/* DECtalk 4.2CD, 4.3 and 4.4 builds all
+	   have IGNORE for 0x80. */
+	IGNORE,				/* euro symbol                  */
 	IGNORE,
 	IGNORE,
 	IGNORE,
@@ -406,8 +412,8 @@ const unsigned char nabtab[] = {
 	US_M,	S1,	US_AY,	US_LL,	US_Z,	SIL,
 
 	18,	'h',	'a',	EOS,
-	US_HX,	S1,	US_EH,	US_K,	US_T,	US_RR,	SIL,
-	US_HX,	S1,	US_EH,	US_K,	US_T,	US_RR,	US_Z,	SIL,
+	US_HX,	S1,	US_EH,	US_K,	US_T,	US_ER,	SIL,
+	US_HX,	S1,	US_EH,	US_K,	US_T,	US_ER,	US_Z,	SIL,
 
 	24,	'm',	'l',	EOS,
 	US_M,	S1,	US_IH,	US_LL,	US_AX,	US_LL,	US_IY,	US_T,
@@ -546,20 +552,20 @@ const unsigned char nwdtab[] = {
 
 	16,	'm',	'i',	'l',	'l',	'i',	'o',	'n',
 	EOS,
-	US_M,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,	SIL,
+	US_M,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,	SIL,
 
 	16,	'b',	'i',	'l',	'l',	'i',	'o',	'n',
 	EOS,
-	US_B,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,	SIL,
+	US_B,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,	SIL,
 
 	18,	't',	'r',	'i',	'l',	'l',	'i',	'o',
 	'n',	EOS,
-	US_T,	US_R,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,
+	US_T,	US_R,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,
 	SIL,
 
 	16,	'z',	'i',	'l',	'l',	'i',	'o',	'n',
 	EOS,
-	US_Z,	S1,	US_IH,	US_LL,	US_Y,	US_AX,	US_N,	SIL,
+	US_Z,	S1,	US_IH,	US_LL,	US_IY,	US_AX,	US_N,	SIL,
 
 	0
 };
@@ -1158,8 +1164,7 @@ const unsigned char sdic[] =
 {
 
 	9,'f','o','r',EOS,SPECIALWORD,PPSTART,US_F,US_RR,SIL,
-	10,'a','n','d',EOS,SPECIALWORD,PPSTART,US_AE,US_N,US_D,SIL,
-	12,'m','w','i','z','i',EOS,PPSTART,US_K,US_AO,US_P,US_IY,SIL,
+	10,'a','n','d',EOS,SPECIALWORD,PPSTART,US_EH,US_N,US_D,SIL,
 	8,'t','o',EOS,SPECIALWORD,PPSTART,US_T,US_UH,SIL,
 	0	
 };
@@ -1217,7 +1222,6 @@ const unsigned char	preftab[] = {
 
 	/* GL 03/14/1997 for BATS#294, add this rule to fix all
 	   disa- word stress problem */
-	4+PCONT+P2SYL,	US_D,	US_IH,	US_S, US_AE,
 
 	3+PCONT,		US_D,	US_IH,	US_S,
 	2+PRCON,		US_D,	US_IH,

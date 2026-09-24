@@ -1376,6 +1376,14 @@ int cmd_loop(LPTTS_HANDLE_T phTTS, unsigned char input)
 					pCmd_t->ParseChar = 0x0b;
 				}
 #endif
+				/* 4.2CD (CMD.EXE loc_100F6) injects a space before every '[' unless
+				 * one precedes it already.  In the firmware that space becomes a word
+				 * boundary because text and phonemes share one pipe to LTS; here
+				 * PUSH_PHONE bypasses LTS, so the boundary has to be pushed directly.
+				 * The 'last_char != 0x20' guard is deliberately omitted: it only exists
+				 * in 4.2CD to avoid doubling a boundary the space itself already made. */
+				if (pCmd_t->ParseChar == '[')
+					cm_phon_match(phTTS, ' ');
 				if (pCmd_t->ParseChar == '[')
 				{
 #ifndef NEW_INDEXING    

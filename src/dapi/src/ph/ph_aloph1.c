@@ -497,10 +497,6 @@ void phalloph (LPTTS_HANDLE_T phTTS)
 
 	if((pKsd_t->modeflag & MODE_CITATION) && pDph_t->docitation)
 			Cite_It = 1;
-#ifdef SLOWTALK /* When we get slower we don't start slurring we seprate the words and cite them*/
-		if (pKsd_t->sprate < 100)
-			Cite_It=TRUE;
-#endif
 	sylcount=0;
 	
 #endif

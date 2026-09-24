@@ -717,10 +717,8 @@ void ls_util_send_phone(LPTTS_HANDLE_T phTTS,int ph)
 #endif
 	PLTS_T  pLts_t;
 	PKSD_T  pKsd_t;
-	PDPH_T  pDph_t;
-#ifndef EPSON_ARM7
-	int pause;
-#endif
+/* PATCH: pDph_t and pause were only used by the disabled phrase-break
+   block below. */
 
 /* GL 09/24/1997  add LDS_BUILD flag for LDS run */
 #if defined (VMS) || defined (LDS_BUILD)
@@ -730,7 +728,6 @@ void ls_util_send_phone(LPTTS_HANDLE_T phTTS,int ph)
 
 	pLts_t = phTTS->pLTSThreadData;
 	pKsd_t = phTTS->pKernelShareData;
-	pDph_t = phTTS->pPHThreadData;
 
 #ifdef NEW_LTS
 	// this code is to inhbit the sending of phonemes while in the first pass of the
@@ -811,36 +808,12 @@ void ls_util_send_phone(LPTTS_HANDLE_T phTTS,int ph)
 	//	printf("\nin lts FC(%d)(%08x)\n",pLts_t->fc_index,pLts_t->fc_struct[pLts_t->fc_index]);
 		ls_util_write_pipe(pKsd_t,&buf2[0],3);
 
-#ifdef SINGLE_THREADED
-#ifndef EPSON_ARM7
-		if(pLts_t->length > pLts_t->fc_index +3 )
-		{
-			if (pLts_t->pro_markers[pLts_t->fc_index] & PRO_REQ_BREAK)
-			{
-				pause=pDph_t->compause;
-				pDph_t->compause = -12;
-				buf2[0] = (PFUSA<<PSFONT) + COMMA;
-				ls_util_write_pipe(pKsd_t,&buf2[0],1);
-				
-				pDph_t->compause = pause;
-				
-			}
-			
-			if (pLts_t->pro_markers[pLts_t->fc_index] & PRO_OPT_BREAK)
-			{
-				pause=pDph_t->compause;
-				
-				pDph_t->compause = -12;
-				
-				buf2[0] = (PFUSA<<PSFONT) + COMMA;
-				ls_util_write_pipe(pKsd_t,&buf2[0],1);
-				
-				pDph_t->compause = pause;
-				
-			}
-		}
-#endif
-#endif
+/* PATCH: 4.2CD has no automatic prosodic phrase break.  pro_markers,
+   PRO_REQ_BREAK and PRO_OPT_BREAK all postdate it, so injecting a COMMA
+   here splits clauses that 4.2CD keeps intact.  Disabled.
+   (Only reachable when ls_task_parse_sentence() has run, which under
+   klsyn happens only via the parse_label path, i.e. when a phoneme or
+   command enters LTS -- hence the [:phone on] dependence.) */
 
 	}
 #endif // NEW_LTS

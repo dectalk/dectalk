@@ -482,6 +482,19 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 		&& (char_types[pCmd_t->clausebuf[pCmd_t->input_counter-2]] & MARK_clause))
 		{
 //printf("*C %x\n",pCmd_t->ParseChar);
+			{
+				/* 4.2CD: a clause that is nothing but punctuation (left over when a
+				 * command bracket flushed the buffer) is not spoken. */
+				int q, alnum = 0;
+				for (q = 0; q < pCmd_t->input_counter; q++)
+					if ((char_types[pCmd_t->clausebuf[q]] & (MARK_clause|MARK_space|MARK_punct)) == 0)
+						{ alnum = 1; break; }
+				if (!alnum)
+				{
+					pCmd_t->input_counter = 0;
+					return;
+				}
+			}
 			pCmd_t->done=1;
 			// fix for another lucent/octel/avaya crash
 			pCmd_t->clausebuf[pCmd_t->input_counter]='\0';
@@ -508,7 +521,7 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 			}
 #endif
 //			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && (pCmd_t->ParseChar== 0x0fff) &&
-			if ((pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && ((char_types[pCmd_t->ParseChar] & MARK_space) || (pCmd_t->ParseChar==0x82)) &&
+			if ((pCmd_t->ParseChar!=0x0b) && (pCmd_t->clausebuf[pCmd_t->input_counter-2] == '.') && ((char_types[pCmd_t->ParseChar] & MARK_space) || (pCmd_t->ParseChar==0x82)) &&
 		    (par_dict_lookup(pKsd_t,(char *)cm_text_get_word(pCmd_t->prevword,pCmd_t->wordbuf,1),0)))
 			{
 //printf("*D %x\n",pCmd_t->ParseChar);
@@ -1044,6 +1057,13 @@ void cm_text_getclause(LPTTS_HANDLE_T phTTS)
 		mode = PAR_OUTPUT_CHARS;
 		
 		for (i=0;((i<pCmd_t->ret_value.output_offset) && (char_types[pCmd_t->output_buf[i]] & MARK_space));i++);
+		/* 4.2CD keeps the space: LTS.EXE loc_11440 dispatches on the character
+		 * itself and space/tab/0x0A all reach loc_114B6, which pushes WBOUND
+		 * unconditionally.  Skipping every leading blank here loses the word
+		 * boundary that follows an inline [..] phoneme block, so keep one when
+		 * the clause has real content (an all-blank clause is still skipped). */
+		if (i > 0 && i < pCmd_t->ret_value.output_offset)
+			i--;
 		
 		/* debug switch */
 		if (DT_DBG(CMD_DBG,0x008))
