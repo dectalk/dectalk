@@ -1,4 +1,4 @@
-FROM debian:bullseye AS build
+FROM debian:bookworm AS build
 
 RUN apt-get update
 RUN apt-get --no-install-recommends -y install build-essential libasound2-dev libpulse-dev libgtk2.0-dev unzip autoconf automake git
